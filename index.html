@@ -997,8 +997,7 @@ footer {
         .backend-message.success {
             display: block;
             background: #e8f8ee;
-            color: #16733a;
-        }
+            color: #16733a;        }
 
         .backend-message.error {
             display: block;
@@ -1997,8 +1996,7 @@ body.gd-owner-mode #renterDashboard { display:none !important; }
 .gd-role-choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
 .gd-role-choice{
   width:100%;min-height:104px;display:grid;grid-template-columns:auto 1fr auto;
-  align-items:center;gap:13px;padding:17px 16px;text-align:left;
-  border:1px solid #dfe7e4;border-radius:16px;background:#f9fbfa;color:#14201e;
+  align-items:center;gap:13px;padding:17px 16px;text-align:left;  border:1px solid #dfe7e4;border-radius:16px;background:#f9fbfa;color:#14201e;
   cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease;
 }
 .gd-role-choice:hover{transform:translateY(-3px);border-color:#a9cbc4;box-shadow:0 12px 28px rgba(20,50,45,.09);}
@@ -2997,8 +2995,7 @@ async function updateAuthUI() {
         authStatus.textContent = "Signed in — profile setup required";
         resetRoleSpecificUI();
         dashboard.style.display = "none";
-        if (loginSection) loginSection.style.display = "none";
-        showMessage("backendMessage", "Your account is signed in, but its role/profile could not be loaded. Please try again.", "error");
+        if (loginSection) loginSection.style.display = "none";        showMessage("backendMessage", "Your account is signed in, but its role/profile could not be loaded. Please try again.", "error");
         return;
     }
 
@@ -3997,8 +3994,7 @@ async function renderActiveDashboard() {
 
                 if (!allProperties.some(item => item.id === property.id)) {
                     allProperties = [property, ...allProperties];
-                }
-            }
+                }            }
 
             currentProperty = property;
 
@@ -4997,8 +4993,7 @@ async function updateVisitStatus(visitId, newStatus) {
     if (!allowed.includes(newStatus)) {
         showMessage("backendMessage", "Invalid visit status.", "error");
         return;
-    }
-    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) {
+    }    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) {
         showMessage("backendMessage", "Only the property owner can update visit requests.", "error");
         return;
     }
