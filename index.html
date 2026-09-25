@@ -3365,15 +3365,15 @@ async function loginWithGoogle() {
 
             if (button) {
                 button.disabled = true;
-                button.textContent = "Sending OTP...";
+                button.textContent = "Sending reset email...";
             }
-            if (authMessage) authMessage.textContent = "Sending password reset OTP...";
+            if (authMessage) authMessage.textContent = "Sending password reset email...";
 
             try {
                 const redirectTo = window.location.origin + window.location.pathname;
                 const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
                 if (error) {
-                    console.error("Password reset OTP request error:", error);
+                    console.error("Password reset email request error:", error);
                     if (authMessage) authMessage.textContent = getFriendlyAuthError(error);
                     return;
                 }
@@ -3726,7 +3726,7 @@ async function renderActiveDashboard() {
                 }
             }
             window.__ghAdminProperties=rows; window.__ghAdminOwners=ownerMap;
-            if(!rows.length){body.innerHTML='<tr><td colspan="5">No properties are currently listed.</td></tr>';return;}
+            if(!rows.length){body.innerHTML='<tr><td colspan="5">No properties are currently listed.</td></tr>';await loadAdminPeopleAndConnections();return;}
             body.innerHTML=rows.map(function(p){
                 const o=ownerMap.get(p.owner_id)||{}, pid=String(p.id), oid=String(p.owner_id||"");
                 return '<tr><td><strong>'+escapeHtml(p.title||p.name||"Untitled property")+'</strong><br><span class="small-text">'+escapeHtml(p.listing_type||"home")+' • '+escapeHtml(p.bhk?p.bhk+" BHK":"—")+'</span></td><td class="gd-admin-owner"><strong>'+escapeHtml(o.name||"Owner unavailable")+'</strong> '+(o.verification_status==="verified"?'<span class="owner-badge">✓</span>':'<span class="pending-badge">Pending</span>')+'<br>'+escapeHtml(o.email||"Email unavailable")+'<br>'+escapeHtml(o.phone||"Phone unavailable")+'</td><td>₹'+Number(p.rent||0).toLocaleString("en-IN")+'<br><strong>'+escapeHtml(p.status||"—")+'</strong></td><td>'+escapeHtml(p.address||p.location||"—")+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-property" data-id="'+escapeHtml(pid)+'">✏️ Edit</button><button type="button" class="secondary-button gd-admin-edit-owner" data-admin-action="edit-owner" data-id="'+escapeHtml(oid)+'">👤 Owner</button><button type="button" class="dashboard-primary-action" data-admin-action="verify-property" data-id="'+escapeHtml(pid)+'">✓ Verify Property</button><button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(oid)+'">✓ Verify Owner</button><button type="button" class="secondary-button gd-admin-danger" data-admin-action="delete-property" data-id="'+escapeHtml(pid)+'">🗑️ Delete</button></div></td></tr>';
@@ -4488,8 +4488,7 @@ async function renderActiveDashboard() {
                             </div>
                         </div>
                         <div class="renter-payment-warning">
-                            <strong>⚠️ IMPORTANT: DO NOT MAKE ANY PAYMENT WITHOUT VERIFYING THE OWNER AND PROPERTY.</strong>
-                            <span>Ghar Dekho only connects renters and owners. We do not hold payments and are not responsible for payments made between parties.</span>
+                            <strong>⚠️ IMPORTANT: DO NOT PAY WITHOUT VERIFYING THE OWNER AND PROPERTY. GHAR DEKHO ONLY CONNECTS BOTH PARTIES; WE DO NOT HOLD PAYMENTS OR ACCEPT RESPONSIBILITY FOR PAYMENTS MADE BETWEEN THEM.</strong>
                         </div>
                         ` : ""}
                     </div>
