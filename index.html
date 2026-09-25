@@ -6023,6 +6023,57 @@ async function updateVisitStatus(visitId, newStatus) {
            START APPLICATION
            ========================================================= */
 
+        async function handlePasswordRecoveryTokenHash() {
+            const search = new URLSearchParams(window.location.search);
+            const tokenHash = search.get("token_hash");
+            const tokenType = String(search.get("type") || "").toLowerCase();
+
+            if (!tokenHash || tokenType !== "recovery") return false;
+
+            const resetMessage = document.getElementById("passwordResetMessage");
+            const resetSection = document.getElementById("passwordResetSection");
+            const loginSection = document.getElementById("loginSection");
+            const landing = document.getElementById("loggedOutLanding");
+
+            try {
+                const { data, error } = await supabaseClient.auth.verifyOtp({
+                    token_hash: tokenHash,
+                    type: "recovery"
+                });
+
+                if (error || !data?.session) {
+                    console.error("Password recovery token verification error:", error);
+                    if (landing) landing.style.display = "none";
+                    if (loginSection) loginSection.style.display = "block";
+                    if (resetSection) resetSection.style.display = "none";
+                    if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or has already been used. Please request a new reset email.";
+                    return true;
+                }
+
+                window.__gdPasswordRecovery = true;
+                currentUser = data.session.user;
+                passwordResetVerified = true;
+
+                if (landing) landing.style.display = "none";
+                if (loginSection) loginSection.style.display = "none";
+                if (resetSection) resetSection.style.display = "block";
+                preparePasswordResetForm();
+                if (resetMessage) resetMessage.textContent = "Reset link verified. Enter your new password below.";
+
+                // Remove the one-time token from the browser URL immediately
+                // after successful verification.
+                window.history.replaceState({}, document.title, window.location.origin + window.location.pathname);
+                scrollToSection("passwordResetSection");
+                return true;
+            } catch (error) {
+                console.error("Password recovery token verification exception:", error);
+                if (loginSection) loginSection.style.display = "block";
+                if (resetSection) resetSection.style.display = "none";
+                if (resetMessage) resetMessage.textContent = "This password-reset link could not be verified. Please request a new reset email.";
+                return true;
+            }
+        }
+
         async function handlePasswordRecoveryLink() {
             const hash = String(window.location.hash || "");
             const search = new URLSearchParams(window.location.search);
@@ -6131,6 +6182,7 @@ async function updateVisitStatus(visitId, newStatus) {
                 initialSearchParams.get("type") === "recovery" ||
                 initialSearchParams.has("code") ||
                 initialSearchParams.get("reset") === "1" ||
+                (initialSearchParams.get("type") === "recovery" && initialSearchParams.has("token_hash")) ||
                 String(window.location.hash || "").toLowerCase().includes("reset") ||
                 window.__gdPasswordRecovery === true ||
                 recentPasswordResetRequest;
@@ -6146,7 +6198,8 @@ async function updateVisitStatus(visitId, newStatus) {
 
             setupEventListeners();
 
-            const handledRecovery = await handlePasswordRecoveryLink();
+            const tokenHashRecovery = await handlePasswordRecoveryTokenHash();
+            const handledRecovery = tokenHashRecovery || await handlePasswordRecoveryLink();
 
             // If the URL was already consumed/cleaned, wait for the recovery
             // session before allowing the normal login flow to render.
