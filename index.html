@@ -5935,6 +5935,10 @@ async function updateVisitStatus(visitId, newStatus) {
             if (event === "INITIAL_SESSION") return;
 
             if (event === "PASSWORD_RECOVERY") {
+                // Supabase consumes the recovery token and may clean the URL
+                // before startApp() finishes. Keep a durable flag so the normal
+                // landing-page initialization cannot overwrite the reset screen.
+                window.__gdPasswordRecovery = true;
                 currentUser = session ? session.user : null;
                 passwordResetVerified = true;
                 setTimeout(() => showPasswordResetForm(), 0);
@@ -6021,24 +6025,33 @@ async function updateVisitStatus(visitId, newStatus) {
             const recoveryInUrl =
                 String(window.location.hash || "").toLowerCase().includes("type=recovery") ||
                 new URLSearchParams(window.location.search).get("type") === "recovery" ||
-                new URLSearchParams(window.location.search).has("code");
+                new URLSearchParams(window.location.search).has("code") ||
+                window.__gdPasswordRecovery === true;
 
             if (!recoveryInUrl && window.location.hash.toLowerCase() === "#login") {
                 history.replaceState({}, "", window.location.pathname + window.location.search);
             }
 
+            // Never initialize the ordinary home page over a password-recovery session.
             if (initialLanding) initialLanding.style.display = recoveryInUrl ? "none" : "block";
-            if (initialLogin) initialLogin.style.display = recoveryInUrl ? "none" : "none";
+            if (initialLogin) initialLogin.style.display = "none";
             if (initialPasswordReset) initialPasswordReset.style.display = "none";
 
             setupEventListeners();
 
             const handledRecovery = await handlePasswordRecoveryLink();
 
-            await Promise.allSettled([
-                handledRecovery ? Promise.resolve() : loadCurrentUser(),
-                loadProperties()
-            ]);
+            // PASSWORD_RECOVERY can arrive through onAuthStateChange after the
+            // URL has already been cleaned by Supabase. In that case the event
+            // handler has already opened the form; do not replace it with home UI.
+            if (window.__gdPasswordRecovery === true) {
+                await Promise.allSettled([loadProperties()]);
+            } else {
+                await Promise.allSettled([
+                    handledRecovery ? Promise.resolve() : loadCurrentUser(),
+                    loadProperties()
+                ]);
+            }
 
             const propertyId = new URLSearchParams(window.location.search).get("property");
             if (propertyId && !handledRecovery) {
