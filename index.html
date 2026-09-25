@@ -2711,11 +2711,12 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
 <div class="dashboard-heading"><div><span class="dashboard-role-badge">ADMIN</span><h2>Admin Control Center</h2><p class="dashboard-subtitle">Properties, owners, renters, visits and access — from one place.</p></div><div class="dashboard-user-chip"><span class="dashboard-user-dot"></span><span id="adminIdentity">Admin</span></div></div>
 <div class="gd-admin-grid"><div class="gd-admin-stat"><span>Properties</span><strong id="adminPropertyCount">0</strong></div><div class="gd-admin-stat"><span>Owners</span><strong id="adminOwnerCount">0</strong></div><div class="gd-admin-stat"><span>Renters</span><strong id="adminRenterCount">0</strong></div><div class="gd-admin-stat"><span>Visits</span><strong id="adminVisitCount">0</strong></div></div>
 <div class="gd-admin-toolbar"><button type="button" class="dashboard-primary-action" id="adminRefreshBtn">↻ Refresh All Data</button><span id="adminDataMessage" class="small-text"></span></div>
-<div class="gd-admin-tabs"><button class="gd-admin-tab active" data-admin-tab="properties">Properties</button><button class="gd-admin-tab" data-admin-tab="owners">Owners</button><button class="gd-admin-tab" data-admin-tab="renters">Renters</button><button class="gd-admin-tab" data-admin-tab="visits">Visits / Contacts</button><button class="gd-admin-tab" data-admin-tab="activity">Activity</button></div>
+<div class="gd-admin-tabs"><button class="gd-admin-tab active" data-admin-tab="properties">Properties</button><button class="gd-admin-tab" data-admin-tab="owners">Owners</button><button class="gd-admin-tab" data-admin-tab="renters">Renters</button><button class="gd-admin-tab" data-admin-tab="visits">Visits / Contacts</button><button class="gd-admin-tab" data-admin-tab="connections">Connections</button><button class="gd-admin-tab" data-admin-tab="activity">Activity</button></div>
 <div id="adminPanelProperties" class="gd-admin-panel active dashboard-card"><input id="adminPropertySearch" class="gd-admin-search" placeholder="Search property, owner or location..."><div class="gd-admin-table-wrap"><table class="gd-admin-table"><thead><tr><th>Property</th><th>Owner</th><th>Rent / Status</th><th>Location</th><th>Actions</th></tr></thead><tbody id="adminPropertiesBody"></tbody></table></div></div>
 <div id="adminPanelOwners" class="gd-admin-panel dashboard-card"><input id="adminOwnerSearch" class="gd-admin-search" placeholder="Search owner name, email or phone..."><div class="gd-admin-table-wrap"><table class="gd-admin-table"><thead><tr><th>Owner</th><th>Email</th><th>Phone</th><th>Properties</th><th>Actions</th></tr></thead><tbody id="adminOwnersBody"></tbody></table></div></div>
 <div id="adminPanelRenters" class="gd-admin-panel dashboard-card"><input id="adminRenterSearch" class="gd-admin-search" placeholder="Search renter name, email or phone..."><div class="gd-admin-table-wrap"><table class="gd-admin-table"><thead><tr><th>Renter</th><th>Email</th><th>Phone</th><th>Visits</th><th>Saved</th><th>Actions</th></tr></thead><tbody id="adminRentersBody"></tbody></table></div></div>
 <div id="adminPanelVisits" class="gd-admin-panel dashboard-card"><input id="adminVisitSearch" class="gd-admin-search" placeholder="Search renter, owner, property or phone..."><div class="gd-admin-table-wrap"><table class="gd-admin-table"><thead><tr><th>Renter</th><th>Owner</th><th>Property</th><th>Contact / Visit</th><th>Status</th><th>Created</th></tr></thead><tbody id="adminVisitsBody"></tbody></table></div></div>
+<div id="adminPanelConnections" class="gd-admin-panel dashboard-card"><input id="adminConnectionSearch" class="gd-admin-search" placeholder="Search renter, owner, property or status..."><div class="gd-admin-table-wrap"><table class="gd-admin-table"><thead><tr><th>Renter</th><th>Owner</th><th>Property</th><th>Interaction</th><th>Status</th><th>Date / Time</th></tr></thead><tbody id="adminConnectionsBody"></tbody></table></div></div>
 <div id="adminPanelActivity" class="gd-admin-panel dashboard-card"><p class="gd-admin-muted">Recent activity based on timestamps available in the current tables. This is not a full server audit log.</p><div id="adminActivityBody"></div></div>
 </section>
 <div id="adminAccessDenied" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Admin access only</h3><p>This area is restricted to the configured administrator account.</p><button type="button" class="dashboard-primary-action" onclick="closeAdminDenied()">OK</button></div></div>
@@ -3753,7 +3754,99 @@ async function renderActiveDashboard() {
                 const o=ownerMap.get(p.owner_id)||{}, pid=String(p.id), oid=String(p.owner_id||"");
                 return '<tr><td><strong>'+escapeHtml(p.title||p.name||"Untitled property")+'</strong><br><span class="small-text">'+escapeHtml(p.listing_type||"home")+' • '+escapeHtml(p.bhk?p.bhk+" BHK":"—")+'</span></td><td class="gd-admin-owner"><strong>'+escapeHtml(o.name||"Owner unavailable")+'</strong> '+(o.verification_status==="verified"?'<span class="owner-badge">✓</span>':'<span class="pending-badge">Pending</span>')+'<br>'+escapeHtml(o.email||"Email unavailable")+'<br>'+escapeHtml(o.phone||"Phone unavailable")+'</td><td>₹'+Number(p.rent||0).toLocaleString("en-IN")+'<br><strong>'+escapeHtml(p.status||"—")+'</strong></td><td>'+escapeHtml(p.address||p.location||"—")+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-property" data-id="'+escapeHtml(pid)+'">✏️ Edit</button><button type="button" class="secondary-button gd-admin-edit-owner" data-admin-action="edit-owner" data-id="'+escapeHtml(oid)+'">👤 Owner</button><button type="button" class="dashboard-primary-action" data-admin-action="verify-property" data-id="'+escapeHtml(pid)+'">✓ Verify Property</button><button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(oid)+'">✓ Verify Owner</button><button type="button" class="secondary-button gd-admin-danger" data-admin-action="delete-property" data-id="'+escapeHtml(pid)+'">🗑️ Delete</button></div></td></tr>';
             }).join("");
+            await loadAdminPeopleAndConnections();
         }
+        async function loadAdminPeopleAndConnections() {
+            if(!currentUser || !isAdminAccount()) return;
+
+            const ownersBody=document.getElementById("adminOwnersBody");
+            const rentersBody=document.getElementById("adminRentersBody");
+            const visitsBody=document.getElementById("adminVisitsBody");
+            const connectionsBody=document.getElementById("adminConnectionsBody");
+            const activityBody=document.getElementById("adminActivityBody");
+
+            const usersResult=await supabaseClient.from("users").select("id,name,email,phone,role,verification_status,created_at").order("created_at",{ascending:false});
+            const users=usersResult.error ? [] : (usersResult.data||[]);
+            const userMap=new Map(users.map(u=>[String(u.id),u]));
+            const owners=users.filter(u=>String(u.role||"").toLowerCase()==="owner");
+            const renters=users.filter(u=>["renter","tenant"].includes(String(u.role||"").toLowerCase()));
+
+            const visitsResult=await supabaseClient.from("visit_requests").select("id,property_id,owner_id,tenant_id,name,phone,visit_date,visit_time,status,created_at").order("created_at",{ascending:false});
+            const visits=visitsResult.error ? [] : (visitsResult.data||[]);
+            const savedResult=await supabaseClient.from("saved_properties").select("user_id,property_id,created_at").order("created_at",{ascending:false});
+            const saved=savedResult.error ? [] : (savedResult.data||[]);
+            const propertyMap=new Map((window.__ghAdminProperties||[]).map(p=>[String(p.id),p]));
+
+            const q=(document.getElementById("adminOwnerSearch")?.value||"").toLowerCase().trim();
+            const rq=(document.getElementById("adminRenterSearch")?.value||"").toLowerCase().trim();
+            const vq=(document.getElementById("adminVisitSearch")?.value||"").toLowerCase().trim();
+            const cq=(document.getElementById("adminConnectionSearch")?.value||"").toLowerCase().trim();
+            const matches=(u,s)=>!s||[u?.name,u?.email,u?.phone].filter(Boolean).join(" ").toLowerCase().includes(s);
+
+            if(ownersBody){
+                ownersBody.innerHTML=owners.filter(u=>matches(u,q)).map(u=>{
+                    const count=(window.__ghAdminProperties||[]).filter(p=>String(p.owner_id)===String(u.id)).length;
+                    return '<tr><td><strong>'+escapeHtml(u.name||"—")+'</strong> '+(u.verification_status==="verified"?'<span class="owner-badge">✓ Verified</span>':'<span class="pending-badge">Pending</span>')+'</td><td>'+escapeHtml(u.email||"—")+'</td><td>'+escapeHtml(u.phone||"—")+'</td><td>'+count+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-owner" data-id="'+escapeHtml(u.id)+'">Edit</button><button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Verify</button></div></td></tr>';
+                }).join("")||'<tr><td colspan="5">No owners found.</td></tr>';
+            }
+
+            if(rentersBody){
+                rentersBody.innerHTML=renters.filter(u=>matches(u,rq)).map(u=>{
+                    const myVisits=visits.filter(v=>String(v.tenant_id)===String(u.id)).length;
+                    const mySaved=saved.filter(s=>String(s.user_id)===String(u.id)).length;
+                    return '<tr><td><strong>'+escapeHtml(u.name||"—")+'</strong></td><td>'+escapeHtml(u.email||"—")+'</td><td>'+escapeHtml(u.phone||"—")+'</td><td>'+myVisits+'</td><td>'+mySaved+'</td><td><span class="small-text">ID: '+escapeHtml(u.id||"—")+'</span></td></tr>';
+                }).join("")||'<tr><td colspan="6">No renters found.</td></tr>';
+            }
+
+            const connectionRows=[];
+            visits.forEach(v=>{
+                const renter=userMap.get(String(v.tenant_id))||{name:v.name,email:"",phone:v.phone};
+                const owner=userMap.get(String(v.owner_id))||window.__ghAdminOwners?.get(v.owner_id)||{};
+                const property=propertyMap.get(String(v.property_id))||{};
+                connectionRows.push({kind:"Visit request",renter,owner,property,status:v.status||"pending",date:(v.visit_date||"—")+" "+(v.visit_time||""),created:v.created_at});
+            });
+            saved.forEach(s=>{
+                const renter=userMap.get(String(s.user_id))||{};
+                const property=propertyMap.get(String(s.property_id))||{};
+                const owner=userMap.get(String(property.owner_id))||window.__ghAdminOwners?.get(property.owner_id)||{};
+                connectionRows.push({kind:"Saved property",renter,owner,property,status:"saved",date:"—",created:s.created_at});
+            });
+            connectionRows.sort((a,b)=>String(b.created||"").localeCompare(String(a.created||"")));
+
+            if(visitsBody){
+                visitsBody.innerHTML=visits.filter(v=>{
+                    const renter=userMap.get(String(v.tenant_id))||{name:v.name,email:"",phone:v.phone};
+                    const owner=userMap.get(String(v.owner_id))||window.__ghAdminOwners?.get(v.owner_id)||{};
+                    const property=propertyMap.get(String(v.property_id))||{};
+                    return !vq||[renter.name,renter.email,renter.phone,owner.name,owner.email,owner.phone,property.title,property.location,v.status].filter(Boolean).join(" ").toLowerCase().includes(vq);
+                }).map(v=>{
+                    const renter=userMap.get(String(v.tenant_id))||{name:v.name,email:"",phone:v.phone};
+                    const owner=userMap.get(String(v.owner_id))||window.__ghAdminOwners?.get(v.owner_id)||{};
+                    const property=propertyMap.get(String(v.property_id))||{};
+                    return '<tr><td><strong>'+escapeHtml(renter.name||"—")+'</strong><br>'+escapeHtml(renter.email||"—")+'<br>'+escapeHtml(renter.phone||"—")+'</td><td><strong>'+escapeHtml(owner.name||"—")+'</strong><br>'+escapeHtml(owner.email||"—")+'<br>'+escapeHtml(owner.phone||"—")+'</td><td>'+escapeHtml(property.title||"Property")+'<br>'+escapeHtml(property.location||property.address||"—")+'</td><td>'+escapeHtml(v.name||renter.name||"—")+'<br>'+escapeHtml(v.phone||renter.phone||"—")+'<br>Visit: '+escapeHtml(v.visit_date||"—")+' '+escapeHtml(v.visit_time||"")+'</td><td><strong>'+escapeHtml(v.status||"pending")+'</strong></td><td>'+escapeHtml(v.created_at||"—")+'</td></tr>';
+                }).join("")||'<tr><td colspan="6">No visit connections found.</td></tr>';
+            }
+
+            const cqMatch=row=>{
+                const hay=[row.kind,row.status,row.renter?.name,row.renter?.email,row.renter?.phone,row.owner?.name,row.owner?.email,row.owner?.phone,row.property?.title,row.property?.location].filter(Boolean).join(" ").toLowerCase();
+                return !cq||hay.includes(cq);
+            };
+            if(connectionsBody){
+                connectionsBody.innerHTML=connectionRows.filter(cqMatch).map(row=>{
+                    return '<tr><td><strong>'+escapeHtml(row.renter?.name||"—")+'</strong><br>'+escapeHtml(row.renter?.email||"—")+'<br>'+escapeHtml(row.renter?.phone||"—")+'</td><td><strong>'+escapeHtml(row.owner?.name||"—")+'</strong><br>'+escapeHtml(row.owner?.email||"—")+'<br>'+escapeHtml(row.owner?.phone||"—")+'</td><td>'+escapeHtml(row.property?.title||"Property")+'<br>'+escapeHtml(row.property?.location||row.property?.address||"—")+'</td><td>'+escapeHtml(row.kind)+'</td><td><strong>'+escapeHtml(row.status)+'</strong></td><td>'+escapeHtml(row.date||row.created||"—")+'</td></tr>';
+                }).join("")||'<tr><td colspan="6">No renter-owner connections found.</td></tr>';
+            }
+
+            if(activityBody){
+                activityBody.innerHTML=connectionRows.slice(0,100).map(row=>'<div class="owner-property-row"><strong>'+escapeHtml(row.kind)+'</strong> — '+escapeHtml(row.renter?.name||"Renter")+' ↔ '+escapeHtml(row.owner?.name||"Owner")+'<br>'+escapeHtml(row.property?.title||"Property")+' · '+escapeHtml(row.status)+'<br><span class="small-text">'+escapeHtml(row.created||"—")+'</span></div>').join("")||'<p>No activity found.</p>';
+            }
+
+            const ownerCount=document.getElementById("adminOwnerCount"), renterCount=document.getElementById("adminRenterCount"), visitCount=document.getElementById("adminVisitCount");
+            if(ownerCount)ownerCount.textContent=String(owners.length);
+            if(renterCount)renterCount.textContent=String(renters.length);
+            if(visitCount)visitCount.textContent=String(visits.length);
+        }
+
         function openAdminPropertyEditor(id) {
             if(!isAdminAccount())return showAdminDenied();
             const p=(window.__ghAdminProperties||[]).find(function(x){return String(x.id)===String(id);}); if(!p)return;
@@ -5697,7 +5790,7 @@ async function updateVisitStatus(visitId, newStatus) {
                 if (id) deleteAdminProperty(id);
             });
             document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="delete-property")deleteAdminProperty(id);});
-            document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
+            document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");if(isAdminAccount())loadAdminPeopleAndConnections();}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch","adminConnectionSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
             const signupBtn = document.getElementById("signupBtn");
             const loginSubmitBtn = document.getElementById("loginSubmitBtn");
             const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
