@@ -2919,6 +2919,8 @@ function resetRoleSpecificUI() {
 
 async function updateAuthUI() {
     document.body.classList.remove("gd-auth-page");
+    const loginSectionAtStart = document.getElementById("loginSection");
+    if (loginSectionAtStart) loginSectionAtStart.style.display = "none";
     const authStatus = document.getElementById("authStatus");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -2939,7 +2941,7 @@ async function updateAuthUI() {
         resetRoleSpecificUI();
         dashboard.style.display = "none";
         dashboard.setAttribute("aria-hidden", "true");
-        if (loginSection) loginSection.style.display = "block";
+        if (loginSection) loginSection.style.display = "none";
         const renterDashboard = document.getElementById("renterDashboard");
         const ownerDashboard = document.getElementById("ownerDashboard");
         if (renterDashboard) { renterDashboard.classList.remove("active"); renterDashboard.style.display = "none"; }
