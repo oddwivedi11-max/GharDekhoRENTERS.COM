@@ -2796,7 +2796,7 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
             }
         }
 
-        function openLoginSection(){const e=document.getElementById("loginSection");if(!e)return;document.body.classList.add("gd-auth-page");e.style.display="grid";history.pushState({gdAuth:true},"","#login");}
+        function openLoginSection(){const e=document.getElementById("loginSection");if(!e)return;document.body.classList.add("gd-auth-page");e.style.display="grid";history.pushState({gdAuth:true},"","#login");requestAnimationFrame(()=>e.scrollIntoView({behavior:"smooth",block:"start"}));}
         function openLoginAs(role){const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");openLoginSection();if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";}
         function openOwnerArea() {
             if (!currentUser) {
