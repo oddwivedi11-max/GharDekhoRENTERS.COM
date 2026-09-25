@@ -3370,8 +3370,13 @@ async function loginWithGoogle() {
             if (authMessage) authMessage.textContent = "Sending password reset email...";
 
             try {
+                // This exact URL must be allowed in Supabase Auth > URL Configuration.
+                // It intentionally points to the same page because the recovery token
+                // is delivered in the URL and handlePasswordRecoveryLink() opens the form.
                 const redirectTo = window.location.origin + window.location.pathname;
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
+                    redirectTo
+                });
                 if (error) {
                     console.error("Password reset email request error:", error);
                     if (authMessage) authMessage.textContent = getFriendlyAuthError(error);
@@ -5944,31 +5949,99 @@ async function updateVisitStatus(visitId, newStatus) {
            START APPLICATION
            ========================================================= */
 
+        async function handlePasswordRecoveryLink() {
+            const hash = String(window.location.hash || "");
+            const search = new URLSearchParams(window.location.search);
+            const hashParams = new URLSearchParams(hash.replace(/^#/, ""));
+            const recoveryType = String(hashParams.get("type") || search.get("type") || "").toLowerCase();
+            const hasRecoveryTokens =
+                recoveryType === "recovery" ||
+                hashParams.has("access_token") ||
+                search.has("code");
+
+            if (!hasRecoveryTokens) return false;
+
+            const resetMessage = document.getElementById("passwordResetMessage");
+            const resetSection = document.getElementById("passwordResetSection");
+            const loginSection = document.getElementById("loginSection");
+            const landing = document.getElementById("loggedOutLanding");
+
+            // Give Supabase a moment to consume the recovery URL and create the
+            // temporary recovery session before showing the password form.
+            const { data, error } = await supabaseClient.auth.getSession();
+
+            if (error) {
+                console.error("Password recovery session error:", error);
+                if (resetMessage) resetMessage.textContent = "This password-reset link could not be verified. Please request a new reset email.";
+                if (loginSection) loginSection.style.display = "block";
+                if (resetSection) resetSection.style.display = "none";
+                return true;
+            }
+
+            if (!data?.session) {
+                if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or expired. Please request a new reset email.";
+                if (loginSection) loginSection.style.display = "block";
+                if (resetSection) resetSection.style.display = "none";
+                return true;
+            }
+
+            currentUser = data.session.user;
+            passwordResetVerified = true;
+
+            if (landing) landing.style.display = "none";
+            if (loginSection) loginSection.style.display = "none";
+            if (resetSection) resetSection.style.display = "block";
+            preparePasswordResetForm();
+            if (resetMessage) resetMessage.textContent = "Reset link verified. Enter your new password below.";
+
+            // Do not remove the recovery hash before Supabase has consumed it.
+            // After the session exists, clean the URL without reloading the page.
+            setTimeout(() => {
+                try {
+                    const cleanUrl = window.location.origin + window.location.pathname;
+                    window.history.replaceState({}, document.title, cleanUrl);
+                } catch (e) {
+                    console.warn("Could not clean recovery URL:", e);
+                }
+            }, 300);
+
+            scrollToSection("passwordResetSection");
+            return true;
+        }
+
         async function startApp() {
             console.log("Ghar Dekho Renters starting...");
 
-            // HARD INITIAL UI STATE:
-            // A fresh logged-out page must always open on the landing page.
-            // Auth UI is opened only when the user explicitly clicks Login / Signup.
             document.body.classList.remove("gd-auth-page", "gd-authenticated", "gd-owner-mode", "gd-renter-mode");
             const initialLanding = document.getElementById("loggedOutLanding");
             const initialLogin = document.getElementById("loginSection");
             const initialPasswordReset = document.getElementById("passwordResetSection");
             window.__gdAuthRequested = false;
-            if (window.location.hash.toLowerCase() === "#login") history.replaceState({}, "", window.location.pathname + window.location.search);
-            if (initialLanding) initialLanding.style.display = "block";
-            if (initialLogin) initialLogin.style.display = "none";
+
+            const recoveryInUrl =
+                String(window.location.hash || "").toLowerCase().includes("type=recovery") ||
+                new URLSearchParams(window.location.search).get("type") === "recovery" ||
+                new URLSearchParams(window.location.search).has("code");
+
+            if (!recoveryInUrl && window.location.hash.toLowerCase() === "#login") {
+                history.replaceState({}, "", window.location.pathname + window.location.search);
+            }
+
+            if (initialLanding) initialLanding.style.display = recoveryInUrl ? "none" : "block";
+            if (initialLogin) initialLogin.style.display = recoveryInUrl ? "none" : "none";
             if (initialPasswordReset) initialPasswordReset.style.display = "none";
 
             setupEventListeners();
 
+            const handledRecovery = await handlePasswordRecoveryLink();
+
             await Promise.allSettled([
-                loadCurrentUser(),
+                handledRecovery ? Promise.resolve() : loadCurrentUser(),
                 loadProperties()
             ]);
 
             const propertyId = new URLSearchParams(window.location.search).get("property");
-            if (propertyId) {
+            if (propertyId && !handledRecovery) {
                 await openPropertyDetails(propertyId);
             }
 
