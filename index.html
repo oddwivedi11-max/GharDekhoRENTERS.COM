@@ -5607,11 +5607,13 @@ async function updateVisitStatus(visitId, newStatus) {
             const renterFindHomeBtn = document.getElementById("renterFindHomeBtn");
             const renterTopPropertiesBtn = document.getElementById("renterTopPropertiesBtn");
             const ownerAddPropertyBtn = document.getElementById("ownerAddPropertyBtn");
+            const topLoginBtn = document.getElementById("loginBtn");
             const renterRoleChoice = document.querySelector(".gd-renter-choice");
             const ownerRoleChoice = document.querySelector(".gd-owner-choice");
 
             // Use JavaScript listeners as the primary action so the landing-page
             // role buttons still work when inline handlers are blocked by a CSP.
+            if (topLoginBtn) topLoginBtn.addEventListener("click", openLoginSection);
             if (renterRoleChoice) renterRoleChoice.addEventListener("click", () => openLoginAs("renter"));
             if (ownerRoleChoice) ownerRoleChoice.addEventListener("click", () => openLoginAs("owner"));
 
