@@ -2589,6 +2589,7 @@ body.gd-auth-page #loginSection>h2{display:none}
         let isSubmittingVisit = false;
         let isAuthenticating = false;
         let currentOwnerProfile = null;
+        let ownerPropertiesCache = [];
 
         const APP_LIMITS = Object.freeze({
             maxPropertyLoad: 100,
@@ -2906,6 +2907,7 @@ function resetRoleSpecificUI() {
 }
 
 async function updateAuthUI() {
+    document.body.classList.remove("gd-auth-page");
     const authStatus = document.getElementById("authStatus");
     const loginBtn = document.getElementById("loginBtn");
     const logoutBtn = document.getElementById("logoutBtn");
@@ -4821,7 +4823,7 @@ async function refreshSaveButtons(propertyId) {
 
         function closeLoginPage(){document.body.classList.remove("gd-auth-page");const e=document.getElementById("loginSection");if(e)e.style.display="none";history.pushState({},"",window.location.pathname+window.location.search);const l=document.getElementById("loggedOutLanding");if(l){l.style.display="block";l.scrollIntoView({behavior:"smooth",block:"start");}}
 }
-function openPropertyEditor(id){if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can edit properties.","error");const p=allProperties.find(x=>String(x.id)===String(id));const set=(n,v)=>{const e=document.getElementById(n);if(e)e.value=v??""};set("editPropertyId",id);set("editPropertyTitle",p?.title||"");set("editPropertyRent",p?.rent||"");set("editPropertyLocation",p?.location||p?.address||"");set("editPropertyBhk",p?.bhk||"");set("editPropertyFurnishing",p?.furnishing||"");set("editPropertyDescription",p?.description||"");document.getElementById("propertyEditorMessage").textContent="";document.getElementById("propertyEditor").classList.add("active");}
+function openPropertyEditor(id){if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can edit properties.","error");const p=ownerPropertiesCache.find(x=>String(x.id)===String(id)) || allProperties.find(x=>String(x.id)===String(id));const set=(n,v)=>{const e=document.getElementById(n);if(e)e.value=v??""};set("editPropertyId",id);set("editPropertyTitle",p?.title||"");set("editPropertyRent",p?.rent||"");set("editPropertyLocation",p?.location||p?.address||"");set("editPropertyBhk",p?.bhk||"");set("editPropertyFurnishing",p?.furnishing||"");set("editPropertyDescription",p?.description||"");document.getElementById("propertyEditorMessage").textContent="";document.getElementById("propertyEditor").classList.add("active");}
 function closePropertyEditor(){document.getElementById("propertyEditor")?.classList.remove("active");}
 async function deleteOwnerProperty(id){if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can delete properties.","error");if(!confirm("Delete this property permanently? This action cannot be undone."))return;const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)return showMessage("backendMessage","Unable to verify property ownership.","error");const {error}=await supabaseClient.from("properties").delete().eq("id",id).eq("owner_id",owner.id);if(error)return showMessage("backendMessage",getSafeErrorMessage(error,"Unable to delete this property."),"error");showMessage("backendMessage","Property deleted successfully.","success");await Promise.allSettled([loadProperties(),loadOwnerProperties()]);}
 async function savePropertyEdit(e){e.preventDefault();if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return;const id=document.getElementById("editPropertyId").value,title=document.getElementById("editPropertyTitle").value.trim(),location=document.getElementById("editPropertyLocation").value.trim(),rent=Number(document.getElementById("editPropertyRent").value),bhk=document.getElementById("editPropertyBhk").value,furnishing=document.getElementById("editPropertyFurnishing").value,description=document.getElementById("editPropertyDescription").value.trim(),msg=document.getElementById("propertyEditorMessage"),btn=document.getElementById("savePropertyEditBtn");if(!id||!title||!location||!Number.isFinite(rent)||rent<1){msg.textContent="Enter a valid name, location and rent.";return}btn.disabled=true;msg.textContent="Saving changes...";try{const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)throw pe||new Error("Owner profile not found");const {error}=await supabaseClient.from("properties").update({title,name:title,location,address:location,rent,bhk:bhk?Number(bhk):null,furnishing:furnishing||null,description:description||null}).eq("id",id).eq("owner_id",owner.id);if(error)throw error;msg.textContent="Property updated successfully.";await Promise.allSettled([loadProperties(),loadOwnerProperties()]);setTimeout(closePropertyEditor,500)}catch(err){msg.textContent=getSafeErrorMessage(err,"Unable to update this property.")}finally{btn.disabled=false}}
@@ -4861,7 +4863,7 @@ async function loadOwnerProperties() {
                 error
             } = await supabaseClient
                 .from("properties")
-                .select("id,title,location,rent,status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds")
+                .select("id,title,name,location,address,rent,status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description")
                 .eq("owner_id", ownerRecord.id)
                 .order("created_at", {
                     ascending: false
@@ -4883,6 +4885,7 @@ async function loadOwnerProperties() {
                 return;
             }
 
+            ownerPropertiesCache = Array.isArray(data) ? data : [];
             const ownerPropertyCount = Array.isArray(data) ? data.length : 0;
             const ownerAvailableCount = Array.isArray(data)
                 ? data.filter(property => property.status === "verified").length
