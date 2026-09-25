@@ -6099,34 +6099,39 @@ async function updateVisitStatus(visitId, newStatus) {
             // the temporary recovery session. Do not manually exchange tokens.
             //
             // Give the Supabase client a moment to finish URL processing.
-            const { data, error } = await supabaseClient.auth.getSession();
+            let session = null;
+            let lastSessionError = null;
 
-            if (error) {
-                console.error("Password recovery session error:", error);
+            // The hosted Supabase /verify endpoint can finish a recovery request
+            // just before the browser app starts. Poll briefly for the resulting
+            // session instead of racing it and falling back to the normal login.
+            for (let attempt = 0; attempt < 16; attempt++) {
+                const result = await supabaseClient.auth.getSession();
+                lastSessionError = result.error || null;
+                if (lastSessionError) break;
+                if (result.data?.session) {
+                    session = result.data.session;
+                    break;
+                }
+                await new Promise(resolve => setTimeout(resolve, 500));
+            }
+
+            if (lastSessionError) {
+                console.error("Password recovery session error:", lastSessionError);
                 if (resetMessage) resetMessage.textContent = "This password-reset link could not be verified. Please request a new reset email.";
                 if (loginSection) loginSection.style.display = "block";
                 if (resetSection) resetSection.style.display = "none";
                 return true;
             }
 
-            // Supabase may still be finishing automatic recovery-token
-            // processing when getSession() first runs.
-            if (!data?.session) {
-                // Auth URL processing is asynchronous. Give the browser client
-                // a short window to consume the recovery token and emit
-                // PASSWORD_RECOVERY before treating the link as invalid.
-                await new Promise(resolve => setTimeout(resolve, 1200));
-                const retry = await supabaseClient.auth.getSession();
-
-                if (!retry?.data?.session) {
-                    if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or expired. Please request a new reset email.";
-                    if (loginSection) loginSection.style.display = "block";
-                    if (resetSection) resetSection.style.display = "none";
-                    return true;
-                }
-
-                data.session = retry.data.session;
+            if (!session) {
+                if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or expired. Please request a new reset email.";
+                if (loginSection) loginSection.style.display = "block";
+                if (resetSection) resetSection.style.display = "none";
+                return true;
             }
+
+            const data = { session };
 
             currentUser = data.session.user;
             passwordResetVerified = true;
