@@ -5539,6 +5539,18 @@ async function updateVisitStatus(visitId, newStatus) {
 
         async function startApp() {
             console.log("Ghar Dekho Renters starting...");
+
+            // HARD INITIAL UI STATE:
+            // A fresh logged-out page must always open on the landing page.
+            // Auth UI is opened only when the user explicitly clicks Login / Signup.
+            document.body.classList.remove("gd-auth-page", "gd-authenticated", "gd-owner-mode", "gd-renter-mode");
+            const initialLanding = document.getElementById("loggedOutLanding");
+            const initialLogin = document.getElementById("loginSection");
+            const initialPasswordReset = document.getElementById("passwordResetSection");
+            if (initialLanding) initialLanding.style.display = "block";
+            if (initialLogin) initialLogin.style.display = "none";
+            if (initialPasswordReset) initialPasswordReset.style.display = "none";
+
             setupEventListeners();
 
             await Promise.allSettled([
