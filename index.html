@@ -3260,12 +3260,9 @@ async function loginWithGoogle() {
     if (authMessage) authMessage.textContent = "Opening Google account selection...";
 
     try {
-        const isLocal =
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1";
-        const redirectTo = isLocal
-            ? window.location.origin + window.location.pathname
-            : "https://ghardekhorenters-com.od-dwivedi11.workers.dev/";
+        // Always complete Google OAuth on the production GharDekho app.
+        // This prevents an old localhost index.html from taking over after login.
+        const redirectTo = "https://ghardekhorenters-com.od-dwivedi11.workers.dev/";
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: "google",
             options: {
