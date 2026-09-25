@@ -3107,6 +3107,16 @@ function resetRoleSpecificUI() {
 }
 
 async function updateAuthUI() {
+    if (window.__gdPasswordRecovery === true) {
+        const landing = document.getElementById("loggedOutLanding");
+        const loginSection = document.getElementById("loginSection");
+        const resetSection = document.getElementById("passwordResetSection");
+        if (landing) landing.style.display = "none";
+        if (loginSection) loginSection.style.display = "none";
+        if (resetSection) resetSection.style.display = "block";
+        document.body.classList.add("gd-auth-page");
+        return;
+    }
     document.body.classList.remove("gd-auth-page");
     const loginSectionAtStart = document.getElementById("loginSection");
     if (loginSectionAtStart) loginSectionAtStart.style.display = "none";
@@ -3529,6 +3539,7 @@ async function loginWithGoogle() {
 function cancelPasswordReset() {
     const loginSection = document.getElementById("loginSection");
     const resetSection = document.getElementById("passwordResetSection");
+    window.__gdPasswordRecovery = false;
     passwordResetEmail = "";
     passwordResetVerified = false;
     if (resetSection) resetSection.style.display = "none";
@@ -3571,6 +3582,7 @@ async function updatePassword() {
         passwordResetVerified = false;
 
         setTimeout(async () => {
+            window.__gdPasswordRecovery = false;
             await supabaseClient.auth.signOut();
             currentUser = null;
             currentProfile = null;
@@ -5967,6 +5979,12 @@ async function updateVisitStatus(visitId, newStatus) {
            ========================================================= */
 
         supabaseClient.auth.onAuthStateChange(function (event, session) {
+            if (window.__gdPasswordRecovery === true && event !== "SIGNED_OUT") {
+                currentUser = session ? session.user : currentUser;
+                setTimeout(() => showPasswordResetForm(), 0);
+                return;
+            }
+
             const urlLooksLikeRecovery =
                 String(window.location.hash || "").toLowerCase().includes("type=recovery") ||
                 new URLSearchParams(window.location.search).get("type") === "recovery" ||
