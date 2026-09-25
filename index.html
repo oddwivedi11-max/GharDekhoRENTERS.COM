@@ -2044,6 +2044,19 @@ body.gd-renter-mode #loggedOutLanding{display:none!important;}
 }
 </style>
 
+<style id="gd-premium-auth">
+body.gd-auth-page{background:radial-gradient(circle at 8% 12%,rgba(198,40,40,.12),transparent 28rem),radial-gradient(circle at 92% 88%,rgba(31,95,91,.12),transparent 30rem),#f6f8f7}
+body.gd-auth-page main{width:100%;max-width:none;padding:0}
+body.gd-auth-page #loggedOutLanding,body.gd-auth-page #homeSection,body.gd-auth-page #propertiesSection,body.gd-auth-page #propertyDetails,body.gd-auth-page #visitSection,body.gd-auth-page #dashboardSection,body.gd-auth-page #passwordResetSection{display:none!important}
+body.gd-auth-page #loginSection{display:grid!important;place-items:center;width:min(1180px,94%);max-width:none;min-height:calc(100vh - 86px);margin:0 auto;padding:42px 0 64px}
+body.gd-auth-page #loginSection>h2{display:none}
+.gd-premium-auth-shell{width:min(1080px,100%);display:grid;grid-template-columns:1.05fr .95fr;overflow:hidden;border:1px solid rgba(20,35,32,.1);border-radius:32px;background:#fff;box-shadow:0 30px 90px rgba(20,35,32,.15)}
+.gd-auth-brand-panel{min-height:620px;padding:54px;color:#fff;background:radial-gradient(circle at 85% 15%,rgba(255,255,255,.18),transparent 15rem),linear-gradient(145deg,#143f3b,#176b63 55%,#0e4f49)}
+.gd-auth-brand-panel h2{margin:20px 0 16px;font-size:clamp(2.5rem,5vw,4.6rem);line-height:.96;letter-spacing:-.06em}.gd-auth-brand-panel h2 span{color:#d8f1ec}.gd-auth-brand-panel p{max-width:450px;color:rgba(255,255,255,.76);line-height:1.75}.gd-auth-brand-kicker{font-size:11px;font-weight:900;letter-spacing:.18em;opacity:.78}.gd-auth-benefits{display:grid;gap:12px;margin-top:30px}.gd-auth-benefit{display:flex;align-items:center;gap:12px;font-weight:700}.gd-auth-benefit i{display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.12);font-style:normal}
+.gd-auth-form-panel{padding:48px;display:flex;align-items:center}.gd-auth-form-panel .auth-card{width:100%;padding:0;border:0;box-shadow:none;background:transparent}.gd-auth-form-title{margin:0 0 8px;font-size:2rem;letter-spacing:-.04em}.gd-auth-form-subtitle{margin:0 0 24px;color:#6a7774;line-height:1.6}.gd-auth-form-panel .auth-grid input{background:#fbfcfc;border-radius:13px}.gd-auth-form-panel .role-switch{margin:16px 0}.gd-auth-form-panel .role-switch label{background:#f5f8f7;border-radius:13px}.gd-auth-form-panel #signupBtn,.gd-auth-form-panel #loginSubmitBtn{min-height:52px;border-radius:13px;font-weight:850}.gd-auth-form-panel #loginSubmitBtn{background:#143f3b}.gd-auth-form-panel #signupBtn{background:#176b63}.gd-auth-back{display:inline-flex;align-items:center;gap:7px;margin-bottom:18px;border:0;background:transparent;color:#63706d;font-weight:800;cursor:pointer}
+.gd-property-editor{position:fixed;inset:0;z-index:9999;display:none;place-items:center;padding:20px;background:rgba(10,22,20,.62);backdrop-filter:blur(8px)}.gd-property-editor.active{display:grid}.gd-property-editor-card{width:min(720px,96vw);max-height:90vh;overflow:auto;padding:28px;border:1px solid #dce6e3;border-radius:24px;background:#fff;box-shadow:0 30px 90px rgba(0,0,0,.22)}.gd-property-editor-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:20px}.gd-property-editor-head h3{margin:0;font-size:1.55rem}.gd-editor-close{border:0;background:#eef3f1;border-radius:10px;width:40px;height:40px;cursor:pointer;font-size:20px}.gd-editor-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}.gd-editor-grid label{display:grid;gap:6px;color:#53615e;font-size:.82rem;font-weight:800}.gd-editor-grid input,.gd-editor-grid select,.gd-editor-grid textarea{width:100%;padding:12px 13px;border:1px solid #d7e1de;border-radius:12px;font:inherit}.gd-editor-grid textarea{min-height:110px;resize:vertical}.gd-editor-full{grid-column:1/-1}.gd-editor-actions{display:flex;justify-content:flex-end;gap:10px;margin-top:18px}.owner-property-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}.owner-property-actions .danger-action{background:#fff1f1;color:#b42323;border:1px solid #efc7c7}
+@media(max-width:820px){.gd-premium-auth-shell{grid-template-columns:1fr}.gd-auth-brand-panel{min-height:auto;padding:34px}.gd-auth-form-panel{padding:34px 26px}}@media(max-width:560px){.gd-auth-brand-panel{display:none}.gd-auth-form-panel{padding:28px 20px}.gd-editor-grid{grid-template-columns:1fr}.gd-editor-full{grid-column:auto}}
+</style>
 </head>
 
 <body>
@@ -2231,35 +2244,15 @@ body.gd-renter-mode #loggedOutLanding{display:none!important;}
         </section>
         <!-- EMAIL + PASSWORD AUTH -->
         <section id="loginSection" style="display:none;">
-            <h2>Login / Create Account</h2>
-            <div class="auth-card">
-                <p class="small-text">Use your email and password for Ghar Dekho Renters. Your +91 phone number is used only as your contact number.</p>
-                <div class="auth-grid">
-                    <input type="text" id="userName" placeholder="Full name" autocomplete="name">
-                    <input type="email" id="userEmail" placeholder="Email address" autocomplete="off" name="gd_login_email" readonly>
-                    <input type="tel" id="userPhone" placeholder="Phone number e.g. +91XXXXXXXXXX" inputmode="tel" autocomplete="tel">
-                    <input type="password" id="userPassword" placeholder="Password (minimum 8 characters)" autocomplete="off" name="gd_login_password" readonly>
-                </div>
-
-                <div class="role-switch">
-                    <label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked> Renter account</label>
-                    <label><input type="radio" name="accountRole" id="roleOwner" value="owner"> Owner account</label>
-                    <p id="loginRoleHint" class="form-help">Choose the account type only when creating a new account. After login, your saved account role controls the dashboard.</p>
-                </div>
-
-                <button id="signupBtn" type="button">Create Account</button>
-                <button id="loginSubmitBtn" type="button">Login</button>
-
-                <div class="auth-divider" aria-hidden="true"><span>OR</span></div>
-                <button id="googleLoginBtn" type="button" class="google-login-button">
-                    <span class="google-g-icon" aria-hidden="true">G</span>
-                    <span>Continue with Google</span>
-                </button>
-
-                <button id="forgotPasswordBtn" type="button" class="text-button">Forgot password?</button>
-                <p id="authMessage" class="small-text"></p>
-            </div>
-        </section>
+<div class="gd-premium-auth-shell">
+<div class="gd-auth-brand-panel"><span class="gd-auth-brand-kicker">GHAR DEKHO • PRIVATE RENTAL NETWORK</span><h2>Welcome to a more <span>beautiful way</span> to rent.</h2><p id="gdAuthBrandText">A polished rental experience for renters and owners.</p><div class="gd-auth-benefits"><div class="gd-auth-benefit"><i>⌂</i><span>Discover homes, PGs and hostels</span></div><div class="gd-auth-benefit"><i>✓</i><span>Save properties and request visits</span></div><div class="gd-auth-benefit"><i>♢</i><span>Manage your listings with ease</span></div></div></div>
+<div class="gd-auth-form-panel"><div class="auth-card">
+<button type="button" class="gd-auth-back" onclick="closeLoginPage()">← Back to Ghar Dekho</button>
+<h2 class="gd-auth-form-title" id="premiumAuthTitle">Login / Create Account</h2><p class="gd-auth-form-subtitle" id="premiumAuthIntro">Use your email and password for Ghar Dekho Renters.</p>
+<div class="auth-grid"><input type="text" id="userName" placeholder="Full name" autocomplete="name"><input type="email" id="userEmail" placeholder="Email address" autocomplete="email" name="gd_login_email"><input type="tel" id="userPhone" placeholder="Phone number e.g. +91XXXXXXXXXX" inputmode="tel" autocomplete="tel"><input type="password" id="userPassword" placeholder="Password (minimum 8 characters)" autocomplete="current-password" name="gd_login_password"></div>
+<div class="role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked> Renter account</label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"> Owner account</label><p id="loginRoleHint" class="form-help">Choose the account type when creating a new account. Your saved account role controls the dashboard after login.</p></div>
+<button id="signupBtn" type="button">Create Account</button><button id="loginSubmitBtn" type="button">Login</button><div class="auth-divider" aria-hidden="true"><span>OR</span></div><button id="googleLoginBtn" type="button" class="google-login-button"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="forgotPasswordBtn" type="button" class="text-button">Forgot password?</button><p id="authMessage" class="small-text"></p>
+</div></div></div></section>
 
         <!-- PASSWORD RESET -->
         <section id="passwordResetSection" style="display:none;">
@@ -2555,7 +2548,7 @@ body.gd-renter-mode #loggedOutLanding{display:none!important;}
         <!-- ADMIN DASHBOARD (visible only to approved admin account) -->
         
 
-    </main>
+<div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label></div><div class="gd-editor-actions"><button type="button" class="secondary-button" id="cancelPropertyEditorBtn">Cancel</button><button type="submit" class="dashboard-primary-action" id="savePropertyEditBtn">Save Changes</button></div><p id="propertyEditorMessage" class="small-text"></p></form></div></div>    </main>
 
     <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -2652,49 +2645,8 @@ body.gd-renter-mode #loggedOutLanding{display:none!important;}
             }
         }
 
-        function openLoginSection() {
-            const section = document.getElementById("loginSection");
-            const landing = document.getElementById("loggedOutLanding");
-
-            if (!section) return;
-
-            if (landing) landing.style.display = "block";
-            section.style.display = "block";
-
-            const message = document.getElementById("backendMessage");
-            if (message) {
-                message.textContent = "";
-                message.className = "backend-message";
-            }
-
-            scrollToSection("loginSection");
-        }
-
-        function openLoginAs(role) {
-            const title = document.querySelector("#loginSection h2");
-            const authIntro = document.querySelector("#loginSection .auth-card > p.small-text");
-            const roleHint = document.getElementById("loginRoleHint");
-
-            openLoginSection();
-
-            if (title) {
-                title.textContent = role === "owner" ? "Owner Login" : "Renter Login";
-            }
-
-            if (authIntro) {
-                authIntro.textContent = role === "owner"
-                    ? "Login to manage your rental properties, listings and renter visit requests."
-                    : "Login to find rental homes, save properties and manage your visits.";
-            }
-
-            if (roleHint) {
-                roleHint.textContent =
-                    role === "owner"
-                        ? "Owner selected. Your saved account role is checked after login."
-                        : "Renter selected. Your saved account role is checked after login.";
-            }
-        }
-
+        function openLoginSection(){const e=document.getElementById("loginSection");if(!e)return;document.body.classList.add("gd-auth-page");e.style.display="grid";history.pushState({gdAuth:true},"","#login");}
+        function openLoginAs(role){const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");openLoginSection();if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";}
         function openOwnerArea() {
             if (!currentUser) {
                 openLoginSection();
@@ -4833,7 +4785,12 @@ async function refreshSaveButtons(propertyId) {
                 .getElementById("addPropertyForm")
                 .reset();
             resetPropertyImagePicker();
-            updateStayTypeFields();
+            document.getElementById("propertyEditorForm")?.addEventListener("submit", savePropertyEdit);
+        document.getElementById("closePropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
+        document.getElementById("cancelPropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
+        document.getElementById("propertyEditor")?.addEventListener("click", e => { if(e.target.id==="propertyEditor") closePropertyEditor(); });
+        window.addEventListener("popstate", () => { if(window.location.hash!=="#login") closeLoginPage(); });
+        updateStayTypeFields();
 
             verifiedPropertyLocation = null;
 
@@ -4862,7 +4819,13 @@ async function refreshSaveButtons(propertyId) {
            OWNER - MY PROPERTIES
            ========================================================= */
 
-        async function loadOwnerProperties() {
+        function closeLoginPage(){document.body.classList.remove("gd-auth-page");const e=document.getElementById("loginSection");if(e)e.style.display="none";history.pushState({},"",window.location.pathname+window.location.search);const l=document.getElementById("loggedOutLanding");if(l){l.style.display="block";l.scrollIntoView({behavior:"smooth",block:"start");}}
+}
+function openPropertyEditor(id){if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can edit properties.","error");const p=allProperties.find(x=>String(x.id)===String(id));const set=(n,v)=>{const e=document.getElementById(n);if(e)e.value=v??""};set("editPropertyId",id);set("editPropertyTitle",p?.title||"");set("editPropertyRent",p?.rent||"");set("editPropertyLocation",p?.location||p?.address||"");set("editPropertyBhk",p?.bhk||"");set("editPropertyFurnishing",p?.furnishing||"");set("editPropertyDescription",p?.description||"");document.getElementById("propertyEditorMessage").textContent="";document.getElementById("propertyEditor").classList.add("active");}
+function closePropertyEditor(){document.getElementById("propertyEditor")?.classList.remove("active");}
+async function deleteOwnerProperty(id){if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can delete properties.","error");if(!confirm("Delete this property permanently? This action cannot be undone."))return;const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)return showMessage("backendMessage","Unable to verify property ownership.","error");const {error}=await supabaseClient.from("properties").delete().eq("id",id).eq("owner_id",owner.id);if(error)return showMessage("backendMessage",getSafeErrorMessage(error,"Unable to delete this property."),"error");showMessage("backendMessage","Property deleted successfully.","success");await Promise.allSettled([loadProperties(),loadOwnerProperties()]);}
+async function savePropertyEdit(e){e.preventDefault();if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return;const id=document.getElementById("editPropertyId").value,title=document.getElementById("editPropertyTitle").value.trim(),location=document.getElementById("editPropertyLocation").value.trim(),rent=Number(document.getElementById("editPropertyRent").value),bhk=document.getElementById("editPropertyBhk").value,furnishing=document.getElementById("editPropertyFurnishing").value,description=document.getElementById("editPropertyDescription").value.trim(),msg=document.getElementById("propertyEditorMessage"),btn=document.getElementById("savePropertyEditBtn");if(!id||!title||!location||!Number.isFinite(rent)||rent<1){msg.textContent="Enter a valid name, location and rent.";return}btn.disabled=true;msg.textContent="Saving changes...";try{const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)throw pe||new Error("Owner profile not found");const {error}=await supabaseClient.from("properties").update({title,name:title,location,address:location,rent,bhk:bhk?Number(bhk):null,furnishing:furnishing||null,description:description||null}).eq("id",id).eq("owner_id",owner.id);if(error)throw error;msg.textContent="Property updated successfully.";await Promise.allSettled([loadProperties(),loadOwnerProperties()]);setTimeout(closePropertyEditor,500)}catch(err){msg.textContent=getSafeErrorMessage(err,"Unable to update this property.")}finally{btn.disabled=false}}
+async function loadOwnerProperties() {
             if (!currentUser || !accountHasRole("owner") || activeRole !== "owner") {
                 return;
             }
@@ -4972,6 +4935,8 @@ async function refreshSaveButtons(propertyId) {
 
                             <div class="owner-property-actions">
                                 <button type="button" class="owner-view-property-btn secondary-button" data-id="${propertyId}">View</button>
+                                <button type="button" class="owner-edit-property-btn secondary-button" data-id="${propertyId}">✏️ Edit</button>
+                                <button type="button" class="owner-delete-property-btn danger-action" data-id="${propertyId}">🗑️ Delete</button>
                             </div>
 
                         </div>
@@ -4982,6 +4947,8 @@ async function refreshSaveButtons(propertyId) {
             container.querySelectorAll(".owner-view-property-btn").forEach(btn => {
                 btn.addEventListener("click", () => openPropertyDetails(btn.dataset.id));
             });
+            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyEditor(btn.dataset.id)));
+            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));
 
 
             await loadOwnerOccupancies(data);
