@@ -3397,7 +3397,7 @@ async function loginWithGoogle() {
                 // Keep the redirect URL fragment-free. Supabase appends the recovery
                 // session data to the URL hash/query; adding our own #reset fragment
                 // can produce a malformed double-fragment recovery URL.
-                const redirectTo = window.location.origin + window.location.pathname;
+                const redirectTo = window.location.origin + window.location.pathname + "?reset=1";
                 const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                     redirectTo
                 });
