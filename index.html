@@ -4988,6 +4988,97 @@ async function refreshSaveButtons(propertyId) {
 
         }
 
+async function loadOwnerVisits() {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
+
+    const container = document.getElementById("ownerVisitsContainer");
+    const pendingEl = document.getElementById("ownerPendingVisitCount");
+    if (!container) return;
+
+    const { data: ownerProfile, error: ownerError } =
+        await supabaseClient.rpc("get_my_owner_profile");
+
+    const ownerRecord = Array.isArray(ownerProfile)
+        ? (ownerProfile[0] || null)
+        : ownerProfile;
+
+    if (ownerError || !ownerRecord) {
+        console.error("Owner profile error while loading visits:", ownerError);
+        container.innerHTML = "<p>Unable to verify your owner account.</p>";
+        if (pendingEl) pendingEl.textContent = "—";
+        return;
+    }
+
+    const { data: visits, error } = await supabaseClient
+        .from("visit_requests")
+        .select("id,property_id,tenant_id,name,phone,visit_date,visit_time,status,created_at")
+        .eq("owner_id", ownerRecord.id)
+        .order("created_at", { ascending: false });
+
+    if (error) {
+        console.error("Owner visit requests error:", error);
+        container.innerHTML = "<p>Unable to load visit requests.</p>";
+        if (pendingEl) pendingEl.textContent = "—";
+        return;
+    }
+
+    const rows = Array.isArray(visits) ? visits : [];
+    const pendingCount = rows.filter(v => v.status === "pending").length;
+    if (pendingEl) pendingEl.textContent = String(pendingCount);
+
+    if (!rows.length) {
+        container.innerHTML = "<p>No visit requests yet.</p>";
+        return;
+    }
+
+    const propertyIds = [...new Set(rows.map(v => v.property_id).filter(Boolean))];
+    let propertyMap = new Map();
+
+    if (propertyIds.length) {
+        const { data: properties, error: propertyError } = await supabaseClient
+            .from("properties")
+            .select("id,title,location,address,rent")
+            .in("id", propertyIds);
+
+        if (propertyError) {
+            console.error("Owner visit property lookup error:", propertyError);
+        } else {
+            propertyMap = new Map((properties || []).map(p => [p.id, p]));
+        }
+    }
+
+    container.innerHTML = rows.map(visit => {
+        const property = propertyMap.get(visit.property_id) || {};
+        const status = String(visit.status || "pending").toLowerCase();
+        const actionButtons = status === "pending"
+            ? `
+                <div class="owner-property-actions">
+                    <button type="button" class="dashboard-primary-action" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','approved')">✓ Approve</button>
+                    <button type="button" class="secondary-button owner-delete-property-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','rejected')">✕ Reject</button>
+                </div>`
+            : "";
+
+        return `
+            <div class="visit-row">
+                <strong>${escapeHtml(property.title || "Property")}</strong>
+                <br>
+                📍 ${escapeHtml(property.address || property.location || "Address not available")}
+                <br>
+                👤 Renter: <strong>${escapeHtml(visit.name || "Renter")}</strong>
+                <br>
+                📞 Phone: ${escapeHtml(visit.phone || "Not provided")}
+                <br>
+                📅 Date: ${escapeHtml(visit.visit_date || "-")}
+                <br>
+                🕐 Time: ${escapeHtml(visit.visit_time || "-")}
+                <br>
+                Status: <strong>${escapeHtml(status)}</strong>
+                ${actionButtons}
+            </div>
+        `;
+    }).join("");
+}
+
 async function updateVisitStatus(visitId, newStatus) {
     const allowed = ["approved", "rejected"];
     if (!allowed.includes(newStatus)) {
