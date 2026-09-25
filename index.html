@@ -3497,10 +3497,19 @@ async function loginWithGoogle() {
         }
 
         function showPasswordResetForm() {
+    const landing = document.getElementById("loggedOutLanding");
     const loginSection = document.getElementById("loginSection");
     const resetSection = document.getElementById("passwordResetSection");
+
+    // Recovery can arrive after Supabase has already cleaned the URL.
+    // Always make the reset screen authoritative over the normal landing UI.
+    if (landing) landing.style.display = "none";
     if (loginSection) loginSection.style.display = "none";
     if (resetSection) resetSection.style.display = "block";
+
+    window.__gdPasswordRecovery = true;
+    passwordResetVerified = true;
+    document.body.classList.add("gd-auth-page");
     preparePasswordResetForm();
     scrollToSection("passwordResetSection");
 }
