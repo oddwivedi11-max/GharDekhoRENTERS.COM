@@ -3373,7 +3373,7 @@ async function loginWithGoogle() {
                 // This exact URL must be allowed in Supabase Auth > URL Configuration.
                 // It intentionally points to the same page because the recovery token
                 // is delivered in the URL and handlePasswordRecoveryLink() opens the form.
-                const redirectTo = window.location.origin + window.location.pathname + "?reset=1";
+                const redirectTo = window.location.origin + window.location.pathname;
                 const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                     redirectTo
                 });
