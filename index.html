@@ -5546,16 +5546,8 @@ async function updateVisitStatus(visitId, newStatus) {
                 input.addEventListener("focus", unlock, { once: true });
             });
 
-            // Clear values that Chrome may inject immediately after page load.
-            const clearAutofill = () => {
-                fields.forEach(input => {
-                    if (!input.matches(":focus")) input.value = "";
-                });
-            };
-
-            [100, 300, 600, 1000, 2000, 3500].forEach(delay => {
-                window.setTimeout(clearAutofill, delay);
-            });
+            // Do not run delayed clearing here: it could erase text the user
+            // has already entered. The readonly state is the autofill guard.
         }
 
         function protectSearchInputsFromBrowserAutofill() {
