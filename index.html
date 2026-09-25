@@ -2736,13 +2736,12 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
                 SUPABASE_PUBLISHABLE_KEY,
                 {
                     auth: {
-                        // This is a static browser app, so use the implicit
-                        // browser recovery flow. It keeps the recovery session
-                        // in the URL hash and reliably emits PASSWORD_RECOVERY.
-                        // Password recovery is a browser-only flow. PKCE lets Supabase
-                        // securely return a one-time ?code= and automatically
-                        // exchange it because detectSessionInUrl is enabled.
-                        flowType: "pkce",
+                        // Ghar Dekho is a static browser app. Use Supabase's
+                        // implicit browser flow for password recovery so the
+                        // recovery session arrives directly in the URL hash.
+                        // detectSessionInUrl consumes the recovery token once
+                        // and emits PASSWORD_RECOVERY for the reset screen.
+                        flowType: "implicit",
                         detectSessionInUrl: true,
                         persistSession: true,
                         autoRefreshToken: true
@@ -6037,10 +6036,8 @@ async function updateVisitStatus(visitId, newStatus) {
             const landing = document.getElementById("loggedOutLanding");
 
             // Supabase is configured with detectSessionInUrl:true, so it
-            // automatically consumes either a PKCE ?code= recovery link or
-            // an implicit-flow recovery hash. Never exchange the same one-time
-            // code manually here: a second exchange makes a valid link look
-            // expired/already used and sends the user back to Login.
+            // automatically consumes the implicit recovery hash and creates
+            // the temporary recovery session. Do not manually exchange tokens.
             //
             // Give the Supabase client a moment to finish URL processing.
             const { data, error } = await supabaseClient.auth.getSession();
@@ -6053,8 +6050,8 @@ async function updateVisitStatus(visitId, newStatus) {
                 return true;
             }
 
-            // In PKCE mode Supabase may still be finishing the automatic
-            // one-time code exchange when getSession() first runs.
+            // Supabase may still be finishing automatic recovery-token
+            // processing when getSession() first runs.
             if (!data?.session) {
                 // Auth URL processing is asynchronous. Give the browser client
                 // a short window to consume the recovery token and emit
