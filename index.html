@@ -2984,9 +2984,12 @@ function setRoleSpecificUI(role) {
     const homeNavLink = document.getElementById("homeNavLink");
     const propertiesNavLink = document.getElementById("propertiesNavLink");
     const ownerNavLink = document.getElementById("ownerNavLink");
+    const adminNavLink = document.getElementById("adminNavLink");
+    const adminDashboard = document.getElementById("adminDashboard");
 
     const isOwner = role === "owner";
     const isRenter = role === "renter";
+    const isAdmin = role === "admin";
 
     document.body.classList.add("gd-authenticated");
     document.body.classList.toggle("gd-owner-mode", isOwner);
@@ -3005,6 +3008,12 @@ function setRoleSpecificUI(role) {
     if (homeNavLink) homeNavLink.style.display = isRenter ? "inline-block" : "none";
     if (propertiesNavLink) propertiesNavLink.style.display = isRenter ? "inline-block" : "none";
     if (ownerNavLink) ownerNavLink.style.display = isOwner ? "inline-block" : "none";
+    if (adminNavLink) adminNavLink.style.display = isAdmin ? "inline-block" : "none";
+    if (adminDashboard) {
+        adminDashboard.classList.toggle("active", isAdmin);
+        adminDashboard.style.display = isAdmin ? "block" : "none";
+        adminDashboard.setAttribute("aria-hidden", isAdmin ? "false" : "true");
+    }
 }
 
 function resetRoleSpecificUI() {
@@ -3018,6 +3027,8 @@ function resetRoleSpecificUI() {
     const homeNavLink = document.getElementById("homeNavLink");
     const propertiesNavLink = document.getElementById("propertiesNavLink");
     const ownerNavLink = document.getElementById("ownerNavLink");
+    const adminNavLink = document.getElementById("adminNavLink");
+    const adminDashboard = document.getElementById("adminDashboard");
     const backendMessage = document.getElementById("backendMessage");
 
     document.body.classList.remove("gd-owner-mode", "gd-renter-mode");
@@ -3034,6 +3045,12 @@ function resetRoleSpecificUI() {
     if (homeNavLink) homeNavLink.style.display = "none";
     if (propertiesNavLink) propertiesNavLink.style.display = "none";
     if (ownerNavLink) ownerNavLink.style.display = "none";
+    if (adminNavLink) adminNavLink.style.display = "none";
+    if (adminDashboard) {
+        adminDashboard.classList.remove("active");
+        adminDashboard.style.display = "none";
+        adminDashboard.setAttribute("aria-hidden", "true");
+    }
 
     if (backendMessage) {
         backendMessage.textContent = "";
@@ -3624,6 +3641,21 @@ async function renderActiveDashboard() {
         if (dashboardIdentity) dashboardIdentity.textContent =
             (currentProfile?.name || "User") + " • Owner";
         await Promise.allSettled([loadOwnerProperties(), loadOwnerVisits()]);
+        return;
+    }
+
+    if (roles.length === 1 && roles[0] === "admin") {
+        if (title) title.textContent = "Admin Control Center";
+        if (subtitle) subtitle.textContent = "Manage all properties and owner information.";
+        if (roleBadge) roleBadge.textContent = "ADMIN";
+        if (dashboardIdentity) dashboardIdentity.textContent = (currentProfile?.name || currentUser?.email || "Admin") + " • Admin";
+        const adminDashboard = document.getElementById("adminDashboard");
+        if (adminDashboard) {
+            adminDashboard.style.display = "block";
+            adminDashboard.classList.add("active");
+            adminDashboard.setAttribute("aria-hidden", "false");
+        }
+        await loadAdminDashboard();
         return;
     }
 
