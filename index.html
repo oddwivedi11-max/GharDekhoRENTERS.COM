@@ -5598,6 +5598,13 @@ async function updateVisitStatus(visitId, newStatus) {
         function setupEventListeners() {
             document.getElementById("adminRefreshBtn")?.addEventListener("click", loadAdminDashboard);
             document.getElementById("adminOwnerForm")?.addEventListener("submit", saveAdminOwner);
+            document.getElementById("propertyEditorForm")?.addEventListener("submit", savePropertyEdit);
+            document.getElementById("closePropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
+            document.getElementById("cancelPropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
+            document.getElementById("deletePropertyFromEditorBtn")?.addEventListener("click", () => {
+                const id = document.getElementById("editPropertyId")?.value;
+                if (id) deleteAdminProperty(id);
+            });
             document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="delete-property")deleteAdminProperty(id);});
             document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
             const signupBtn = document.getElementById("signupBtn");
