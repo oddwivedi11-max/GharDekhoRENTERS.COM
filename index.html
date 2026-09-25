@@ -3719,12 +3719,12 @@ async function renderActiveDashboard() {
             if(!body)return;
             body.innerHTML='<tr><td colspan="5">Loading all properties and owner information...</td></tr>';
             if(msg)msg.textContent="";
-            const result=await supabaseClient.from("properties").select("id,title,name,location,address,rent,status,bhk,furnishing,description,image_url,created_at,owner_id,listing_type,room_type,gender_preference,food_included,total_beds,available_beds").order("created_at",{ascending:false});
+            const result=await supabaseClient.from("properties").select("id,title,name,location,address,rent,status,verification_status,bhk,furnishing,description,image_url,created_at,owner_id,listing_type,room_type,gender_preference,food_included,total_beds,available_beds").order("created_at",{ascending:false});
             if(result.error){body.innerHTML='<tr><td colspan="5">Unable to load properties. Database RLS may need an admin policy.</td></tr>';if(msg)msg.textContent=getSafeErrorMessage(result.error,"Admin property query failed.");if(count)count.textContent="0 properties";return;}
             const rows=Array.isArray(result.data)?result.data:[]; if(count)count.textContent=rows.length+(rows.length===1?" property":" properties");
             const ownerIds=[...new Set(rows.map(p=>p.owner_id).filter(Boolean))], ownerMap=new Map();
             if(ownerIds.length){
-                const ur=await supabaseClient.from("users").select("id,name,email,phone,role,verification_status,created_at").in("id",ownerIds);
+                const ur=await supabaseClient.from("users").select("id,name,email,phone,role,created_at").in("id",ownerIds);
                 if(!ur.error)(ur.data||[]).forEach(u=>ownerMap.set(u.id,u));
                 if(ur.error || ownerMap.size<ownerIds.length){
                     for(const ownerId of ownerIds){if(ownerMap.has(ownerId))continue;const rr=await supabaseClient.rpc("get_verified_owner_contact",{p_owner_id:ownerId});if(!rr.error&&rr.data)ownerMap.set(ownerId,Array.isArray(rr.data)?(rr.data[0]||null):rr.data);}
@@ -3840,7 +3840,10 @@ async function renderActiveDashboard() {
             if(!isAdminAccount()) return showAdminDenied();
             if(!ownerId) return showMessage("backendMessage","No owner profile is linked to this property.","error");
             try {
-                const { error } = await supabaseClient.from("users").update({ verification_status: "verified" }).eq("id", ownerId);
+                const ownerResult = await supabaseClient.from("owners").select("id").eq("user_id", ownerId).maybeSingle();
+                if (ownerResult.error) throw ownerResult.error;
+                if (!ownerResult.data?.id) throw new Error("Owner profile not found.");
+                const { error } = await supabaseClient.rpc("admin_set_owner_verification", { p_owner_id: ownerResult.data.id, p_status: "verified" });
                 if(error) throw error;
                 showMessage("backendMessage","Owner verified successfully. ✓","success");
                 await loadAdminDashboard();
@@ -3854,7 +3857,7 @@ async function renderActiveDashboard() {
             if(!isAdminAccount()) return showAdminDenied();
             if(!propertyId) return showMessage("backendMessage","Property ID is missing.","error");
             try {
-                const { error } = await supabaseClient.from("properties").update({ status: "verified" }).eq("id", propertyId);
+                const { error } = await supabaseClient.rpc("admin_set_property_verification", { p_property_id: propertyId, p_status: "verified" });
                 if(error) throw error;
                 showMessage("backendMessage","Property verified successfully. ✓","success");
                 await Promise.allSettled([loadAdminDashboard(),loadProperties()]);
