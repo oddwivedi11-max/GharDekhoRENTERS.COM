@@ -2044,6 +2044,131 @@ body.gd-renter-mode #loggedOutLanding{display:none!important;}
 }
 </style>
 
+<style id="gd-premium-brand">
+:root{--gd-ink:#102c29;--gd-teal:#176b63;--gd-teal-dark:#0d4f49;--gd-mint:#e9f5f2;--gd-red:#c62828;--gd-gold:#c99245}
+body{background:#f7faf9;color:var(--gd-ink)}
+header{
+ position:sticky!important;top:0;z-index:500;
+ height:76px!important;padding:0 clamp(18px,4vw,56px)!important;
+ background:rgba(255,255,255,.88)!important;
+ border-bottom:1px solid rgba(16,44,41,.08)!important;
+ box-shadow:0 8px 28px rgba(16,44,41,.05)!important;
+ backdrop-filter:blur(18px);
+}
+header h1{
+ margin:0!important;font-size:0!important;letter-spacing:-.04em!important;
+ color:var(--gd-ink)!important;display:flex;align-items:center;gap:10px;
+}
+header h1:before{
+ content:"GD";display:grid;place-items:center;width:38px;height:38px;border-radius:12px;
+ background:linear-gradient(145deg,#176b63,#0d4f49);color:#fff;font-size:13px;font-weight:950;
+ box-shadow:0 8px 18px rgba(23,107,99,.22);
+}
+header h1:after{content:"Ghar Dekho\A Renters";white-space:pre;font-size:20px;line-height:1.02;font-weight:900;}
+header nav{gap:24px!important}
+header nav a{font-size:13px!important;font-weight:800!important;color:#5d6b68!important;transition:.2s ease}
+header nav a:hover{color:var(--gd-teal)!important}
+header #loginBtn,header #logoutBtn{
+ min-height:44px!important;padding:0 20px!important;border-radius:13px!important;
+ font-weight:900!important;letter-spacing:-.01em;
+ box-shadow:0 10px 24px rgba(23,107,99,.18)!important;
+}
+header #loginBtn{background:var(--gd-ink)!important}
+header #loginBtn:hover{background:var(--gd-teal)!important;transform:translateY(-1px)}
+body:not(.gd-authenticated) #homeNavLink,body:not(.gd-authenticated) #propertiesNavLink{display:none!important}
+
+.gd-logged-out-landing{
+ width:min(1240px,92%)!important;padding:34px 0 90px!important;
+}
+.gd-landing-hero{
+ position:relative;overflow:hidden!important;
+ min-height:590px!important;padding:clamp(34px,5vw,68px)!important;
+ border:1px solid rgba(16,44,41,.08)!important;border-radius:34px!important;
+ background:
+  radial-gradient(circle at 82% 8%,rgba(199,211,166,.24),transparent 18rem),
+  radial-gradient(circle at 10% 90%,rgba(23,107,99,.13),transparent 22rem),
+  linear-gradient(135deg,#fff 0%,#f1f8f5 100%)!important;
+ box-shadow:0 30px 90px rgba(16,44,41,.10)!important;
+}
+.gd-landing-hero:before{
+ content:"";position:absolute;inset:auto -100px -150px auto;width:360px;height:360px;border-radius:50%;
+ border:1px solid rgba(23,107,99,.09);box-shadow:0 0 0 55px rgba(23,107,99,.025),0 0 0 110px rgba(23,107,99,.018);
+}
+.gd-landing-copy{position:relative;z-index:2}
+.gd-landing-eyebrow{font-size:10px!important;letter-spacing:.2em!important;color:var(--gd-teal)!important}
+.gd-landing-copy h2{
+ max-width:700px!important;margin:16px 0 22px!important;
+ font-size:clamp(3.2rem,6vw,6.2rem)!important;line-height:.91!important;
+ letter-spacing:-.065em!important;
+}
+.gd-landing-copy h2 span{
+ background:linear-gradient(90deg,#176b63,#4b9188);-webkit-background-clip:text;background-clip:text;color:transparent!important;
+}
+.gd-landing-copy>p{max-width:600px!important;font-size:1.05rem!important;color:#667572!important}
+.gd-landing-trust span{
+ padding:9px 13px!important;border-color:#d6e5e1!important;background:rgba(255,255,255,.78)!important;
+ box-shadow:0 5px 14px rgba(16,44,41,.04);
+}
+.gd-landing-visual{min-height:430px!important}
+.gd-house-card{
+ width:min(410px,88%)!important;border-radius:28px!important;
+ box-shadow:0 30px 70px rgba(16,44,41,.18)!important;transform:rotate(2deg)!important;
+}
+.gd-house-photo{height:265px!important}
+.gd-house-info{padding:21px 22px 24px!important}
+.gd-house-info strong{font-size:22px!important;letter-spacing:-.03em}
+.gd-floating-card{
+ border-radius:16px!important;padding:14px 17px!important;
+ box-shadow:0 16px 35px rgba(16,44,41,.12)!important;
+}
+.gd-floating-one{left:0!important;top:13%!important}.gd-floating-two{right:1%!important;bottom:12%!important}
+
+.gd-login-prompt{
+ position:relative;overflow:hidden;grid-template-columns:.62fr 1.38fr!important;
+ margin-top:28px!important;padding:30px!important;border-radius:24px!important;
+ border-color:rgba(16,44,41,.08)!important;box-shadow:0 18px 50px rgba(16,44,41,.07)!important;
+}
+.gd-login-prompt:after{content:"";position:absolute;right:-90px;top:-90px;width:220px;height:220px;border-radius:50%;background:rgba(23,107,99,.045)}
+.gd-login-prompt h3{font-size:27px!important;letter-spacing:-.04em}
+.gd-role-choice{
+ min-height:118px!important;padding:20px!important;border-radius:18px!important;
+ background:#fff!important;border-color:#e0e9e6!important;
+ box-shadow:0 8px 22px rgba(16,44,41,.04);
+}
+.gd-renter-choice{background:linear-gradient(145deg,#f9fffd,#eef8f5)!important}
+.gd-owner-choice{background:linear-gradient(145deg,#fffefa,#fff7eb)!important}
+.gd-role-choice:hover{transform:translateY(-5px)!important;box-shadow:0 18px 35px rgba(16,44,41,.11)!important}
+.gd-role-icon{width:48px!important;height:48px!important;border-radius:15px!important}
+.gd-role-choice strong{font-size:16px!important}
+.gd-role-choice small{font-size:12px!important}
+.gd-role-arrow{font-size:23px!important}
+.gd-landing-features{gap:16px!important;margin-top:20px!important}
+.gd-landing-features article{
+ min-height:160px;padding:25px!important;border-radius:20px!important;
+ border-color:rgba(16,44,41,.08)!important;box-shadow:0 10px 30px rgba(16,44,41,.045);
+ transition:transform .2s ease,box-shadow .2s ease;
+}
+.gd-landing-features article:hover{transform:translateY(-4px);box-shadow:0 18px 40px rgba(16,44,41,.08)}
+.gd-landing-features article>span{display:grid;place-items:center;width:44px;height:44px;border-radius:14px;background:var(--gd-mint);font-size:20px}
+.gd-landing-features strong{font-size:16px!important;letter-spacing:-.02em}
+.gd-landing-features p{font-size:13px!important;line-height:1.65!important}
+
+@media(max-width:900px){
+ header{padding:0 18px!important}header nav{display:none!important}
+ .gd-landing-hero{min-height:auto!important}
+ .gd-login-prompt{grid-template-columns:1fr!important}
+}
+@media(max-width:620px){
+ header{height:68px!important}
+ header h1:after{font-size:17px}
+ header h1:before{width:34px;height:34px}
+ header #loginBtn{padding:0 14px!important}
+ .gd-logged-out-landing{width:94%!important;padding-top:22px!important}
+ .gd-landing-hero{padding:28px 22px!important;border-radius:26px!important}
+ .gd-landing-copy h2{font-size:clamp(2.8rem,14vw,4rem)!important}
+ .gd-login-prompt{padding:22px!important}
+}
+</style>
 <style id="gd-premium-auth">
 body.gd-auth-page{background:radial-gradient(circle at 8% 12%,rgba(198,40,40,.12),transparent 28rem),radial-gradient(circle at 92% 88%,rgba(31,95,91,.12),transparent 30rem),#f6f8f7}
 body.gd-auth-page main{width:100%;max-width:none;padding:0}
@@ -2099,16 +2224,15 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
             <div class="gd-landing-hero">
                 <div class="gd-landing-copy">
                     <span class="gd-landing-eyebrow">GHAR DEKHO • RENTALS MADE SIMPLE</span>
-                    <h2>Find a home.<br><span>List your property.</span><br>All in one place.</h2>
+                    <h2>Find a place<br><span>you can call home.</span></h2>
                     <p>
-                        Ghar Dekho connects renters with rental homes, PGs and hostels,
-                        while giving owners a simple place to manage their listings and visit requests.
+                        Discover rental homes, PGs and hostels with a calmer, simpler experience — while owners get a polished space to manage listings and renter visits.
                     </p>
                     <div class="gd-landing-trust">
-                        <span>✓ Rental search</span>
-                        <span>✓ Owner listings</span>
-                        <span>✓ Visit requests</span>
-                        <span>✓ Location-based discovery</span>
+                        <span>✓ Curated rental discovery</span>
+                        <span>✓ Owner-managed listings</span>
+                        <span>✓ Easy visit requests</span>
+                        <span>✓ Nearby homes</span>
                     </div>
                 </div>
                 <div class="gd-landing-visual" aria-hidden="true">
@@ -2128,8 +2252,8 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
             <div class="gd-login-prompt">
                 <div>
                     <span class="gd-landing-eyebrow">GET STARTED</span>
-                    <h3>Kindly login to continue</h3>
-                    <p>Choose how you want to use Ghar Dekho.</p>
+                    <h3>Your next address starts here</h3>
+                    <p>Choose your experience and step inside Ghar Dekho.</p>
                 </div>
                 <div class="gd-role-choice-grid">
                     <button type="button" class="gd-role-choice gd-renter-choice" onclick="openLoginAs('renter')">
