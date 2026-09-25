@@ -3719,7 +3719,7 @@ async function renderActiveDashboard() {
             const rows=Array.isArray(result.data)?result.data:[]; if(count)count.textContent=rows.length+(rows.length===1?" property":" properties");
             const ownerIds=[...new Set(rows.map(p=>p.owner_id).filter(Boolean))], ownerMap=new Map();
             if(ownerIds.length){
-                const ur=await supabaseClient.from("users").select("id,name,email,phone,role").in("id",ownerIds);
+                const ur=await supabaseClient.from("users").select("id,name,email,phone,role,verification_status,created_at").in("id",ownerIds);
                 if(!ur.error)(ur.data||[]).forEach(u=>ownerMap.set(u.id,u));
                 if(ur.error || ownerMap.size<ownerIds.length){
                     for(const ownerId of ownerIds){if(ownerMap.has(ownerId))continue;const rr=await supabaseClient.rpc("get_verified_owner_contact",{p_owner_id:ownerId});if(!rr.error&&rr.data)ownerMap.set(ownerId,Array.isArray(rr.data)?(rr.data[0]||null):rr.data);}
