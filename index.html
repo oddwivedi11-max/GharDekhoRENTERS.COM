@@ -6000,6 +6000,20 @@ async function updateVisitStatus(visitId, newStatus) {
             const loginSection = document.getElementById("loginSection");
             const landing = document.getElementById("loggedOutLanding");
 
+            // PKCE recovery links arrive with ?code=... and must be exchanged
+            // explicitly before getSession() can see the recovery session.
+            const recoveryCode = search.get("code");
+            if (recoveryCode) {
+                const { error: exchangeError } = await supabaseClient.auth.exchangeCodeForSession(recoveryCode);
+                if (exchangeError) {
+                    console.error("Password recovery code exchange error:", exchangeError);
+                    if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or expired. Please request a new reset email.";
+                    if (loginSection) loginSection.style.display = "block";
+                    if (resetSection) resetSection.style.display = "none";
+                    return true;
+                }
+            }
+
             // Give Supabase a moment to consume the recovery URL and create the
             // temporary recovery session before showing the password form.
             const { data, error } = await supabaseClient.auth.getSession();
