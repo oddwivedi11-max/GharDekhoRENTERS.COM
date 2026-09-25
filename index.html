@@ -5586,7 +5586,13 @@ async function updateVisitStatus(visitId, newStatus) {
             }, delay));
         }
 
-        // Admin search inputs call this renderer. Keep it defined even before the first admin data load.\n        function adminRender() {\n            if (!isAdminAccount()) return;\n            loadAdminDashboard();\n        }\n\n        function setupEventListeners() {
+        // Admin search inputs call this renderer. Keep it defined even before the first admin data load.
+        function adminRender() {
+            if (!isAdminAccount()) return;
+            loadAdminDashboard();
+        }
+
+        function setupEventListeners() {
             document.getElementById("adminRefreshBtn")?.addEventListener("click", loadAdminDashboard);
             document.getElementById("adminOwnerForm")?.addEventListener("submit", saveAdminOwner);
             document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
