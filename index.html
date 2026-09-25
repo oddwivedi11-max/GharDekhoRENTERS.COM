@@ -3370,10 +3370,11 @@ async function loginWithGoogle() {
             if (authMessage) authMessage.textContent = "Sending password reset email...";
 
             try {
-                // This exact URL must be allowed in Supabase Auth > URL Configuration.
-                // It intentionally points to the same page because the recovery token
-                // is delivered in the URL and handlePasswordRecoveryLink() opens the form.
-                const redirectTo = window.location.origin + window.location.pathname + "#reset";
+                // This exact URL is already allowed in Supabase Auth > URL Configuration.
+                // Keep the redirect URL fragment-free. Supabase appends the recovery
+                // session data to the URL hash/query; adding our own #reset fragment
+                // can produce a malformed double-fragment recovery URL.
+                const redirectTo = window.location.origin + window.location.pathname;
                 const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                     redirectTo
                 });
