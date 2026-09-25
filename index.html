@@ -3409,6 +3409,14 @@ async function loginWithGoogle() {
 
                 passwordResetEmail = email;
                 passwordResetVerified = false;
+                // Supabase can consume/clean the recovery URL before this page
+                // finishes initializing. Keep a short-lived local marker so
+                // startup can still recognize the password-reset navigation.
+                try {
+                    localStorage.setItem("gd_password_reset_requested_at", String(Date.now()));
+                } catch (e) {
+                    console.warn("Could not store password reset marker:", e);
+                }
                 if (authMessage) authMessage.textContent = "Reset email sent. Open the secure link in your email to create a new password.";
             } finally {
                 if (button) {
@@ -6103,13 +6111,29 @@ async function updateVisitStatus(visitId, newStatus) {
             window.__gdAuthRequested = false;
 
             const initialSearchParams = new URLSearchParams(window.location.search);
+
+            // Supabase may consume and clean the recovery URL before our
+            // startup code sees it. A short-lived marker bridges that race.
+            let recentPasswordResetRequest = false;
+            try {
+                const requestedAt = Number(localStorage.getItem("gd_password_reset_requested_at") || "0");
+                const markerAge = Date.now() - requestedAt;
+                recentPasswordResetRequest = requestedAt > 0 && markerAge >= 0 && markerAge <= 30 * 60 * 1000;
+                if (!recentPasswordResetRequest && requestedAt) {
+                    localStorage.removeItem("gd_password_reset_requested_at");
+                }
+            } catch (e) {
+                console.warn("Could not read password reset marker:", e);
+            }
+
             const recoveryInUrl =
                 String(window.location.hash || "").toLowerCase().includes("type=recovery") ||
                 initialSearchParams.get("type") === "recovery" ||
                 initialSearchParams.has("code") ||
                 initialSearchParams.get("reset") === "1" ||
                 String(window.location.hash || "").toLowerCase().includes("reset") ||
-                window.__gdPasswordRecovery === true;
+                window.__gdPasswordRecovery === true ||
+                recentPasswordResetRequest;
 
             if (!recoveryInUrl && window.location.hash.toLowerCase() === "#login") {
                 history.replaceState({}, "", window.location.pathname + window.location.search);
@@ -6123,6 +6147,27 @@ async function updateVisitStatus(visitId, newStatus) {
             setupEventListeners();
 
             const handledRecovery = await handlePasswordRecoveryLink();
+
+            // If the URL was already consumed/cleaned, wait for the recovery
+            // session before allowing the normal login flow to render.
+            if (recentPasswordResetRequest && !handledRecovery && window.__gdPasswordRecovery !== true) {
+                await new Promise(resolve => setTimeout(resolve, 1400));
+                const recoverySession = await supabaseClient.auth.getSession();
+
+                if (recoverySession.data?.session) {
+                    window.__gdPasswordRecovery = true;
+                    currentUser = recoverySession.data.session.user;
+                    passwordResetVerified = true;
+                    try {
+                        localStorage.removeItem("gd_password_reset_requested_at");
+                    } catch (e) {}
+                    showPasswordResetForm();
+                } else {
+                    try {
+                        localStorage.removeItem("gd_password_reset_requested_at");
+                    } catch (e) {}
+                }
+            }
 
             // Give Supabase Auth a short window to emit PASSWORD_RECOVERY and
             // establish the recovery session before normal auth UI can render.
