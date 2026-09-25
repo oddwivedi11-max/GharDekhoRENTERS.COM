@@ -2405,24 +2405,14 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
 
         <!-- PASSWORD RESET -->
         <section id="passwordResetSection" style="display:none;">
-            <h2>Reset Password</h2>
+            <h2>Set a New Password</h2>
             <div class="auth-card">
-                <p class="small-text">We will send a 6-digit OTP to your email. Verify it first, then create a new password.</p>
-                <div class="otp-box">
-                    <label for="passwordResetEmail"><strong>Email</strong></label>
-                    <input type="email" id="passwordResetEmail" placeholder="Email address" autocomplete="off" name="gd_login_email" readonly readonly>
-                    <label for="passwordResetOtp" style="display:block;margin-top:10px;"><strong>6-digit OTP</strong></label>
-                    <input type="text" id="passwordResetOtp" placeholder="Enter 6-digit OTP" inputmode="numeric" autocomplete="one-time-code" maxlength="6" pattern="\d{6}">
-                    <div class="property-actions" style="margin-top:10px;">
-                        <button id="verifyPasswordOtpBtn" type="button">Verify OTP</button>
-                        <button id="resendPasswordOtpBtn" type="button" class="secondary-button">Resend OTP</button>
-                    </div>
-                </div>
+                <p class="small-text">Use the secure password-reset link sent to your email, then create a new password here.</p>
                 <div class="auth-grid" style="margin-top:14px;">
-                    <input type="password" id="newPassword" placeholder="New password (minimum 8 characters)" autocomplete="new-password" disabled>
-                    <input type="password" id="confirmNewPassword" placeholder="Confirm new password" autocomplete="new-password" disabled>
+                    <input type="password" id="newPassword" placeholder="New password (minimum 8 characters)" autocomplete="new-password">
+                    <input type="password" id="confirmNewPassword" placeholder="Confirm new password" autocomplete="new-password">
                 </div>
-                <button id="updatePasswordBtn" type="button" disabled>Set New Password</button>
+                <button id="updatePasswordBtn" type="button">Set New Password</button>
                 <button id="cancelPasswordResetBtn" type="button" class="secondary-button">Back to Login</button>
                 <p id="passwordResetMessage" class="small-text" aria-live="polite"></p>
             </div>
@@ -3380,7 +3370,8 @@ async function loginWithGoogle() {
             if (authMessage) authMessage.textContent = "Sending password reset OTP...";
 
             try {
-                const { error } = await supabaseClient.auth.resetPasswordForEmail(email);
+                const redirectTo = window.location.origin + window.location.pathname;
+                const { error } = await supabaseClient.auth.resetPasswordForEmail(email, { redirectTo });
                 if (error) {
                     console.error("Password reset OTP request error:", error);
                     if (authMessage) authMessage.textContent = getFriendlyAuthError(error);
@@ -3389,9 +3380,7 @@ async function loginWithGoogle() {
 
                 passwordResetEmail = email;
                 passwordResetVerified = false;
-                preparePasswordResetForm();
-                showPasswordResetForm();
-                if (authMessage) authMessage.textContent = "";
+                if (authMessage) authMessage.textContent = "Reset email sent. Open the secure link in your email to create a new password.";
             } finally {
                 if (button) {
                     button.disabled = false;
@@ -3401,21 +3390,15 @@ async function loginWithGoogle() {
         }
 
         function preparePasswordResetForm() {
-            const emailInput = document.getElementById("passwordResetEmail");
-            const otpInput = document.getElementById("passwordResetOtp");
             const newPassword = document.getElementById("newPassword");
             const confirmPassword = document.getElementById("confirmNewPassword");
-            const verifyButton = document.getElementById("verifyPasswordOtpBtn");
             const updateButton = document.getElementById("updatePasswordBtn");
             const message = document.getElementById("passwordResetMessage");
 
-            if (emailInput) emailInput.value = passwordResetEmail;
-            if (otpInput) otpInput.value = "";
-            if (newPassword) { newPassword.value = ""; newPassword.disabled = true; }
-            if (confirmPassword) { confirmPassword.value = ""; confirmPassword.disabled = true; }
-            if (verifyButton) { verifyButton.disabled = false; verifyButton.textContent = "Verify OTP"; }
-            if (updateButton) { updateButton.disabled = true; updateButton.textContent = "Set New Password"; }
-            if (message) message.textContent = "OTP sent. Check your email and enter the 6-digit code.";
+            if (newPassword) { newPassword.value = ""; newPassword.disabled = false; }
+            if (confirmPassword) { confirmPassword.value = ""; confirmPassword.disabled = false; }
+            if (updateButton) { updateButton.disabled = false; updateButton.textContent = "Set New Password"; }
+            if (message) message.textContent = "Secure reset link verified. Create your new password below.";
         }
 
         async function verifyPasswordOtp() {
@@ -3511,10 +3494,9 @@ async function loginWithGoogle() {
         function showPasswordResetForm() {
     const loginSection = document.getElementById("loginSection");
     const resetSection = document.getElementById("passwordResetSection");
-    const message = document.getElementById("passwordResetMessage");
     if (loginSection) loginSection.style.display = "none";
     if (resetSection) resetSection.style.display = "block";
-    if (message) message.textContent = "";
+    preparePasswordResetForm();
     scrollToSection("passwordResetSection");
 }
 
@@ -3533,11 +3515,6 @@ async function updatePassword() {
     const confirmPassword = document.getElementById("confirmNewPassword").value;
     const message = document.getElementById("passwordResetMessage");
     const button = document.getElementById("updatePasswordBtn");
-
-    if (!passwordResetVerified) {
-        message.textContent = "Verify the OTP before setting a new password.";
-        return;
-    }
 
     if (newPassword.length < 8) {
         message.textContent = "New password must be at least 8 characters.";
@@ -3562,7 +3539,7 @@ async function updatePassword() {
             return;
         }
 
-        message.textContent = "Password updated successfully. You can now log in with your new password.";
+        message.textContent = "Password updated successfully. Please log in with your new password.";
         document.getElementById("newPassword").value = "";
         document.getElementById("confirmNewPassword").value = "";
         passwordResetVerified = false;
@@ -5871,6 +5848,7 @@ async function updateVisitStatus(visitId, newStatus) {
 
             if (event === "PASSWORD_RECOVERY") {
                 currentUser = session ? session.user : null;
+                passwordResetVerified = true;
                 setTimeout(() => showPasswordResetForm(), 0);
                 return;
             }
