@@ -3908,8 +3908,9 @@ async function renderActiveDashboard() {
                 // properties schema. Optional PG/Hostel columns are not queried here.
                 const propertyQuery = supabaseClient
                     .from("properties")
-                    .select("id,owner_id,title,location,latitude,longitude,bhk,rent,furnishing,description,status,image_url,created_at")
-                    .eq("status", "verified")
+                    .select("id,owner_id,title,location,latitude,longitude,bhk,rent,furnishing,description,status,verification_status,image_url,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds")
+                    .eq("verification_status", "verified")
+                    .in("status", ["verified","occupied","soon_available"])
                     .order("created_at", { ascending: false })
                     .limit(APP_LIMITS.maxPropertyLoad);
 
@@ -4317,7 +4318,7 @@ async function renderActiveDashboard() {
             let property = allProperties.find(item => item.id === propertyId);
 
             if (!property) {
-                const baseSelect = "id,title,location,bhk,rent,furnishing,description,image_url,latitude,longitude,status,created_at,owner_id";
+                const baseSelect = "id,title,location,bhk,rent,furnishing,description,image_url,latitude,longitude,status,verification_status,created_at,owner_id";
                 let detailResult = await supabaseClient
                     .from("properties")
                     .select(baseSelect)
@@ -4492,7 +4493,7 @@ async function renderActiveDashboard() {
                                 <div><span>Name</span><strong>${escapeHtml(owner?.name || "Not available")}</strong></div>
                                 <div><span>Phone</span><strong>${owner?.phone ? `<a href="tel:${escapeHtml(owner.phone)}">${escapeHtml(owner.phone)}</a>` : "Not available"}</strong></div>
                                 <div><span>Email</span><strong>${escapeHtml(owner?.email || "Not available")}</strong></div>
-                                <div><span>Property verification</span><strong>${property.status === "verified" ? "✓ Verified Property" : "Pending verification"}</strong></div>
+                                <div><span>Property verification</span><strong>${property.verification_status === "verified" ? "✓ Verified Property" : "Pending verification"}</strong></div>
                             </div>
                         </div>
                         <div class="renter-payment-warning">
@@ -4653,7 +4654,7 @@ async function renderActiveDashboard() {
                 return;
             }
 
-            if (property.status !== "verified") {
+            if (property.verification_status !== "verified" || !["verified","occupied","soon_available"].includes(property.status)) {
                 status.textContent =
                     "This property is not currently available for booking.";
                 isSubmittingVisit = false;
@@ -5198,7 +5199,8 @@ async function refreshSaveButtons(propertyId) {
                     furnishing: furnishing || null,
                     description: description || null,
                     image_url: imageUrl || null,
-                    status: "verified"
+                    status: "pending",
+                    verification_status: "pending"
                 });
 
             if (error) {
@@ -5388,7 +5390,7 @@ async function loadOwnerProperties() {
                 error
             } = await supabaseClient
                 .from("properties")
-                .select("id,title,name,location,address,rent,status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description")
+                .select("id,title,name,location,address,rent,status,verification_status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description")
                 .eq("owner_id", ownerRecord.id)
                 .order("created_at", {
                     ascending: false
@@ -5413,7 +5415,7 @@ async function loadOwnerProperties() {
             ownerPropertiesCache = Array.isArray(data) ? data : [];
             const ownerPropertyCount = Array.isArray(data) ? data.length : 0;
             const ownerAvailableCount = Array.isArray(data)
-                ? data.filter(property => property.status === "verified").length
+                ? data.filter(property => property.verification_status === "verified" && property.status === "verified").length
                 : 0;
             const ownerOccupiedCount = Array.isArray(data)
                 ? data.filter(property => property.status === "occupied").length
@@ -5436,7 +5438,9 @@ async function loadOwnerProperties() {
                 data.map(function (property) {
                     let badge = '<span class="status-chip pending">Pending verification</span>';
 
-                    if (property.status === "verified") {
+                    if (property.verification_status !== "verified") {
+                        badge = '<span class="status-chip pending">Pending admin verification</span>';
+                    } else if (property.status === "verified") {
                         badge = '<span class="status-chip available">✓ Available</span>';
                     } else if (property.status === "rejected") {
                         badge = '<span class="status-chip rejected">Rejected</span>';
