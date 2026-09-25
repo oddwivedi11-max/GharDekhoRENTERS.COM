@@ -2739,7 +2739,10 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
                         // This is a static browser app, so use the implicit
                         // browser recovery flow. It keeps the recovery session
                         // in the URL hash and reliably emits PASSWORD_RECOVERY.
-                        flowType: "implicit",
+                        // Password recovery is a browser-only flow. PKCE lets Supabase
+                        // securely return a one-time ?code= and automatically
+                        // exchange it because detectSessionInUrl is enabled.
+                        flowType: "pkce",
                         detectSessionInUrl: true,
                         persistSession: true,
                         autoRefreshToken: true
@@ -6033,22 +6036,13 @@ async function updateVisitStatus(visitId, newStatus) {
             const loginSection = document.getElementById("loginSection");
             const landing = document.getElementById("loggedOutLanding");
 
-            // PKCE recovery links arrive with ?code=... and must be exchanged
-            // explicitly before getSession() can see the recovery session.
-            const recoveryCode = search.get("code");
-            if (recoveryCode) {
-                const { error: exchangeError } = await supabaseClient.auth.exchangeCodeForSession(recoveryCode);
-                if (exchangeError) {
-                    console.error("Password recovery code exchange error:", exchangeError);
-                    if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or expired. Please request a new reset email.";
-                    if (loginSection) loginSection.style.display = "block";
-                    if (resetSection) resetSection.style.display = "none";
-                    return true;
-                }
-            }
-
-            // Give Supabase a moment to consume the recovery URL and create the
-            // temporary recovery session before showing the password form.
+            // Supabase is configured with detectSessionInUrl:true, so it
+            // automatically consumes either a PKCE ?code= recovery link or
+            // an implicit-flow recovery hash. Never exchange the same one-time
+            // code manually here: a second exchange makes a valid link look
+            // expired/already used and sends the user back to Login.
+            //
+            // Give the Supabase client a moment to finish URL processing.
             const { data, error } = await supabaseClient.auth.getSession();
 
             if (error) {
@@ -6059,6 +6053,8 @@ async function updateVisitStatus(visitId, newStatus) {
                 return true;
             }
 
+            // In PKCE mode Supabase may still be finishing the automatic
+            // one-time code exchange when getSession() first runs.
             if (!data?.session) {
                 // Auth URL processing is asynchronous. Give the browser client
                 // a short window to consume the recovery token and emit
