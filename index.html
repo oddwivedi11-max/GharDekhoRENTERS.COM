@@ -3103,7 +3103,11 @@ async function updateAuthUI() {
         resetRoleSpecificUI();
         dashboard.style.display = "none";
         dashboard.setAttribute("aria-hidden", "true");
-        if (loginSection) loginSection.style.display = "none";
+        const loginRouteActive = window.location.hash.toLowerCase() === "#login";
+        if (loginSection) {
+            loginSection.style.display = loginRouteActive ? "grid" : "none";
+            document.body.classList.toggle("gd-auth-page", loginRouteActive);
+        }
         const renterDashboard = document.getElementById("renterDashboard");
         const ownerDashboard = document.getElementById("ownerDashboard");
         if (renterDashboard) { renterDashboard.classList.remove("active"); renterDashboard.style.display = "none"; }
