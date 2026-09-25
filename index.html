@@ -3373,7 +3373,7 @@ async function loginWithGoogle() {
                 // This exact URL must be allowed in Supabase Auth > URL Configuration.
                 // It intentionally points to the same page because the recovery token
                 // is delivered in the URL and handlePasswordRecoveryLink() opens the form.
-                const redirectTo = window.location.origin + window.location.pathname;
+                const redirectTo = window.location.origin + window.location.pathname + "#reset";
                 const { error } = await supabaseClient.auth.resetPasswordForEmail(email, {
                     redirectTo
                 });
@@ -5959,7 +5959,8 @@ async function updateVisitStatus(visitId, newStatus) {
                 String(window.location.hash || "").toLowerCase().includes("type=recovery") ||
                 new URLSearchParams(window.location.search).get("type") === "recovery" ||
                 new URLSearchParams(window.location.search).get("reset") === "1" ||
-                new URLSearchParams(window.location.search).has("code");
+                new URLSearchParams(window.location.search).has("code") ||
+                String(window.location.hash || "").toLowerCase().includes("reset");
 
             if (event === "INITIAL_SESSION" && !urlLooksLikeRecovery) return;
 
@@ -5991,7 +5992,9 @@ async function updateVisitStatus(visitId, newStatus) {
                 recoveryType === "recovery" ||
                 hashParams.has("access_token") ||
                 search.has("code") ||
-                search.get("reset") === "1";
+                search.get("reset") === "1" ||
+                String(hashParams.get("reset") || "").toLowerCase() === "1" ||
+                hashParams.has("reset");
 
             if (!hasRecoveryTokens) return false;
 
@@ -6072,6 +6075,7 @@ async function updateVisitStatus(visitId, newStatus) {
                 initialSearchParams.get("type") === "recovery" ||
                 initialSearchParams.has("code") ||
                 initialSearchParams.get("reset") === "1" ||
+                String(window.location.hash || "").toLowerCase().includes("reset") ||
                 window.__gdPasswordRecovery === true;
 
             if (!recoveryInUrl && window.location.hash.toLowerCase() === "#login") {
