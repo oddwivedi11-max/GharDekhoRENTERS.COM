@@ -2381,7 +2381,7 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
         <!-- EMAIL + PASSWORD AUTH -->
         <section id="loginSection" style="display:none;">
 <div class="gd-premium-auth-shell">
-<div class="gd-auth-brand-panel"><span class="gd-auth-brand-kicker">GHAR DEKHO • PRIVATE RENTAL NETWORK</span><h2>Welcome to a more <span>beautiful way</span> to rent.</h2><p id="gdAuthBrandText">A polished rental experience for renters and owners.</p><div class="gd-auth-benefits"><div class="gd-auth-benefit"><i>⌂</i><span>Discover homes, PGs and hostels</span></div><div class="gd-auth-benefit"><i>✓</i><span>Save properties and request visits</span></div><div class="gd-auth-benefit"><i>♢</i><span>Manage your listings with ease</span></div></div></div>
+<div class="gd-auth-brand-panel"><span class="gd-auth-brand-kicker">GHAR DEKHO • PRIVATE RENTAL NETWORK</span><h2>Welcome to a more <span>beautiful way</span> to rent.</h2><p id="gdAuthBrandText">A polished rental experience for renters and owners.</p><div class="gd-auth-benefits"><div class="gd-auth-benefit"><i>⌂</i><span>Discover homes, PGs and hostels</span></div><div class="gd-auth-benefit"><i>✓</i><span>Save properties and request visits</span></div><div class="gd-auth-benefit"><i>♢</i><span id="gdAuthBenefit3">Find homes that fit your needs</span></div></div></div>
 <div class="gd-auth-form-panel"><div class="auth-card">
 <button type="button" class="gd-auth-back" onclick="closeLoginPage()">← Back to Ghar Dekho</button>
 <h2 class="gd-auth-form-title" id="premiumAuthTitle">Login / Create Account</h2><p class="gd-auth-form-subtitle" id="premiumAuthIntro">Use your email and password for Ghar Dekho Renters.</p>
@@ -2797,7 +2797,7 @@ body.gd-auth-page #loginSection{box-sizing:border-box!important;width:min(1120px
         }
 
         function openLoginSection(){const e=document.getElementById("loginSection");if(!e)return;window.__gdAuthRequested=true;document.body.classList.add("gd-auth-page");e.style.display="grid";history.pushState({gdAuth:true},"","#login");requestAnimationFrame(()=>e.scrollIntoView({behavior:"smooth",block:"start"}));}
-        function openLoginAs(role){const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");openLoginSection();if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";}
+        function openLoginAs(role){const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");openLoginSection();if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";if(benefit)benefit.textContent=role==="owner"?"Manage your listings with ease":"Find homes that fit your needs";if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";}
         function openAdminLogin(){openLoginSection();const email=document.getElementById("userEmail"),title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),signup=document.getElementById("signupBtn"),google=document.getElementById("googleLoginBtn"),roleSwitch=document.querySelector(".role-switch"),adminBtn=document.getElementById("adminLoginModeBtn");if(email)email.value="dwivedijiod@gmail.com";if(title)title.textContent="Admin Login";if(intro)intro.textContent="Secure administrator access. Email and password only.";if(brand)brand.textContent="Restricted Ghar Dekho administration workspace.";if(hint)hint.textContent="Only the authorized admin account can enter the Admin Control Center.";if(signup)signup.style.display="none";if(google)google.style.display="none";if(roleSwitch)roleSwitch.style.display="none";if(adminBtn)adminBtn.style.display="none";}
         function openOwnerArea() {
             if (!currentUser) {
@@ -5521,30 +5521,41 @@ async function updateVisitStatus(visitId, newStatus) {
         }
 
         function protectAuthInputsFromBrowserAutofill() {
-            const email = document.getElementById("userEmail");
-            const password = document.getElementById("userPassword");
-            if (!email || !password) return;
+            const fields = [
+                document.getElementById("userName"),
+                document.getElementById("userEmail"),
+                document.getElementById("userPhone"),
+                document.getElementById("userPassword")
+            ].filter(Boolean);
 
-            // Prevent Chrome/password-manager autofill from placing a saved
-            // account into the form before the user chooses to enter it.
-            const unlock = (input) => {
-                input.removeAttribute("readonly");
+            if (!fields.length) return;
+
+            // Keep Chrome/password-manager autofill from inserting a saved
+            // account before the user intentionally chooses a field.
+            fields.forEach(input => {
                 input.setAttribute("autocomplete", "off");
-            };
+                input.setAttribute("readonly", "readonly");
 
-            [email, password].forEach(input => {
-                input.addEventListener("mousedown", () => unlock(input), { once: true });
-                input.addEventListener("touchstart", () => unlock(input), { once: true });
-                input.addEventListener("focus", () => unlock(input), { once: true });
+                const unlock = () => {
+                    input.removeAttribute("readonly");
+                    input.setAttribute("autocomplete", "off");
+                };
+
+                input.addEventListener("mousedown", unlock, { once: true });
+                input.addEventListener("touchstart", unlock, { once: true });
+                input.addEventListener("focus", unlock, { once: true });
             });
 
-            // Chrome can apply autofill shortly after page startup. Only clear
-            // an email/password that appeared before the user interacted.
-            const startupChecks = [100, 300, 600, 1000, 2000];
-            startupChecks.forEach(delay => window.setTimeout(() => {
-                if (!email.matches(":focus") && email.value.includes("@")) email.value = "";
-                if (!password.matches(":focus")) password.value = "";
-            }, delay));
+            // Clear values that Chrome may inject immediately after page load.
+            const clearAutofill = () => {
+                fields.forEach(input => {
+                    if (!input.matches(":focus")) input.value = "";
+                });
+            };
+
+            [100, 300, 600, 1000, 2000, 3500].forEach(delay => {
+                window.setTimeout(clearAutofill, delay);
+            });
         }
 
         function protectSearchInputsFromBrowserAutofill() {
