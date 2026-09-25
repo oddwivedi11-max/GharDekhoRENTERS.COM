@@ -3724,10 +3724,12 @@ async function renderActiveDashboard() {
             const rows=Array.isArray(result.data)?result.data:[]; if(count)count.textContent=rows.length+(rows.length===1?" property":" properties");
             const ownerIds=[...new Set(rows.map(p=>p.owner_id).filter(Boolean))], ownerMap=new Map();
             if(ownerIds.length){
-                const ur=await supabaseClient.from("users").select("id,name,email,phone,role,created_at").in("id",ownerIds);
-                if(!ur.error)(ur.data||[]).forEach(u=>ownerMap.set(u.id,u));
-                if(ur.error || ownerMap.size<ownerIds.length){
-                    for(const ownerId of ownerIds){if(ownerMap.has(ownerId))continue;const rr=await supabaseClient.rpc("get_verified_owner_contact",{p_owner_id:ownerId});if(!rr.error&&rr.data)ownerMap.set(ownerId,Array.isArray(rr.data)?(rr.data[0]||null):rr.data);}
+                const or=await supabaseClient.from("owners").select("id,user_id,name,phone,verification_status").in("id",ownerIds);
+                if(!or.error){
+                    const userIds=(or.data||[]).map(o=>o.user_id).filter(Boolean);
+                    const ur=userIds.length ? await supabaseClient.from("users").select("id,name,email,phone,role,created_at").in("id",userIds) : {data:[],error:null};
+                    const um=new Map((ur.data||[]).map(u=>[String(u.id),u]));
+                    (or.data||[]).forEach(o=>{const u=um.get(String(o.user_id))||{}; ownerMap.set(String(o.id),{...u,name:o.name||u.name,phone:o.phone||u.phone,verification_status:o.verification_status,owner_id:o.id,user_id:o.user_id});});
                 }
             }
             window.__ghAdminProperties=rows; window.__ghAdminOwners=ownerMap;
@@ -3747,10 +3749,13 @@ async function renderActiveDashboard() {
             const connectionsBody=document.getElementById("adminConnectionsBody");
             const activityBody=document.getElementById("adminActivityBody");
 
-            const usersResult=await supabaseClient.from("users").select("id,name,email,phone,role,verification_status,created_at").order("created_at",{ascending:false});
+            const usersResult=await supabaseClient.from("users").select("id,name,email,phone,role,created_at").order("created_at",{ascending:false});
             const users=usersResult.error ? [] : (usersResult.data||[]);
             const userMap=new Map(users.map(u=>[String(u.id),u]));
-            const owners=users.filter(u=>String(u.role||"").toLowerCase()==="owner");
+            const ownersResult=await supabaseClient.from("owners").select("id,user_id,name,phone,verification_status,created_at").order("created_at",{ascending:false});
+            const ownerProfiles=ownersResult.error ? [] : (ownersResult.data||[]);
+            const ownerProfileMap=new Map(ownerProfiles.map(o=>[String(o.user_id),o]));
+            const owners=ownerProfiles.map(o=>({...userMap.get(String(o.user_id)),id:o.user_id,name:o.name||userMap.get(String(o.user_id))?.name,phone:o.phone||userMap.get(String(o.user_id))?.phone,verification_status:o.verification_status,owner_profile_id:o.id}));
             const renters=users.filter(u=>["renter","tenant"].includes(String(u.role||"").toLowerCase()));
 
             const visitsResult=await supabaseClient.from("visit_requests").select("id,property_id,owner_id,tenant_id,name,phone,visit_date,visit_time,status,created_at").order("created_at",{ascending:false});
@@ -3840,7 +3845,9 @@ async function renderActiveDashboard() {
             if(!isAdminAccount()) return showAdminDenied();
             if(!ownerId) return showMessage("backendMessage","No owner profile is linked to this property.","error");
             try {
-                const ownerResult = await supabaseClient.from("owners").select("id").eq("user_id", ownerId).maybeSingle();
+                let ownerResult = await supabaseClient.from("owners").select("id").eq("id", ownerId).maybeSingle();
+                if (ownerResult.error) throw ownerResult.error;
+                if (!ownerResult.data) ownerResult = await supabaseClient.from("owners").select("id").eq("user_id", ownerId).maybeSingle();
                 if (ownerResult.error) throw ownerResult.error;
                 if (!ownerResult.data?.id) throw new Error("Owner profile not found.");
                 const { error } = await supabaseClient.rpc("admin_set_owner_verification", { p_owner_id: ownerResult.data.id, p_status: "verified" });
