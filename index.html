@@ -8251,7 +8251,7 @@ async function refreshSaveButtons(propertyId) {
                 error: ownerLookupError
             } = await supabaseClient.rpc("get_my_owner_profile");
 
-            const ownerRecord = Array.isArray(ownerProfile)
+            let ownerRecord = Array.isArray(ownerProfile)
                 ? (ownerProfile[0] || null)
                 : ownerProfile;
             currentOwnerProfile = ownerRecord || null;
@@ -11283,4 +11283,178 @@ html,body{max-width:100%;overflow-x:hidden!important}
   #ownerDashboard .owner-form-grid #propertyLocation{grid-column:1/-1!important}
 }
 #propertyLocationWrap{grid-column:1/-1!important}
+</style>
+
+<style id="ghardekho-mobile-first-owner-v10">
+/* GharDekho is phone-first: the owner property flow must feel like a native
+   mobile form, not a desktop modal squeezed into a phone viewport. */
+@media(max-width:680px){
+  html{font-size:16px!important}
+  body{min-width:0!important;overflow-x:hidden!important;-webkit-text-size-adjust:100%!important}
+  main{padding-left:10px!important;padding-right:10px!important}
+  #ownerDashboard{width:100%!important;min-width:0!important}
+  #ownerDashboard .dashboard-card{width:100%!important;box-sizing:border-box!important}
+  #ownerDashboard .owner-add-property-card{
+    width:calc(100vw - 12px)!important;
+    max-width:none!important;
+    height:min(94dvh,820px)!important;
+    max-height:94dvh!important;
+    margin:0!important;
+    border-radius:18px!important;
+    transform:translate(-50%,-50%)!important;
+    overflow:hidden!important;
+    display:none!important;
+  }
+  #ownerDashboard .owner-add-property-card.gd-property-modal-open{
+    display:flex!important;
+    flex-direction:column!important;
+  }
+  #ownerDashboard .gd-owner-modal-head{
+    flex:0 0 auto!important;
+    padding:13px 14px!important;
+    min-height:64px!important;
+    display:flex!important;
+    align-items:center!important;
+  }
+  #ownerDashboard .gd-owner-modal-head .dashboard-card-heading{
+    flex:1!important;
+    min-width:0!important;
+  }
+  #ownerDashboard .gd-owner-modal-head h3{
+    margin:2px 0!important;
+    font-size:20px!important;
+    line-height:1.15!important;
+  }
+  #ownerDashboard .gd-owner-modal-sub{font-size:10px!important;line-height:1.35!important}
+  #ownerDashboard .gd-owner-modal-close{
+    flex:0 0 42px!important;
+    width:42px!important;height:42px!important;
+    min-height:42px!important;
+    font-size:22px!important;
+    touch-action:manipulation!important;
+  }
+  #ownerDashboard .owner-add-property-card form{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    padding:12px 13px calc(88px + env(safe-area-inset-bottom))!important;
+    touch-action:pan-y!important;
+  }
+  #ownerDashboard .owner-form-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    padding-top:2px!important;
+  }
+  #ownerDashboard .owner-form-grid>*{
+    grid-column:1/-1!important;
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  #ownerDashboard .owner-form-grid>input,
+  #ownerDashboard .owner-form-grid>select{
+    height:52px!important;
+    min-height:52px!important;
+    padding:0 13px!important;
+    font-size:16px!important;
+    border-radius:12px!important;
+  }
+  #ownerDashboard #propertyLocation{
+    min-height:56px!important;
+  }
+  #ownerDashboard #gdPropertyLocationSuggestions{
+    position:fixed!important;
+    left:8px!important;
+    right:8px!important;
+    top:auto!important;
+    max-height:38vh!important;
+    z-index:50000!important;
+  }
+  #ownerDashboard .gd-owner-image-v7{
+    width:100%!important;
+    box-sizing:border-box!important;
+    margin-top:0!important;
+    padding:12px!important;
+  }
+  #ownerDashboard .gd-upload-dropzone{
+    min-height:118px!important;
+    width:100%!important;
+    box-sizing:border-box!important;
+    padding:12px!important;
+    touch-action:manipulation!important;
+  }
+  #ownerDashboard .gd-upload-actions{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+  }
+  #ownerDashboard .gd-upload-actions button{
+    min-height:46px!important;
+    font-size:13px!important;
+    touch-action:manipulation!important;
+  }
+  #ownerDashboard .gd-stay-details-shell{
+    width:100%!important;
+    box-sizing:border-box!important;
+    padding:12px!important;
+  }
+  #ownerDashboard .gd-stay-fields{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+  }
+  #ownerDashboard .gd-stay-fields>*{
+    width:100%!important;
+    min-width:0!important;
+    min-height:50px!important;
+    font-size:16px!important;
+  }
+  #ownerDashboard textarea{
+    width:100%!important;
+    box-sizing:border-box!important;
+    min-height:105px!important;
+    font-size:16px!important;
+    line-height:1.45!important;
+  }
+  #ownerDashboard #verifyLocationBtn,
+  #ownerDashboard #addPropertyBtn{
+    width:100%!important;
+    min-height:52px!important;
+    height:52px!important;
+    margin-left:0!important;
+    margin-right:0!important;
+    font-size:15px!important;
+    font-weight:900!important;
+    touch-action:manipulation!important;
+    -webkit-tap-highlight-color:transparent!important;
+  }
+  #ownerDashboard #verifyLocationBtn{
+    margin-top:10px!important;
+  }
+  #ownerDashboard #addPropertyBtn{
+    position:sticky!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+    z-index:50001!important;
+    margin-top:12px!important;
+    box-shadow:0 10px 25px rgba(7,31,28,.22)!important;
+  }
+  #ownerDashboard #verificationMessage{
+    min-height:20px!important;
+    margin:7px 2px!important;
+    font-size:12px!important;
+    line-height:1.4!important;
+  }
+  body.gd-property-modal-active:after{
+    z-index:19999!important;
+  }
+}
+@media(max-width:390px){
+  #ownerDashboard .owner-add-property-card{width:calc(100vw - 8px)!important}
+  #ownerDashboard .owner-add-property-card form{padding-left:10px!important;padding-right:10px!important}
+  #ownerDashboard .gd-upload-actions{grid-template-columns:1fr!important}
+}
 </style>
