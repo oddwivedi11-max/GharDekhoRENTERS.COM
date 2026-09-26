@@ -7276,6 +7276,14 @@ async function renderActiveDashboard() {
                 return;
             }
 
+            // Owners can also act as renters while exploring other owners'
+            // properties. The owner dashboard itself stays private; visit
+            // requests are sent only from Owner Explore mode.
+            if (activeRole === "owner" && !ownerExploreMode) {
+                status.textContent = "Open “Explore Near Me” from your Owner dashboard to request a visit as a renter.";
+                return;
+            }
+
             if (!currentProperty) {
                 status.textContent =
                     "Please select a property first.";
@@ -7338,6 +7346,30 @@ async function renderActiveDashboard() {
                 isSubmittingVisit = false;
                 if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
                 return;
+            }
+
+            // Never allow an Owner to request a visit on their own listing.
+            // The database RLS also enforces this, but blocking it here gives
+            // the user a clear message instead of a generic permission error.
+            if (activeRole === "owner") {
+                let ownOwnerId = currentOwnerProfile?.id || null;
+                if (!ownOwnerId) {
+                    const { data: ownOwnerProfile, error: ownOwnerError } =
+                        await supabaseClient.rpc("get_my_owner_profile");
+                    if (!ownOwnerError) {
+                        const ownRecord = Array.isArray(ownOwnerProfile)
+                            ? (ownOwnerProfile[0] || null)
+                            : ownOwnerProfile;
+                        ownOwnerId = ownRecord?.id || null;
+                        if (ownRecord) currentOwnerProfile = ownRecord;
+                    }
+                }
+                if (ownOwnerId && String(ownOwnerId) === String(property.owner_id)) {
+                    status.textContent = "You cannot request a visit for your own property.";
+                    isSubmittingVisit = false;
+                    if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
+                    return;
+                }
             }
 
             if (property.verification_status !== "verified" || !["verified","occupied","soon_available"].includes(property.status)) {
