@@ -3107,6 +3107,39 @@ body{background:#f3f5f1!important}
 @media(max-width:950px){.gd-home-v6-hero{grid-template-columns:1fr;padding:48px 40px}.gd-home-v6-scene{height:470px}.gd-home-v6-search{margin-left:15px;margin-right:15px}.gd-search-v6{grid-template-columns:1fr 1fr!important}.gd-home-v6-bottom{grid-template-columns:1fr 1fr}.gd-home-v6-bottom>div:first-child{grid-column:1/-1}}
 @media(max-width:600px){#homeSection.gd-home-v6{width:calc(100% - 14px)!important;padding:10px 0 50px!important}header h1{width:175px!important}header h1:after{left:43px!important;font-size:1rem!important}.gd-home-v6-hero{min-height:0;padding:30px 22px 24px;border-radius:25px}.gd-home-v6-copy h2{font-size:3.25rem!important}.gd-home-v6-copy p{font-size:13px}.gd-home-v6-proof{gap:8px;flex-wrap:wrap}.gd-home-v6-proof i{display:none}.gd-home-v6-scene{height:350px;margin-top:12px}.gd-home-v6-image{right:2%;top:15px;width:88%;height:320px}.gd-home-v6-image-bottom strong{font-size:23px}.gd-home-v6-card-top{left:-3%;top:19%}.gd-home-v6-card-bottom{right:-3%;bottom:15%}.gd-home-v6-price{left:0;bottom:3%;padding:10px 12px}.gd-home-v6-price strong{font-size:20px}.gd-home-v6-search{margin:-18px 8px 0;padding:18px;border-radius:20px}.gd-home-v6-search-head{display:block}.gd-home-v6-search-head p{margin-top:5px}.gd-search-v6{grid-template-columns:1fr!important}.gd-home-v6-bottom{grid-template-columns:1fr;margin-top:48px;padding:0}.gd-home-v6-bottom>div:first-child{grid-column:auto}.gd-home-v6-feature{border-left:0;border-top:1px solid #d5e0dc;padding:18px 0 0}.gd-home-v6-search #locationStatus{font-size:11px}}
 </style>
+<style id="ghardekho-owner-flow-v7">
+/* Owner flow V7: inventory drill-down + add-property modal + media uploader */
+#ownerDashboard .owner-stat-card{cursor:pointer;position:relative;overflow:hidden}
+#ownerDashboard .owner-stat-card:first-child:after{content:"View listings →";position:absolute;right:16px;bottom:12px;font-size:9px;font-weight:900;letter-spacing:.04em;color:#176b63;opacity:.8}
+#ownerDashboard .owner-stat-card:first-child:hover{transform:translateY(-3px);box-shadow:0 18px 38px rgba(20,50,45,.11)}
+#ownerDashboard .owner-add-property-card{display:none!important;position:fixed!important;z-index:3000!important;left:50%;top:50%;transform:translate(-50%,-46%) scale(.98);width:min(980px,calc(100% - 32px));max-height:88vh;overflow:auto;margin:0!important;padding:0!important;border:1px solid #d9e5e0!important;border-radius:28px!important;background:#fff!important;box-shadow:0 35px 100px rgba(7,31,28,.25)!important;opacity:0;transition:opacity .18s ease,transform .18s ease}
+#ownerDashboard .owner-add-property-card.gd-property-modal-open{display:block!important;opacity:1;transform:translate(-50%,-50%) scale(1)}
+body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:2999;background:rgba(8,28,26,.52);backdrop-filter:blur(7px)}
+#ownerDashboard .owner-add-property-card form{padding:0 28px 28px}
+.gd-owner-modal-head{position:sticky;top:0;z-index:5;padding:25px 28px 20px;background:linear-gradient(180deg,#fff 78%,rgba(255,255,255,.92));border-bottom:1px solid #e5ece9}
+.gd-owner-modal-head .dashboard-card-heading{margin:0!important}
+.gd-owner-modal-head h3{font-size:27px!important;letter-spacing:-.05em!important;margin:5px 0!important}
+.gd-owner-modal-close{min-height:38px!important;width:38px;height:38px;padding:0!important;border:1px solid #dbe5e1!important;border-radius:12px!important;background:#f7faf8!important;color:#17322e!important;font-size:18px!important}
+.gd-owner-modal-sub{margin:5px 0 0;color:#7a8883;font-size:11px}
+#ownerDashboard .owner-form-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;gap:13px!important;padding-top:22px}
+#ownerDashboard .owner-form-grid>input,#ownerDashboard .owner-form-grid>select{height:52px!important;border:1px solid #d8e2de!important;border-radius:13px!important;background:#fbfcfa!important;padding:0 14px!important}
+#ownerDashboard .owner-form-grid>input:focus,#ownerDashboard .owner-form-grid>select:focus,#ownerDashboard textarea:focus{border-color:#176b63!important;box-shadow:0 0 0 4px rgba(23,107,99,.08)!important;outline:none}
+#ownerDashboard textarea{width:100%!important;border:1px solid #d8e2de!important;border-radius:14px!important;background:#fbfcfa!important;padding:14px!important;margin-top:12px!important;resize:vertical}
+#ownerDashboard #verifyLocationBtn{margin-top:14px!important;background:#eaf6f3!important;color:#145b54!important;border:1px solid #cfe3df!important;border-radius:12px!important}
+#ownerDashboard #addPropertyBtn{width:100%!important;margin-top:16px!important;height:54px!important;border:0!important;border-radius:14px!important;background:linear-gradient(135deg,#176b63,#0f4f49)!important;color:#fff!important;box-shadow:0 12px 28px rgba(23,107,99,.2)!important}
+.gd-owner-image-v7{grid-column:1/-1!important;padding:18px!important;border:1px solid #dbe5e1!important;border-radius:20px!important;background:linear-gradient(145deg,#f7faf8,#fff)!important}
+.gd-upload-head{display:flex;justify-content:space-between;gap:15px;align-items:flex-start;margin-bottom:13px}
+.gd-upload-head>div{display:grid;gap:3px}.gd-upload-kicker{font-size:8px!important;letter-spacing:.17em!important;color:#176b63!important;font-weight:1000!important}.gd-upload-head strong{font-size:16px!important;color:#17312d}.gd-upload-head small{font-size:10px!important;color:#7b8984}.gd-upload-limit{font-size:8px;text-align:right;line-height:1.55;color:#82908b;font-weight:900}
+.gd-upload-dropzone{min-height:155px!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:18px!important;padding:22px!important;border:1.5px dashed #a9c9c1!important;border-radius:17px!important;background:linear-gradient(135deg,#f1faf7,#fbfcfa)!important;cursor:pointer!important;transition:all .18s ease!important}
+.gd-upload-dropzone:hover{border-color:#176b63!important;background:#edf8f5!important;transform:translateY(-1px)}
+.gd-upload-dropzone .gd-upload-icon{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#dff2ed;color:#176b63;font-size:27px;font-weight:400}
+.gd-upload-dropzone>div:not(.gd-upload-icon){display:grid;gap:3px}.gd-upload-dropzone>div strong{font-size:13px;color:#1d3833}.gd-upload-dropzone>div span{font-size:10px;color:#73817d}.gd-upload-dropzone>div small{font-size:9px;color:#99a39f}
+.gd-upload-dropzone>b{padding:9px 13px;border-radius:10px;background:#176b63;color:#fff;font-size:10px}
+.gd-upload-actions{margin-top:10px;display:flex;gap:8px}.gd-upload-actions button{min-height:38px!important;font-size:10px!important}
+.gd-upload-preview{display:flex!important;align-items:center;gap:12px;margin-top:10px;padding:8px;border:1px solid #dce7e3;border-radius:13px;background:#fff}.gd-upload-preview img{width:90px;height:62px;object-fit:cover;border-radius:9px}.gd-upload-preview span{font-size:10px;color:#52635e;font-weight:800}
+.gd-image-url-row{display:grid;grid-template-columns:35px 1fr;align-items:center;gap:8px;margin-top:12px}.gd-image-url-row>span{text-align:center;font-size:8px;font-weight:1000;color:#9aa6a2}.gd-image-url-row input{height:43px!important;border:1px solid #dce5e2!important;border-radius:11px!important;padding:0 12px!important;background:#fff!important}
+@media(max-width:700px){#ownerDashboard .owner-add-property-card{width:calc(100% - 16px);max-height:92vh;border-radius:22px!important}#ownerDashboard .owner-form-grid{grid-template-columns:1fr!important}.gd-owner-modal-head{padding:20px 18px 16px}#ownerDashboard .owner-add-property-card form{padding:0 18px 22px}.gd-owner-image-v7{padding:13px!important}.gd-upload-dropzone{min-height:135px!important;flex-wrap:wrap}.gd-upload-dropzone>b{width:100%;text-align:center}.gd-upload-head{display:block}.gd-upload-limit{text-align:left;display:block;margin-top:6px}}
+</style>
 </head>
 
 <body>
@@ -3514,22 +3547,24 @@ body{background:#f3f5f1!important}
                                 <option value="Semi-Furnished">Semi-Furnished</option>
                                 <option value="Unfurnished">Unfurnished</option>
                             </select>
-                            <div class="owner-image-upload-field">
-                                <label for="propertyImageFile" class="owner-upload-label">
-                                    <span>📷 Property Image</span>
-                                    <small>Upload directly from your Gallery • JPG, PNG or WebP • max 5 MB</small>
+                            <div class="owner-image-upload-field gd-owner-image-v7">
+                                <div class="gd-upload-head"><div><span class="gd-upload-kicker">PROPERTY MEDIA</span><strong>Add your best property photo</strong><small>Clear, bright photos help renters understand the space.</small></div><span class="gd-upload-limit">JPG • PNG • WEBP<br>MAX 5 MB</span></div>
+                                <label for="propertyImageFile" class="gd-upload-dropzone owner-upload-label">
+                                    <div class="gd-upload-icon">＋</div>
+                                    <div><strong>Upload property image</strong><span>Click to browse your gallery</span><small>Recommended: landscape photo of the room or exterior</small></div>
+                                    <b>Choose image</b>
                                 </label>
                                 <input type="file" id="propertyImageFile" accept="image/jpeg,image/png,image/webp" hidden>
-                                <div class="owner-image-upload-actions">
+                                <div class="owner-image-upload-actions gd-upload-actions">
                                     <button type="button" id="choosePropertyImageBtn" class="secondary-action-btn">🖼️ Choose from Gallery</button>
                                     <button type="button" id="removePropertyImageBtn" class="secondary-action-btn" hidden>Remove</button>
                                 </div>
-                                <div id="propertyImagePreview" class="property-image-preview" hidden>
+                                <div id="propertyImagePreview" class="property-image-preview gd-upload-preview" hidden>
                                     <img id="propertyImagePreviewImg" src="" alt="Selected property preview">
                                     <span id="propertyImageFileName"></span>
                                 </div>
-                                <input type="url" id="propertyImage" placeholder="Or paste a direct HTTPS image URL" inputmode="url" autocomplete="url">
-                                <p class="form-help">Gallery upload is used automatically when selected. The uploaded image is stored in Supabase Storage.</p>
+                                <div class="gd-image-url-row"><span>OR</span><input type="url" id="propertyImage" placeholder="Paste an HTTPS image URL" inputmode="url" autocomplete="url"></div>
+                                <p class="form-help">Gallery uploads are stored securely in Supabase Storage.</p>
                             </div>
                             <select id="propertyRoomType">
                                 <option value="">Room type (PG/Hostel)</option>
@@ -7270,6 +7305,64 @@ async function updateVisitStatus(visitId, newStatus) {
   }
   if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initPasswordToggles);
   else initPasswordToggles();
+})();
+</script>
+<script id="ghardekho-owner-flow-v7-js">
+(function(){
+  function initOwnerFlowV7(){
+    const dashboard=document.getElementById('ownerDashboard');
+    if(!dashboard) return;
+    const addCard=document.getElementById('ownerAddPropertyCard');
+    const addBtn=document.getElementById('ownerAddPropertyBtn');
+    const statCards=dashboard.querySelectorAll('.owner-stat-card');
+    if(addCard && !addCard.dataset.v7Ready){
+      addCard.dataset.v7Ready='1';
+      const head=addCard.querySelector('.dashboard-card-heading');
+      if(head){
+        const wrap=document.createElement('div');
+        wrap.className='gd-owner-modal-head';
+        head.parentNode.insertBefore(wrap,head);
+        wrap.appendChild(head);
+        const close=document.createElement('button');
+        close.type='button'; close.className='gd-owner-modal-close'; close.setAttribute('aria-label','Close add property'); close.textContent='×';
+        wrap.appendChild(close);
+        const sub=document.createElement('p'); sub.className='gd-owner-modal-sub'; sub.textContent='Add the essentials first. You can refine the listing details before publishing.'; wrap.appendChild(sub);
+        close.addEventListener('click',closePropertyModal);
+      }
+      function openPropertyModal(){
+        addCard.classList.add('gd-property-modal-open');
+        document.body.classList.add('gd-property-modal-active');
+        setTimeout(()=>document.getElementById('propertyTitle')?.focus(),220);
+      }
+      function closePropertyModal(){
+        addCard.classList.remove('gd-property-modal-open');
+        document.body.classList.remove('gd-property-modal-active');
+      }
+      addBtn?.addEventListener('click',openPropertyModal);
+      document.addEventListener('keydown',e=>{if(e.key==='Escape' && addCard.classList.contains('gd-property-modal-open')) closePropertyModal();});
+      addCard.addEventListener('click',e=>{if(e.target===addCard) closePropertyModal();});
+    }
+    if(statCards[0] && !statCards[0].dataset.v7Ready){
+      statCards[0].dataset.v7Ready='1';
+      statCards[0].setAttribute('role','button');
+      statCards[0].setAttribute('tabindex','0');
+      const go=()=>document.getElementById('ownerPropertiesContainer')?.scrollIntoView({behavior:'smooth',block:'center'});
+      statCards[0].addEventListener('click',go);
+      statCards[0].addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' ') {e.preventDefault();go();}});
+    }
+    const file=document.getElementById('propertyImageFile');
+    const drop=document.querySelector('.gd-upload-dropzone');
+    const choose=document.getElementById('choosePropertyImageBtn');
+    if(file && choose && !choose.dataset.v7Ready){choose.dataset.v7Ready='1'; choose.addEventListener('click',()=>file.click());}
+    if(file && drop && !drop.dataset.v7Ready){
+      drop.dataset.v7Ready='1';
+      ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('gd-upload-drag')}));
+      ['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('gd-upload-drag')}));
+      drop.addEventListener('drop',e=>{if(e.dataTransfer?.files?.length){file.files=e.dataTransfer.files;file.dispatchEvent(new Event('change',{bubbles:true}))}});
+    }
+  }
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',initOwnerFlowV7); else initOwnerFlowV7();
+  window.addEventListener('load',initOwnerFlowV7);
 })();
 </script>
 </body>
