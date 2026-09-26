@@ -3332,6 +3332,19 @@ body{background:#f3f5f1!important}
 .dashboard-stat-card strong{color:#123b35!important;font-weight:950!important}
 #ownerProfileMessage[hidden],#renterProfileMessage[hidden]{display:none!important}
 #ownerProfileEditor .gd-property-editor-card,#renterProfileEditor .gd-property-editor-card{border:1px solid #d6e5e0!important;box-shadow:0 35px 100px rgba(7,31,28,.22)!important}
+</style><style id="ghardekho-dashboard-readable-premium-v3">
+.renter-dashboard .dashboard-card,.owner-dashboard .dashboard-card{background:linear-gradient(145deg,#ffffff,#f8fcfa)!important;border:1px solid #d4e4df!important;box-shadow:0 18px 45px rgba(10,50,45,.08)!important}
+.renter-dashboard .dashboard-card-heading,.owner-dashboard .dashboard-card-heading{margin-bottom:18px!important}
+.renter-dashboard .dashboard-card-heading h3,.owner-dashboard .dashboard-card-heading h3{font-family:Inter,system-ui,sans-serif!important;color:#0d3933!important;font-size:22px!important;font-weight:900!important;line-height:1.15!important}
+.renter-dashboard .dashboard-section-kicker,.owner-dashboard .dashboard-section-kicker{color:#08776c!important;font-size:10px!important;font-weight:950!important;letter-spacing:.2em!important}
+.renter-dashboard .dashboard-mini-badge,.owner-dashboard .dashboard-mini-badge{color:#0b655c!important;background:#eaf7f3!important;border-color:#c9e4dc!important;font-weight:900!important}
+.renter-dashboard .dashboard-empty{font-size:14px!important;color:#36504a!important;background:linear-gradient(135deg,#f3faf7,#ffffff)!important;border:1px dashed #c5ddd6!important;line-height:1.55!important}
+.renter-current-rental-card{border-left:5px solid #17786d!important}
+.renter-account-card{border-left:5px solid #f2a06d!important}
+.renter-profile-grid>div{background:#f8fcfa!important;border-color:#d6e6e1!important;min-height:76px!important}
+.renter-profile-grid>div>span{color:#54706a!important;font-size:10px!important;font-weight:950!important;letter-spacing:.12em!important}
+.renter-profile-grid>div>strong{color:#103e37!important;font-size:16px!important;font-weight:900!important;line-height:1.35!important}
+.renter-dashboard .secondary-button{font-weight:900!important;border-color:#bcd9d1!important;color:#0e6259!important;background:#f4faf8!important}
 </style></style>
 <style id="ghardekho-owner-flow-v7">
 /* Owner flow V7: inventory drill-down + add-property modal + media uploader */
@@ -5917,10 +5930,7 @@ async function saveOwnerProfile(e){
     const msg=document.getElementById("ownerProfileMessage");
     const saveButton=document.querySelector("#ownerProfileForm button[type='submit']");
 
-    if(!name||!email){
-        showMessage("backendMessage","Please enter your name and contact email.","error");
-        return;
-    }
+    if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
 
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
     if(msg){msg.textContent="";msg.hidden=true;}
