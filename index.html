@@ -5393,25 +5393,55 @@ async function updateAuthUI() {
 
     const { profile, error } = await loadOwnProfileWithRetry();
 
-    if (error) {
-        console.error("Profile error:", error);
-        currentProfile = null;
-        activeRole = "renter";
-        authStatus.textContent = "Signed in — profile setup required";
-        resetRoleSpecificUI();
-        dashboard.style.display = "none";
-        if (loginSection) loginSection.style.display = "none";        showMessage("backendMessage", "Your account is signed in, but its role/profile could not be loaded. Please try again.", "error");
-        return;
-    }
+    if (error || !profile) {
+        /*
+         * IMPORTANT FALLBACK:
+         * Supabase Auth can be fully signed in while the users-row query is
+         * temporarily unavailable (RLS/network/startup race). Previously we
+         * showed Logout but then called resetRoleSpecificUI(), which painted
+         * the logged-out landing page over an authenticated session.
+         *
+         * The login selection is already stored in sessionStorage, so build a
+         * temporary UI profile from Auth metadata and honor that selected role.
+         * This keeps the user inside the correct authenticated experience while
+         * the users row is repaired/loaded on a later request.
+         */
+        console.warn("Profile unavailable during auth restore; using authenticated fallback.", error);
+        const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
+        const metadata = currentUser?.user_metadata || {};
+        const metadataRoles = Array.isArray(metadata.roles)
+            ? metadata.roles.map(value => String(value || "").toLowerCase().trim())
+            : [];
+        const fallbackRoles = [...new Set([
+            ...metadataRoles.map(value => value === "tenant" ? "renter" : value),
+            String(metadata.role || "").toLowerCase().trim(),
+            requestedRole
+        ].filter(value => value === "owner" || value === "renter"))];
 
-    if (!profile) {
-        currentProfile = null;
-        activeRole = "renter";
-        authStatus.textContent = "Signed in — profile setup required";
-        resetRoleSpecificUI();
-        dashboard.style.display = "none";
-        if (loginSection) loginSection.style.display = "none";
-        showMessage("backendMessage", "Your account profile is not ready yet. Please contact support or try again later.", "error");
+        currentProfile = {
+            id: currentUser.id,
+            name: String(metadata.name || metadata.full_name || currentUser.email || "User").trim(),
+            email: currentUser.email || "",
+            phone: metadata.phone || null,
+            role: requestedRole === "owner" ? "owner" : "tenant",
+            roles: fallbackRoles.map(value => value === "renter" ? "tenant" : value)
+        };
+
+        activeRole = requestedRole;
+        pendingLoginRole = requestedRole;
+        sessionStorage.setItem("gd_active_role", requestedRole);
+        sessionStorage.setItem("gd_pending_login_role", requestedRole);
+
+        setRoleSpecificUI(requestedRole);
+        updateDashboardProfile();
+        updateDashboardRoleSwitcher();
+        if (authStatus) authStatus.textContent = "Logged in as " + (currentProfile.name || currentUser.email || "User");
+        if (dashboardIdentity) {
+            dashboardIdentity.textContent = (currentProfile.name || "User") + " • " + (requestedRole === "renter" ? "Renter" : "Owner");
+        }
+        dashboard.style.display = "block";
+        dashboard.setAttribute("aria-hidden", "false");
+        await renderActiveDashboard();
         return;
     }
 
