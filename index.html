@@ -3396,6 +3396,13 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 .gd-editor-stay-grid input,.gd-editor-stay-grid select{min-height:48px}
 @media(max-width:620px){.gd-editor-stay-grid{grid-template-columns:1fr}.gd-editor-stay-head{align-items:flex-start;flex-direction:column}}
 </style>
+<style id="ghardekho-admin-owner-controls-v2">
+.gd-admin-owner strong{font-weight:900}
+.gd-admin-owner .owner-badge,.gd-admin-owner .pending-badge{display:inline-flex;margin-left:5px}
+.gd-admin-actions{display:flex;flex-wrap:wrap;gap:7px!important;align-items:center}
+.gd-admin-actions button{min-height:42px!important;border-radius:11px!important}
+@media(max-width:760px){.gd-admin-actions{display:grid;grid-template-columns:1fr 1fr}.gd-admin-actions button{width:100%}}
+</style>
 </head>
 
 <body>
@@ -4957,29 +4964,67 @@ async function renderActiveDashboard() {
             if(!currentUser || !isAdminAccount()) return showAdminDenied();
             const body=document.getElementById("adminPropertiesBody"), count=document.getElementById("adminPropertyCount"), msg=document.getElementById("adminPropertiesMessage");
             if(!body)return;
-            body.innerHTML='<tr><td colspan="5">Loading all properties and owner information...</td></tr>';
+            body.innerHTML='<tr><td colspan="5">Loading properties and owner details...</td></tr>';
             if(msg)msg.textContent="";
-            const result=await supabaseClient.from("properties").select("id,title,name,location,address,rent,status,verification_status,bhk,furnishing,description,image_url,created_at,owner_id,listing_type,room_type,gender_preference,food_included,total_beds,available_beds").order("created_at",{ascending:false});
-            if(result.error){body.innerHTML='<tr><td colspan="5">Unable to load properties. Database RLS may need an admin policy.</td></tr>';if(msg)msg.textContent=getSafeErrorMessage(result.error,"Admin property query failed.");if(count)count.textContent="0 properties";return;}
-            const rows=Array.isArray(result.data)?result.data:[]; if(count)count.textContent=rows.length+(rows.length===1?" property":" properties");
-            const ownerIds=[...new Set(rows.map(p=>p.owner_id).filter(Boolean))], ownerMap=new Map();
-            if(ownerIds.length){
-                const or=await supabaseClient.from("owners").select("id,user_id,name,phone,verification_status").in("id",ownerIds);
-                if(!or.error){
-                    const userIds=(or.data||[]).map(o=>o.user_id).filter(Boolean);
-                    const ur=userIds.length ? await supabaseClient.from("users").select("id,name,email,phone,role,created_at").in("id",userIds) : {data:[],error:null};
-                    const um=new Map((ur.data||[]).map(u=>[String(u.id),u]));
-                    (or.data||[]).forEach(o=>{const u=um.get(String(o.user_id))||{}; ownerMap.set(String(o.id),{...u,name:o.name||u.name,phone:o.phone||u.phone,verification_status:o.verification_status,owner_id:o.id,user_id:o.user_id});});
-                }
+
+            const result=await supabaseClient.rpc("admin_get_all_properties");
+            if(result.error){
+                body.innerHTML='<tr><td colspan="5">Unable to load properties and owner details.</td></tr>';
+                if(msg)msg.textContent=getSafeErrorMessage(result.error,"Admin property query failed.");
+                if(count)count.textContent="0 properties";
+                return;
             }
-            window.__ghAdminProperties=rows; window.__ghAdminOwners=ownerMap;
-            if(!rows.length){body.innerHTML='<tr><td colspan="5">No properties are currently listed.</td></tr>';await loadAdminPeopleAndConnections();return;}
+
+            const rows=Array.isArray(result.data)?result.data:[];
+            if(count)count.textContent=rows.length+(rows.length===1?" property":" properties");
+
+            const ownerMap=new Map();
+            rows.forEach(p=>{
+                if(p.owner_id) ownerMap.set(String(p.owner_id),{
+                    id:p.owner_id,
+                    user_id:p.owner_user_id||null,
+                    name:p.owner_name||"Owner",
+                    phone:p.owner_phone||"",
+                    email:p.owner_email||"",
+                    verification_status:p.owner_verification_status||"pending"
+                });
+            });
+            window.__ghAdminProperties=rows;
+            window.__ghAdminOwners=ownerMap;
+
+            if(!rows.length){
+                body.innerHTML='<tr><td colspan="5">No properties are currently listed.</td></tr>';
+                await loadAdminPeopleAndConnections();
+                return;
+            }
+
             body.innerHTML=rows.map(function(p){
-                const o=ownerMap.get(p.owner_id)||{}, pid=String(p.id), oid=String(p.owner_id||"");
-                return '<tr><td><strong>'+escapeHtml(p.title||p.name||"Untitled property")+'</strong><br><span class="small-text">'+escapeHtml(p.listing_type||"home")+' • '+escapeHtml(p.bhk?p.bhk+" BHK":"—")+'</span></td><td class="gd-admin-owner"><strong>'+escapeHtml(o.name||"Owner unavailable")+'</strong> '+(o.verification_status==="verified"?'<span class="owner-badge">✓</span>':'<span class="pending-badge">Pending</span>')+'<br>'+escapeHtml(o.email||"Email unavailable")+'<br>'+escapeHtml(o.phone||"Phone unavailable")+'</td><td>₹'+Number(p.rent||0).toLocaleString("en-IN")+'<br><strong>'+escapeHtml(p.status||"—")+'</strong></td><td>'+escapeHtml(p.address||p.location||"—")+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-property" data-id="'+escapeHtml(pid)+'">✏️ Edit</button><button type="button" class="secondary-button gd-admin-edit-owner" data-admin-action="edit-owner" data-id="'+escapeHtml(oid)+'">👤 Owner</button><button type="button" class="dashboard-primary-action" data-admin-action="verify-property" data-id="'+escapeHtml(pid)+'">✓ Verify Property</button><button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(oid)+'">✓ Verify Owner</button><button type="button" class="secondary-button gd-admin-danger" data-admin-action="delete-property" data-id="'+escapeHtml(pid)+'">🗑️ Delete</button></div></td></tr>';
+                const o=ownerMap.get(String(p.owner_id))||{
+                    name:p.owner_name||"Owner unavailable",
+                    email:p.owner_email||"Email unavailable",
+                    phone:p.owner_phone||"Phone unavailable",
+                    verification_status:p.owner_verification_status||"pending"
+                };
+                const pid=String(p.id), oid=String(p.owner_id||"");
+                const ownerStatus=o.verification_status==="verified"
+                    ? '<span class="owner-badge">✓ Verified</span>'
+                    : '<span class="pending-badge">Pending</span>';
+                return '<tr><td><strong>'+escapeHtml(p.title||p.name||"Untitled property")+'</strong><br><span class="small-text">'+escapeHtml(p.listing_type||"home")+' • '+escapeHtml(p.bhk?p.bhk+" BHK":"—")+'</span></td>' +
+                    '<td class="gd-admin-owner"><strong>'+escapeHtml(o.name)+'</strong> '+ownerStatus+'<br>'+escapeHtml(o.email||"Email unavailable")+'<br>'+escapeHtml(o.phone||"Phone unavailable")+'</td>' +
+                    '<td>₹'+Number(p.rent||0).toLocaleString("en-IN")+'<br><strong>'+escapeHtml(p.status||"—")+'</strong></td>' +
+                    '<td>'+escapeHtml(p.address||p.location||"—")+'</td>' +
+                    '<td><div class="gd-admin-actions">' +
+                    '<button type="button" class="secondary-button" data-admin-action="edit-property" data-id="'+escapeHtml(pid)+'">✏️ Edit</button>' +
+                    (oid ? '<button type="button" class="secondary-button gd-admin-edit-owner" data-admin-action="edit-owner" data-id="'+escapeHtml(oid)+'">👤 Owner</button>' : '') +
+                    '<button type="button" class="dashboard-primary-action" data-admin-action="verify-property" data-id="'+escapeHtml(pid)+'">✓ Verify Property</button>' +
+                    (oid ? '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(oid)+'">'+(o.verification_status==="verified"?'✓ Owner Verified':'✓ Verify Owner')+'</button>' : '') +
+                    '<button type="button" class="secondary-button gd-admin-danger" data-admin-action="delete-property" data-id="'+escapeHtml(pid)+'">🗑️ Delete</button>' +
+                    '</div></td></tr>';
             }).join("");
+
             await loadAdminPeopleAndConnections();
         }
+
         async function loadAdminPeopleAndConnections() {
             if(!currentUser || !isAdminAccount()) return;
 
@@ -4989,14 +5034,24 @@ async function renderActiveDashboard() {
             const connectionsBody=document.getElementById("adminConnectionsBody");
             const activityBody=document.getElementById("adminActivityBody");
 
-            const usersResult=await supabaseClient.from("users").select("id,name,email,phone,role,created_at").order("created_at",{ascending:false});
-            const users=usersResult.error ? [] : (usersResult.data||[]);
-            const userMap=new Map(users.map(u=>[String(u.id),u]));
-            const ownersResult=await supabaseClient.from("owners").select("id,user_id,name,phone,verification_status,created_at").order("created_at",{ascending:false});
+            const ownersResult=await supabaseClient.rpc("admin_get_all_owners");
+            const rentersResult=await supabaseClient.rpc("admin_get_all_renters");
             const ownerProfiles=ownersResult.error ? [] : (ownersResult.data||[]);
-            const ownerProfileMap=new Map(ownerProfiles.map(o=>[String(o.user_id),o]));
-            const owners=ownerProfiles.map(o=>({...userMap.get(String(o.user_id)),id:o.user_id,name:o.name||userMap.get(String(o.user_id))?.name,phone:o.phone||userMap.get(String(o.user_id))?.phone,verification_status:o.verification_status,owner_profile_id:o.id}));
-            const renters=users.filter(u=>["renter","tenant"].includes(String(u.role||"").toLowerCase()));
+            const renters=rentersResult.error ? [] : (rentersResult.data||[]);
+            const owners=ownerProfiles.map(o=>({
+                ...o,
+                id:o.user_id,
+                owner_profile_id:o.id,
+                property_count:Number(o.property_count||0)
+            }));
+            const userMap=new Map();
+            owners.forEach(u=>userMap.set(String(u.id),u));
+            renters.forEach(u=>userMap.set(String(u.id),u));
+            (window.__ghAdminProperties||[]).forEach(p=>{
+                if(p.owner_id && p.owner_email && !userMap.has(String(p.owner_id))){
+                    userMap.set(String(p.owner_id),{id:p.owner_id,name:p.owner_name,email:p.owner_email,phone:p.owner_phone,role:"owner"});
+                }
+            });
 
             const visitsResult=await supabaseClient.from("visit_requests").select("id,property_id,owner_id,tenant_id,name,phone,visit_date,visit_time,status,created_at").order("created_at",{ascending:false});
             const visits=visitsResult.error ? [] : (visitsResult.data||[]);
@@ -5127,12 +5182,27 @@ async function renderActiveDashboard() {
         }
         function closeAdminOwnerEditor(){document.getElementById("adminOwnerEditor")?.classList.remove("active");}
         async function saveAdminOwner(e) {
-            e.preventDefault(); if(!isAdminAccount())return showAdminDenied();
-            const id=document.getElementById("adminOwnerId").value,name=document.getElementById("adminOwnerName").value.trim(),email=document.getElementById("adminOwnerEmail").value.trim().toLowerCase(),phone=document.getElementById("adminOwnerPhone").value.trim(),msg=document.getElementById("adminOwnerMessage");
-            if(!id||!name||!email){msg.textContent="Name and email are required.";return;} msg.textContent="Saving owner...";
-            const r=await supabaseClient.from("users").update({name,email,phone:phone||null}).eq("id",id);
-            if(r.error){msg.textContent="Owner update blocked by database policy. Admin UPDATE RLS/RPC is required.";return;}
-            msg.textContent="Owner updated successfully.";await loadAdminDashboard();setTimeout(closeAdminOwnerEditor,500);
+            e.preventDefault();
+            if(!isAdminAccount())return showAdminDenied();
+            const id=document.getElementById("adminOwnerId").value;
+            const name=document.getElementById("adminOwnerName").value.trim();
+            const email=document.getElementById("adminOwnerEmail").value.trim().toLowerCase();
+            const phone=document.getElementById("adminOwnerPhone").value.trim();
+            const msg=document.getElementById("adminOwnerMessage");
+            if(!id||!name||!email){msg.textContent="Name and email are required.";return;}
+            msg.textContent="Saving owner...";
+            const r=await supabaseClient.rpc("admin_update_owner",{
+                p_owner_id:id,p_name:name,p_email:email,p_phone:phone||null
+            });
+            if(r.error){
+                console.error("Admin owner update error:",r.error);
+                msg.textContent=getSafeErrorMessage(r.error,"Owner update failed.");
+                return;
+            }
+            msg.textContent="Owner updated successfully.";
+            showMessage("backendMessage","Owner details updated successfully. ✓","success");
+            await loadAdminDashboard();
+            setTimeout(closeAdminOwnerEditor,500);
         }
 
         /* =========================================================
