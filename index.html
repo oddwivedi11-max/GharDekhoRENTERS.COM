@@ -4750,7 +4750,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                         </div>
                         <span class="dashboard-mini-badge">OWNER ONLY • PRIVATE</span>
                     </div>
-                    <form id="addPropertyForm">
+                    <form id="addPropertyForm" novalidate>
                         <div class="owner-form-grid">
                             <select id="propertyListingType" required>
                                 <option value="home">🏠 Home / Flat</option>
@@ -4817,7 +4817,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                         <button type="button" id="verifyLocationBtn">📍 Verify Property Location</button>
                         <p id="verificationMessage" class="small-text"></p>
                         <textarea id="propertyDescription" placeholder="Property description (optional)" rows="5" maxlength="3000"></textarea>
-                        <button type="submit" id="addPropertyBtn">Submit Property</button>
+                        <div id="mobilePropertySubmitStatus" class="mobile-property-submit-status" aria-live="polite"></div><button type="button" id="addPropertyBtn">Submit Property</button>
                     </form>
                 </div>
 
@@ -12150,5 +12150,97 @@ html,body{max-width:100%;overflow-x:hidden!important}
   else refresh();
   window.addEventListener("load",refresh);
   new MutationObserver(refresh).observe(document.body,{attributes:true,attributeFilter:["class"],childList:true,subtree:true});
+})();
+</script>
+<style id="ghardekho-mobile-submit-v13">
+@media(max-width:680px){
+  #ownerDashboard .owner-add-property-card{
+    z-index:3001!important;
+    isolation:isolate!important;
+  }
+  #ownerDashboard .owner-add-property-card form{
+    position:relative!important;
+    z-index:3002!important;
+  }
+  #ownerDashboard #addPropertyBtn,
+  #ownerDashboard #verifyLocationBtn{
+    position:relative!important;
+    z-index:3010!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+  #mobilePropertySubmitStatus{
+    display:block!important;
+    min-height:0!important;
+    margin:10px 0 0!important;
+    padding:0!important;
+    font-size:13px!important;
+    line-height:1.45!important;
+    overflow-wrap:anywhere!important;
+  }
+  #mobilePropertySubmitStatus:empty{display:none!important}
+  #mobilePropertySubmitStatus.error{
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    background:#fff0f0!important;
+    color:#a32828!important;
+    border:1px solid #f0caca!important;
+  }
+  #mobilePropertySubmitStatus.success{
+    padding:10px 12px!important;
+    border-radius:10px!important;
+    background:#eefaf5!important;
+    color:#176b63!important;
+    border:1px solid #cbe8df!important;
+  }
+}
+</style>
+<script id="ghardekho-mobile-submit-v13-js">
+(function(){
+  function bindMobilePropertySubmit(){
+    const form=document.getElementById("addPropertyForm");
+    const btn=document.getElementById("addPropertyBtn");
+    if(!form||!btn||btn.dataset.gdSubmitV13==="1") return;
+    btn.dataset.gdSubmitV13="1";
+
+    /*
+      Mobile browsers can silently block a native form submission when a
+      required field is invalid, which made the old "Submit Property" button
+      appear dead. The form now uses novalidate and addProperty() performs
+      the real validation with a visible message.
+    */
+    const status=document.getElementById("mobilePropertySubmitStatus");
+
+    btn.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopPropagation();
+
+      if(typeof window.addProperty==="function"){
+        window.addProperty({preventDefault:function(){}});
+      }else{
+        form.dispatchEvent(new Event("submit",{bubbles:true,cancelable:true}));
+      }
+    },true);
+
+    form.addEventListener("invalid",function(e){
+      e.preventDefault();
+    },true);
+
+    if(status){
+      const observer=new MutationObserver(function(){
+        const backend=document.getElementById("backendMessage");
+        if(!backend) return;
+        const text=String(backend.textContent||"").trim();
+        if(!text) return;
+        status.textContent=text;
+        status.className="mobile-property-submit-status "+(backend.className.includes("error")?"error":backend.className.includes("success")?"success":"");
+      });
+      observer.observe(document.getElementById("backendMessage")||form,{childList:true,subtree:true,characterData:true,attributes:true,attributeFilter:["class"]});
+    }
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindMobilePropertySubmit);
+  else bindMobilePropertySubmit();
+  window.addEventListener("load",bindMobilePropertySubmit);
+  new MutationObserver(bindMobilePropertySubmit).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
