@@ -4976,6 +4976,8 @@ async function renderActiveDashboard() {
             }
 
             const rows=Array.isArray(result.data)?result.data:[];
+            const statusResult=await supabaseClient.rpc("admin_get_property_statuses");
+            const liveStatuses=new Map((statusResult.error ? [] : (statusResult.data||[])).map(s=>[String(s.property_id),s]));
             if(count)count.textContent=rows.length+(rows.length===1?" property":" properties");
 
             const ownerMap=new Map();
@@ -5006,18 +5008,48 @@ async function renderActiveDashboard() {
                     verification_status:p.owner_verification_status||"pending"
                 };
                 const pid=String(p.id), oid=String(p.owner_id||"");
+                const live=liveStatuses.get(pid)||{};
+                const propertyStatus=live.effective_status||(
+                    p.verification_status==="verified"
+                        ? (p.status==="soon_available"?"soon_available":"verified")
+                        : (p.status||"pending")
+                );
                 const ownerStatus=o.verification_status==="verified"
                     ? '<span class="owner-badge">✓ Verified</span>'
                     : '<span class="pending-badge">Pending</span>';
+                const propertyStatusLabel=propertyStatus==="occupied"
+                    ? '<span class="status-chip occupied">● Occupied</span>'
+                    : propertyStatus==="partially_occupied"
+                        ? '<span class="status-chip soon">● Partially occupied</span>'
+                        : propertyStatus==="soon_available"
+                            ? '<span class="status-chip soon">● Soon available</span>'
+                            : propertyStatus==="verified"
+                                ? '<span class="status-chip available">✓ Available</span>'
+                                : '<span class="status-chip pending">'+escapeHtml(propertyStatus||"Pending")+'</span>';
+                const renterInfo=live.renter_names
+                    ? '<br><span class="small-text">Renter: '+escapeHtml(live.renter_names)+'</span>'
+                    : '';
+                const verifyPropertyButton=p.verification_status==="verified"
+                    ? '<button type="button" class="dashboard-secondary-action" disabled title="Property is already verified">✓ Property Verified</button>'
+                    : '<button type="button" class="dashboard-primary-action" data-admin-action="verify-property" data-id="'+escapeHtml(pid)+'">✓ Verify Property</button>';
+                const verifyOwnerButton=oid
+                    ? (o.verification_status==="verified"
+                        ? '<button type="button" class="dashboard-secondary-action" disabled title="Owner is already verified">✓ Owner Verified</button>'
+                        : '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(oid)+'">✓ Verify Owner</button>')
+                    : '';
+                const occupancyButton=(propertyStatus==="occupied"||propertyStatus==="partially_occupied")
+                    ? '<button type="button" class="secondary-button gd-admin-release" data-admin-action="release-occupancy" data-id="'+escapeHtml(pid)+'">↩ Release renter</button>'
+                    : '';
                 return '<tr><td><strong>'+escapeHtml(p.title||p.name||"Untitled property")+'</strong><br><span class="small-text">'+escapeHtml(p.listing_type||"home")+' • '+escapeHtml(p.bhk?p.bhk+" BHK":"—")+'</span></td>' +
                     '<td class="gd-admin-owner"><strong>'+escapeHtml(o.name)+'</strong> '+ownerStatus+'<br>'+escapeHtml(o.email||"Email unavailable")+'<br>'+escapeHtml(o.phone||"Phone unavailable")+'</td>' +
-                    '<td>₹'+Number(p.rent||0).toLocaleString("en-IN")+'<br><strong>'+escapeHtml(p.status||"—")+'</strong></td>' +
+                    '<td>₹'+Number(p.rent||0).toLocaleString("en-IN")+'<br>'+propertyStatusLabel+renterInfo+'</td>' +
                     '<td>'+escapeHtml(p.address||p.location||"—")+'</td>' +
                     '<td><div class="gd-admin-actions">' +
                     '<button type="button" class="secondary-button" data-admin-action="edit-property" data-id="'+escapeHtml(pid)+'">✏️ Edit</button>' +
                     (oid ? '<button type="button" class="secondary-button gd-admin-edit-owner" data-admin-action="edit-owner" data-id="'+escapeHtml(oid)+'">👤 Owner</button>' : '') +
-                    '<button type="button" class="dashboard-primary-action" data-admin-action="verify-property" data-id="'+escapeHtml(pid)+'">✓ Verify Property</button>' +
-                    (oid ? '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(oid)+'">'+(o.verification_status==="verified"?'✓ Owner Verified':'✓ Verify Owner')+'</button>' : '') +
+                    verifyPropertyButton +
+                    verifyOwnerButton +
+                    occupancyButton +
                     '<button type="button" class="secondary-button gd-admin-danger" data-admin-action="delete-property" data-id="'+escapeHtml(pid)+'">🗑️ Delete</button>' +
                     '</div></td></tr>';
             }).join("");
@@ -5068,7 +5100,10 @@ async function renderActiveDashboard() {
             if(ownersBody){
                 ownersBody.innerHTML=owners.filter(u=>matches(u,q)).map(u=>{
                     const count=(window.__ghAdminProperties||[]).filter(p=>String(p.owner_id)===String(u.id)).length;
-                    return '<tr><td><strong>'+escapeHtml(u.name||"—")+'</strong> '+(u.verification_status==="verified"?'<span class="owner-badge">✓ Verified</span>':'<span class="pending-badge">Pending</span>')+'</td><td>'+escapeHtml(u.email||"—")+'</td><td>'+escapeHtml(u.phone||"—")+'</td><td>'+count+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-owner" data-id="'+escapeHtml(u.id)+'">Edit</button><button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Verify</button></div></td></tr>';
+                    const verifyOwnerAction=u.verification_status==="verified"
+                        ? '<button type="button" class="dashboard-secondary-action" disabled>✓ Verified</button>'
+                        : '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Verify</button>';
+                    return '<tr><td><strong>'+escapeHtml(u.name||"—")+'</strong> '+(u.verification_status==="verified"?'<span class="owner-badge">✓ Verified</span>':'<span class="pending-badge">Pending</span>')+'</td><td>'+escapeHtml(u.email||"—")+'</td><td>'+escapeHtml(u.phone||"—")+'</td><td>'+count+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-owner" data-id="'+escapeHtml(u.id)+'">Edit</button>'+verifyOwnerAction+'</div></td></tr>';
                 }).join("")||'<tr><td colspan="5">No owners found.</td></tr>';
             }
 
@@ -5152,6 +5187,21 @@ async function renderActiveDashboard() {
             } catch(error) {
                 console.error("Owner verification error:", error);
                 showMessage("backendMessage",getSafeErrorMessage(error,"Owner verification failed. Admin RLS/RPC may need to allow verification updates."),"error");
+            }
+        }
+
+        async function releaseAdminOccupancy(propertyId) {
+            if(!isAdminAccount()) return showAdminDenied();
+            if(!propertyId) return showMessage("backendMessage","Property ID is missing.","error");
+            if(!confirm("Release the current renter from this property and make it available again?")) return;
+            try {
+                const { error } = await supabaseClient.rpc("admin_release_property_occupancy", { p_property_id: propertyId });
+                if(error) throw error;
+                showMessage("backendMessage","Renter released. Property is now available. ✓","success");
+                await Promise.allSettled([loadAdminDashboard(),loadProperties()]);
+            } catch(error) {
+                console.error("Admin occupancy release error:", error);
+                showMessage("backendMessage",getSafeErrorMessage(error,"Unable to release the current renter."),"error");
             }
         }
 
@@ -6732,12 +6782,8 @@ async function loadOwnerProperties() {
 
             ownerPropertiesCache = Array.isArray(data) ? data : [];
             const ownerPropertyCount = Array.isArray(data) ? data.length : 0;
-            const ownerAvailableCount = Array.isArray(data)
-                ? data.filter(property => property.verification_status === "verified" && property.status === "verified").length
-                : 0;
-            const ownerOccupiedCount = Array.isArray(data)
-                ? data.filter(property => property.status === "occupied").length
-                : 0;
+            const ownerAvailableCount = 0;
+            const ownerOccupiedCount = 0;
             const ownerPropertyCountEl = document.getElementById("ownerPropertyCount");
             const ownerAvailableCountEl = document.getElementById("ownerAvailableCount");
             const ownerOccupiedCountEl = document.getElementById("ownerOccupiedCount");
@@ -6771,7 +6817,7 @@ async function loadOwnerProperties() {
                     const propertyId = escapeHtml(property.id);
 
                     return `
-                        <div class="owner-property-row">
+                        <div class="owner-property-row" data-property-id="${propertyId}">
                             <strong>${escapeHtml(property.title || "Rental Property")}</strong>
                             <br>
                             ${property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}${property.room_type ? " · " + escapeHtml(property.room_type) : ""}
@@ -6780,8 +6826,8 @@ async function loadOwnerProperties() {
                             <br>
                             💰 ${formatRent(property.rent)}
                             <br>
-                            ${badge}
-                            <div class="owner-occupancy-inline" id="owner-occupancy-${propertyId}"><span class="small-text">Checking occupancy…</span></div>
+                            <span class="owner-live-status">${badge}</span>
+                            <div class="owner-occupancy-inline" id="owner-occupancy-${propertyId}"><span class="small-text">Checking live occupancy…</span></div>
 
                             <div class="owner-property-actions">
                                 <button type="button" class="owner-view-property-btn secondary-button" data-id="${propertyId}">View</button>
@@ -6811,12 +6857,7 @@ async function loadOwnerCurrentRenters(properties) {
     const container = document.getElementById("ownerOccupancyContainer");
     if (!container) return;
 
-    const { data: rows, error } = await supabaseClient
-        .from("property_occupancies")
-        .select("id,property_id,renter_id,visit_id,renter_name,renter_phone,occupied_at,released_at")
-        .is("released_at", null)
-        .order("occupied_at", { ascending: false });
-
+    const { data: rows, error } = await supabaseClient.rpc("get_my_current_renters");
     if (error) {
         console.error("Current renters error:", error);
         container.innerHTML = '<p class="dashboard-empty">Unable to load current renters right now.</p>';
@@ -6824,18 +6865,69 @@ async function loadOwnerCurrentRenters(properties) {
     }
 
     const activeRows = Array.isArray(rows) ? rows : [];
+    const activeByProperty = new Map();
+    activeRows.forEach(row => {
+        const key = String(row.property_id);
+        if (!activeByProperty.has(key)) activeByProperty.set(key, []);
+        activeByProperty.get(key).push(row);
+    });
+
+    const ownerProperties = Array.isArray(properties) ? properties : [];
+    let occupiedCount = 0;
+    let availableCount = 0;
+
+    ownerProperties.forEach(property => {
+        const active = activeByProperty.get(String(property.id)) || [];
+        const hasActive = active.length > 0;
+        const type = property.listing_type || "home";
+        const effective = type === "home"
+            ? (hasActive ? "occupied" : (property.verification_status === "verified" ? "available" : "pending"))
+            : (hasActive && Number(property.available_beds || 0) <= 0
+                ? "occupied"
+                : hasActive
+                    ? "partially_occupied"
+                    : (property.verification_status === "verified" ? "available" : "pending"));
+
+        if (effective === "occupied") occupiedCount++;
+        if (effective === "available" || effective === "partially_occupied") availableCount++;
+
+        const rowEl = document.querySelector('.owner-property-row[data-property-id="'+CSS.escape(String(property.id))+'"]');
+        if (rowEl) {
+            const statusEl = rowEl.querySelector(".owner-live-status");
+            if (statusEl) {
+                statusEl.innerHTML = effective === "occupied"
+                    ? '<span class="status-chip occupied">● Occupied</span>'
+                    : effective === "partially_occupied"
+                        ? '<span class="status-chip soon">● Partially occupied</span>'
+                        : effective === "available"
+                            ? '<span class="status-chip available">✓ Available</span>'
+                            : '<span class="status-chip pending">Pending verification</span>';
+            }
+        }
+    });
+
+    const ownerAvailableCountEl = document.getElementById("ownerAvailableCount");
+    const ownerOccupiedCountEl = document.getElementById("ownerOccupiedCount");
+    if (ownerAvailableCountEl) ownerAvailableCountEl.textContent = String(availableCount);
+    if (ownerOccupiedCountEl) ownerOccupiedCountEl.textContent = String(occupiedCount);
+
+    window.__gdCurrentRenters = activeRows.map(row => ({
+        ...row,
+        id: row.occupancy_id || row.id,
+        property: {
+            title: row.property_title,
+            name: row.property_title,
+            address: row.property_address,
+            location: row.property_location,
+            rent: row.property_rent,
+            listing_type: row.property_listing_type
+        }
+    }));
+
     if (!activeRows.length) {
-        container.innerHTML = '<div class="gd-renter-empty"><div class="gd-renter-empty-icon">⌂</div><strong>No current renters</strong><p>When an approved visit becomes a rental, the renter will appear here with their move-in date and rental status.</p></div>';
+        container.innerHTML = '<div class="gd-renter-empty"><div class="gd-renter-empty-icon">⌂</div><strong>No current renters</strong><p>No active occupancy record exists for your properties. A property is treated as occupied only when an active rental record exists.</p></div>';
         return;
     }
-
-    const ids = [...new Set(activeRows.map(r => r.property_id).filter(Boolean))];
-    const { data: propertyRows } = ids.length
-        ? await supabaseClient.from("properties").select("id,title,name,location,address,rent,listing_type,status").in("id", ids)
-        : { data: [] };
-    const propertyMap = new Map((propertyRows || []).map(p => [String(p.id), p]));
-
-    window.__gdCurrentRenters = activeRows.map(row => ({...row, property: propertyMap.get(String(row.property_id)) || {}}));
 
     container.innerHTML = window.__gdCurrentRenters.map(row => {
         const p = row.property || {};
@@ -7359,7 +7451,7 @@ async function updateVisitStatus(visitId, newStatus) {
                 const id = document.getElementById("editPropertyId")?.value;
                 if (id) deleteAdminProperty(id);
             });
-            document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="delete-property")deleteAdminProperty(id);});
+            document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="release-occupancy")releaseAdminOccupancy(id);else if(action==="delete-property")deleteAdminProperty(id);});
             document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");if(isAdminAccount())loadAdminPeopleAndConnections();}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch","adminConnectionSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
             const signupBtn = document.getElementById("signupBtn");
             const loginSubmitBtn = document.getElementById("loginSubmitBtn");
