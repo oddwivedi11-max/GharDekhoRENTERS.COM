@@ -4656,7 +4656,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                             <span class="dashboard-section-kicker">TRUST & VERIFICATION</span>
                             <h3 id="ownerVerificationTitle">Owner verification</h3>
                         </div>
-                        <span id="ownerVerificationBadge" class="owner-badge">Checking…</span>
+                        <span id="ownerVerificationBadge" class="pending-badge">Loading verification…</span>
                     </div>
                     <p id="ownerVerificationText" class="dashboard-muted">Your owner verification status will appear here.</p>
                 </div>
@@ -8380,6 +8380,33 @@ async function loadOwnerProperties() {
 
             currentOwnerProfile = ownerRecord;
             updateOwnerProfileUI(ownerRecord);
+
+            // Update the visible owner verification badge from the same
+            // owner profile query that already powers the owner dashboard.
+            // This avoids leaving the badge stuck on the initial loading text.
+            const verificationStatus = String(ownerRecord.verification_status || "pending").toLowerCase();
+            if (verificationBadge) {
+                verificationBadge.textContent = verificationStatus === "verified"
+                    ? "✓ Verified Owner"
+                    : verificationStatus === "rejected"
+                        ? "✕ Verification rejected"
+                        : "Pending verification";
+                verificationBadge.className = verificationStatus === "verified"
+                    ? "owner-badge"
+                    : "pending-badge";
+            }
+            if (verificationTitle) {
+                verificationTitle.textContent = ownerRecord.name
+                    ? ownerRecord.name + " • Owner verification"
+                    : "Owner verification";
+            }
+            if (verificationText) {
+                verificationText.textContent = verificationStatus === "verified"
+                    ? "Your owner account has been verified by Ghar Dekho administration. ✓"
+                    : verificationStatus === "rejected"
+                        ? "Your owner verification was rejected by Ghar Dekho administration."
+                        : "Your owner profile is awaiting verification by Ghar Dekho administration.";
+            }
 
             const {
                 data,
