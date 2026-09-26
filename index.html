@@ -7363,14 +7363,9 @@ async function renderActiveDashboard() {
                 return;
             }
 
-            // Owners can also act as renters while exploring other owners'
-            // properties. The owner dashboard itself stays private; visit
-            // requests are sent only from Owner Explore mode.
-            if (activeRole === "owner" && !ownerExploreMode) {
-                status.textContent = "Open “Explore Near Me” from your Owner dashboard to request a visit as a renter.";
-                return;
-            }
-
+            // Owners can also act as renters. They may request visits on
+            // other owners' verified properties; their own properties are
+            // blocked below.
             if (!currentProperty) {
                 status.textContent =
                     "Please select a property first.";
