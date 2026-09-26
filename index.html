@@ -2837,6 +2837,120 @@ header nav a{font-size:.9rem}
 }
 </style>
 
+
+<style id="ghardekho-visual-redesign-v3">
+/* GHARDEKHO V3 — visibly distinct startup UI */
+:root{
+  --gd-v3-ink:#102a28;--gd-v3-teal:#0b766d;--gd-v3-teal2:#15a094;
+  --gd-v3-cream:#f7f2e9;--gd-v3-line:#dce8e4;--gd-v3-orange:#ef9a4b;
+}
+body{background:#f5f8f6!important;color:var(--gd-v3-ink)!important}
+header{
+  height:72px!important;padding:0 30px!important;
+  background:rgba(247,250,249,.92)!important;border-bottom:1px solid #dce8e4!important;
+  box-shadow:0 4px 24px rgba(16,42,40,.06)!important;
+}
+header h1:before{background:linear-gradient(135deg,#0b766d,#15a094)!important;border-radius:11px!important}
+header h1:after{font-size:18px!important}
+header #loginBtn,header #logoutBtn{background:#102a28!important;border-radius:999px!important;padding:0 22px!important}
+main{max-width:1280px!important}
+body.gd-auth-page{background:
+ radial-gradient(circle at 8% 8%,rgba(21,160,148,.13),transparent 25rem),
+ radial-gradient(circle at 95% 90%,rgba(239,154,75,.10),transparent 22rem),
+ #f5f8f6!important;
+}
+body.gd-auth-page #loginSection{
+ width:min(1180px,calc(100% - 28px))!important;
+ min-height:calc(100vh - 72px)!important;padding:34px 0 54px!important;
+}
+.gd-premium-auth-shell{
+ max-width:1180px!important;min-height:650px!important;
+ grid-template-columns:1.12fr .88fr!important;
+ border:1px solid rgba(16,42,40,.10)!important;border-radius:36px!important;
+ box-shadow:0 32px 100px rgba(16,42,40,.16)!important;
+}
+.gd-auth-brand-panel{
+ position:relative!important;overflow:hidden!important;
+ padding:58px!important;
+ background:
+  radial-gradient(circle at 78% 20%,rgba(255,255,255,.20),transparent 11rem),
+  radial-gradient(circle at 15% 90%,rgba(21,160,148,.35),transparent 15rem),
+  linear-gradient(145deg,#0c3f3a,#08766d 58%,#0b5d56)!important;
+}
+.gd-auth-brand-panel:before{
+ content:"";position:absolute;width:330px;height:330px;right:-120px;bottom:-120px;border:1px solid rgba(255,255,255,.15);
+ border-radius:50%;box-shadow:0 0 0 50px rgba(255,255,255,.035),0 0 0 100px rgba(255,255,255,.025);
+}
+.gd-auth-brand-panel:after{
+ content:"GHARDEKHO";position:absolute;right:32px;bottom:25px;color:rgba(255,255,255,.055);
+ font-size:64px;font-weight:1000;letter-spacing:-.07em;transform:rotate(-8deg);
+}
+.gd-auth-brand-panel h2{font-size:clamp(3.2rem,5vw,5.5rem)!important;line-height:.9!important;max-width:560px!important}
+.gd-auth-brand-panel h2 span{color:#aaf3e9!important}
+.gd-auth-benefits{gap:10px!important}
+.gd-auth-benefit{padding:11px 13px;border:1px solid rgba(255,255,255,.12);border-radius:14px;background:rgba(255,255,255,.06);width:max-content;max-width:100%}
+.gd-auth-benefit i{background:rgba(255,255,255,.16)!important}
+.gd-auth-form-panel{
+ background:linear-gradient(180deg,#fff,#fbfdfc)!important;padding:52px!important;
+}
+.gd-auth-form-panel .auth-card{background:transparent!important}
+.gd-auth-back{color:#0b766d!important;margin-bottom:28px!important}
+.gd-auth-form-title{font-size:2.55rem!important;letter-spacing:-.06em!important}
+.gd-auth-form-subtitle{font-size:14px!important;margin-bottom:28px!important}
+.gd-auth-form-panel .auth-grid{gap:12px!important}
+.gd-auth-form-panel .auth-grid input{
+ height:54px!important;padding:0 17px!important;border:1px solid #d6e4e0!important;
+ background:#f7faf9!important;border-radius:15px!important;
+ box-shadow:inset 0 1px 1px rgba(16,42,40,.025)!important;
+}
+.gd-auth-form-panel .auth-grid input:focus{
+ border-color:#15a094!important;box-shadow:0 0 0 4px rgba(21,160,148,.10)!important;
+}
+.gd-auth-form-panel .role-switch{gap:10px!important}
+.gd-auth-form-panel .role-switch label{
+ min-height:58px!important;border:1px solid #dce8e4!important;border-radius:15px!important;
+ background:#f5f8f7!important;transition:.2s ease!important;
+}
+.gd-auth-form-panel .role-switch label:has(input:checked){
+ background:#e6f7f4!important;border-color:#8fd8cf!important;box-shadow:0 7px 20px rgba(11,118,109,.10)!important;
+}
+.gd-auth-form-panel #loginSubmitBtn,.gd-auth-form-panel #signupBtn{
+ height:56px!important;border-radius:15px!important;font-size:15px!important;
+ box-shadow:0 12px 28px rgba(11,118,109,.16)!important;
+}
+.gd-auth-form-panel #loginSubmitBtn{background:#102a28!important}
+.gd-auth-form-panel #signupBtn{background:linear-gradient(135deg,#0b766d,#15a094)!important}
+.gd-logged-out-landing{width:min(1280px,94%)!important}
+.gd-landing-hero{
+ border-radius:38px!important;
+ background:linear-gradient(135deg,#ffffff 0%,#eaf6f2 58%,#f9efe3 100%)!important;
+ box-shadow:0 30px 90px rgba(16,42,40,.12)!important;
+}
+.gd-landing-copy h2{font-size:clamp(3.5rem,7vw,7rem)!important}
+.gd-role-choice{border-radius:20px!important}
+.gd-role-choice:hover{transform:translateY(-6px) scale(1.01)!important}
+@media(max-width:820px){
+ header{padding:0 16px!important}
+ body.gd-auth-page #loginSection{width:min(620px,calc(100% - 20px))!important;padding:18px 0 34px!important}
+ .gd-premium-auth-shell{grid-template-columns:1fr!important;min-height:auto!important;border-radius:28px!important}
+ .gd-auth-brand-panel{min-height:300px!important;padding:34px!important}
+ .gd-auth-brand-panel h2{font-size:3.1rem!important}
+ .gd-auth-form-panel{padding:34px 26px!important}
+}
+@media(max-width:560px){
+ header{height:64px!important}
+ header h1:after{font-size:16px!important}
+ header #loginBtn{padding:0 15px!important;font-size:12px!important}
+ body.gd-auth-page #loginSection{width:calc(100% - 14px)!important}
+ .gd-auth-brand-panel{min-height:230px!important;padding:26px!important}
+ .gd-auth-brand-panel h2{font-size:2.45rem!important}
+ .gd-auth-benefit{width:100%!important}
+ .gd-auth-form-panel{padding:26px 18px!important}
+ .gd-auth-form-title{font-size:2rem!important}
+ .gd-auth-form-panel .role-switch{grid-template-columns:1fr 1fr!important}
+}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
+</style>
 </head>
 
 <body>
