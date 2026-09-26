@@ -6412,9 +6412,10 @@ async function saveRenterProfile(e){
     if(!currentUser||!["renter","tenant"].includes(String(activeRole||"").toLowerCase())) return;
     const name=document.getElementById("renterProfileEditName").value.trim();
     const email=document.getElementById("renterProfileEditEmail").value.trim().toLowerCase();
-    const phone=document.getElementById("renterProfileEditPhone").value.trim();
+    const phone=normalizePhone(document.getElementById("renterProfileEditPhone").value);
     const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
     if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
+    if(phone && !/^\+91\d{10}$/.test(phone)){showMessage("backendMessage","Enter exactly 10 digits after +91.","error");return;}
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
     try{
         const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone||null});
@@ -6467,7 +6468,7 @@ async function saveOwnerProfile(e){
 
     const name=document.getElementById("ownerProfileEditName").value.trim();
     const email=document.getElementById("ownerProfileEditEmail").value.trim().toLowerCase();
-    const phone=document.getElementById("ownerProfileEditPhone").value.trim();
+    const phone=normalizePhone(document.getElementById("ownerProfileEditPhone").value);
     const msg=document.getElementById("ownerProfileMessage");
     const saveButton=document.querySelector("#ownerProfileForm button[type='submit']");
 
@@ -10940,7 +10941,7 @@ html,body{max-width:100%;overflow-x:hidden!important}
   #ownerDashboard .gd-stay-fields{grid-template-columns:1fr!important}
   #ownerDashboard .gd-image-url-row{grid-template-columns:1fr!important}
   #ownerDashboard .gd-image-url-row>span{display:none!important}
-  .gd-property-modal-active{touch-action:none!important}
+  .gd-property-modal-active{touch-action:pan-y!important}
 }
 @media(max-width:390px){
   header h1{font-size:1.12rem!important}
@@ -11097,10 +11098,12 @@ html,body{max-width:100%;overflow-x:hidden!important}
   const PHONE_IDS=["userPhone","visitPhone","ownerProfileEditPhone","adminOwnerPhone","renterProfileEditPhone"];
 
   function localDigits(value){
-    let digits=String(value||"").replace(/\D/g,"");
-    // The visible +91 prefix is part of the control, not part of the user's
-    // 10-digit input. Strip it whether the user typed it or it was prefilled.
-    if(digits.startsWith("91") && digits.length>10) digits=digits.slice(2);
+    const raw=String(value||"").trim();
+    let digits=raw.replace(/\D/g,"");
+    // If the control already contains its visible +91 prefix, remove only
+    // that prefix. This lets a local number beginning with 91 remain valid.
+    if(raw.startsWith("+91")) digits=digits.slice(2);
+    else if(digits.startsWith("91") && digits.length>10) digits=digits.slice(2);
     if(digits.startsWith("0") && digits.length>10) digits=digits.replace(/^0+/,"");
     return digits.slice(0,10);
   }
