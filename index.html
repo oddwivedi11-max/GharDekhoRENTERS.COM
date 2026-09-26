@@ -5417,9 +5417,13 @@ async function updateAuthUI() {
     // the profile update was blocked by RLS/network timing.
     const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
 
-    if (requestedRole === "owner" && !roles.includes("owner")) {
-        const ownerEnabled = await saveActiveAccountRole("owner");
-        if (ownerEnabled) {
+    // The user's explicit login choice always wins. If this account does not
+    // have that role yet, add the requested role instead of silently opening
+    // the other dashboard. This is especially important for accounts that
+    // already have Owner access but are intentionally logging in as Renter.
+    if (!roles.includes(requestedRole)) {
+        const roleEnabled = await saveActiveAccountRole(requestedRole);
+        if (roleEnabled) {
             roles = getAccountRoles(currentProfile);
         }
     }
@@ -5427,8 +5431,20 @@ async function updateAuthUI() {
     if (roles.includes(requestedRole)) {
         activeRole = requestedRole;
     } else {
-        // Only fall back when the requested role genuinely does not exist.
-        activeRole = roles.includes("renter") ? "renter" : roles[0];
+        // Never silently switch dashboards. If the requested role could not
+        // be established, stop rather than opening Owner/Renter unexpectedly.
+        activeRole = requestedRole;
+        resetRoleSpecificUI();
+        dashboard.style.display = "none";
+        dashboard.setAttribute("aria-hidden", "true");
+        showMessage(
+            "backendMessage",
+            requestedRole === "owner"
+                ? "Owner access could not be enabled for this account."
+                : "Renter access could not be enabled for this account.",
+            "error"
+        );
+        return;
     }
 
     pendingLoginRole = activeRole;
