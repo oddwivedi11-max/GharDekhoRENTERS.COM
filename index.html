@@ -3976,12 +3976,12 @@ async function renderActiveDashboard() {
                 const rows = Array.isArray(result.data) ? result.data : [];
                 allProperties = rows.map(row => ({
                     ...row,
-                    listing_type: "home",
-                    room_type: null,
-                    gender_preference: null,
-                    food_included: null,
-                    total_beds: null,
-                    available_beds: null
+                    listing_type: row.listing_type || "home",
+                    room_type: row.room_type || null,
+                    gender_preference: row.gender_preference || null,
+                    food_included: row.food_included ?? null,
+                    total_beds: row.total_beds ?? null,
+                    available_beds: row.available_beds ?? null
                 }));
 
                 currentPropertyPage = 1;
@@ -5273,23 +5273,6 @@ async function refreshSaveButtons(propertyId) {
                 .getElementById("addPropertyForm")
                 .reset();
             resetPropertyImagePicker();
-            document.getElementById("deletePropertyFromEditorBtn")?.addEventListener("click",()=>{const id=document.getElementById("editPropertyId")?.value;if(id)deleteAdminProperty(id);});
-        document.getElementById("editPropertyImageFile")?.addEventListener("change",e=>{const f=e.target.files?.[0];const n=document.getElementById("editPropertyImageName");if(n)n.textContent=f?`${f.name} selected — save to upload.`:"Choose a new JPG, PNG or WebP photo (max 5 MB).";});
-        document.getElementById("propertyEditorForm")?.addEventListener("submit", savePropertyEdit);
-        document.getElementById("closePropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
-        document.getElementById("cancelPropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
-        document.getElementById("propertyEditor")?.addEventListener("click", e => { if(e.target.id==="propertyEditor") closePropertyEditor(); });
-        document.getElementById("editPropertyListingType")?.addEventListener("change", () => {
-            const type=document.getElementById("editPropertyListingType")?.value||"home";
-            const bhk=document.getElementById("editPropertyBhk"),room=document.getElementById("editPropertyRoomType"),gender=document.getElementById("editPropertyGender"),total=document.getElementById("editPropertyTotalBeds"),available=document.getElementById("editPropertyAvailableBeds"),food=document.getElementById("editPropertyFood");
-            const shared=type!=="home";
-            if(bhk){bhk.disabled=shared;if(shared)bhk.value="";}
-            [room,gender,total,available,food].forEach(el=>{if(el)el.disabled=!shared;});
-        });
-        window.addEventListener("popstate", () => { if(window.location.hash!=="#login") closeLoginPage(); });
-        window.addEventListener("hashchange", () => { if(window.location.hash.toLowerCase().startsWith("#admin") && !isAdminAccount()){ showAdminDenied(); history.replaceState({}, "", window.location.pathname + window.location.search); } });
-        updateStayTypeFields();
-
             verifiedPropertyLocation = null;
 
             document.getElementById(
