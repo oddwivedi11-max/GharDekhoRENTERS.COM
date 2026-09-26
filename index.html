@@ -4546,6 +4546,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                     <button type="button" class="dashboard-primary-action" id="renterFindHomeBtn">🔎 Find a Home</button>
                     <button type="button" class="dashboard-secondary-action" id="renterTopPropertiesBtn">🏠 View Properties</button>
                     <button type="button" class="dashboard-secondary-action" id="renterSavedPropertiesBtn">❤️ Saved Properties</button>
+                    <button type="button" class="dashboard-secondary-action gd-renter-owner-cta" id="renterBecomeOwnerBtn">🏠 List a Property</button>
                 </div>
 
                 <div class="dashboard-two-column">
@@ -7926,7 +7927,7 @@ async function refreshSaveButtons(propertyId) {
                     "error"
                 );
 
-                return;
+                return false;
             }
 
             button.disabled = true;
@@ -7973,7 +7974,7 @@ async function refreshSaveButtons(propertyId) {
                         "error"
                     );
 
-                    return;
+                    return false;
                 }
 
                 const longitude = Number(feature.geometry.coordinates[0]);
@@ -8018,6 +8019,7 @@ async function refreshSaveButtons(propertyId) {
 
                 button.textContent =
                     "✓ Location Verified";
+                return true;
 
             } catch (error) {
                 console.error(
@@ -8030,6 +8032,7 @@ async function refreshSaveButtons(propertyId) {
                     "❌ Unable to verify location right now. Please try again.",
                     "error"
                 );
+                return false;
 
             } finally {
                 button.disabled = false;
@@ -8230,13 +8233,10 @@ async function refreshSaveButtons(propertyId) {
             }
 
             if (!verifiedPropertyLocation) {
-                showMessage(
-                    "backendMessage",
-                    "Please verify the property location first.",
-                    "error"
-                );
-
-                return;
+                const locationVerified = await verifyPropertyLocation();
+                if (!locationVerified || !verifiedPropertyLocation) {
+                    return;
+                }
             }
 
             const {
@@ -9273,6 +9273,24 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
 }
 bindOwnerSavedPropertiesShortcut();
 new MutationObserver(bindOwnerSavedPropertiesShortcut).observe(document.body,{childList:true,subtree:true});
+
+function bindRenterBecomeOwnerShortcut() {
+    const btn=document.getElementById("renterBecomeOwnerBtn");
+    if(!btn||btn.dataset.gdOwnerBound==="1") return;
+    btn.dataset.gdOwnerBound="1";
+    btn.addEventListener("click",async function(){
+        btn.disabled=true;
+        btn.textContent="Opening Owner…";
+        try {
+            await switchAccountRole("owner");
+        } finally {
+            btn.disabled=false;
+            btn.textContent="🏠 List a Property";
+        }
+    });
+}
+bindRenterBecomeOwnerShortcut();
+new MutationObserver(bindRenterBecomeOwnerShortcut).observe(document.body,{childList:true,subtree:true});
 
 function bindRenterSavedPropertiesShortcut() {
     const btn=document.getElementById("renterSavedPropertiesBtn");
@@ -10881,3 +10899,107 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   border-color: #d97706 !important;
   color: #ffffff !important;
 }
+<style id="ghardekho-mobile-production-repair-v2">
+html,body{max-width:100%;overflow-x:hidden!important}
+@media(max-width:680px){
+  main{width:100%!important;padding:14px 12px 92px!important}
+  #homeSection{width:100%!important;padding:18px 0 30px!important}
+  #homeSection.gd-home-v6{width:100%!important;padding:8px 0 36px!important}
+  #loggedOutLanding{padding:8px 8px 28px!important}
+  #loggedOutLanding .gd-landing-hero{padding:28px 16px 30px!important;border-radius:22px!important}
+  #loggedOutLanding .gd-landing-copy h2{font-size:clamp(2.45rem,12.5vw,3.5rem)!important;line-height:.96!important}
+  #loggedOutLanding .gd-landing-copy>p{font-size:.9rem!important;line-height:1.55!important}
+  #loggedOutLanding .gd-landing-visual{height:235px!important;min-height:235px!important}
+  .gd-home-v6-search{margin:-8px 0 0!important;padding:16px!important;border-radius:18px!important}
+  .gd-home-v6-search-head{margin-bottom:13px!important}
+  .gd-home-v6-search-head h3{font-size:19px!important}
+  .gd-home-v6-search-head p{font-size:10px!important}
+  .gd-search-v6{grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .gd-search-v6 .gd-v6-search-field{min-width:0!important}
+  .gd-search-v6 input,.gd-search-v6 select{min-width:0!important;width:100%!important;height:50px!important;min-height:50px!important;padding:0 11px!important;font-size:13px!important;overflow:hidden!important;text-overflow:ellipsis!important}
+  .gd-search-v6 select{white-space:nowrap!important}
+  .gd-search-v6 #searchBtn,.gd-search-v6 #nearMeBtn,.gd-search-v6 #liveNearbyBtn{min-height:52px!important}
+  #radiusSelect{min-width:0!important}
+  .property-grid{grid-template-columns:1fr!important}
+  .property-card{width:100%!important}
+  .dashboard-card{padding:15px!important;border-radius:16px!important}
+  .dashboard-heading{gap:10px!important}
+  .dashboard-heading-actions{width:100%!important}
+  .dashboard-action-row{display:grid!important;grid-template-columns:1fr!important;gap:9px!important}
+  .dashboard-action-row button{width:100%!important;min-height:48px!important}
+  .gd-renter-owner-cta{border:1px solid #cfe3df!important;background:#eaf6f3!important;color:#145b54!important}
+  .renter-profile-grid{grid-template-columns:1fr!important}
+  .renter-saved-properties-card{padding:15px!important}
+  #renterSavedContainer{display:grid!important;grid-template-columns:1fr!important;gap:12px!important}
+  .saved-property-card{display:grid!important;grid-template-columns:1fr!important;min-height:0!important;width:100%!important;border-radius:16px!important}
+  .saved-property-image-wrap{min-height:205px!important;height:205px!important}
+  .saved-property-image{min-height:205px!important;height:205px!important}
+  .saved-property-body{padding:15px!important}
+  .saved-property-body h4{font-size:19px!important}
+  .saved-property-location{font-size:13px!important;overflow-wrap:anywhere!important}
+  .saved-property-footer{align-items:stretch!important;flex-direction:column!important}
+  .saved-property-actions{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
+  .saved-details-btn,.saved-unsave-btn{width:100%!important}
+  #ownerDashboard .owner-add-property-card{z-index:20000!important;width:calc(100% - 12px)!important;max-height:90dvh!important;top:50%!important;left:50%!important}
+  body.gd-property-modal-active{overflow:hidden!important}
+  body.gd-property-modal-active:after{z-index:19999!important}
+  #ownerDashboard .owner-add-property-card form{padding:0 14px 18px!important}
+  #ownerDashboard .owner-form-grid{grid-template-columns:1fr!important;gap:10px!important}
+  #ownerDashboard .owner-form-grid>input,#ownerDashboard .owner-form-grid>select,#ownerDashboard textarea{width:100%!important;min-width:0!important;height:auto!important;min-height:50px!important;font-size:14px!important}
+  #ownerDashboard textarea{min-height:110px!important}
+  .gd-owner-modal-head{padding:15px 14px 13px!important}
+  .gd-owner-modal-head h3{font-size:22px!important}
+  .gd-owner-modal-close{width:40px!important;height:40px!important}
+  #ownerDashboard #verifyLocationBtn,#ownerDashboard #addPropertyBtn{width:100%!important;min-height:50px!important}
+  .gd-upload-head{display:block!important}
+  .gd-upload-limit{text-align:left!important}
+  .gd-upload-dropzone{min-height:125px!important;padding:14px!important;gap:10px!important}
+  .gd-upload-dropzone>b{width:100%!important;text-align:center!important}
+  .gd-stay-fields{grid-template-columns:1fr!important}
+  .gd-stay-details-shell{padding:12px!important}
+  #gdLocationSuggestions{left:0!important;right:0!important;max-height:260px!important}
+  .gd-location-suggestion{min-height:56px!important;padding:10px!important}
+}
+@media(max-width:390px){
+  #loggedOutLanding .gd-landing-copy h2{font-size:2.35rem!important}
+  .gd-search-v6{grid-template-columns:1fr!important}
+  .gd-search-v6 .gd-v6-search-field{grid-column:1!important}
+  .saved-property-actions{grid-template-columns:1fr!important}
+}
+</style>
+
+<script id="ghardekho-india-phone-v1">
+(function(){
+  const PHONE_IDS=["userPhone","visitPhone","ownerProfileEditPhone","adminOwnerPhone","renterProfileEditPhone"];
+  function cleanDigits(value){
+    let digits=String(value||"").replace(/\D/g,"");
+    if(digits.startsWith("91") && digits.length>10) digits=digits.slice(2);
+    if(digits.startsWith("0") && digits.length>10) digits=digits.replace(/^0+/,"");
+    return digits.slice(0,10);
+  }
+  function format(input){
+    const digits=cleanDigits(input.value);
+    input.value=digits ? "+91 "+digits : "+91 ";
+    input.dataset.gdPhoneDigits=digits;
+    try{input.setSelectionRange(input.value.length,input.value.length)}catch(e){}
+  }
+  function bind(){
+    PHONE_IDS.forEach(function(id){
+      const input=document.getElementById(id);
+      if(!input || input.dataset.gdIndiaPhoneBound==="1") return;
+      input.dataset.gdIndiaPhoneBound="1";
+      input.setAttribute("inputmode","numeric");
+      input.setAttribute("autocomplete","tel");
+      input.setAttribute("maxlength","14");
+      input.setAttribute("pattern","\\+91 [0-9]{10}");
+      input.setAttribute("placeholder","+91 9876543210");
+      input.addEventListener("focus",function(){format(input)});
+      input.addEventListener("input",function(){format(input)});
+      if(input.value.trim()) format(input);
+    });
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
