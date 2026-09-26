@@ -12222,6 +12222,69 @@ html,body{max-width:100%;overflow-x:hidden!important}
 }
 </style>
 </style>
+<style id="ghardekho-mobile-property-actionbar-v15">
+@media(max-width:680px){
+  body.gd-property-modal-active #gdMobileBottomNav,
+  body:has(#ownerAddPropertyCard.gd-property-modal-open) #gdMobileBottomNav{
+    display:none!important;
+  }
+  #ownerDashboard .gd-mobile-property-actionbar{
+    position:sticky!important;
+    bottom:0!important;
+    z-index:99999!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:10px!important;
+    margin:14px -2px -2px!important;
+    padding:12px 2px calc(12px + env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.97)!important;
+    border-top:1px solid rgba(20,70,63,.12)!important;
+    box-shadow:0 -8px 20px rgba(8,35,31,.10)!important;
+    backdrop-filter:blur(12px)!important;
+  }
+  #ownerDashboard .gd-mobile-property-actionbar button{
+    position:relative!important;
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    width:100%!important;
+    min-height:54px!important;
+    height:54px!important;
+    margin:0!important;
+    transform:none!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+}
+@media(max-width:390px){
+  #ownerDashboard .gd-mobile-property-actionbar{
+    grid-template-columns:1fr!important;
+  }
+}
+</style>
+<script id="ghardekho-mobile-property-actionbar-v15-js">
+(function(){
+  function setup(){
+    const form=document.getElementById("addPropertyForm");
+    const verify=document.getElementById("verifyLocationBtn");
+    const submit=document.getElementById("addPropertyBtn");
+    if(!form||!verify||!submit) return;
+    let bar=form.querySelector(".gd-mobile-property-actionbar");
+    if(!bar){
+      bar=document.createElement("div");
+      bar.className="gd-mobile-property-actionbar";
+      bar.setAttribute("aria-label","Property submission actions");
+      form.appendChild(bar);
+    }
+    if(verify.parentElement!==bar) bar.appendChild(verify);
+    if(submit.parentElement!==bar) bar.appendChild(submit);
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",setup);
+  else setup();
+  window.addEventListener("load",setup);
+  new MutationObserver(setup).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 <script id="ghardekho-mobile-submit-v13-js">
 (function(){
   function bindMobilePropertySubmit(){
