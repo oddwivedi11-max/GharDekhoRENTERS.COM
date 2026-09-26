@@ -6391,7 +6391,7 @@ async function renderActiveDashboard() {
         if (roleBadge) roleBadge.textContent = "OWNER";
         if (dashboardIdentity) dashboardIdentity.textContent =
             (currentProfile?.name || "User") + " • Owner";
-        await Promise.allSettled([loadOwnerProperties(), loadOwnerVisits(), loadSavedProperties()]);
+        await Promise.allSettled([loadOwnerVerificationStatus(), loadOwnerProperties(), loadOwnerVisits(), loadSavedProperties()]);
         return;
     }
 
@@ -6587,10 +6587,13 @@ async function renderActiveDashboard() {
             if(ownersBody){
                 ownersBody.innerHTML=owners.filter(u=>matches(u,q)).map(u=>{
                     const count=(window.__ghAdminProperties||[]).filter(p=>String(p.owner_id)===String(u.owner_profile_id||u.id)).length;
-                    const verifyOwnerAction=u.verification_status==="verified"
-                        ? '<button type="button" class="dashboard-secondary-action" disabled>✓ Verified</button>'
-                        : '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Verify</button>';
-                    return '<tr><td><strong>'+escapeHtml(u.name||"—")+'</strong> '+(u.verification_status==="verified"?'<span class="owner-badge">✓ Verified</span>':'<span class="pending-badge">Pending</span>')+'</td><td>'+escapeHtml(u.email||"—")+'</td><td>'+escapeHtml(u.phone||"—")+'</td><td>'+count+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-owner" data-id="'+escapeHtml(u.id)+'">Edit</button>'+verifyOwnerAction+'</div></td></tr>';
+                    const ownerStatus=String(u.verification_status||"pending").toLowerCase();
+                    const verifyOwnerAction=ownerStatus==="verified"
+                        ? '<button type="button" class="dashboard-secondary-action" data-admin-action="revoke-owner" data-id="'+escapeHtml(u.id)+'">↩ Revoke</button>'
+                        : ownerStatus==="rejected"
+                            ? '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Verify</button>'
+                            : '<button type="button" class="dashboard-primary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Approve & Verify</button><button type="button" class="secondary-button gd-admin-danger" data-admin-action="reject-owner" data-id="'+escapeHtml(u.id)+'">✕ Reject</button>';
+                    return '<tr><td><strong>'+escapeHtml(u.name||"—")+'</strong> '+(String(u.verification_status||"pending").toLowerCase()==="verified"?'<span class="owner-badge">✓ Verified</span>':String(u.verification_status||"pending").toLowerCase()==="rejected"?'<span class="pending-badge">✕ Rejected</span>':'<span class="pending-badge">Pending</span>')+'</td><td>'+escapeHtml(u.email||"—")+'</td><td>'+escapeHtml(u.phone||"—")+'</td><td>'+count+'</td><td><div class="gd-admin-actions"><button type="button" class="secondary-button" data-admin-action="edit-owner" data-id="'+escapeHtml(u.id)+'">Edit</button>'+verifyOwnerAction+'</div></td></tr>';
                 }).join("")||'<tr><td colspan="5">No owners found.</td></tr>';
             }
 
@@ -6658,20 +6661,49 @@ async function renderActiveDashboard() {
             set("editPropertyId",p.id);set("editPropertyTitle",p.title||p.name||"");set("editPropertyRent",p.rent||"");set("editPropertyLocation",p.location||p.address||"");set("editPropertyBhk",p.bhk||"");set("editPropertyFurnishing",p.furnishing||"");set("editPropertyDescription",p.description||"");set("editPropertyImageUrl",p.image_url||"");const imageFile=document.getElementById("editPropertyImageFile");if(imageFile)imageFile.value="";const imageName=document.getElementById("editPropertyImageName");if(imageName)imageName.textContent=p.image_url?"Current photo is saved. Choose a new photo to replace it.":"No photo saved. Choose a JPG, PNG or WebP photo.";
             const m=document.getElementById("propertyEditorMessage");if(m)m.textContent="Admin edit mode";document.getElementById("propertyEditor")?.classList.add("active");
         }
-        async function verifyAdminOwner(ownerId) {
+        async function setAdminOwnerVerification(ownerId, status) {
             if(!isAdminAccount()) return showAdminDenied();
-            if(!ownerId) return showMessage("backendMessage","No owner profile is linked to this property.","error");
+            if(!ownerId) return showMessage("backendMessage","Owner profile ID is missing.","error");
+
+            const ownerUser=window.__ghAdminOwnerUsers?.get(String(ownerId));
+            const ownerProfileId=ownerUser?.owner_profile_id || String(ownerId);
+            const label=status==="verified" ? "verified" : status==="rejected" ? "rejected" : "reset to pending";
+
+            if (status !== "verified" && !confirm("Set this owner's verification to " + label + "?")) return;
+
             try {
-                const ownerUser=window.__ghAdminOwnerUsers?.get(String(ownerId));
-                const ownerProfileId=ownerUser?.owner_profile_id || String(ownerId);
-                const { error } = await supabaseClient.rpc("admin_set_owner_verification", { p_owner_id: ownerProfileId, p_status: "verified" });
+                const { error } = await supabaseClient.rpc("admin_set_owner_verification", {
+                    p_owner_id: ownerProfileId,
+                    p_status: status
+                });
                 if(error) throw error;
-                showMessage("backendMessage","Owner verified successfully. ✓","success");
+
+                showMessage(
+                    "backendMessage",
+                    status==="verified"
+                        ? "Owner verified successfully. ✓"
+                        : status==="rejected"
+                            ? "Owner verification rejected."
+                            : "Owner verification moved back to pending.",
+                    status==="verified" ? "success" : "info"
+                );
                 await loadAdminDashboard();
             } catch(error) {
                 console.error("Owner verification error:", error);
-                showMessage("backendMessage",getSafeErrorMessage(error,"Owner verification failed. Admin RLS/RPC may need to allow verification updates."),"error");
+                showMessage("backendMessage",getSafeErrorMessage(error,"Owner verification failed. Please check the admin database function/RLS configuration."),"error");
             }
+        }
+
+        async function verifyAdminOwner(ownerId) {
+            return setAdminOwnerVerification(ownerId, "verified");
+        }
+
+        async function rejectAdminOwner(ownerId) {
+            return setAdminOwnerVerification(ownerId, "rejected");
+        }
+
+        async function revokeAdminOwner(ownerId) {
+            return setAdminOwnerVerification(ownerId, "pending");
         }
 
         async function releaseAdminOccupancy(propertyId) {
@@ -8250,6 +8282,67 @@ async function savePropertyEdit(e){
     }catch(err){msg.textContent=getSafeErrorMessage(err,"Unable to update this property.")}finally{btn.disabled=false}
 }
 
+async function loadOwnerVerificationStatus() {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
+
+    const badge = document.getElementById("ownerVerificationBadge");
+    const text = document.getElementById("ownerVerificationText");
+    const title = document.getElementById("ownerVerificationTitle");
+
+    try {
+        const { data, error } = await supabaseClient.rpc("get_my_owner_profile");
+        if (error) throw error;
+
+        const owner = Array.isArray(data) ? (data[0] || null) : data;
+        currentOwnerProfile = owner || null;
+
+        if (!owner) {
+            if (badge) {
+                badge.textContent = "Pending verification";
+                badge.className = "pending-badge";
+            }
+            if (text) text.textContent = "Your owner profile is awaiting verification by Ghar Dekho administration.";
+            if (title) title.textContent = "Owner verification";
+            return;
+        }
+
+        const status = String(owner.verification_status || "pending").toLowerCase();
+
+        if (badge) {
+            if (status === "verified") {
+                badge.textContent = "✓ Verified Owner";
+                badge.className = "owner-badge";
+            } else if (status === "rejected") {
+                badge.textContent = "✕ Verification rejected";
+                badge.className = "pending-badge";
+            } else {
+                badge.textContent = "Pending verification";
+                badge.className = "pending-badge";
+            }
+        }
+
+        if (title) {
+            title.textContent = owner.name ? owner.name + " • Owner verification" : "Owner verification";
+        }
+
+        if (text) {
+            text.textContent =
+                status === "verified"
+                    ? "Your owner account has been verified by Ghar Dekho administration. ✓"
+                    : status === "rejected"
+                        ? "Your owner verification was rejected by Ghar Dekho administration. Please contact the administrator before relisting."
+                        : "Your owner profile is awaiting verification by Ghar Dekho administration.";
+        }
+    } catch (error) {
+        console.error("Owner verification status error:", error);
+        if (badge) {
+            badge.textContent = "Unable to check";
+            badge.className = "pending-badge";
+        }
+        if (text) text.textContent = "We could not load your verification status. Please refresh and try again.";
+    }
+}
+
 async function loadOwnerProperties() {
             if (!currentUser || !accountHasRole("owner") || activeRole !== "owner") {
                 return;
@@ -9138,7 +9231,7 @@ function updateStayTypeFields() {
                 const id = document.getElementById("editPropertyId")?.value;
                 if (id) deleteAdminProperty(id);
             });
-            document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="release-occupancy")releaseAdminOccupancy(id);else if(action==="delete-property")deleteAdminProperty(id);});
+            document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="reject-owner")rejectAdminOwner(id);else if(action==="revoke-owner")revokeAdminOwner(id);else if(action==="release-occupancy")releaseAdminOccupancy(id);else if(action==="delete-property")deleteAdminProperty(id);});
             document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");if(isAdminAccount())loadAdminPeopleAndConnections();}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch","adminConnectionSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
             const signupBtn = document.getElementById("signupBtn");
             const loginSubmitBtn = document.getElementById("loginSubmitBtn");
