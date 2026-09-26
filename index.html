@@ -3293,6 +3293,24 @@ body{background:#f3f5f1!important}
   #homeSection .gd-home-v6-bottom{margin-top:44px!important}
   #homeSection .gd-home-v6-feature{min-height:0;padding:19px!important}
 }
+</style><style id="ghardekho-hero-house-graphic-v1">
+.gd-home-v6-image{overflow:hidden!important}
+.gd-home-v6-house-art{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;pointer-events:none}
+.gd-home-v6-house-ground{position:absolute;left:7%;right:7%;bottom:7%;height:26%;border-radius:50%;background:radial-gradient(ellipse at center,rgba(178,223,211,.28),rgba(178,223,211,0) 70%)}
+.gd-home-v6-house{position:relative;width:68%;height:58%;margin-bottom:10%;filter:drop-shadow(0 22px 22px rgba(0,0,0,.24))}
+.gd-home-v6-house-roof{position:absolute;left:-7%;top:0;width:114%;height:46%;background:linear-gradient(145deg,#d9b18a,#a87555);clip-path:polygon(50% 0,100% 76%,94% 100%,6% 100%,0 76%);border-radius:12px}
+.gd-home-v6-house-body{position:absolute;left:8%;right:8%;bottom:0;height:67%;border-radius:9px 9px 14px 14px;background:linear-gradient(145deg,#f4eee3,#d4ddd5);box-shadow:inset 0 1px rgba(255,255,255,.7)}
+.gd-home-v6-house-window{position:absolute;top:22%;width:21%;height:31%;border:5px solid rgba(244,249,246,.92);border-radius:5px;background:linear-gradient(135deg,#5b817c,#173e3b);box-shadow:inset 0 0 0 1px rgba(0,0,0,.12)}
+.gd-home-v6-house-window:after{content:"";position:absolute;left:48%;top:0;bottom:0;width:2px;background:rgba(239,248,245,.7)}
+.gd-home-v6-house-window-left{left:10%}.gd-home-v6-house-window-right{right:10%}
+.gd-home-v6-house-door{position:absolute;left:42%;bottom:0;width:18%;height:51%;border-radius:8px 8px 0 0;background:linear-gradient(90deg,#714d3d,#9b6d51);box-shadow:inset 0 0 0 3px rgba(255,255,255,.16)}
+.gd-home-v6-house-door:after{content:"";position:absolute;right:13%;top:53%;width:6px;height:6px;border-radius:50%;background:#f2c987}
+.gd-home-v6-house-chimney{position:absolute;right:18%;top:8%;width:10%;height:28%;background:#93654e;border-radius:4px 4px 0 0}
+.gd-home-v6-house-tree{position:absolute;bottom:13%;width:11%;height:24%;border-radius:50% 50% 42% 42%;background:linear-gradient(145deg,#6ba995,#245f55)}
+.gd-home-v6-house-tree:after{content:"";position:absolute;left:43%;bottom:-28%;width:18%;height:42%;background:#79553f;border-radius:5px}
+.gd-home-v6-house-tree-left{left:8%}.gd-home-v6-house-tree-right{right:8%;transform:scale(.8)}
+.gd-home-v6-image-bottom{z-index:5!important}
+@media(max-width:700px){.gd-home-v6-house{width:66%;height:50%}.gd-home-v6-house-window{border-width:3px}}
 </style></style>
 <style id="ghardekho-owner-flow-v7">
 /* Owner flow V7: inventory drill-down + add-property modal + media uploader */
@@ -4734,8 +4752,11 @@ function clearAuthFormFields(){
 
 function openLoginSection(){
     const e=document.getElementById("loginSection");if(!e)return false;
-    pendingLoginRole = "renter";
-    sessionStorage.setItem("gd_pending_login_role", "renter");
+    // Preserve the role that opened the login screen. This is critical for
+    // dual-role accounts using the same email for Renter and Owner access.
+    const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
+    pendingLoginRole = requestedRole;
+    sessionStorage.setItem("gd_pending_login_role", requestedRole);
     window.__gdAuthRequested=true;
     document.body.classList.add("gd-auth-page");
     const home=document.getElementById("homeSection"),props=document.getElementById("propertiesSection"),landing=document.getElementById("loggedOutLanding"),reset=document.getElementById("passwordResetSection");
@@ -5117,8 +5138,8 @@ function setRoleSpecificUI(role) {
     // Renter-only public/search surface.
     if (homeSection) homeSection.style.display = canExploreHomes ? "block" : "none";
     if (propertiesSection) propertiesSection.style.display = canExploreHomes ? "block" : "none";
-    if (propertyDetails) propertyDetails.style.display = isRenter ? propertyDetails.style.display : "none";
-    if (visitSection) visitSection.style.display = isRenter ? visitSection.style.display : "none";
+    if (propertyDetails) propertyDetails.style.display = canExploreHomes ? propertyDetails.style.display : "none";
+    if (visitSection) visitSection.style.display = canExploreHomes ? visitSection.style.display : "none";
 
     if (homeNavLink) homeNavLink.style.display = canExploreHomes ? "inline-block" : "none";
     if (propertiesNavLink) propertiesNavLink.style.display = canExploreHomes ? "inline-block" : "none";
