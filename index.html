@@ -4988,12 +4988,46 @@ function bindLoginRoleControls(){
 function clearAuthFormFields(){
     const ids=["userName","userEmail","userPhone","userPassword","newPassword","confirmNewPassword"];
     ids.forEach(id=>{const el=document.getElementById(id);if(el){el.value="";el.setAttribute("autocomplete",id==="userPassword"?"new-password":"off");}});
-    const renter=document.getElementById("roleRenter"),owner=document.getElementById("roleOwner");
-    const roleToRestore = pendingLoginRole === "owner" ? "owner" : "renter";
-    if(renter) renter.checked = roleToRestore === "renter";
-    if(owner) owner.checked = roleToRestore === "owner";
-    bindLoginRoleControls();
-    applyLoginRolePresentation(roleToRestore);
+
+    /*
+     * ADMIN LOGIN MUST NOT be overwritten by the normal Renter/Owner
+     * presentation. openAdminLogin() calls openLoginSection("renter") to
+     * open the auth shell, and that function schedules clearAuthFormFields()
+     * more than once. Previously those delayed calls changed the Admin screen
+     * back to "Welcome back, Renter". Keep Admin presentation authoritative
+     * until the admin login attempt finishes.
+     */
+    const adminMode =
+        window.__gdAdminLoginRequested === true ||
+        sessionStorage.getItem("gd_login_destination") === "admin";
+
+    if (adminMode) {
+        const title=document.getElementById("premiumAuthTitle");
+        const intro=document.getElementById("premiumAuthIntro");
+        const brand=document.getElementById("gdAuthBrandText");
+        const hint=document.getElementById("loginRoleHint");
+        const signup=document.getElementById("signupBtn");
+        const google=document.getElementById("googleLoginBtn");
+        const roleSwitch=document.querySelector(".role-switch");
+        const adminBtn=document.getElementById("adminLoginModeBtn");
+
+        if(title) title.textContent="Admin Login";
+        if(intro) intro.textContent="Secure administrator access. Email and password only.";
+        if(brand) brand.textContent="Restricted Ghar Dekho administration workspace.";
+        if(hint) hint.textContent="Only the authorized admin account can enter the Admin Control Center.";
+        if(signup) signup.style.display="none";
+        if(google) google.style.display="none";
+        if(roleSwitch) roleSwitch.style.display="none";
+        if(adminBtn) adminBtn.style.display="none";
+    } else {
+        const renter=document.getElementById("roleRenter"),owner=document.getElementById("roleOwner");
+        const roleToRestore = pendingLoginRole === "owner" ? "owner" : "renter";
+        if(renter) renter.checked = roleToRestore === "renter";
+        if(owner) owner.checked = roleToRestore === "owner";
+        bindLoginRoleControls();
+        applyLoginRolePresentation(roleToRestore);
+    }
+
     const msg=document.getElementById("authMessage");
     if(msg)msg.textContent="";
 }
