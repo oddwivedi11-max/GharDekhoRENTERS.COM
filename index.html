@@ -6094,11 +6094,18 @@ async function updateVisitStatus(visitId, newStatus) {
             const loginSection = document.getElementById("loginSection");
             const landing = document.getElementById("loggedOutLanding");
 
+            // Show the dedicated reset screen immediately when our recovery
+            // marker is present. Do not fall back to the normal login screen
+            // while Supabase is still establishing the recovery session.
+            if (landing) landing.style.display = "none";
+            if (loginSection) loginSection.style.display = "none";
+            if (resetSection) resetSection.style.display = "block";
+            document.body.classList.add("gd-auth-page");
+            if (resetMessage) resetMessage.textContent = "Verifying your password-reset link…";
+
             // Supabase is configured with detectSessionInUrl:true, so it
             // automatically consumes the implicit recovery hash and creates
             // the temporary recovery session. Do not manually exchange tokens.
-            //
-            // Give the Supabase client a moment to finish URL processing.
             let session = null;
             let lastSessionError = null;
 
@@ -6118,16 +6125,12 @@ async function updateVisitStatus(visitId, newStatus) {
 
             if (lastSessionError) {
                 console.error("Password recovery session error:", lastSessionError);
-                if (resetMessage) resetMessage.textContent = "This password-reset link could not be verified. Please request a new reset email.";
-                if (loginSection) loginSection.style.display = "block";
-                if (resetSection) resetSection.style.display = "none";
+                if (resetMessage) resetMessage.textContent = "We could not verify this reset session yet. Please open the newest reset email again.";
                 return true;
             }
 
             if (!session) {
-                if (resetMessage) resetMessage.textContent = "This password-reset link is invalid or expired. Please request a new reset email.";
-                if (loginSection) loginSection.style.display = "block";
-                if (resetSection) resetSection.style.display = "none";
+                if (resetMessage) resetMessage.textContent = "Reset link received, but no recovery session was created. Please open the reset email in the same browser where you requested it.";
                 return true;
             }
 
