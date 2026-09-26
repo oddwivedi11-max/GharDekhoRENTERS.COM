@@ -5400,51 +5400,47 @@ async function updateAuthUI() {
         phoneInput.value = profile.phone;
     }
 
-    let roles = getAccountRoles(profile);
+    const roles = getAccountRoles(profile);
     if (!roles.length) {
         currentProfile = null;
         activeRole = "renter";
         resetRoleSpecificUI();
         dashboard.style.display = "none";
         dashboard.setAttribute("aria-hidden", "true");
-        showMessage("backendMessage", "Your account role is not configured correctly. Please update the account role before continuing.", "error");
+        showMessage("backendMessage", "Your account role is not configured correctly. Please log in again.", "error");
         return;
     }
 
-    // The login choice is the active dashboard mode. Do NOT fall back to
-    // roles[0] here: dual-role accounts may store Owner first in the array,
-    // which previously forced a Renter login into the Owner dashboard when
-    // the profile update was blocked by RLS/network timing.
+    /*
+     * IMPORTANT: a single Ghar Dekho account may be used in both modes.
+     * The role selected on THIS login is a UI/session choice. Do not rewrite
+     * users.role on every login and do not let roles[0] decide the destination.
+     *
+     * Renter mode is always allowed for an authenticated account because the
+     * renter experience is the default discovery experience. Owner mode is
+     * allowed only when the account already has owner access or the owner
+     * profile can be provisioned successfully.
+     */
     const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
 
-    // The user's explicit login choice always wins. If this account does not
-    // have that role yet, add the requested role instead of silently opening
-    // the other dashboard. This is especially important for accounts that
-    // already have Owner access but are intentionally logging in as Renter.
-    if (!roles.includes(requestedRole)) {
-        const roleEnabled = await saveActiveAccountRole(requestedRole);
-        if (roleEnabled) {
-            roles = getAccountRoles(currentProfile);
+    if (requestedRole === "owner") {
+        if (!roles.includes("owner")) {
+            const ownerReady = await ensureOwnerAccess();
+            if (!ownerReady) {
+                activeRole = "renter";
+                pendingLoginRole = "renter";
+                sessionStorage.setItem("gd_active_role", "renter");
+                sessionStorage.setItem("gd_pending_login_role", "renter");
+                setRoleSpecificUI("renter");
+                showMessage("backendMessage", "Owner access is not available for this account yet. You are signed in as Renter.", "error");
+                await renderActiveDashboard();
+                return;
+            }
         }
-    }
-
-    if (roles.includes(requestedRole)) {
-        activeRole = requestedRole;
+        activeRole = "owner";
     } else {
-        // Never silently switch dashboards. If the requested role could not
-        // be established, stop rather than opening Owner/Renter unexpectedly.
-        activeRole = requestedRole;
-        resetRoleSpecificUI();
-        dashboard.style.display = "none";
-        dashboard.setAttribute("aria-hidden", "true");
-        showMessage(
-            "backendMessage",
-            requestedRole === "owner"
-                ? "Owner access could not be enabled for this account."
-                : "Renter access could not be enabled for this account.",
-            "error"
-        );
-        return;
+        // Never inherit Owner from users.role / roles when Renter was selected.
+        activeRole = "renter";
     }
 
     pendingLoginRole = activeRole;
@@ -5579,21 +5575,45 @@ async function loginUser() {
         sessionStorage.setItem("gd_pending_login_role", selectedLoginRole);
 
         authMessage.textContent = "Login successful.";
+
+        // Persist the exact dashboard selected on THIS login. This marker is
+        // also used by the final navigation guard below to prevent an older
+        // Owner session from repainting the page after Supabase auth events.
+        sessionStorage.setItem("gd_login_destination", selectedLoginRole);
         await updateAuthUI();
 
-        // Renter login opens the authenticated renter home/search experience.
-        // The same profile loaded from the users table remains available in
-        // the Renter Dashboard under "My Renter Profile".
-        if (activeRole === "renter") {
+        if (selectedLoginRole === "renter") {
+            activeRole = "renter";
+            pendingLoginRole = "renter";
+            sessionStorage.setItem("gd_active_role", "renter");
+            sessionStorage.setItem("gd_pending_login_role", "renter");
+
+            // Hard-apply renter UI after login so the logged-out landing page
+            // can never remain visible because of an auth-state race.
             setRoleSpecificUI("renter");
+            const landing = document.getElementById("loggedOutLanding");
+            const loginSection = document.getElementById("loginSection");
+            const homeSection = document.getElementById("homeSection");
+            const propertiesSection = document.getElementById("propertiesSection");
+            const dashboardSection = document.getElementById("dashboardSection");
+            if (landing) landing.style.display = "none";
+            if (loginSection) loginSection.style.display = "none";
+            if (homeSection) homeSection.style.display = "block";
+            if (propertiesSection) propertiesSection.style.display = "block";
+            if (dashboardSection) dashboardSection.style.display = "block";
+
             await renderActiveDashboard();
-            const renterHome = document.getElementById("homeSection");
-            if (renterHome) {
-                renterHome.scrollIntoView({ behavior: "smooth", block: "start" });
-            } else {
-                scrollToSection("dashboardSection");
+            if (homeSection) {
+                homeSection.scrollIntoView({ behavior: "smooth", block: "start" });
             }
         } else {
+            sessionStorage.setItem("gd_login_destination", "owner");
+            activeRole = "owner";
+            pendingLoginRole = "owner";
+            sessionStorage.setItem("gd_active_role", "owner");
+            sessionStorage.setItem("gd_pending_login_role", "owner");
+            setRoleSpecificUI("owner");
+            await renderActiveDashboard();
             scrollToSection("dashboardSection");
         }
     } finally {
