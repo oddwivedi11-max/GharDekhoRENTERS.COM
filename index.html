@@ -3847,15 +3847,29 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                         <button type="button" class="gd-hero-cta gd-hero-cta-owner" data-gd-action="owner">Login as Owner <span>→</span></button>
                     </div>
                 </div>
-                <div class="gd-landing-visual" aria-hidden="true">
-                    <div class="gd-house-card gd-house-card-main">
-                        <div class="gd-house-photo"></div>
-                        <div class="gd-house-info">
-                            <span class="gd-mini-pill">Ghar Dekho</span>
-                            <strong>Your next home is closer.</strong>
-                            <small>Search • Compare • Visit</small>
+                <div class="gd-landing-visual gd-landing-visual-v2" aria-hidden="true">
+                    <div class="gd-visual-scene">
+                        <div class="gd-visual-sun"></div>
+                        <div class="gd-visual-cloud gd-visual-cloud-one"></div>
+                        <div class="gd-visual-cloud gd-visual-cloud-two"></div>
+                        <div class="gd-visual-cityline"></div>
+                        <div class="gd-visual-ground"></div>
+                        <div class="gd-visual-house">
+                            <div class="gd-visual-roof"></div>
+                            <div class="gd-visual-house-body">
+                                <div class="gd-visual-window gd-visual-window-left"></div>
+                                <div class="gd-visual-door"><i></i></div>
+                                <div class="gd-visual-window gd-visual-window-right"></div>
+                            </div>
+                            <div class="gd-visual-balcony"><i></i><i></i><i></i></div>
                         </div>
+                        <div class="gd-visual-tree gd-visual-tree-left"><i></i></div>
+                        <div class="gd-visual-tree gd-visual-tree-right"><i></i></div>
+                        <div class="gd-visual-path"></div>
                     </div>
+                    <div class="gd-visual-float gd-visual-float-location"><span>⌖</span><div><b>Nearby homes</b><small>Within your radius</small></div></div>
+                    <div class="gd-visual-float gd-visual-float-rent"><b>₹18K</b><small>Typical monthly rent</small></div>
+                    <div class="gd-visual-float gd-visual-float-verified"><span>✓</span><div><b>Verified listings</b><small>Search with confidence</small></div></div>
                 </div>
             </div>
 
@@ -4053,7 +4067,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
       <label class="gd-v4-field"><span>Phone</span><input type="tel" id="userPhone" name="gd_new_phone" placeholder="+91 XXXXX XXXXX" inputmode="tel" autocomplete="off" data-form-type="other"></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
-    <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Choose the account type when creating a new account. Your saved account role controls the dashboard after login.</p></div>
+    <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use the same email and password for both dashboards. Your selected dashboard is remembered for this login.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button">Admin Login</button></div>
     <div class="gd-v4-bottom"><button id="forgotPasswordBtn" type="button" class="text-button">Forgot password?</button><p id="authMessage" class="small-text"></p></div>
@@ -4103,9 +4117,15 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                     <h2 id="dashboardTitle">My Dashboard</h2>
                     <p id="dashboardSubtitle" class="dashboard-subtitle">Your Ghar Dekho Renters account overview.</p>
                 </div>
-                <div class="dashboard-user-chip">
-                    <span class="dashboard-user-dot" aria-hidden="true"></span>
-                    <span id="dashboardIdentity">Login to access your account.</span>
+                <div class="dashboard-heading-actions">
+                    <div class="dashboard-role-switch" id="dashboardRoleSwitch" style="display:none;" aria-label="Switch dashboard">
+                        <button type="button" data-role-switch="renter">Renter</button>
+                        <button type="button" data-role-switch="owner">Owner</button>
+                    </div>
+                    <div class="dashboard-user-chip">
+                        <span class="dashboard-user-dot" aria-hidden="true"></span>
+                        <span id="dashboardIdentity">Login to access your account.</span>
+                    </div>
                 </div>
             </div>
 
@@ -4523,6 +4543,8 @@ function clearAuthFormFields(){
 
 function openLoginSection(){
     const e=document.getElementById("loginSection");if(!e)return false;
+    pendingLoginRole = "renter";
+    sessionStorage.setItem("gd_pending_login_role", "renter");
     window.__gdAuthRequested=true;
     document.body.classList.add("gd-auth-page");
     const home=document.getElementById("homeSection"),props=document.getElementById("propertiesSection"),landing=document.getElementById("loggedOutLanding"),reset=document.getElementById("passwordResetSection");
@@ -4542,6 +4564,8 @@ function openLoginSection(){
     return false;
 }
 function openLoginAs(role){
+    pendingLoginRole = role === "owner" ? "owner" : "renter";
+    sessionStorage.setItem("gd_pending_login_role", pendingLoginRole);
     const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");
     const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
     openLoginSection();
@@ -4552,7 +4576,7 @@ function openLoginAs(role){
     if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";
     if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";
     if(benefit)benefit.textContent=role==="owner"?"Manage your listings with ease":"Find homes that fit your needs";
-    if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";
+    if(hint)hint.textContent=role==="owner"?"Use the same email and password. If Owner access is not enabled yet, Ghar Dekho will enable it for this account.":"Use the same email and password to enter your Renter dashboard.";
 }
 function openAdminLogin(){openLoginSection();const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");if(gateway)gateway.style.display="none";if(form)form.style.display="grid";const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),signup=document.getElementById("signupBtn"),google=document.getElementById("googleLoginBtn"),roleSwitch=document.querySelector(".role-switch"),adminBtn=document.getElementById("adminLoginModeBtn");if(title)title.textContent="Admin Login";if(intro)intro.textContent="Secure administrator access. Email and password only.";if(brand)brand.textContent="Restricted Ghar Dekho administration workspace.";if(hint)hint.textContent="Only the authorized admin account can enter the Admin Control Center.";if(signup)signup.style.display="none";if(google)google.style.display="none";if(roleSwitch)roleSwitch.style.display="none";if(adminBtn)adminBtn.style.display="none";}
         function openOwnerArea() {
@@ -4595,6 +4619,7 @@ function openAdminLogin(){openLoginSection();const gateway=document.getElementBy
            ========================================================= */
 
         let activeRole = "renter";
+        let pendingLoginRole = sessionStorage.getItem("gd_pending_login_role") === "owner" ? "owner" : "renter";
         let passwordResetEmail = "";
         let passwordResetVerified = false;
 
@@ -4616,10 +4641,21 @@ function openAdminLogin(){openLoginSection();const gateway=document.getElementBy
 
         function getAccountRoles(profile) {
             if (isAdminAccount(profile)) return ["admin"];
-            const role = String(profile?.role || "").toLowerCase().trim();
-            if (role === "owner") return ["owner"];
-            if (role === "tenant" || role === "renter") return ["renter"];
-            return [];
+            const storedRoles = Array.isArray(profile?.roles) ? profile.roles : [];
+            const roles = storedRoles
+                .map(role => String(role || "").toLowerCase().trim())
+                .map(role => role === "tenant" ? "renter" : role)
+                .filter(role => role === "renter" || role === "owner");
+            const fallbackRole = String(profile?.role || "").toLowerCase().trim();
+            if (!roles.length) {
+                if (fallbackRole === "owner") roles.push("owner");
+                else if (fallbackRole === "tenant" || fallbackRole === "renter") roles.push("renter");
+            } else if (fallbackRole === "owner" && !roles.includes("owner")) {
+                roles.push("owner");
+            } else if ((fallbackRole === "tenant" || fallbackRole === "renter") && !roles.includes("renter")) {
+                roles.push("renter");
+            }
+            return [...new Set(roles)];
         }
 
         function accountHasRole(role) {
@@ -4680,7 +4716,7 @@ async function loadOwnProfileWithRetry() {
     for (let attempt = 1; attempt <= maxAttempts; attempt++) {
         const { data: profile, error } = await supabaseClient
             .from("users")
-            .select("id,name,email,phone,role")
+            .select("id,name,email,phone,role,roles")
             .eq("id", currentUser.id)
             .maybeSingle();
 
@@ -4699,11 +4735,15 @@ async function loadOwnProfileWithRetry() {
      * from an owner-specific RPC; that could expose the wrong dashboard.
      */
     const metadata = currentUser.user_metadata || {};
+    const metadataRoles = Array.isArray(metadata.roles)
+        ? metadata.roles.map(role => String(role || "").toLowerCase().trim()).filter(role => role === "owner" || role === "renter" || role === "tenant")
+        : [];
     const metadataRole = String(metadata.role || "").toLowerCase().trim();
-    const role =
-        metadataRole === "owner" ? "owner" :
-        (metadataRole === "tenant" || metadataRole === "renter") ? "renter" :
-        null;
+    const normalizedRoles = [...new Set([
+        ...metadataRoles.map(role => role === "tenant" ? "renter" : role),
+        metadataRole === "owner" ? "owner" : (metadataRole === "tenant" || metadataRole === "renter" ? "renter" : "")
+    ].filter(Boolean))];
+    const role = normalizedRoles[0] || null;
 
     if (!role) {
         return {
@@ -4729,7 +4769,8 @@ async function loadOwnProfileWithRetry() {
                 name,
                 email: currentUser.email || null,
                 phone,
-                role
+                role,
+                roles: normalizedRoles.length ? normalizedRoles.map(value => value === "renter" ? "tenant" : value) : [role === "owner" ? "owner" : "tenant"]
             }, { onConflict: "id" })
             .select("id,name,email,phone,role")
             .maybeSingle();
@@ -4742,6 +4783,115 @@ async function loadOwnProfileWithRetry() {
         profile: null,
         error: createError || new Error("Profile could not be loaded.")
     };
+}
+
+async function ensureOwnerAccess() {
+    if (!currentUser) return false;
+    const name = String(currentProfile?.name || currentUser.user_metadata?.name || "User").trim().slice(0, 80) || "User";
+    const phone = String(currentProfile?.phone || currentUser.user_metadata?.phone || "").trim().slice(0, 30) || null;
+
+    const { data: ownerRows, error: ownerReadError } = await supabaseClient
+        .from("owners")
+        .select("id,user_id")
+        .eq("user_id", currentUser.id)
+        .limit(1);
+
+    if (ownerReadError) {
+        console.error("Owner profile lookup failed:", ownerReadError);
+        return false;
+    }
+
+    if (!ownerRows?.length) {
+        const { error: ownerInsertError } = await supabaseClient
+            .from("owners")
+            .insert({
+                user_id: currentUser.id,
+                name,
+                phone,
+                verification_status: "pending"
+            });
+
+        if (ownerInsertError && !String(ownerInsertError.message || "").toLowerCase().includes("duplicate")) {
+            console.error("Owner profile creation failed:", ownerInsertError);
+            return false;
+        }
+    }
+    return true;
+}
+
+async function saveActiveAccountRole(role) {
+    const normalized = role === "owner" ? "owner" : "tenant";
+    if (!currentUser || !currentProfile) return false;
+
+    if (normalized === "owner") {
+        const ownerReady = await ensureOwnerAccess();
+        if (!ownerReady) return false;
+    }
+
+    const existingRoles = getAccountRoles(currentProfile);
+    const roleValues = [...new Set([
+        ...existingRoles.map(value => value === "renter" ? "tenant" : value),
+        normalized
+    ])];
+
+    const { data, error } = await supabaseClient
+        .from("users")
+        .update({ role: normalized, roles: roleValues })
+        .eq("id", currentUser.id)
+        .select("id,name,email,phone,role,roles")
+        .maybeSingle();
+
+    if (error || !data) {
+        console.error("Account role update failed:", error);
+        return false;
+    }
+
+    currentProfile = data;
+    activeRole = normalized === "tenant" ? "renter" : "owner";
+    return true;
+}
+
+async function switchAccountRole(role) {
+    const target = role === "owner" ? "owner" : "renter";
+    if (!currentUser || !currentProfile) return;
+
+    const availableRoles = getAccountRoles(currentProfile);
+    if (!availableRoles.includes(target)) {
+        if (target === "owner") {
+            showMessage("backendMessage", "Enabling Owner access on this same Ghar Dekho account...", "success");
+            const ok = await saveActiveAccountRole("owner");
+            if (!ok) {
+                showMessage("backendMessage", "Owner access could not be enabled. Please try again.", "error");
+                return;
+            }
+        } else {
+            return;
+        }
+    } else {
+        const ok = await saveActiveAccountRole(target);
+        if (!ok) {
+            showMessage("backendMessage", "Could not switch dashboard. Please try again.", "error");
+            return;
+        }
+    }
+
+    setRoleSpecificUI(activeRole);
+    updateDashboardProfile();
+    updateDashboardRoleSwitcher();
+    await renderActiveDashboard();
+    scrollToSection("dashboardSection");
+}
+
+function updateDashboardRoleSwitcher() {
+    const switcher = document.getElementById("dashboardRoleSwitch");
+    if (!switcher) return;
+    const roles = getAccountRoles(currentProfile);
+    switcher.style.display = roles.length > 1 ? "flex" : "none";
+    switcher.querySelectorAll("[data-role-switch]").forEach(button => {
+        const role = button.getAttribute("data-role-switch");
+        button.style.display = roles.includes(role) ? "inline-flex" : "none";
+        button.classList.toggle("active", role === activeRole);
+    });
 }
 
 function setRoleSpecificUI(role) {
@@ -4929,8 +5079,8 @@ async function updateAuthUI() {
         phoneInput.value = profile.phone;
     }
 
-    const roles = getAccountRoles(profile);
-    if (roles.length !== 1) {
+    let roles = getAccountRoles(profile);
+    if (!roles.length) {
         currentProfile = null;
         activeRole = "renter";
         resetRoleSpecificUI();
@@ -4939,14 +5089,33 @@ async function updateAuthUI() {
         showMessage("backendMessage", "Your account role is not configured correctly. Please update the account role before continuing.", "error");
         return;
     }
-    activeRole = roles[0];
+
+    let requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
+    if (requestedRole === "owner" && !roles.includes("owner")) {
+        const ownerEnabled = await saveActiveAccountRole("owner");
+        if (ownerEnabled) {
+            roles = getAccountRoles(currentProfile);
+        }
+    }
+
+    if (roles.includes(requestedRole)) {
+        const saved = await saveActiveAccountRole(requestedRole);
+        if (!saved) {
+            activeRole = roles[0];
+        }
+    } else {
+        activeRole = roles[0];
+    }
+    pendingLoginRole = activeRole;
+    sessionStorage.setItem("gd_pending_login_role", activeRole);
 
     // Apply the role to the whole page, not only the dashboard.
     // This prevents owner accounts from seeing renter search/listing UI,
     // and prevents renter accounts from seeing owner navigation.
     setRoleSpecificUI(activeRole);
+    updateDashboardRoleSwitcher();
 
-    authStatus.textContent = "Logged in as " + (profile.name || currentUser.email || "User");
+    authStatus.textContent = "Logged in as " + (currentProfile?.name || currentUser.email || "User");
     if (dashboardIdentity) {
         dashboardIdentity.textContent = (profile.name || "User") + " • " + (activeRole === "renter" ? "Renter" : "Owner");
     }
@@ -4967,6 +5136,8 @@ async function signupUser() {
     const signupButton = document.getElementById("signupBtn");
     const loginButton = document.getElementById("loginSubmitBtn");
     const selectedRole = document.querySelector('input[name="accountRole"]:checked')?.value || "renter";
+    pendingLoginRole = selectedRole;
+    sessionStorage.setItem("gd_pending_login_role", pendingLoginRole);
 
     try {
         if (!name || name.length < 2 || name.length > 80) {
@@ -4989,11 +5160,13 @@ async function signupUser() {
         if (signupButton) { signupButton.disabled = true; signupButton.textContent = "Creating account..."; }
         if (loginButton) loginButton.disabled = true;
         authMessage.textContent = "Creating account...";
+        pendingLoginRole = selectedRole;
+        sessionStorage.setItem("gd_pending_login_role", pendingLoginRole);
 
         const { data, error } = await supabaseClient.auth.signUp({
             email,
             password,
-            options: { data: { name, phone, role: selectedRole === "owner" ? "owner" : "tenant", roles: [selectedRole] } }
+            options: { data: { name, phone, role: selectedRole === "owner" ? "owner" : "tenant", roles: [selectedRole === "owner" ? "owner" : "tenant"] } }
         });
 
         if (error) {
@@ -5003,7 +5176,7 @@ async function signupUser() {
         }
 
         if (!data.session) {
-            authMessage.textContent = "Account created successfully. You can now log in.";
+            authMessage.textContent = "Account created successfully. You can now log in with the same email. Choose Renter or Owner when you return.";
             return;
         }
 
@@ -5338,6 +5511,7 @@ async function updatePassword() {
 }
 
 async function logoutUser() {
+    sessionStorage.removeItem("gd_pending_login_role");
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) { logoutBtn.disabled = true; logoutBtn.textContent = "Logging out..."; }
 
@@ -8757,6 +8931,41 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
  #loggedOutLanding .gd-hero-actions-v2{display:grid!important;grid-template-columns:1fr!important}
  #loggedOutLanding .gd-hero-cta{width:100%!important}
 }
+<style id="ghardekho-landing-visual-v2">
+#loggedOutLanding .gd-landing-hero{position:relative;overflow:visible}
+#loggedOutLanding .gd-landing-visual-v2{position:relative!important;min-height:500px!important;display:grid!important;place-items:center!important;overflow:visible!important}
+#loggedOutLanding .gd-visual-scene{position:relative;width:min(500px,94%);height:420px;border-radius:34px;overflow:hidden;background:linear-gradient(180deg,#b9ddd5 0%,#e7eee5 57%,#789b78 57%,#4e7658 100%);box-shadow:0 28px 70px rgba(0,0,0,.24),inset 0 0 0 1px rgba(255,255,255,.18);transform:rotate(1.2deg)}
+#loggedOutLanding .gd-visual-sun{position:absolute;width:90px;height:90px;right:54px;top:42px;border-radius:50%;background:radial-gradient(circle,#fff6cf 0 35%,rgba(255,232,160,.55) 36% 60%,transparent 61%);filter:blur(.2px)}
+#loggedOutLanding .gd-visual-cloud{position:absolute;width:120px;height:30px;border-radius:999px;background:rgba(255,255,255,.45);filter:blur(1px)}
+#loggedOutLanding .gd-visual-cloud:before,#loggedOutLanding .gd-visual-cloud:after{content:"";position:absolute;border-radius:50%;background:inherit}
+#loggedOutLanding .gd-visual-cloud:before{width:48px;height:48px;left:22px;bottom:0}
+#loggedOutLanding .gd-visual-cloud:after{width:58px;height:58px;left:54px;bottom:0}
+#loggedOutLanding .gd-visual-cloud-one{left:42px;top:72px}
+#loggedOutLanding .gd-visual-cloud-two{left:270px;top:105px;transform:scale(.62);opacity:.55}
+#loggedOutLanding .gd-visual-cityline{position:absolute;left:0;right:0;bottom:126px;height:100px;background:linear-gradient(90deg,rgba(36,77,69,.18) 0 9%,transparent 9% 14%,rgba(36,77,69,.15) 14% 23%,transparent 23% 29%,rgba(36,77,69,.18) 29% 39%,transparent 39% 44%,rgba(36,77,69,.14) 44% 54%,transparent 54% 62%,rgba(36,77,69,.18) 62% 73%,transparent 73% 80%,rgba(36,77,69,.14) 80% 91%,transparent 91%);clip-path:polygon(0 58%,8% 58%,8% 40%,14% 40%,14% 62%,22% 62%,22% 30%,29% 30%,29% 55%,39% 55%,39% 18%,47% 18%,47% 56%,57% 56%,57% 35%,64% 35%,64% 60%,75% 60%,75% 25%,82% 25%,82% 52%,91% 52%,91% 12%,100% 12%,100% 100%,0 100%)}
+#loggedOutLanding .gd-visual-ground{position:absolute;left:-10%;right:-10%;bottom:0;height:145px;background:radial-gradient(ellipse at 50% 5%,rgba(255,255,255,.18),transparent 48%),linear-gradient(180deg,#789b78,#456b50)}
+#loggedOutLanding .gd-visual-house{position:absolute;left:50%;bottom:77px;width:250px;height:185px;transform:translateX(-50%);filter:drop-shadow(0 18px 14px rgba(24,49,39,.24))}
+#loggedOutLanding .gd-visual-roof{position:absolute;left:-24px;top:0;width:298px;height:105px;background:linear-gradient(135deg,#765b4b,#353d39);clip-path:polygon(50% 0,100% 72%,95% 82%,5% 82%,0 72%);border-radius:10px}
+#loggedOutLanding .gd-visual-house-body{position:absolute;left:25px;right:25px;bottom:0;height:112px;background:linear-gradient(90deg,#f5e7d2,#d7ccb8);border-radius:5px 5px 11px 11px;box-shadow:inset 0 8px 0 rgba(255,255,255,.4)}
+#loggedOutLanding .gd-visual-window{position:absolute;top:27px;width:54px;height:45px;background:linear-gradient(135deg,#a9d9d6,#4e8d8b);border:5px solid #f8f1e4;box-shadow:inset 0 0 0 1px rgba(18,57,52,.2)}
+#loggedOutLanding .gd-visual-window:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,.75);transform:translateX(-50%)}
+#loggedOutLanding .gd-visual-window-left{left:18px}#loggedOutLanding .gd-visual-window-right{right:18px}
+#loggedOutLanding .gd-visual-door{position:absolute;left:50%;bottom:0;width:46px;height:78px;transform:translateX(-50%);background:linear-gradient(90deg,#715547,#4c3e36);border:4px solid #f1e5d1;border-bottom:0;border-radius:8px 8px 0 0}
+#loggedOutLanding .gd-visual-door i{position:absolute;right:7px;top:39px;width:6px;height:6px;border-radius:50%;background:#e5c17a}
+#loggedOutLanding .gd-visual-balcony{position:absolute;right:42px;top:61px;width:80px;height:8px;background:#efe5d4;border-radius:99px;box-shadow:0 10px 0 -2px rgba(55,64,57,.9)}
+#loggedOutLanding .gd-visual-balcony i{position:absolute;top:7px;width:3px;height:22px;background:#e8dece}.gd-visual-balcony i:nth-child(1){left:9px}.gd-visual-balcony i:nth-child(2){left:38px}.gd-visual-balcony i:nth-child(3){right:9px}
+#loggedOutLanding .gd-visual-tree{position:absolute;bottom:62px;width:68px;height:105px;border-radius:52% 52% 46% 46%;background:radial-gradient(circle at 34% 28%,#9abb82 0 18%,#5e8a61 19% 57%,#3d684c 58%);filter:drop-shadow(0 10px 8px rgba(25,55,39,.18))}
+#loggedOutLanding .gd-visual-tree i{position:absolute;bottom:-28px;left:28px;width:13px;height:40px;background:#5b4738;border-radius:5px}
+#loggedOutLanding .gd-visual-tree-left{left:34px}.gd-visual-tree-right{right:34px;transform:scale(.8);transform-origin:bottom}
+#loggedOutLanding .gd-visual-path{position:absolute;left:50%;bottom:-8px;width:90px;height:135px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,#d0c5b2 45%,#d0c5b2 55%,transparent);clip-path:polygon(40% 0,60% 0,100% 100%,0 100%);opacity:.85}
+#loggedOutLanding .gd-visual-float{position:absolute;z-index:20;display:flex;align-items:center;gap:10px;padding:12px 15px;border:1px solid rgba(255,255,255,.55);border-radius:17px;background:rgba(250,253,250,.94);color:#173b36;box-shadow:0 16px 35px rgba(0,0,0,.16);backdrop-filter:blur(12px)}
+#loggedOutLanding .gd-visual-float b{display:block;font-size:13px;line-height:1.15}.gd-visual-float small{display:block;color:#667a75;font-size:10px;margin-top:3px}
+#loggedOutLanding .gd-visual-float>span{width:30px;height:30px;display:grid;place-items:center;border-radius:10px;background:#dcefe9;color:#176b63;font-weight:900}
+#loggedOutLanding .gd-visual-float-location{left:0;top:92px}.gd-visual-float-rent{right:-2px;bottom:62px;display:block!important;padding:13px 18px!important;background:#f4ad76!important;color:#193731!important}.gd-visual-float-rent b{font-size:24px}.gd-visual-float-rent small{color:#4c5e59}
+#loggedOutLanding .gd-visual-float-verified{right:12px;top:35px}
+@media(max-width:820px){#loggedOutLanding .gd-landing-visual-v2{min-height:370px!important}#loggedOutLanding .gd-visual-scene{height:330px;width:96%}#loggedOutLanding .gd-visual-house{transform:translateX(-50%) scale(.8);transform-origin:bottom}.gd-visual-float-location{left:-4px!important;top:65px!important}.gd-visual-float-verified{right:0!important;top:15px!important}.gd-visual-float-rent{right:0!important;bottom:24px!important}}
+@media(max-width:560px){#loggedOutLanding .gd-landing-visual-v2{min-height:290px!important}.gd-visual-scene{height:270px!important}.gd-visual-house{transform:translateX(-50%) scale(.64)!important}.gd-visual-float{transform:scale(.84);transform-origin:center}.gd-visual-float-location{left:-16px!important;top:50px!important}.gd-visual-float-verified{right:-12px!important;top:5px!important}.gd-visual-float-rent{right:-10px!important;bottom:10px!important}}
+</style>
 </style>
 <script id="ghardekho-final-ui-repair-v3-js">
 (function(){
@@ -9121,3 +9330,32 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 </body>
 
 </html>
+
+<style id="ghardekho-dual-role-v1">
+.dashboard-heading-actions{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:flex-end}
+.dashboard-role-switch{display:flex;align-items:center;gap:4px;padding:4px;border:1px solid rgba(31,95,91,.14);background:#f1f6f4;border-radius:999px}
+.dashboard-role-switch button{min-height:38px;padding:0 14px;border:0;border-radius:999px;background:transparent;color:#53645f;font-weight:800;cursor:pointer}
+.dashboard-role-switch button.active{background:#1f5f5b;color:#fff;box-shadow:0 5px 14px rgba(31,95,91,.18)}
+#loginRoleHint{line-height:1.45}
+@media(max-width:680px){.dashboard-heading-actions{width:100%;justify-content:stretch}.dashboard-role-switch{width:100%}.dashboard-role-switch button{flex:1}}
+</style>
+<script id="ghardekho-dual-role-v1-js">
+(function(){
+  function bindDualRoleSwitch(){
+    document.querySelectorAll("[data-role-switch]").forEach(function(button){
+      if(button.dataset.gdDualRoleBound==="1") return;
+      button.dataset.gdDualRoleBound="1";
+      button.addEventListener("click",function(e){
+        e.preventDefault();
+        const role=button.getAttribute("data-role-switch");
+        if(typeof switchAccountRole==="function") switchAccountRole(role);
+      });
+    });
+    if(typeof updateDashboardRoleSwitcher==="function") updateDashboardRoleSwitcher();
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindDualRoleSwitch);
+  else bindDualRoleSwitch();
+  window.addEventListener("load",bindDualRoleSwitch);
+  new MutationObserver(bindDualRoleSwitch).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
