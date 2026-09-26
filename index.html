@@ -9479,11 +9479,18 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
     const login=document.getElementById('loginSection');
     const dashboard=document.getElementById('dashboardSection');
 
-    if(loggedIn || hasCurrentUser){
+    const logoutVisible=!!document.getElementById('logoutBtn') && document.getElementById('logoutBtn').style.display!=='none';
+    if(loggedIn || hasCurrentUser || logoutVisible){
       if(landing)landing.style.display='none';
       if(login)login.style.display='none';
-      if(home && document.body.classList.contains('gd-renter-mode'))home.style.display='block';
-      if(props && document.body.classList.contains('gd-renter-mode'))props.style.display='block';
+      document.body.classList.remove('gd-auth-page');
+      document.body.classList.add('gd-authenticated');
+      const selectedRole=sessionStorage.getItem('gd_active_role')==='owner' || sessionStorage.getItem('gd_pending_login_role')==='owner' ? 'owner' : 'renter';
+      document.body.classList.toggle('gd-owner-mode',selectedRole==='owner');
+      document.body.classList.toggle('gd-renter-mode',selectedRole==='renter');
+      if(home)home.style.display=selectedRole==='renter'?'block':'none';
+      if(props)props.style.display=selectedRole==='renter'?'block':'none';
+      if(dashboard)dashboard.style.display='block';
     }else if(auth || loginRoute){
       if(landing)landing.style.display='none';
       if(home)home.style.display='none';
