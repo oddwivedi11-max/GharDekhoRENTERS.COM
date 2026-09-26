@@ -4077,6 +4077,38 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
 </head>
 
 <body>
+<script id="ghardekho-early-route-bootstrap">
+(function () {
+  // Run before the rest of the app so a direct #login URL can never
+  // paint the logged-out landing page first.
+  if (window.location.hash.toLowerCase() !== "#login") return;
+
+  window.__gdAuthRequested = true;
+  document.documentElement.classList.add("gd-login-route");
+
+  function applyLoginRoute() {
+    const landing = document.getElementById("loggedOutLanding");
+    const login = document.getElementById("loginSection");
+    const home = document.getElementById("homeSection");
+    const properties = document.getElementById("propertiesSection");
+    const dashboard = document.getElementById("dashboardSection");
+
+    if (landing) landing.style.display = "none";
+    if (login) login.style.display = "grid";
+    if (home) home.style.display = "none";
+    if (properties) properties.style.display = "none";
+    if (dashboard) dashboard.style.display = "none";
+
+    document.body.classList.add("gd-auth-page");
+  }
+
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", applyLoginRoute, { once: true });
+  } else {
+    applyLoginRoute();
+  }
+})();
+</script>
 
     <header>
         <h1>Ghar Dekho Renters</h1>
