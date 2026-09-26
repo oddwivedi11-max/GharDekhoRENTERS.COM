@@ -10649,7 +10649,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 <script id="ghardekho-location-autocomplete-v2">
 (function(){
   const API='https://nominatim.openstreetmap.org/search';
-  let timer=null,controller=null,lastQuery='';
+  let timer=null,controller=null,lastQuery='',suppressNextInputSearch=false;
   const input=()=>document.getElementById('locationInput');
   const box=()=>document.getElementById('gdLocationSuggestions');
   function ensure(){const i=input();if(!i)return null;let b=box();if(b)return b;const p=i.parentElement;if(!p)return null;if(getComputedStyle(p).position==='static')p.style.position='relative';b=document.createElement('div');b.id='gdLocationSuggestions';b.setAttribute('role','listbox');p.appendChild(b);return b}
@@ -10686,7 +10686,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
       btn.innerHTML='<span class="gd-location-suggestion-icon">📍</span><span class="gd-location-suggestion-text"><span class="gd-location-suggestion-main">'+esc(main)+'</span><span class="gd-location-suggestion-sub">'+esc(sub||'India')+'</span></span>';
       btn.addEventListener('mousedown',e=>e.preventDefault());
       btn.addEventListener('click',function(){
-        i.value=main+', '+(state||'India');
+        i.value=[area&&area.toLowerCase()!==city.toLowerCase()?area:'',city,state||'India'].filter(Boolean).join(', ');
         i.dataset.gdSelectedCity=city;
         i.dataset.gdSelectedArea=area;
         i.dataset.gdSelectedDistrict=district;
@@ -10694,7 +10694,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
         i.dataset.gdSelectedLat=String(p.lat||'');
         i.dataset.gdSelectedLng=String(p.lon||'');
         i.dataset.gdSelectedDisplayName=p.display_name||main;
-        hide();i.dispatchEvent(new Event('change',{bubbles:true}));i.dispatchEvent(new Event('input',{bubbles:true}));
+        hide();suppressNextInputSearch=true;i.dispatchEvent(new Event('change',{bubbles:true}));i.dispatchEvent(new Event('input',{bubbles:true}));
       });
       b.appendChild(btn);
     });
@@ -10709,7 +10709,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
     catch(e){if(e.name!=='AbortError')msg('Location suggestions are temporarily unavailable. You can still type the location manually.','gd-location-error')}
   }
   function bind(){const i=input();if(!i||i.dataset.gdLocationAutocompleteV2==='1')return;i.dataset.gdLocationAutocompleteV2='1';i.setAttribute('autocomplete','off');i.setAttribute('spellcheck','false');i.setAttribute('aria-autocomplete','list');
-    i.addEventListener('input',function(){clearTimeout(timer);const q=i.value.trim();if(!q){hide();lastQuery='';return}timer=setTimeout(()=>search(q),250)});
+    i.addEventListener('input',function(){if(suppressNextInputSearch){suppressNextInputSearch=false;return}clearTimeout(timer);const q=i.value.trim();if(!q){hide();lastQuery='';return}timer=setTimeout(()=>search(q),250)});
     i.addEventListener('focus',function(){if(i.value.trim())search(i.value)});
     i.addEventListener('keydown',function(e){if(e.key==='Escape')hide();if(e.key==='Enter'){const f=box()&&box().querySelector('.gd-location-suggestion');if(f&&box().style.display!=='none'){e.preventDefault();f.click()}}});
     document.addEventListener('click',function(e){const b=box();if(!b||e.target===i||b.contains(e.target))return;hide()});
