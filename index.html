@@ -2033,10 +2033,12 @@ body.gd-owner-mode #renterDashboard { display:none !important; }
 
 /* Logged-out users use the same premium homepage as authenticated renters.
    Keep the legacy landing markup hidden so two different home designs cannot appear. */
-#loggedOutLanding{display:none!important;}
+#loggedOutLanding{display:block!important;}
+body:not(.gd-auth-page):not(.gd-authenticated) #loggedOutLanding{display:block!important;}
+body:not(.gd-auth-page):not(.gd-authenticated) #homeSection,
+body:not(.gd-auth-page):not(.gd-authenticated) #propertiesSection{display:none!important;}
 body:not(.gd-authenticated) #backendMessage{display:none!important;}
-body:not(.gd-authenticated) #homeSection,
-body:not(.gd-authenticated) #propertiesSection{display:block!important;}
+body.gd-auth-page #loggedOutLanding,
 body.gd-authenticated #loggedOutLanding,
 body.gd-owner-mode #loggedOutLanding,
 body.gd-renter-mode #loggedOutLanding{display:none!important;}
@@ -4465,12 +4467,11 @@ function resetRoleSpecificUI() {
     document.body.classList.remove("gd-owner-mode", "gd-renter-mode");
     document.body.classList.remove("gd-authenticated");
 
-    // The public landing is the same premium discovery surface used by renters.
-    // Keep the older role-selection landing in the DOM for compatibility, but do
-    // not show it as the primary homepage.
-    if (landing) landing.style.display = "none";
-    if (homeSection) homeSection.style.display = "block";
-    if (propertiesSection) propertiesSection.style.display = "block";
+    // Logged-out visitors see the premium role-selection homepage first.
+    // The renter discovery/search surface appears after authentication.
+    if (landing) landing.style.display = "block";
+    if (homeSection) homeSection.style.display = "none";
+    if (propertiesSection) propertiesSection.style.display = "none";
     if (propertyDetails) propertyDetails.style.display = "none";
     if (visitSection) visitSection.style.display = "none";
     if (loginSection) loginSection.style.display = "none";
@@ -6901,9 +6902,19 @@ async function refreshSaveButtons(propertyId) {
     if(gateway)gateway.style.display="block";
     if(form)form.style.display="none";
     history.pushState({},"",window.location.pathname+window.location.search);
-    const l=document.getElementById("loggedOutLanding");if(l)l.style.display="none";
-    const h=document.getElementById("homeSection");if(h){h.style.display="block";h.scrollIntoView({behavior:"smooth",block:"start"});}}
-    const p=document.getElementById("propertiesSection");if(p)p.style.display="block";
+    const l=document.getElementById("loggedOutLanding");
+    const h=document.getElementById("homeSection");
+    const p=document.getElementById("propertiesSection");
+    if(!currentUser){
+        if(l){l.style.display="block";l.scrollIntoView({behavior:"smooth",block:"start"});}
+        if(h)h.style.display="none";
+        if(p)p.style.display="none";
+    }else{
+        if(l)l.style.display="none";
+        if(h){h.style.display="block";h.scrollIntoView({behavior:"smooth",block:"start"});}
+        if(p)p.style.display="block";
+    }
+}
 }
 
 function openPropertyEditor(id){
