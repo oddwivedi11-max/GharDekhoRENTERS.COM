@@ -4837,13 +4837,15 @@ function clearAuthFormFields(){
     if(hint)hint.textContent="Choose the account type when creating a new account. Your saved account role controls the dashboard after login.";
 }
 
-function openLoginSection(){
+function openLoginSection(role){
     const e=document.getElementById("loginSection");if(!e)return false;
-    // Preserve the role that opened the login screen. The submit handler also
-    // re-reads the selected radio so stale sessionStorage can never override it.
-    const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
+    // A plain Login button always starts in Renter mode. Owner mode is entered
+    // only when the user explicitly clicks "Login as Owner" / selects Owner.
+    const requestedRole = role === "owner" ? "owner" : "renter";
     pendingLoginRole = requestedRole;
+    activeRole = requestedRole;
     sessionStorage.setItem("gd_pending_login_role", requestedRole);
+    sessionStorage.setItem("gd_active_role", requestedRole);
     window.__gdAuthRequested=true;
     document.body.classList.add("gd-auth-page");
     const home=document.getElementById("homeSection"),props=document.getElementById("propertiesSection"),landing=document.getElementById("loggedOutLanding"),reset=document.getElementById("passwordResetSection");
@@ -4867,7 +4869,7 @@ function openLoginAs(role){
     sessionStorage.setItem("gd_pending_login_role", pendingLoginRole);
     const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");
     const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
-    openLoginSection();
+    openLoginSection(role);
     if(gateway)gateway.style.display="none";
     if(form)form.style.display="grid";
     if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";
@@ -5842,6 +5844,7 @@ async function updatePassword() {
 
 async function logoutUser() {
     sessionStorage.removeItem("gd_pending_login_role");
+    sessionStorage.removeItem("gd_active_role");
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) { logoutBtn.disabled = true; logoutBtn.textContent = "Logging out..."; }
 
