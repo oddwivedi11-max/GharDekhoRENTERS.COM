@@ -3437,6 +3437,26 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 @media(max-width:760px){.gd-auth-gateway{padding:28px 14px 45px}.gd-auth-gateway-grid{grid-template-columns:1fr}.gd-auth-gateway-features{grid-template-columns:1fr 1fr}.gd-auth-info-card{padding:24px}}
 @media(max-width:480px){.gd-auth-gateway-head h2{font-size:2.65rem}.gd-auth-gateway-features{grid-template-columns:1fr}}
 </style>
+<style id="ghardekho-premium-search-controls-v1">
+.gd-search-v6{position:relative}
+.gd-search-v6 .gd-v6-search-field{position:relative;background:linear-gradient(145deg,#ffffff,#f7fbf9);border:1px solid #d7e5e1!important;border-radius:18px!important;box-shadow:0 8px 22px rgba(16,42,40,.045);transition:transform .18s,border-color .18s,box-shadow .18s}
+.gd-search-v6 .gd-v6-search-field:focus-within{border-color:#0b766d!important;box-shadow:0 0 0 4px rgba(11,118,109,.09),0 12px 28px rgba(16,42,40,.07);transform:translateY(-1px)}
+.gd-search-v6 .gd-v6-search-field select{appearance:none;-webkit-appearance:none;width:100%;min-height:54px;padding:0 42px 0 16px;border:0!important;outline:0!important;background:transparent!important;color:#173a36;font-weight:800;font-size:15px;cursor:pointer}
+.gd-search-v6 .gd-v6-search-field select option{font-weight:600;color:#173a36;background:#fff}
+.gd-search-v6 .gd-v6-search-field:not(.gd-v6-location):after{content:"";position:absolute;right:18px;top:50%;width:8px;height:8px;border-right:2px solid #0b766d;border-bottom:2px solid #0b766d;transform:translateY(-65%) rotate(45deg);pointer-events:none}
+.gd-search-v6 .gd-v6-location input{min-height:54px!important;border:0!important;background:transparent!important;border-radius:16px!important;font-weight:750!important;color:#173a36!important}
+.gd-search-v6 #searchBtn,.gd-search-v6 #nearMeBtn,.gd-search-v6 #liveNearbyBtn{min-height:56px!important;border-radius:18px!important;border:1px solid rgba(11,118,109,.16)!important;font-weight:900!important;letter-spacing:-.01em;transition:transform .18s,box-shadow .18s,filter .18s}
+.gd-search-v6 #searchBtn{background:linear-gradient(135deg,#0b766d,#075e57)!important;box-shadow:0 14px 30px rgba(11,118,109,.20)!important;color:#fff!important}
+.gd-search-v6 #nearMeBtn,.gd-search-v6 #liveNearbyBtn{background:linear-gradient(145deg,#effaf7,#e1f3ef)!important;color:#075e57!important;box-shadow:0 10px 22px rgba(11,118,109,.08)!important}
+.gd-search-v6 #searchBtn:hover,.gd-search-v6 #nearMeBtn:hover,.gd-search-v6 #liveNearbyBtn:hover{transform:translateY(-2px);box-shadow:0 16px 32px rgba(11,118,109,.16)!important}
+.gd-search-v6 #radiusSelect{appearance:none;-webkit-appearance:none;min-height:56px;width:100%;padding:0 42px 0 17px;border:1px solid #d7e5e1!important;border-radius:18px!important;background:linear-gradient(145deg,#fff,#f7fbf9)!important;color:#173a36;font-weight:800;font-size:15px;outline:0;cursor:pointer;box-shadow:0 8px 22px rgba(16,42,40,.045)}
+.gd-search-v6 #radiusSelect:focus{border-color:#0b766d!important;box-shadow:0 0 0 4px rgba(11,118,109,.09)!important}
+.gd-search-v6:after{content:"";display:none}
+#loginBtn{position:relative;z-index:20;cursor:pointer;pointer-events:auto}
+body.gd-auth-page #loginBtn{display:none!important}
+body.gd-auth-page #homeSection,body.gd-auth-page #propertiesSection,body.gd-auth-page #loggedOutLanding{display:none!important}
+body.gd-auth-page #loginSection{display:block!important}
+</style>
 </head>
 
 <body>
@@ -4128,15 +4148,21 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
         }
 
         function openLoginSection(){
-    const e=document.getElementById("loginSection");if(!e)return;
+    const e=document.getElementById("loginSection");if(!e)return false;
     window.__gdAuthRequested=true;
     document.body.classList.add("gd-auth-page");
+    const home=document.getElementById("homeSection"),props=document.getElementById("propertiesSection"),landing=document.getElementById("loggedOutLanding"),reset=document.getElementById("passwordResetSection");
+    if(home)home.style.display="none";
+    if(props)props.style.display="none";
+    if(landing)landing.style.display="none";
+    if(reset)reset.style.display="none";
     e.style.display="block";
     const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
     if(gateway)gateway.style.display="block";
     if(form)form.style.display="none";
-    history.pushState({gdAuth:true},"","#login");
+    try{history.pushState({gdAuth:true},"","#login");}catch(err){}
     requestAnimationFrame(()=>e.scrollIntoView({behavior:"smooth",block:"start"}));
+    return false;
 }
 function openLoginAs(role){
     const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");
@@ -7701,7 +7727,7 @@ async function updateVisitStatus(visitId, newStatus) {
 
             // Use JavaScript listeners as the primary action so the landing-page
             // role buttons still work when inline handlers are blocked by a CSP.
-            if (topLoginBtn) topLoginBtn.addEventListener("click", openLoginSection);
+            if (topLoginBtn) topLoginBtn.addEventListener("click", function(e){ e.preventDefault(); e.stopPropagation(); openLoginSection(); });
             if (renterRoleChoice) renterRoleChoice.addEventListener("click", () => openLoginAs("renter"));
             if (ownerRoleChoice) ownerRoleChoice.addEventListener("click", () => openLoginAs("owner"));
 
