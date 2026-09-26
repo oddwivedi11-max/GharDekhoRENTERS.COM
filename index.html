@@ -5076,6 +5076,7 @@ async function renderActiveDashboard() {
                 owner_profile_id:o.id,
                 property_count:Number(o.property_count||0)
             }));
+            window.__ghAdminOwnerUsers=new Map(owners.map(o=>[String(o.id),o]));
             const userMap=new Map();
             owners.forEach(u=>userMap.set(String(u.id),u));
             renters.forEach(u=>userMap.set(String(u.id),u));
@@ -5175,12 +5176,9 @@ async function renderActiveDashboard() {
             if(!isAdminAccount()) return showAdminDenied();
             if(!ownerId) return showMessage("backendMessage","No owner profile is linked to this property.","error");
             try {
-                let ownerResult = await supabaseClient.from("owners").select("id").eq("id", ownerId).maybeSingle();
-                if (ownerResult.error) throw ownerResult.error;
-                if (!ownerResult.data) ownerResult = await supabaseClient.from("owners").select("id").eq("user_id", ownerId).maybeSingle();
-                if (ownerResult.error) throw ownerResult.error;
-                if (!ownerResult.data?.id) throw new Error("Owner profile not found.");
-                const { error } = await supabaseClient.rpc("admin_set_owner_verification", { p_owner_id: ownerResult.data.id, p_status: "verified" });
+                const ownerUser=window.__ghAdminOwnerUsers?.get(String(ownerId));
+                const ownerProfileId=ownerUser?.owner_profile_id || String(ownerId);
+                const { error } = await supabaseClient.rpc("admin_set_owner_verification", { p_owner_id: ownerProfileId, p_status: "verified" });
                 if(error) throw error;
                 showMessage("backendMessage","Owner verified successfully. ✓","success");
                 await loadAdminDashboard();
@@ -5227,8 +5225,14 @@ async function renderActiveDashboard() {
         }
         function openAdminOwnerEditor(ownerId) {
             if(!isAdminAccount())return showAdminDenied(); if(!ownerId)return showMessage("backendMessage","No owner profile is linked to this property.","error");
-            const o=(window.__ghAdminOwners&&window.__ghAdminOwners.get(ownerId))||{};
-            document.getElementById("adminOwnerId").value=ownerId;document.getElementById("adminOwnerName").value=o.name||"";document.getElementById("adminOwnerEmail").value=o.email||"";document.getElementById("adminOwnerPhone").value=o.phone||"";document.getElementById("adminOwnerMessage").textContent="";document.getElementById("adminOwnerEditor").classList.add("active");
+            const o=(window.__ghAdminOwners&&window.__ghAdminOwners.get(ownerId))||window.__ghAdminOwnerUsers?.get(String(ownerId))||{};
+            const actualOwnerId=o.owner_profile_id||o.id||ownerId;
+            document.getElementById("adminOwnerId").value=actualOwnerId;
+            document.getElementById("adminOwnerName").value=o.name||"";
+            document.getElementById("adminOwnerEmail").value=o.email||"";
+            document.getElementById("adminOwnerPhone").value=o.phone||"";
+            document.getElementById("adminOwnerMessage").textContent="";
+            document.getElementById("adminOwnerEditor").classList.add("active");
         }
         function closeAdminOwnerEditor(){document.getElementById("adminOwnerEditor")?.classList.remove("active");}
         async function saveAdminOwner(e) {
