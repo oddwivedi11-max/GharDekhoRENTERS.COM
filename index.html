@@ -3763,6 +3763,22 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
                     </article>
                 </div>
 
+                <div class="dashboard-card owner-profile-card">
+                    <div class="dashboard-card-heading">
+                        <div>
+                            <span class="dashboard-section-kicker">ACCOUNT</span>
+                            <h3>My Owner Profile</h3>
+                        </div>
+                        <button type="button" class="secondary-button" id="ownerEditProfileBtn">✏️ Edit details</button>
+                    </div>
+                    <div class="renter-profile-grid">
+                        <div><span>Name</span><strong id="ownerProfileName">—</strong></div>
+                        <div><span>Email</span><strong id="ownerProfileEmail">—</strong></div>
+                        <div><span>Phone</span><strong id="ownerProfilePhone">Not added</strong></div>
+                        <div><span>Account type</span><strong>Owner</strong></div>
+                    </div>
+                </div>
+
                 <div class="dashboard-card owner-verification-summary" id="ownerVerificationSummary">
                     <div class="dashboard-card-heading">
                         <div>
@@ -3914,7 +3930,8 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 <div id="adminPanelActivity" class="gd-admin-panel dashboard-card"><p class="gd-admin-muted">Recent activity based on timestamps available in the current tables. This is not a full server audit log.</p><div id="adminActivityBody"></div></div>
 </section>
 <div id="adminAccessDenied" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Admin access only</h3><p>This area is restricted to the configured administrator account.</p><button type="button" class="dashboard-primary-action" onclick="closeAdminDenied()">OK</button></div></div>
-<div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required></label><label>Phone<input id="adminOwnerPhone" maxlength="30"></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
+<div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required autocomplete="off"></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<input id="adminOwnerPhone" maxlength="30" autocomplete="off"></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
+<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<input id="ownerProfileEditPhone" maxlength="30" autocomplete="off"></label><p class="gd-admin-muted">These details update your Ghar Dekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text"></p></form></div></div>
         
 
 <div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><label class="gd-editor-full">Property photo<input type="file" id="editPropertyImageFile" accept="image/jpeg,image/png,image/webp"><span id="editPropertyImageName" class="small-text">Choose a new JPG, PNG or WebP photo (max 5 MB).</span></label><label class="gd-editor-full"><input type="text" id="editPropertyImageUrl" maxlength="2000" placeholder="Or paste an HTTPS image URL"></label></div><div class="gd-editor-actions"><button type="button" class="secondary-button gd-admin-danger" id="deletePropertyFromEditorBtn">🗑️ Delete Property</button><button type="button" class="secondary-button" id="cancelPropertyEditorBtn">Cancel</button><button type="submit" class="dashboard-primary-action" id="savePropertyEditBtn">Save Changes</button></div><p id="propertyEditorMessage" class="small-text"></p></form></div></div>    </main>
@@ -4865,6 +4882,47 @@ function updateDashboardProfile() {
     });
 }
 
+function updateOwnerProfileUI(ownerRecord) {
+    const p=ownerRecord||currentOwnerProfile||{};
+    const fields={
+        ownerProfileName:p.name||currentProfile?.name||"—",
+        ownerProfileEmail:p.email||currentProfile?.email||currentUser?.email||"—",
+        ownerProfilePhone:p.phone||currentProfile?.phone||"Not added"
+    };
+    Object.entries(fields).forEach(([id,value])=>{
+        const el=document.getElementById(id);
+        if(el) el.textContent=value;
+    });
+}
+function openOwnerProfileEditor(){
+    if(!currentUser||activeRole!=="owner") return;
+    const p=currentOwnerProfile||currentProfile||{};
+    document.getElementById("ownerProfileEditName").value=p.name||currentProfile?.name||"";
+    document.getElementById("ownerProfileEditEmail").value=p.email||currentProfile?.email||currentUser?.email||"";
+    document.getElementById("ownerProfileEditPhone").value=p.phone||currentProfile?.phone||"";
+    document.getElementById("ownerProfileMessage").textContent="";
+    document.getElementById("ownerProfileEditor").classList.add("active");
+}
+function closeOwnerProfileEditor(){document.getElementById("ownerProfileEditor")?.classList.remove("active");}
+async function saveOwnerProfile(e){
+    e.preventDefault();
+    if(!currentUser||activeRole!=="owner") return;
+    const name=document.getElementById("ownerProfileEditName").value.trim();
+    const email=document.getElementById("ownerProfileEditEmail").value.trim().toLowerCase();
+    const phone=document.getElementById("ownerProfileEditPhone").value.trim();
+    const msg=document.getElementById("ownerProfileMessage");
+    if(!name||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){msg.textContent="Enter a valid name and email.";return;}
+    msg.textContent="Saving...";
+    const {data,error}=await supabaseClient.rpc("update_my_owner_profile",{p_name:name,p_email:email,p_phone:phone||null});
+    if(error){msg.textContent=getSafeErrorMessage(error,"Unable to update owner details.");return;}
+    currentOwnerProfile={...(currentOwnerProfile||{}),...data};
+    currentProfile={...(currentProfile||{}),name,email,phone};
+    updateOwnerProfileUI(currentOwnerProfile);
+    msg.textContent="Details updated successfully.";
+    showMessage("backendMessage","Owner profile updated successfully. ✓","success");
+    setTimeout(closeOwnerProfileEditor,500);
+}
+
 async function renderActiveDashboard() {
     const renter = document.getElementById("renterDashboard");
     const owner = document.getElementById("ownerDashboard");
@@ -5072,13 +5130,21 @@ async function renderActiveDashboard() {
             const renters=rentersResult.error ? [] : (rentersResult.data||[]);
             const owners=ownerProfiles.map(o=>({
                 ...o,
-                id:o.user_id,
+                id:o.id,
+                user_id:o.user_id,
                 owner_profile_id:o.id,
                 property_count:Number(o.property_count||0)
             }));
-            window.__ghAdminOwnerUsers=new Map(owners.map(o=>[String(o.id),o]));
+            window.__ghAdminOwnerUsers=new Map();
+            owners.forEach(o=>{
+                window.__ghAdminOwnerUsers.set(String(o.id),o);
+                if(o.user_id) window.__ghAdminOwnerUsers.set(String(o.user_id),o);
+            });
             const userMap=new Map();
-            owners.forEach(u=>userMap.set(String(u.id),u));
+            owners.forEach(u=>{
+                userMap.set(String(u.id),u);
+                if(u.user_id) userMap.set(String(u.user_id),u);
+            });
             renters.forEach(u=>userMap.set(String(u.id),u));
             (window.__ghAdminProperties||[]).forEach(p=>{
                 if(p.owner_id && p.owner_email && !userMap.has(String(p.owner_id))){
@@ -5100,7 +5166,7 @@ async function renderActiveDashboard() {
 
             if(ownersBody){
                 ownersBody.innerHTML=owners.filter(u=>matches(u,q)).map(u=>{
-                    const count=(window.__ghAdminProperties||[]).filter(p=>String(p.owner_id)===String(u.id)).length;
+                    const count=(window.__ghAdminProperties||[]).filter(p=>String(p.owner_id)===String(u.owner_profile_id||u.id)).length;
                     const verifyOwnerAction=u.verification_status==="verified"
                         ? '<button type="button" class="dashboard-secondary-action" disabled>✓ Verified</button>'
                         : '<button type="button" class="dashboard-secondary-action" data-admin-action="verify-owner" data-id="'+escapeHtml(u.id)+'">✓ Verify</button>';
@@ -6513,6 +6579,7 @@ async function refreshSaveButtons(propertyId) {
                 ? (ownerProfile[0] || null)
                 : ownerProfile;
             currentOwnerProfile = ownerRecord || null;
+            updateOwnerProfileUI(ownerRecord);
 
             if (verificationBadge) {
                 const verified = ownerRecord?.verification_status === "verified";
@@ -7448,6 +7515,8 @@ async function updateVisitStatus(visitId, newStatus) {
         function setupEventListeners() {
             document.getElementById("adminRefreshBtn")?.addEventListener("click", loadAdminDashboard);
             document.getElementById("adminOwnerForm")?.addEventListener("submit", saveAdminOwner);
+        document.getElementById("ownerProfileForm")?.addEventListener("submit", saveOwnerProfile);
+        document.getElementById("ownerEditProfileBtn")?.addEventListener("click", openOwnerProfileEditor);
             document.getElementById("propertyEditorForm")?.addEventListener("submit", savePropertyEdit);
             document.getElementById("closePropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
             document.getElementById("cancelPropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
