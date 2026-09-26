@@ -5155,7 +5155,22 @@ async function ensureOwnerAccess() {
 
 async function saveActiveAccountRole(role) {
     const normalized = role === "owner" ? "owner" : "tenant";
-    if (!currentUser || !currentProfile) return false;
+    if (!currentUser) return false;
+
+    // Always load the real users row before changing roles. This prevents a
+    // startup/profile race from silently skipping dual-role persistence.
+    if (!currentProfile) {
+        const { data: profile, error: profileError } = await supabaseClient
+            .from("users")
+            .select("id,name,email,phone,role,roles")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+        if (profileError || !profile) {
+            console.error("Could not load account profile before role update:", profileError);
+            return false;
+        }
+        currentProfile = profile;
+    }
 
     if (normalized === "owner") {
         const ownerReady = await ensureOwnerAccess();
