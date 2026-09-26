@@ -8268,18 +8268,29 @@ async function refreshSaveButtons(propertyId) {
             if (verificationTitle) verificationTitle.textContent = ownerRecord?.name ? ownerRecord.name + " • Owner verification" : "Owner verification";
 
             if (ownerLookupError || !ownerRecord) {
-                console.error(
-                    "Owner lookup error:",
-                    ownerLookupError
-                );
+                // Mobile/new-owner sessions can reach Add Property before the
+                // owner row has been created. Repair that row and retry once.
+                console.warn("Owner profile missing during property submit; repairing owner access.", ownerLookupError);
+                const ownerReady = await ensureOwnerAccess();
+                if (ownerReady) {
+                    const retry = await supabaseClient.rpc("get_my_owner_profile");
+                    const retryRecord = Array.isArray(retry.data) ? (retry.data[0] || null) : retry.data;
+                    if (!retry.error && retryRecord) {
+                        currentOwnerProfile = retryRecord;
+                        updateOwnerProfileUI(retryRecord);
+                        ownerRecord = retryRecord;
+                    }
+                }
 
-                showMessage(
-                    "backendMessage",
-                    getSafeErrorMessage(ownerLookupError, "Owner profile not found."),
-                    "error"
-                );
-
-                return;
+                if (!ownerRecord) {
+                    console.error("Owner lookup error:", ownerLookupError);
+                    showMessage(
+                        "backendMessage",
+                        getSafeErrorMessage(ownerLookupError, "Owner profile could not be prepared. Please try again."),
+                        "error"
+                    );
+                    return;
+                }
             }
 
             if (selectedPropertyImageFile) {
