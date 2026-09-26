@@ -5885,6 +5885,8 @@ async function loginUser() {
     }
 }
 
+// Keep auth actions available even when the login form is dynamically rendered.
+window.loginUser = loginUser;
 async function loginWithGoogle() {
     const button = document.getElementById("googleLoginBtn");
     const authMessage = document.getElementById("authMessage");
@@ -9175,7 +9177,16 @@ function updateStayTypeFields() {
             if (ownerRoleChoice) ownerRoleChoice.addEventListener("click", () => openLoginAs("owner"));
 
             if (signupBtn) signupBtn.addEventListener("click", signupUser);
-            if (loginSubmitBtn) loginSubmitBtn.addEventListener("click", loginUser);
+            if (loginSubmitBtn) loginSubmitBtn.addEventListener("click", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                loginUser();
+            });
+            document.getElementById("loginForm")?.addEventListener("submit", function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                loginUser();
+            });
             if (forgotPasswordBtn) forgotPasswordBtn.addEventListener("click", forgotPassword);
             if (googleLoginBtn) googleLoginBtn.addEventListener("click", loginWithGoogle);
             if (adminLoginModeBtn) adminLoginModeBtn.addEventListener("click", openAdminLogin);
