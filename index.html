@@ -8246,14 +8246,19 @@ async function refreshSaveButtons(propertyId) {
                 }
             }
 
-            const {
-                data: ownerProfile,
-                error: ownerLookupError
-            } = await supabaseClient.rpc("get_my_owner_profile");
+            // Prepare the owner row first, then read it directly.
+            // This avoids relying on a client RPC permission/function race on mobile.
+            const ownerReady = await ensureOwnerAccess();
+            if (!ownerReady) {
+                throw new Error("Owner profile could not be prepared. Please log out and log in again as Owner.");
+            }
 
-            let ownerRecord = Array.isArray(ownerProfile)
-                ? (ownerProfile[0] || null)
-                : ownerProfile;
+            const { data: ownerRecord, error: ownerLookupError } = await supabaseClient
+                .from("owners")
+                .select("id,name,phone,verification_status")
+                .eq("user_id", currentUser.id)
+                .maybeSingle();
+
             currentOwnerProfile = ownerRecord || null;
             updateOwnerProfileUI(ownerRecord);
 
@@ -8268,29 +8273,8 @@ async function refreshSaveButtons(propertyId) {
             if (verificationTitle) verificationTitle.textContent = ownerRecord?.name ? ownerRecord.name + " • Owner verification" : "Owner verification";
 
             if (ownerLookupError || !ownerRecord) {
-                // Mobile/new-owner sessions can reach Add Property before the
-                // owner row has been created. Repair that row and retry once.
-                console.warn("Owner profile missing during property submit; repairing owner access.", ownerLookupError);
-                const ownerReady = await ensureOwnerAccess();
-                if (ownerReady) {
-                    const retry = await supabaseClient.rpc("get_my_owner_profile");
-                    const retryRecord = Array.isArray(retry.data) ? (retry.data[0] || null) : retry.data;
-                    if (!retry.error && retryRecord) {
-                        currentOwnerProfile = retryRecord;
-                        updateOwnerProfileUI(retryRecord);
-                        ownerRecord = retryRecord;
-                    }
-                }
-
-                if (!ownerRecord) {
-                    console.error("Owner lookup error:", ownerLookupError);
-                    showMessage(
-                        "backendMessage",
-                        getSafeErrorMessage(ownerLookupError, "Owner profile could not be prepared. Please try again."),
-                        "error"
-                    );
-                    return;
-                }
+                console.error("Owner lookup error:", ownerLookupError);
+                throw new Error(getSafeErrorMessage(ownerLookupError, "Owner profile could not be prepared. Please try again."));
             }
 
             if (selectedPropertyImageFile) {
@@ -8365,6 +8349,16 @@ async function refreshSaveButtons(propertyId) {
 
             await loadProperties();
             await loadOwnerProperties();
+
+            // Close the mobile modal only after the database insert succeeded.
+            window.__gdCloseOwnerPropertyModal?.();
+            } catch (error) {
+                console.error("Add property failed:", error);
+                showMessage(
+                    "backendMessage",
+                    getSafeErrorMessage(error, error?.message || "Property could not be submitted. Please try again."),
+                    "error"
+                );
             } finally {
                 isSubmittingProperty = false;
                 const submitButton = document.getElementById("addPropertyBtn");
@@ -11456,5 +11450,83 @@ html,body{max-width:100%;overflow-x:hidden!important}
   #ownerDashboard .owner-add-property-card{width:calc(100vw - 8px)!important}
   #ownerDashboard .owner-add-property-card form{padding-left:10px!important;padding-right:10px!important}
   #ownerDashboard .gd-upload-actions{grid-template-columns:1fr!important}
+}
+</style><style id="ghardekho-mobile-submit-grounded-v11">
+@media(max-width:680px){
+  #ownerDashboard .owner-add-property-card form{
+    padding-bottom:24px!important;
+  }
+  #ownerDashboard #addPropertyBtn{
+    position:static!important;
+    bottom:auto!important;
+    margin:14px 0 0!important;
+    width:100%!important;
+    display:block!important;
+    transform:none!important;
+  }
+  #ownerDashboard #verifyLocationBtn{
+    position:static!important;
+    width:100%!important;
+    display:block!important;
+    transform:none!important;
+  }
+  #ownerDashboard .gd-owner-modal-head{
+    position:sticky!important;
+    top:0!important;
+    z-index:20!important;
+    background:#fff!important;
+  }
+}
+</style><style id="ghardekho-mobile-header-brand-v11">
+@media(max-width:680px){
+  header{
+    min-height:64px!important;
+    height:auto!important;
+    padding:8px 10px!important;
+    display:grid!important;
+    grid-template-columns:minmax(0,1fr) auto!important;
+    grid-template-areas:"brand action" "nav nav"!important;
+    gap:7px 10px!important;
+  }
+  header h1{
+    grid-area:brand!important;
+    min-width:0!important;
+    width:max-content!important;
+    max-width:100%!important;
+    padding-left:48px!important;
+    font-size:0!important;
+    overflow:visible!important;
+  }
+  header h1:before{
+    width:38px!important;height:38px!important;
+    left:0!important;
+  }
+  header h1:after{
+    content:"Ghar Dekho"!important;
+    display:block!important;
+    font-size:18px!important;
+    line-height:1!important;
+    white-space:nowrap!important;
+    overflow:hidden!important;
+    text-overflow:ellipsis!important;
+    max-width:calc(100vw - 150px)!important;
+  }
+  header nav{
+    grid-area:nav!important;
+    width:100%!important;
+    min-width:0!important;
+    overflow-x:auto!important;
+    scrollbar-width:none!important;
+  }
+  header nav::-webkit-scrollbar{display:none!important}
+  header #loginBtn,header #logoutBtn{
+    grid-area:action!important;
+    min-width:86px!important;
+    width:auto!important;
+    height:40px!important;
+    min-height:40px!important;
+    padding:0 12px!important;
+    font-size:12px!important;
+  }
 }
 </style>
