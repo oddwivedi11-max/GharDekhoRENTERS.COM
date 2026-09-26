@@ -12222,7 +12222,30 @@ html,body{max-width:100%;overflow-x:hidden!important}
 }
 </style>
 </style>
-<style id="ghardekho-mobile-property-actionbar-v15">
+<style id="ghardekho-mobile-property-modal-stack-v16">
+@media(max-width:680px){
+  /* The modal lives inside #ownerDashboard. Raise that stacking context
+     above the page overlay, then keep the modal itself above its contents. */
+  body.gd-property-modal-active #ownerDashboard{
+    position:relative!important;
+    z-index:3005!important;
+  }
+  body.gd-property-modal-active:after{
+    z-index:2999!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open{
+    z-index:3010!important;
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+  }
+  body.gd-property-modal-active #gdMobileBottomNav{
+    display:none!important;
+    pointer-events:none!important;
+  }
+}
+</style><style id="ghardekho-mobile-property-actionbar-v15">
 @media(max-width:680px){
   body.gd-property-modal-active #gdMobileBottomNav,
   body:has(#ownerAddPropertyCard.gd-property-modal-open) #gdMobileBottomNav{
