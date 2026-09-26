@@ -1597,6 +1597,15 @@ footer {
 .dashboard-secondary-action { background:#e8f3f1; color:#174a47; }
 .dashboard-primary-action:hover,
 .dashboard-secondary-action:hover { transform:translateY(-1px); }
+.renter-saved-properties-card{width:100%;margin:0 0 18px;border:1px solid #cfe1dc;background:linear-gradient(180deg,#fff 0%,#fbfdfc 100%);box-shadow:0 10px 30px rgba(23,74,71,.07)}
+.renter-saved-properties-card .dashboard-card-heading h3{font-size:21px}
+.renter-saved-properties-card .dashboard-muted{margin:5px 0 0}
+#renterSavedContainer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#renterSavedContainer .owner-property-row{margin:0;min-width:0;background:#f8fbfa}
+#renterSavedContainer .saved-view-btn{margin-top:10px;min-height:42px;padding:0 16px;border:0;border-radius:10px;background:#1f5f5b;color:#fff;font-weight:800;cursor:pointer}
+#renterSavedContainer .saved-view-btn:hover{background:#174a47}
+#renterSavedPropertiesBtn{background:#fff3e7;color:#8a531f;border:1px solid #f0d2b1}
+@media(max-width:680px){#renterSavedContainer{grid-template-columns:1fr}}
 .dashboard-two-column,
 .owner-dashboard-overview {
     display:grid;
@@ -4478,6 +4487,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                 <div class="dashboard-action-row">
                     <button type="button" class="dashboard-primary-action" id="renterFindHomeBtn">🔎 Find a Home</button>
                     <button type="button" class="dashboard-secondary-action" id="renterTopPropertiesBtn">🏠 View Properties</button>
+                    <button type="button" class="dashboard-secondary-action" id="renterSavedPropertiesBtn">❤️ Saved Properties</button>
                 </div>
 
                 <div class="dashboard-two-column">
@@ -4492,16 +4502,18 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                         <div id="tenantVisitsContainer"><p class="dashboard-empty">No visit requests yet.</p></div>
                     </div>
 
-                    <div class="dashboard-card">
-                        <div class="dashboard-card-heading">
-                            <div>
-                                <span class="dashboard-section-kicker">FAVOURITES</span>
-                                <h3>Saved Homes</h3>
-                            </div>
-                            <span class="dashboard-mini-badge">Private</span>
+                </div>
+
+                <div class="dashboard-card renter-saved-properties-card" id="renterSavedPropertiesSection">
+                    <div class="dashboard-card-heading">
+                        <div>
+                            <span class="dashboard-section-kicker">FAVOURITES</span>
+                            <h3>Saved Properties</h3>
+                            <p class="dashboard-muted">Homes you saved while browsing. They stay private to your renter account.</p>
                         </div>
-                        <div id="renterSavedContainer"><p class="dashboard-empty">No saved properties yet.</p></div>
+                        <span class="dashboard-mini-badge" id="renterSavedSectionCount">0 saved</span>
                     </div>
+                    <div id="renterSavedContainer"><p class="dashboard-empty">No saved properties yet.</p></div>
                 </div>
 
                 <div class="dashboard-card renter-current-rental-card">
@@ -8615,11 +8627,16 @@ async function updateVisitStatus(visitId, newStatus) {
                 container.innerHTML = "<p>Unable to load saved homes right now.</p>";
                 const savedEl = document.getElementById("renterSavedCount");
                 if (savedEl) savedEl.textContent = "—";
+                const savedSectionCountEl = document.getElementById("renterSavedSectionCount");
+                if (savedSectionCountEl) savedSectionCountEl.textContent = "Unavailable";
                 return;
             }
 
             const savedCountEl = document.getElementById("renterSavedCount");
-            if (savedCountEl) savedCountEl.textContent = String(savedRows?.length || 0);
+            const savedSectionCountEl = document.getElementById("renterSavedSectionCount");
+            const savedTotal = savedRows?.length || 0;
+            if (savedCountEl) savedCountEl.textContent = String(savedTotal);
+            if (savedSectionCountEl) savedSectionCountEl.textContent = savedTotal + " saved";
 
             if (!savedRows?.length) {
                 container.innerHTML = "<p>No saved properties yet.</p>";
@@ -8660,7 +8677,17 @@ async function updateVisitStatus(visitId, newStatus) {
             });
         }
 
-        function updateStayTypeFields() {
+        function bindRenterSavedPropertiesShortcut() {
+    const btn=document.getElementById("renterSavedPropertiesBtn");
+    const section=document.getElementById("renterSavedPropertiesSection");
+    if(!btn||!section||btn.dataset.gdSavedBound==="1") return;
+    btn.dataset.gdSavedBound="1";
+    btn.addEventListener("click",function(){section.scrollIntoView({behavior:"smooth",block:"start"});});
+}
+bindRenterSavedPropertiesShortcut();
+new MutationObserver(bindRenterSavedPropertiesShortcut).observe(document.body,{childList:true,subtree:true});
+
+function updateStayTypeFields() {
             const type = document.getElementById("propertyListingType")?.value || "home";
             const form = document.getElementById("addPropertyForm");
             const bhk = document.getElementById("propertyBhk");
