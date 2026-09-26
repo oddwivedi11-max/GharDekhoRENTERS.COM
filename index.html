@@ -3405,6 +3405,38 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 .gd-admin-actions button{min-height:42px!important;border-radius:11px!important}
 @media(max-width:760px){.gd-admin-actions{display:grid;grid-template-columns:1fr 1fr}.gd-admin-actions button{width:100%}}
 </style>
+<style id="ghardekho-auth-gateway-v1">
+#loginSection{width:100%;padding:0!important}
+.gd-auth-gateway{min-height:calc(100vh - 72px);padding:42px 24px 70px;background:radial-gradient(circle at 15% 5%,rgba(21,160,148,.16),transparent 28%),radial-gradient(circle at 90% 25%,rgba(239,154,75,.10),transparent 24%),#f5f8f6}
+.gd-auth-gateway-inner{width:min(1180px,100%);margin:auto}
+.gd-auth-gateway-head{text-align:center;max-width:820px;margin:0 auto 34px}
+.gd-auth-gateway-head h2{margin:9px 0 10px;font-size:clamp(2.6rem,6vw,5rem);line-height:.98;letter-spacing:-.06em;color:#102a28}
+.gd-auth-gateway-head h2 em{font-style:normal;color:#0b766d}
+.gd-auth-gateway-head p{max-width:690px;margin:auto;color:#667873;font-size:1.04rem;line-height:1.65}
+.gd-auth-gateway-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px}
+.gd-auth-info-card{position:relative;padding:30px;border-radius:28px;border:1px solid #dce8e4;background:#fff;box-shadow:0 24px 60px rgba(16,42,40,.10);overflow:hidden}
+.gd-auth-info-card:before{content:"";position:absolute;inset:0 0 auto;height:5px;background:#0b766d}
+.gd-auth-info-owner:before{background:#ef9a4b}
+.gd-auth-info-icon{width:52px;height:52px;display:grid;place-items:center;border-radius:16px;background:#e5f5f0;color:#0b766d;font-size:25px;font-weight:900;margin-bottom:20px}
+.gd-auth-info-owner .gd-auth-info-icon{background:#fff0e4;color:#c66b29}
+.gd-auth-info-kicker{font-size:10px;font-weight:1000;letter-spacing:.18em;color:#0b766d}
+.gd-auth-info-owner .gd-auth-info-kicker{color:#c66b29}
+.gd-auth-info-card h3{margin:9px 0 8px;color:#102a28;font-size:clamp(1.5rem,3vw,2.05rem);letter-spacing:-.04em}
+.gd-auth-info-card p{margin:0 0 18px;color:#667873;line-height:1.55}
+.gd-auth-info-card ul{list-style:none;padding:0;margin:0 0 24px;display:grid;gap:10px}
+.gd-auth-info-card li{color:#344b46;font-size:.94rem;font-weight:650}
+.gd-auth-info-card li:before{content:"✓";display:inline-grid;place-items:center;width:22px;height:22px;margin-right:9px;border-radius:50%;background:#e9f6f2;color:#0b766d;font-weight:900}
+.gd-auth-info-owner li:before{background:#fff0e4;color:#c66b29}
+.gd-auth-continue{width:100%;min-height:54px;border:0;border-radius:15px;color:#fff;font-weight:900;font-size:.98rem;display:flex;align-items:center;justify-content:center;gap:10px;cursor:pointer;transition:.2s;box-shadow:0 12px 25px rgba(11,118,109,.18)}
+.gd-auth-continue-renter{background:#0b766d}.gd-auth-continue-owner{background:#102a28}
+.gd-auth-continue:hover{transform:translateY(-2px);filter:brightness(1.05)}
+.gd-auth-gateway-features{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:18px}
+.gd-auth-gateway-features div{padding:19px;border:1px solid #dce8e4;border-radius:18px;background:rgba(255,255,255,.72)}
+.gd-auth-gateway-features b{display:block;color:#0b766d;font-size:10px;letter-spacing:.12em}.gd-auth-gateway-features span{display:block;margin-top:7px;font-size:12px;font-weight:1000;color:#102a28}.gd-auth-gateway-features small{display:block;margin-top:5px;color:#74837f;line-height:1.4}
+.gd-auth-gateway-back{display:block;margin:22px auto 0;border:0;background:transparent;color:#536762;font-weight:800;cursor:pointer}
+@media(max-width:760px){.gd-auth-gateway{padding:28px 14px 45px}.gd-auth-gateway-grid{grid-template-columns:1fr}.gd-auth-gateway-features{grid-template-columns:1fr 1fr}.gd-auth-info-card{padding:24px}}
+@media(max-width:480px){.gd-auth-gateway-head h2{font-size:2.65rem}.gd-auth-gateway-features{grid-template-columns:1fr}}
+</style>
 </head>
 
 <body>
@@ -3571,7 +3603,53 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
         </section>
         <!-- EMAIL + PASSWORD AUTH -->
         <section id="loginSection" style="display:none;">
-<div class="gd-v4-auth-shell">
+<div id="gdAuthGateway" class="gd-auth-gateway">
+  <div class="gd-auth-gateway-inner">
+    <div class="gd-auth-gateway-head">
+      <span class="gd-v4-form-kicker">WELCOME TO GHAR DEKHO</span>
+      <h2>Rent smarter. <em>Live better.</em></h2>
+      <p>Everything you need to find, shortlist and visit a rental home — or manage your own property — in one place.</p>
+    </div>
+    <div class="gd-auth-gateway-grid">
+      <article class="gd-auth-info-card gd-auth-info-renter">
+        <div class="gd-auth-info-icon">⌂</div>
+        <span class="gd-auth-info-kicker">FOR RENTERS</span>
+        <h3>Find a place that feels like yours.</h3>
+        <p>Discover homes, PGs and hostels around your preferred location and budget.</p>
+        <ul>
+          <li>Search by location, BHK, budget & furnishing</li>
+          <li>Find nearby properties with live location</li>
+          <li>Save your favourite homes</li>
+          <li>Request and manage property visits</li>
+          <li>Edit your renter profile anytime</li>
+        </ul>
+        <button type="button" onclick="openLoginAs('renter')" class="gd-auth-continue gd-auth-continue-renter">Continue as Renter <span>→</span></button>
+      </article>
+      <article class="gd-auth-info-card gd-auth-info-owner">
+        <div class="gd-auth-info-icon">⌂</div>
+        <span class="gd-auth-info-kicker">FOR OWNERS</span>
+        <h3>Turn your property into a better listing.</h3>
+        <p>List, edit and manage your rental property while keeping renter visits organised.</p>
+        <ul>
+          <li>Add homes, PGs and hostels</li>
+          <li>Edit rent, address, amenities & listing details</li>
+          <li>Manage visit requests from renters</li>
+          <li>See current renters and occupancy</li>
+          <li>Edit your owner profile anytime</li>
+        </ul>
+        <button type="button" onclick="openLoginAs('owner')" class="gd-auth-continue gd-auth-continue-owner">Continue as Owner <span>→</span></button>
+      </article>
+    </div>
+    <div class="gd-auth-gateway-features">
+      <div><b>01</b><span>DISCOVER</span><small>Search rental properties your way.</small></div>
+      <div><b>02</b><span>SHORTLIST</span><small>Save the places worth considering.</small></div>
+      <div><b>03</b><span>VISIT</span><small>Move from shortlist to a visit request.</small></div>
+      <div><b>04</b><span>MANAGE</span><small>Owners get a dedicated property workspace.</small></div>
+    </div>
+    <button type="button" class="gd-auth-gateway-back" onclick="closeLoginPage()">← Back to homepage</button>
+  </div>
+</div>
+<div class="gd-v4-auth-shell" id="gdAuthFormShell" style="display:none;">
   <div class="gd-v4-auth-visual">
     <div class="gd-v4-visual-top"><span class="gd-v4-logo">GD</span><span>GHARDEKHO</span><span class="gd-v4-live-dot">● LIVE</span></div>
     <div class="gd-v4-visual-copy">
@@ -4049,9 +4127,31 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
             }
         }
 
-        function openLoginSection(){const e=document.getElementById("loginSection");if(!e)return;window.__gdAuthRequested=true;document.body.classList.add("gd-auth-page");e.style.display="grid";history.pushState({gdAuth:true},"","#login");requestAnimationFrame(()=>e.scrollIntoView({behavior:"smooth",block:"start"}));}
-        function openLoginAs(role){const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");openLoginSection();if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";if(benefit)benefit.textContent=role==="owner"?"Manage your listings with ease":"Find homes that fit your needs";if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";}
-        function openAdminLogin(){openLoginSection();const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),signup=document.getElementById("signupBtn"),google=document.getElementById("googleLoginBtn"),roleSwitch=document.querySelector(".role-switch"),adminBtn=document.getElementById("adminLoginModeBtn");if(title)title.textContent="Admin Login";if(intro)intro.textContent="Secure administrator access. Email and password only.";if(brand)brand.textContent="Restricted Ghar Dekho administration workspace.";if(hint)hint.textContent="Only the authorized admin account can enter the Admin Control Center.";if(signup)signup.style.display="none";if(google)google.style.display="none";if(roleSwitch)roleSwitch.style.display="none";if(adminBtn)adminBtn.style.display="none";}
+        function openLoginSection(){
+    const e=document.getElementById("loginSection");if(!e)return;
+    window.__gdAuthRequested=true;
+    document.body.classList.add("gd-auth-page");
+    e.style.display="block";
+    const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
+    if(gateway)gateway.style.display="block";
+    if(form)form.style.display="none";
+    history.pushState({gdAuth:true},"","#login");
+    requestAnimationFrame(()=>e.scrollIntoView({behavior:"smooth",block:"start"}));
+}
+function openLoginAs(role){
+    const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");
+    const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
+    openLoginSection();
+    if(gateway)gateway.style.display="none";
+    if(form)form.style.display="grid";
+    if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";
+    if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";
+    if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";
+    if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";
+    if(benefit)benefit.textContent=role==="owner"?"Manage your listings with ease":"Find homes that fit your needs";
+    if(hint)hint.textContent=role==="owner"?"Owner selected. Your saved account role is checked after login.":"Renter selected. Your saved account role is checked after login.";
+}
+function openAdminLogin(){openLoginSection();const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),signup=document.getElementById("signupBtn"),google=document.getElementById("googleLoginBtn"),roleSwitch=document.querySelector(".role-switch"),adminBtn=document.getElementById("adminLoginModeBtn");if(title)title.textContent="Admin Login";if(intro)intro.textContent="Secure administrator access. Email and password only.";if(brand)brand.textContent="Restricted Ghar Dekho administration workspace.";if(hint)hint.textContent="Only the authorized admin account can enter the Admin Control Center.";if(signup)signup.style.display="none";if(google)google.style.display="none";if(roleSwitch)roleSwitch.style.display="none";if(adminBtn)adminBtn.style.display="none";}
         function openOwnerArea() {
             if (!currentUser) {
                 openLoginSection();
@@ -6734,6 +6834,9 @@ async function refreshSaveButtons(propertyId) {
         function closeLoginPage(){
     document.body.classList.remove("gd-auth-page");
     const e=document.getElementById("loginSection");if(e)e.style.display="none";
+    const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
+    if(gateway)gateway.style.display="block";
+    if(form)form.style.display="none";
     history.pushState({},"",window.location.pathname+window.location.search);
     const l=document.getElementById("loggedOutLanding");if(l)l.style.display="none";
     const h=document.getElementById("homeSection");if(h){h.style.display="block";h.scrollIntoView({behavior:"smooth",block:"start"});}}
