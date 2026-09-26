@@ -1597,6 +1597,36 @@ footer {
 .dashboard-secondary-action { background:#e8f3f1; color:#174a47; }
 .dashboard-primary-action:hover,
 .dashboard-secondary-action:hover { transform:translateY(-1px); }
+.saved-properties-section-shell{overflow:hidden}
+.saved-property-card{display:grid;grid-template-columns:minmax(220px,34%) 1fr;min-height:220px;border:1px solid #dce9e5;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#ffffff 0%,#fbfdfc 100%);box-shadow:0 8px 24px rgba(23,74,71,.07);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
+.saved-property-card:hover{transform:translateY(-2px);border-color:#b9d7d1;box-shadow:0 14px 32px rgba(23,74,71,.11)}
+.saved-property-image-wrap{position:relative;min-height:220px;overflow:hidden;background:#edf4f1}
+.saved-property-image{width:100%;height:100%;min-height:220px;display:block;object-fit:cover;transition:transform .3s ease}
+.saved-property-card:hover .saved-property-image{transform:scale(1.025)}
+.saved-property-status{position:absolute;left:13px;top:13px;padding:6px 10px;border-radius:999px;background:rgba(255,255,255,.94);font-size:11px;font-weight:900;backdrop-filter:blur(8px)}
+.saved-property-status.available{color:#19734b}
+.saved-property-status.occupied{color:#b43b3b}
+.saved-property-heart{position:absolute;right:13px;top:13px;width:36px;height:36px;display:grid;place-items:center;border-radius:50%;background:#fff;color:#e04d4d;font-size:18px;box-shadow:0 5px 16px rgba(0,0,0,.10)}
+.saved-property-body{padding:20px 21px;display:flex;flex-direction:column;min-width:0}
+.saved-property-topline{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:7px}
+.saved-property-type{color:#1f5f5b;background:#e8f3f1;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:900}
+.saved-property-date{color:#87938f;font-size:11px}
+.saved-property-body h4{margin:0 0 7px;color:#172320;font-size:21px;line-height:1.15}
+.saved-property-location{margin:0;color:#5f6f6a;font-size:13px;line-height:1.5}
+.saved-property-tags{display:flex;flex-wrap:wrap;gap:7px;margin:14px 0}
+.saved-property-tags span{padding:6px 9px;border:1px solid #e1ebe8;border-radius:999px;background:#f7faf9;color:#52625d;font-size:11px;font-weight:750}
+.saved-property-footer{margin-top:auto;padding-top:14px;border-top:1px solid #edf2f0;display:flex;align-items:center;justify-content:space-between;gap:14px}
+.saved-property-rent{color:#176b63;font-size:21px;white-space:nowrap}
+.saved-property-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:8px}
+.saved-details-btn,.saved-unsave-btn{min-height:42px;padding:0 13px;border-radius:10px;font-weight:850;cursor:pointer}
+.saved-details-btn{border:0;background:#1f5f5b;color:#fff}
+.saved-details-btn:hover{background:#174a47}
+.saved-unsave-btn{border:1px solid #f0caca;background:#fff5f5;color:#c44747}
+.saved-unsave-btn:hover{background:#ffeaea}
+.saved-empty-state{min-height:190px;border:1.5px dashed #cbded9;border-radius:16px;background:linear-gradient(135deg,#f9fcfb,#f3f9f7);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:28px 20px}
+.saved-empty-icon{width:58px;height:58px;display:grid;place-items:center;margin-bottom:10px;border-radius:18px;background:#e5f3ef;color:#1f5f5b;font-size:30px;font-weight:900}
+.saved-empty-state strong{color:#20312e;font-size:17px}
+.saved-empty-state p{max-width:520px;margin:6px 0 0;color:#697874;font-size:13px;line-height:1.55}
 .owner-quick-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
 .owner-saved-properties-card{width:100%;margin:0 0 18px;border:1px solid #eadfd4;background:linear-gradient(180deg,#fff 0%,#fffaf5 100%);box-shadow:0 10px 30px rgba(80,55,30,.07)}
 .owner-saved-properties-card .dashboard-card-heading h3{font-size:21px}
@@ -8640,33 +8670,48 @@ async function updateVisitStatus(visitId, newStatus) {
         
         async function loadSavedProperties() {
             if (!currentUser || (activeRole !== "renter" && activeRole !== "owner")) return;
+
             const isOwnerSavedView = activeRole === "owner";
             const container = document.getElementById(isOwnerSavedView ? "ownerSavedContainer" : "renterSavedContainer");
             if (!container) return;
+
             const { data: savedRows, error } = await supabaseClient
                 .from("saved_properties")
-                .select("property_id,created_at")
+                .select("id,property_id,created_at")
                 .eq("user_id", currentUser.id)
                 .order("created_at", { ascending: false });
 
+            const countEl = document.getElementById(
+                isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedCount"
+            );
+            const sectionCountEl = document.getElementById(
+                isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedSectionCount"
+            );
+
             if (error) {
                 console.error("Saved properties error:", error);
-                container.innerHTML = "<p>Unable to load saved homes right now.</p>";
-                const savedEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedCount");
-                if (savedEl) savedEl.textContent = "—";
-                const savedSectionCountEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedSectionCount");
-                if (savedSectionCountEl) savedSectionCountEl.textContent = "Unavailable";
+                container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">♡</div><strong>Couldn’t load saved properties</strong><p>Please refresh and try again.</p></div>';
+                if (countEl) countEl.textContent = "—";
+                if (sectionCountEl) sectionCountEl.textContent = "Unavailable";
                 return;
             }
 
             const savedTotal = savedRows?.length || 0;
-            const savedCountEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedCount");
-            const savedSectionCountEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedSectionCount");
-            if (savedCountEl) savedCountEl.textContent = String(savedTotal);
-            if (savedSectionCountEl) savedSectionCountEl.textContent = savedTotal + " saved";
+            if (isOwnerSavedView) {
+                if (sectionCountEl) sectionCountEl.textContent = savedTotal + " saved";
+            } else {
+                if (countEl) countEl.textContent = String(savedTotal);
+                if (sectionCountEl) sectionCountEl.textContent = savedTotal + " saved";
+            }
 
-            if (!savedRows?.length) {
-                container.innerHTML = "<p>No saved properties yet.</p>";
+            if (!savedTotal) {
+                container.innerHTML = `
+                    <div class="saved-empty-state">
+                        <div class="saved-empty-icon">♡</div>
+                        <strong>No saved properties yet</strong>
+                        <p>Explore homes and tap <b>♡ Save</b> on any property you like. Your favourites will appear here.</p>
+                    </div>
+                `;
                 return;
             }
 
@@ -8676,31 +8721,107 @@ async function updateVisitStatus(visitId, newStatus) {
 
             const { data: properties, error: propertyError } = await supabaseClient
                 .from("properties")
-                .select("id,title,location,rent,status")
+                .select("id,title,location,address,bhk,rent,furnishing,image_url,status,listing_type,room_type")
                 .in("id", propertyIds);
 
             if (propertyError) {
                 console.error("Saved property details error:", propertyError);
-                container.innerHTML = "<p>Unable to load saved home details right now.</p>";
+                container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">!</div><strong>Unable to load property details</strong><p>Please refresh and try again.</p></div>';
                 return;
             }
 
-            const propertyMap = new Map((properties || []).map(p => [p.id, p]));
+            const propertyMap = new Map((properties || []).map(p => [String(p.id), p]));
 
             container.innerHTML = savedRows.map(row => {
-                const property = propertyMap.get(row.property_id) || {};
+                const property = propertyMap.get(String(row.property_id)) || {};
+                const image = property.image_url || getDefaultPropertyImage();
+                const stayType = property.listing_type === "pg"
+                    ? "🛏️ PG"
+                    : property.listing_type === "hostel"
+                        ? "🏫 Hostel"
+                        : "🏠 Home";
+                const configuration = property.listing_type === "home" || !property.listing_type
+                    ? ((property.bhk ? property.bhk + " BHK" : "BHK not specified"))
+                    : (property.room_type || "Shared stay");
+
                 return `
-                    <div class="owner-property-row">
-                        <strong>${escapeHtml(property.title || "Property")}</strong><br>
-                        📍 ${escapeHtml(property.location || "Location not available")}<br>
-                        💰 ${formatRent(property.rent)}
-                        <br><button type="button" class="saved-view-btn" data-id="${escapeHtml(row.property_id)}">View</button>
-                    </div>
+                    <article class="saved-property-card" data-saved-property-id="${escapeHtml(row.property_id)}">
+                        <div class="saved-property-image-wrap">
+                            <img
+                                class="saved-property-image"
+                                src="${escapeHtml(image)}"
+                                alt="${escapeHtml(property.title || "Saved property")}"
+                                loading="lazy"
+                                onerror="this.src='${getDefaultPropertyImage()}'"
+                            >
+                            <span class="saved-property-status ${property.status === "occupied" ? "occupied" : "available"}">
+                                ${property.status === "occupied" ? "● Occupied" : "✓ Available"}
+                            </span>
+                            <span class="saved-property-heart">♥</span>
+                        </div>
+
+                        <div class="saved-property-body">
+                            <div class="saved-property-topline">
+                                <span class="saved-property-type">${stayType}</span>
+                                <span class="saved-property-date">Saved recently</span>
+                            </div>
+                            <h4>${escapeHtml(property.title || "Property")}</h4>
+                            <p class="saved-property-location">📍 ${escapeHtml(property.location || property.address || "Location not available")}</p>
+
+                            <div class="saved-property-tags">
+                                <span>⌂ ${escapeHtml(configuration)}</span>
+                                <span>🛋️ ${escapeHtml(property.furnishing || "Not specified")}</span>
+                            </div>
+
+                            <div class="saved-property-footer">
+                                <strong class="saved-property-rent">${formatRent(property.rent)}</strong>
+                                <div class="saved-property-actions">
+                                    <button type="button" class="saved-details-btn" data-id="${escapeHtml(row.property_id)}">View Details →</button>
+                                    <button type="button" class="saved-unsave-btn" data-id="${escapeHtml(row.property_id)}">♡ Unsave</button>
+                                </div>
+                            </div>
+                        </div>
+                    </article>
                 `;
             }).join("");
 
-            container.querySelectorAll(".saved-view-btn").forEach(btn => {
-                btn.addEventListener("click", () => openPropertyDetails(btn.dataset.id));
+            container.querySelectorAll(".saved-details-btn").forEach(btn => {
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const propertyId = this.getAttribute("data-id");
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Opening…";
+                    try {
+                        await openPropertyDetails(propertyId);
+                    } catch (error) {
+                        console.error("Saved property details error:", error);
+                        showMessage("backendMessage", "Could not open this property. Please try again.", "error");
+                    } finally {
+                        this.disabled = false;
+                        this.textContent = "View Details →";
+                    }
+                });
+            });
+
+            container.querySelectorAll(".saved-unsave-btn").forEach(btn => {
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const propertyId = this.getAttribute("data-id");
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Removing…";
+                    try {
+                        await saveProperty(propertyId);
+                    } catch (error) {
+                        console.error("Saved property remove error:", error);
+                        showMessage("backendMessage", "Could not remove this property right now.", "error");
+                        this.disabled = false;
+                        this.textContent = "♡ Unsave";
+                    }
+                });
             });
         }
 
