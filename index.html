@@ -8440,17 +8440,17 @@ async function loadOwnerCurrentRenters(properties) {
         if (effective === "occupied") occupiedCount++;
         if (effective === "available" || effective === "partially_occupied") availableCount++;
 
-        const rowEl = document.querySelector('.owner-property-row[data-property-id="'+CSS.escape(String(property.id))+'"]');
-        if (rowEl) {
-            const statusEl = rowEl.querySelector(".owner-live-status");
-            if (statusEl) {
-                statusEl.innerHTML = effective === "occupied"
-                    ? '<span class="status-chip occupied">● Occupied</span>'
+        const propertyCard = document.querySelector('.owner-property-premium-card[data-property-id="'+CSS.escape(String(property.id))+'"]');
+        if (propertyCard) {
+            const occupancyEl = propertyCard.querySelector(".owner-occupancy-inline");
+            if (occupancyEl) {
+                occupancyEl.innerHTML = effective === "occupied"
+                    ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● Occupied</button><span class="gd-live-occupancy-label">Currently occupied</span>'
                     : effective === "partially_occupied"
-                        ? '<span class="status-chip soon">● Partially occupied</span>'
+                        ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● Partially occupied</button><span class="gd-live-occupancy-label">Some beds are occupied</span>'
                         : effective === "available"
-                            ? '<span class="status-chip available">✓ Available</span>'
-                            : '<span class="status-chip pending">Pending verification</span>';
+                            ? '<button type="button" class="gd-live-occupancy-btn vacant" disabled>● Vacant</button><span class="gd-live-occupancy-label">Available for a renter</span>'
+                            : '<button type="button" class="gd-live-occupancy-btn pending" disabled>● Pending</button><span class="gd-live-occupancy-label">Verification pending</span>';
             }
         }
     });
@@ -8501,7 +8501,22 @@ async function loadOwnerCurrentRenters(properties) {
     container.querySelectorAll(".gd-current-renter-card").forEach(btn => btn.addEventListener("click", () => openCurrentRenterDetails(btn.dataset.occupancyId)));
 }
 
-function formatRentalDuration(start) {
+<style id="gd-live-occupancy-style">
+.gd-live-occupancy-btn{
+    border:0;
+    border-radius:999px;
+    padding:8px 14px;
+    font-weight:800;
+    font-size:12px;
+    letter-spacing:.1px;
+    cursor:default;
+}
+.gd-live-occupancy-btn.occupied{background:#dcfce7;color:#166534;border:1px solid #86efac}
+.gd-live-occupancy-btn.vacant{background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5}
+.gd-live-occupancy-btn.pending{background:#fef3c7;color:#92400e;border:1px solid #fcd34d}
+.gd-live-occupancy-inline{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin-top:10px;padding:9px 11px;border-radius:12px;background:rgba(255,255,255,.72);border:1px solid rgba(15,23,42,.08)}
+.gd-live-occupancy-label{font-size:12px;font-weight:700;color:#475569}
+</style>\nfunction formatRentalDuration(start) {
     const now = new Date();
     let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
     if (now.getDate() < start.getDate()) months--;
