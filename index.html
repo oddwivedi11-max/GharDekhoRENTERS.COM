@@ -12283,7 +12283,59 @@ html,body{max-width:100%;overflow-x:hidden!important}
     box-sizing:border-box!important;
   }
 }
-</style><style id="ghardekho-mobile-property-modal-stack-v16">
+</style><script id="ghardekho-mobile-property-submit-v18-js">
+(function(){
+  function bind(){
+    const form=document.getElementById("addPropertyForm");
+    const submit=document.getElementById("addPropertyBtn");
+    const verify=document.getElementById("verifyLocationBtn");
+    if(!form||!submit||!verify) return;
+
+    if(submit.dataset.gdDirectSubmitV18!=="1"){
+      submit.dataset.gdDirectSubmitV18="1";
+      submit.type="button";
+      submit.disabled=false;
+      submit.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const status=document.getElementById("mobilePropertySubmitStatus");
+        if(status){
+          status.textContent="Preparing property submission...";
+          status.className="mobile-property-submit-status";
+        }
+        if(typeof window.addProperty==="function"){
+          Promise.resolve(window.addProperty(e)).catch(function(err){
+            console.error("Mobile property submit:",err);
+            if(status){
+              status.textContent=err?.message||"Property could not be submitted. Please try again.";
+              status.className="mobile-property-submit-status error";
+            }
+          });
+        }
+      },true);
+    }
+
+    if(verify.dataset.gdDirectVerifyV18!=="1"){
+      verify.dataset.gdDirectVerifyV18="1";
+      verify.type="button";
+      verify.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(typeof window.verifyPropertyLocation==="function"){
+          Promise.resolve(window.verifyPropertyLocation()).catch(function(err){
+            console.error("Mobile location verification:",err);
+          });
+        }
+      },true);
+    }
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind);
+  else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script><style id="ghardekho-mobile-property-modal-stack-v16">
 @media(max-width:680px){
   /* The modal lives inside #ownerDashboard. Raise that stacking context
      above the page overlay, then keep the modal itself above its contents. */
