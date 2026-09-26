@@ -8239,6 +8239,12 @@ async function refreshSaveButtons(propertyId) {
                 submitButton.textContent = "Submitting...";
             }
 
+            // Keep owner verification UI updates safe during property submission.
+            // These elements may not be present on every owner/mobile view.
+            const verificationBadge = document.getElementById("ownerVerificationBadge");
+            const verificationText = document.getElementById("ownerVerificationText");
+            const verificationTitle = document.getElementById("ownerVerificationTitle");
+
             if (!verifiedPropertyLocation) {
                 const locationVerified = await verifyPropertyLocation();
                 if (!locationVerified || !verifiedPropertyLocation) {
