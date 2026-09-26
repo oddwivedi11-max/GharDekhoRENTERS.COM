@@ -3371,6 +3371,11 @@ body{background:#f3f5f1!important}
   #renterDashboard,#ownerDashboard{font-size:14px!important}
   #renterDashboard .dashboard-card-heading h3,#ownerDashboard .dashboard-card-heading h3{font-size:20px!important}
 }
+</style><style id="ghardekho-login-role-safe-v1">
+/* Selected login role must always be obvious and readable. */
+.gd-v4-role-switch label{cursor:pointer!important}
+.gd-v4-role-switch label:has(input:checked) b{color:#0b5f56!important}
+.gd-v4-role-switch label:has(input:checked) small{color:#52706a!important}
 </style></style>
 <style id="ghardekho-owner-flow-v7">
 /* Owner flow V7: inventory drill-down + add-property modal + media uploader */
@@ -4834,8 +4839,8 @@ function clearAuthFormFields(){
 
 function openLoginSection(){
     const e=document.getElementById("loginSection");if(!e)return false;
-    // Preserve the role that opened the login screen. This is critical for
-    // dual-role accounts using the same email for Renter and Owner access.
+    // Preserve the role that opened the login screen. The submit handler also
+    // re-reads the selected radio so stale sessionStorage can never override it.
     const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
     pendingLoginRole = requestedRole;
     sessionStorage.setItem("gd_pending_login_role", requestedRole);
@@ -5509,6 +5514,12 @@ async function loginUser() {
 
     const email = document.getElementById("userEmail").value.trim().toLowerCase();
     const password = document.getElementById("userPassword").value;
+    // Always honor the role explicitly selected on the login form.
+    // This prevents a previous Owner selection in sessionStorage from
+    // sending a dual-role account to the Owner dashboard when Renter is selected.
+    const selectedLoginRole = document.querySelector('input[name="accountRole"]:checked')?.value === "owner" ? "owner" : "renter";
+    pendingLoginRole = selectedLoginRole;
+    sessionStorage.setItem("gd_pending_login_role", pendingLoginRole);
     const authMessage = document.getElementById("authMessage");
     const signupButton = document.getElementById("signupBtn");
     const loginButton = document.getElementById("loginSubmitBtn");
