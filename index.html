@@ -3171,6 +3171,12 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 .gd-preview-meta{display:grid;gap:3px;min-width:0}.gd-preview-meta strong{font-size:12px;color:#176b63}.gd-preview-meta span{font-size:10px;color:#526762;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gd-preview-meta small{font-size:9px;color:#8a9894}
 @media(max-width:680px){.gd-stay-fields{grid-template-columns:1fr}.gd-stay-details-head{align-items:flex-start}.gd-upload-preview{align-items:flex-start}}
 </style>
+<style id="ghardekho-clean-add-property-v10">
+/* Keep owner-facing property form focused: no implementation/storage copy or helper paragraphs. */
+#addPropertyForm .form-help,
+#addPropertyForm .small-text{display:none!important}
+.gd-owner-modal-sub{display:none!important}
+</style>
 </head>
 
 <body>
@@ -3595,7 +3601,6 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
                                     <div class="gd-preview-meta"><strong>Photo selected</strong><span id="propertyImageFileName"></span><small>Ready to upload securely with this property.</small></div>
                                 </div>
                                 <div class="gd-image-url-row"><span>OR</span><input type="url" id="propertyImage" placeholder="Paste an HTTPS image URL" inputmode="url" autocomplete="url"></div>
-                                <p class="form-help">Gallery uploads are stored securely in Supabase Storage.</p>
                             </div>
                             <div class="gd-stay-details-shell" id="gdStayDetailsShell" data-stay-type="home">
                                 <div class="gd-stay-details-head">
@@ -3626,7 +3631,6 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
                                 </div>
                             </div>
                         </div>
-                        <p id="stayTypeHelp" class="form-help">For PG/Hostel, add room type, gender preference and bed availability so renters can search accurately.</p>
                         <button type="button" id="verifyLocationBtn">📍 Verify Property Location</button>
                         <p id="verificationMessage" class="small-text"></p>
                         <textarea id="propertyDescription" placeholder="Property description (optional)" rows="5" maxlength="3000"></textarea>
@@ -7541,7 +7545,6 @@ async function updateVisitStatus(visitId, newStatus) {
         const close=document.createElement('button');
         close.type='button'; close.className='gd-owner-modal-close'; close.setAttribute('aria-label','Close add property'); close.textContent='×';
         wrap.appendChild(close);
-        const sub=document.createElement('p'); sub.className='gd-owner-modal-sub'; sub.textContent='Add the essentials first. You can refine the listing details before publishing.'; wrap.appendChild(sub);
         close.addEventListener('click',closePropertyModal);
       }
       function openPropertyModal(){
