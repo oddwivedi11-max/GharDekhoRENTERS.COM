@@ -10646,9 +10646,9 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 #locationInput.gd-location-open{border-radius:10px 10px 0 0!important}\n.gd-home-v6-search,.gd-search-v6,.gd-search-v6 .gd-v6-location{overflow:visible!important}\n#gdLocationSuggestions{max-height:320px!important;overflow-y:auto!important;overflow-x:hidden!important;overscroll-behavior:contain!important;touch-action:pan-y!important;pointer-events:auto!important;-webkit-overflow-scrolling:touch!important}
 @media(max-width:680px){#gdLocationSuggestions{left:10px;right:10px}}
 </style>
-<script id="ghardekho-location-autocomplete-v2">
+<script id="ghardekho-location-autocomplete-v3">
 (function(){
-  const API='https://nominatim.openstreetmap.org/search';
+  const API='https://photon.komoot.io/api/';
   let timer=null,controller=null,lastQuery='',suppressNextInputSearch=false;
   const input=()=>document.getElementById('locationInput');
   const box=()=>document.getElementById('gdLocationSuggestions');
@@ -10656,44 +10656,45 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   function hide(){const b=box(),i=input();if(b){b.style.display='none';b.innerHTML=''}if(i)i.classList.remove('gd-location-open')}
   function msg(t,c){const b=ensure();if(!b)return;b.innerHTML='<div class="'+c+'">'+t+'</div>';b.style.display='block';const i=input();if(i)i.classList.add('gd-location-open')}
   function esc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
-  function cityName(p){const a=p.address||{};return a.city||a.town||a.municipality||a.village||a.city_district||p.name||''}
-  function areaName(p){const a=p.address||{};return a.neighbourhood||a.suburb||a.quarter||a.residential||a.city_district||''}
-  function districtName(p){const a=p.address||{};return a.state_district||a.county||''}
-  function stateName(p){const a=p.address||{};return a.state||a.state_district||''}
+  function props(p){return p&&p.properties?p.properties:{}}
+  function nameOf(p){const x=props(p);return x.name||''}
+  function cityOf(p){const x=props(p);return x.city||x.town||x.municipality||x.village||x.county||''}
+  function areaOf(p){const x=props(p);return x.locality||x.district||x.suburb||x.neighbourhood||x.name||''}
+  function districtOf(p){const x=props(p);return x.district||x.county||x.city_district||''}
+  function stateOf(p){const x=props(p);return x.state||''}
+  function countryOf(p){const x=props(p);return x.country||''}
+  function countryCodeOf(p){const x=props(p);return String(x.countrycode||x.country_code||'').toLowerCase()}
+  function coords(p){const g=p&&p.geometry&&p.geometry.coordinates;return Array.isArray(g)&&g.length>=2?{lng:g[0],lat:g[1]}:null}
   function score(p,q){
-    const n=(p.display_name||'').toLowerCase(),x=q.toLowerCase();
-    let s=n.startsWith(x)?100:0;
-    const city=cityName(p).toLowerCase();
-    const area=areaName(p).toLowerCase();
-    if(city.startsWith(x))s+=40;if(area.startsWith(x))s+=30;
+    const x=q.toLowerCase(),n=nameOf(p).toLowerCase(),city=cityOf(p).toLowerCase(),area=areaOf(p).toLowerCase(),display=String(props(p).name||'').toLowerCase();
+    let s=0;
+    if(n===x)s+=160;if(n.startsWith(x))s+=100;if(city===x)s+=80;if(city.startsWith(x))s+=50;if(area.startsWith(x))s+=35;if(display.includes(x))s+=10;
     return s;
   }
-  function render(data,q){
+  function render(features,q){
     const b=ensure(),i=input();if(!b||!i)return;
     const seen=new Set(),list=[];
-    data.sort((x,y)=>score(y,q)-score(x,q)).forEach(p=>{
-      const a=p.address||{},city=cityName(p),area=areaName(p);
-      const key=[city,area,districtName(p),stateName(p)].join('|').toLowerCase();
-      if(!city||seen.has(key))return;seen.add(key);list.push(p);
-    });
+    features.filter(p=>countryCodeOf(p)==='in'||countryOf(p).toLowerCase()==='india')
+      .sort((a,z)=>score(z,q)-score(a,q)).forEach(p=>{
+        const x=props(p),city=cityOf(p),name=nameOf(p),area=areaOf(p),district=districtOf(p),state=stateOf(p);
+        const main=(area&&city&&area.toLowerCase()!==city.toLowerCase()?area+', ':'')+(city||name);
+        if(!main.trim())return;
+        const key=[main,district,state].join('|').toLowerCase();
+        if(seen.has(key))return;seen.add(key);list.push(p);
+      });
     b.innerHTML='';
-    if(!list.length){msg('No matching Indian location found. Try city, area or district.','gd-location-error');return}
-    list.slice(0,20).forEach(p=>{
-      const a=p.address||{},city=cityName(p),area=areaName(p),district=districtName(p),state=stateName(p);
-      const main=area&&area.toLowerCase()!==city.toLowerCase()?area+', '+city:city;
-      const sub=[district,state,'India'].filter(Boolean).filter((v,j,x)=>x.indexOf(v)===j).join(' · ');
+    if(!list.length){msg('No matching Indian location found. Try city, district or area.','gd-location-error');return}
+    list.slice(0,30).forEach(p=>{
+      const x=props(p),city=cityOf(p),name=nameOf(p),area=areaOf(p),district=districtOf(p),state=stateOf(p),co=coords(p);
+      const main=(area&&city&&area.toLowerCase()!==city.toLowerCase()?area+', ':'')+(city||name);
+      const sub=[district,state,'India'].filter(Boolean).filter((v,j,a)=>a.indexOf(v)===j).join(' · ');
       const btn=document.createElement('button');btn.type='button';btn.className='gd-location-suggestion';btn.setAttribute('role','option');
       btn.innerHTML='<span class="gd-location-suggestion-icon">📍</span><span class="gd-location-suggestion-text"><span class="gd-location-suggestion-main">'+esc(main)+'</span><span class="gd-location-suggestion-sub">'+esc(sub||'India')+'</span></span>';
       btn.addEventListener('mousedown',e=>e.preventDefault());
       btn.addEventListener('click',function(){
-        i.value=[area&&area.toLowerCase()!==city.toLowerCase()?area:'',city,state||'India'].filter(Boolean).join(', ');
-        i.dataset.gdSelectedCity=city;
-        i.dataset.gdSelectedArea=area;
-        i.dataset.gdSelectedDistrict=district;
-        i.dataset.gdSelectedState=state;
-        i.dataset.gdSelectedLat=String(p.lat||'');
-        i.dataset.gdSelectedLng=String(p.lon||'');
-        i.dataset.gdSelectedDisplayName=p.display_name||main;
+        i.value=[area&&area.toLowerCase()!==city.toLowerCase()?area:'',city||name,state||'India'].filter(Boolean).join(', ');
+        i.dataset.gdSelectedCity=city||name;i.dataset.gdSelectedArea=area;i.dataset.gdSelectedDistrict=district;i.dataset.gdSelectedState=state;
+        i.dataset.gdSelectedLat=co?String(co.lat):'';i.dataset.gdSelectedLng=co?String(co.lng):'';i.dataset.gdSelectedDisplayName=x.name||main;
         hide();suppressNextInputSearch=true;i.dispatchEvent(new Event('change',{bubbles:true}));i.dispatchEvent(new Event('input',{bubbles:true}));
       });
       b.appendChild(btn);
@@ -10703,12 +10704,15 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   async function search(q){
     q=q.trim();if(!q){hide();return}if(q===lastQuery)return;lastQuery=q;
     if(controller)controller.abort();controller=new AbortController();
-    msg('Searching Indian cities and localities…','gd-location-loading');
-    const params=new URLSearchParams({q:q+', India',format:'jsonv2',addressdetails:'1',limit:'30',countrycodes:'in','accept-language':'en'});
-    try{const r=await fetch(API+'?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});if(!r.ok)throw Error();render(await r.json(),q)}
-    catch(e){if(e.name!=='AbortError')msg('Location suggestions are temporarily unavailable. You can still type the location manually.','gd-location-error')}
+    msg('Searching Indian cities, districts and localities…','gd-location-loading');
+    const params=new URLSearchParams({q:q,limit:'40',lang:'en'});
+    try{
+      const r=await fetch(API+'?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});
+      if(!r.ok)throw Error('location request failed');
+      const data=await r.json();render(Array.isArray(data&&data.features)?data.features:[],q);
+    }catch(e){if(e.name!=='AbortError')msg('Location suggestions are temporarily unavailable. Please try again.','gd-location-error')}
   }
-  function bind(){const i=input();if(!i||i.dataset.gdLocationAutocompleteV2==='1')return;i.dataset.gdLocationAutocompleteV2='1';i.setAttribute('autocomplete','off');i.setAttribute('spellcheck','false');i.setAttribute('aria-autocomplete','list');
+  function bind(){const i=input();if(!i||i.dataset.gdLocationAutocompleteV3==='1')return;i.dataset.gdLocationAutocompleteV3='1';i.setAttribute('autocomplete','off');i.setAttribute('spellcheck','false');i.setAttribute('aria-autocomplete','list');
     i.addEventListener('input',function(){if(suppressNextInputSearch){suppressNextInputSearch=false;return}clearTimeout(timer);const q=i.value.trim();if(!q){hide();lastQuery='';return}timer=setTimeout(()=>search(q),250)});
     i.addEventListener('focus',function(){if(i.value.trim())search(i.value)});
     i.addEventListener('keydown',function(e){if(e.key==='Escape')hide();if(e.key==='Enter'){const f=box()&&box().querySelector('.gd-location-suggestion');if(f&&box().style.display!=='none'){e.preventDefault();f.click()}}});
