@@ -8957,7 +8957,17 @@ async function updateVisitStatus(visitId, newStatus) {
             const initialLanding = document.getElementById("loggedOutLanding");
             const initialLogin = document.getElementById("loginSection");
             const initialPasswordReset = document.getElementById("passwordResetSection");
-            window.__gdAuthRequested = false;
+
+            // Preserve a direct #login route. Previously startup always reset
+            // __gdAuthRequested and removed #login, so the landing page came
+            // back even when the browser was already on the login URL.
+            const initialLoginHash = window.location.hash.toLowerCase() === "#login";
+            window.__gdAuthRequested = initialLoginHash;
+            if (initialLoginHash) {
+                const savedRole = sessionStorage.getItem("gd_pending_login_role");
+                pendingLoginRole = savedRole === "owner" ? "owner" : "renter";
+                activeRole = pendingLoginRole;
+            }
 
             const initialSearchParams = new URLSearchParams(window.location.search);
 
@@ -8985,9 +8995,9 @@ async function updateVisitStatus(visitId, newStatus) {
                 window.__gdPasswordRecovery === true ||
                 recentPasswordResetRequest;
 
-            if (!recoveryInUrl && window.location.hash.toLowerCase() === "#login") {
-                history.replaceState({}, "", window.location.pathname + window.location.search);
-            }
+            // Never strip #login during startup. It is a real client-side
+            // route used by the landing-page login buttons.
+            // Password-recovery URLs are handled separately below.
 
             // Never initialize the ordinary home page over a password-recovery session.
             if (initialLanding) initialLanding.style.display = "none";
@@ -9045,6 +9055,12 @@ async function updateVisitStatus(visitId, newStatus) {
                     handledRecovery ? Promise.resolve() : loadCurrentUser(),
                     loadProperties()
                 ]);
+            }
+
+            // If the page was opened directly at /#login while logged out,
+            // render the actual login form instead of falling back to landing.
+            if (!handledRecovery && initialLoginHash && !currentUser) {
+                openLoginAs(pendingLoginRole);
             }
 
             const propertyId = new URLSearchParams(window.location.search).get("property");
