@@ -3153,6 +3153,24 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 .gd-renter-modal-note{margin-top:12px;padding:14px;border-radius:14px;background:#f0f8f5;border:1px solid #d6ebe5}.gd-renter-modal-note strong{display:block;margin-top:3px;font-size:13px;color:#176b63}.gd-renter-modal-note p{margin:5px 0 0;font-size:10px;line-height:1.55;color:#71817b}.gd-renter-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.gd-renter-modal-actions button{min-height:42px!important;border-radius:11px!important}.gd-release-renter-btn{background:#fff1f1!important;color:#a93636!important;border:1px solid #efc6c6!important}
 @media(max-width:600px){.gd-current-renter-dialog{padding:19px;border-radius:21px}.gd-renter-detail-grid{grid-template-columns:1fr}.gd-renter-detail-wide{grid-column:auto}.gd-renter-modal-actions{flex-direction:column}.gd-renter-modal-actions button{width:100%}}
 </style>
+<style id="ghardekho-add-property-v9">
+/* Stay-specific owner fields */
+#addPropertyForm #propertyBhk[hidden]{display:none!important}
+.gd-stay-details-shell{grid-column:1/-1;border:1px solid #d9e8e3;border-radius:18px;padding:15px;background:linear-gradient(145deg,#f9fdfc,#f1f8f5);box-shadow:inset 0 1px 0 #fff}
+.gd-stay-details-shell[hidden]{display:none!important}
+.gd-stay-details-head{display:flex;align-items:center;justify-content:space-between;gap:15px;margin-bottom:12px}
+.gd-stay-details-head>div{display:grid;gap:3px}.gd-stay-details-head strong{font-size:14px;color:#183a35}.gd-stay-details-head small{font-size:10px;color:#788984}
+.gd-stay-type-badge{padding:6px 9px;border-radius:999px;background:#dff1ec;color:#176b63;font-size:8px;font-weight:1000;letter-spacing:.1em}
+.gd-stay-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.gd-stay-fields select,.gd-stay-fields input{min-width:0}
+.gd-owner-image-v7{grid-column:1/-1;border-radius:20px!important;border:1px solid #d9e8e3!important;background:linear-gradient(145deg,#fbfefd,#f3f9f7)!important;padding:17px!important}
+.gd-upload-preview{display:flex!important;align-items:center;gap:14px!important;padding:10px!important;margin-top:10px!important;border:1px solid #d7e5e1!important;border-radius:16px!important;background:#fff!important;min-height:78px}
+.gd-upload-preview[hidden]{display:none!important}
+.gd-preview-media{width:92px;height:64px;flex:0 0 92px;border-radius:11px;overflow:hidden;background:#eaf3f0;display:grid;place-items:center}
+.gd-preview-media img{width:100%;height:100%;object-fit:cover;display:block}
+.gd-preview-meta{display:grid;gap:3px;min-width:0}.gd-preview-meta strong{font-size:12px;color:#176b63}.gd-preview-meta span{font-size:10px;color:#526762;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.gd-preview-meta small{font-size:9px;color:#8a9894}
+@media(max-width:680px){.gd-stay-fields{grid-template-columns:1fr}.gd-stay-details-head{align-items:flex-start}.gd-upload-preview{align-items:flex-start}}
+</style>
 </head>
 
 <body>
@@ -3573,32 +3591,40 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
                                     <button type="button" id="removePropertyImageBtn" class="secondary-action-btn" hidden>Remove</button>
                                 </div>
                                 <div id="propertyImagePreview" class="property-image-preview gd-upload-preview" hidden>
-                                    <img id="propertyImagePreviewImg" src="" alt="Selected property preview">
-                                    <span id="propertyImageFileName"></span>
+                                    <div class="gd-preview-media"><img id="propertyImagePreviewImg" alt="Selected property photo"></div>
+                                    <div class="gd-preview-meta"><strong>Photo selected</strong><span id="propertyImageFileName"></span><small>Ready to upload securely with this property.</small></div>
                                 </div>
                                 <div class="gd-image-url-row"><span>OR</span><input type="url" id="propertyImage" placeholder="Paste an HTTPS image URL" inputmode="url" autocomplete="url"></div>
                                 <p class="form-help">Gallery uploads are stored securely in Supabase Storage.</p>
                             </div>
-                            <select id="propertyRoomType">
-                                <option value="">Room type (PG/Hostel)</option>
-                                <option value="Single">Single</option>
-                                <option value="Double Sharing">Double Sharing</option>
-                                <option value="Triple Sharing">Triple Sharing</option>
-                                <option value="Dormitory">Dormitory</option>
-                            </select>
-                            <select id="propertyGender">
-                                <option value="">Gender (PG/Hostel)</option>
-                                <option value="Any">Any</option>
-                                <option value="Male">Male</option>
-                                <option value="Female">Female</option>
-                            </select>
-                            <input type="number" id="propertyTotalBeds" placeholder="Total beds (PG/Hostel)" min="1" max="1000">
-                            <input type="number" id="propertyAvailableBeds" placeholder="Available beds" min="0" max="1000">
-                            <select id="propertyFoodIncluded">
-                                <option value="">Food / meals</option>
-                                <option value="yes">Meals included</option>
-                                <option value="no">No meals</option>
-                            </select>
+                            <div class="gd-stay-details-shell" id="gdStayDetailsShell" data-stay-type="home">
+                                <div class="gd-stay-details-head">
+                                    <div>
+                                        <span class="gd-upload-kicker">STAY DETAILS</span>
+                                        <strong id="gdStayDetailsTitle">Stay-specific details</strong>
+                                        <small id="gdStayDetailsSubtitle">Select PG or Hostel above to add stay details.</small>
+                                    </div>
+                                    <span class="gd-stay-type-badge" id="gdStayTypeBadge">HOME</span>
+                                </div>
+                                <div class="gd-stay-fields">
+                                    <select id="propertyRoomType">
+                                        <option value="">Room type</option>
+                                    </select>
+                                    <select id="propertyGender">
+                                        <option value="">Gender preference</option>
+                                        <option value="Any">Any</option>
+                                        <option value="Male">Male</option>
+                                        <option value="Female">Female</option>
+                                    </select>
+                                    <input type="number" id="propertyTotalBeds" placeholder="Total beds" min="1" max="1000">
+                                    <input type="number" id="propertyAvailableBeds" placeholder="Available beds" min="0" max="1000">
+                                    <select id="propertyFoodIncluded">
+                                        <option value="">Food / meals</option>
+                                        <option value="yes">Meals included</option>
+                                        <option value="no">No meals</option>
+                                    </select>
+                                </div>
+                            </div>
                         </div>
                         <p id="stayTypeHelp" class="form-help">For PG/Hostel, add room type, gender preference and bed availability so renters can search accurately.</p>
                         <button type="button" id="verifyLocationBtn">📍 Verify Property Location</button>
@@ -5972,7 +5998,11 @@ async function refreshSaveButtons(propertyId) {
             if (removeBtn) removeBtn.hidden = false;
             const reader = new FileReader();
             reader.onload = () => {
-                if (previewImg) previewImg.src = String(reader.result || "");
+                if (previewImg) {
+                    previewImg.onload = () => { previewImg.hidden = false; };
+                    previewImg.onerror = () => { previewImg.hidden = true; };
+                    previewImg.src = String(reader.result || "");
+                }
                 if (preview) preview.hidden = false;
             };
             reader.readAsDataURL(file);
@@ -6850,19 +6880,80 @@ async function updateVisitStatus(visitId, newStatus) {
 
         function updateStayTypeFields() {
             const type = document.getElementById("propertyListingType")?.value || "home";
+            const form = document.getElementById("addPropertyForm");
             const bhk = document.getElementById("propertyBhk");
+            const shell = document.getElementById("gdStayDetailsShell");
+            const title = document.getElementById("gdStayDetailsTitle");
+            const subtitle = document.getElementById("gdStayDetailsSubtitle");
+            const badge = document.getElementById("gdStayTypeBadge");
             const roomType = document.getElementById("propertyRoomType");
             const gender = document.getElementById("propertyGender");
             const totalBeds = document.getElementById("propertyTotalBeds");
             const availableBeds = document.getElementById("propertyAvailableBeds");
             const food = document.getElementById("propertyFoodIncluded");
             const help = document.getElementById("stayTypeHelp");
-            const isSharedStay = type !== "home";
-            if (bhk) { bhk.required = type === "home"; bhk.disabled = isSharedStay; if (isSharedStay) bhk.value = ""; }
-            [roomType, gender, totalBeds, availableBeds, food].forEach(el => { if (el) el.disabled = !isSharedStay; });
+            const isSharedStay = type === "pg" || type === "hostel";
+
+            if (form) form.dataset.listingType = type;
+            if (shell) {
+                shell.dataset.stayType = type;
+                shell.hidden = !isSharedStay;
+            }
+
+            if (bhk) {
+                bhk.required = type === "home";
+                bhk.disabled = isSharedStay;
+                bhk.hidden = isSharedStay;
+                if (isSharedStay) bhk.value = "";
+            }
+
+            const roomOptions = type === "pg"
+                ? [
+                    ["", "Select PG room type"],
+                    ["Single", "Single"],
+                    ["Double Sharing", "Double Sharing"],
+                    ["Triple Sharing", "Triple Sharing"],
+                    ["Dormitory", "Dormitory"]
+                ]
+                : [
+                    ["", "Select Hostel room type"],
+                    ["Single", "Single Room"],
+                    ["Double Sharing", "Double Sharing"],
+                    ["Triple Sharing", "Triple Sharing"],
+                    ["Dormitory", "Dormitory / Shared"]
+                ];
+
+            if (roomType) {
+                const previous = roomType.value;
+                roomType.innerHTML = roomOptions.map(([value,label]) => '<option value="' + value + '">' + label + '</option>').join("");
+                if (roomOptions.some(([value]) => value === previous)) roomType.value = previous;
+                roomType.required = isSharedStay;
+                roomType.disabled = !isSharedStay;
+            }
+
+            [gender,totalBeds,availableBeds,food].forEach(el => {
+                if (!el) return;
+                el.disabled = !isSharedStay;
+                el.required = false;
+            });
+
+            if (title) title.textContent = type === "pg" ? "PG details" : "Hostel details";
+            if (subtitle) subtitle.textContent = type === "pg"
+                ? "Only PG-specific information is shown for this listing."
+                : "Only Hostel-specific information is shown for this listing.";
+            if (badge) badge.textContent = type === "pg" ? "PG" : "HOSTEL";
             if (help) help.textContent = isSharedStay
-                ? "PG/Hostel listings can be searched near the renter by location. Add room type, gender preference, meals and bed availability."
-                : "Home listings use BHK, furnishing and monthly rent.";
+                ? (type === "pg"
+                    ? "PG owners: add only the room, gender, meals and bed details relevant to this PG."
+                    : "Hostel owners: add only the room, gender, meals and bed details relevant to this hostel.")
+                : "Home listings use BHK, furnishing and monthly rent. PG/Hostel details stay hidden.";
+
+            if (isSharedStay) {
+                const label = document.getElementById("propertyTotalBeds");
+                const avail = document.getElementById("propertyAvailableBeds");
+                if (label) label.placeholder = type === "pg" ? "Total PG beds" : "Total hostel beds";
+                if (avail) avail.placeholder = type === "pg" ? "Available PG beds" : "Available hostel beds";
+            }
         }
 
         function protectAuthInputsFromBrowserAutofill() {
