@@ -4758,7 +4758,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                                 <option value="hostel">🏫 Hostel</option>
                             </select>
                             <input type="text" id="propertyTitle" placeholder="Property / PG / Hostel name" maxlength="120" autocomplete="off" required>
-                            <input type="text" id="propertyLocation" placeholder="Full property address" maxlength="300" autocomplete="street-address" required>
+                            <input type="text" id="propertyLocation" placeholder="Search exact property area / address" maxlength="300" autocomplete="off" spellcheck="false" required>
                             <input type="number" id="propertyBhk" placeholder="BHK (home only)" min="1" max="20">
                             <input type="number" id="propertyRent" placeholder="Monthly rent / starting price" min="1" max="10000000" step="1" required>
                             <select id="propertyFurnishing">
@@ -7956,137 +7956,96 @@ async function refreshSaveButtons(propertyId) {
            ========================================================= */
 
         async function verifyPropertyLocation() {
-            const addressInput =
-                document.getElementById("propertyLocation");
-
-            const message =
-                document.getElementById("verificationMessage");
-
-            const button =
-                document.getElementById("verifyLocationBtn");
-
-            const address =
-                addressInput.value.trim();
+            const addressInput = document.getElementById("propertyLocation");
+            const message = document.getElementById("verificationMessage");
+            const button = document.getElementById("verifyLocationBtn");
+            const address = addressInput?.value.trim() || "";
 
             if (!address) {
-                showMessage(
-                    "verificationMessage",
-                    "Enter the full property address first.",
-                    "error"
-                );
-
+                showMessage("verificationMessage","Enter the property address first.","error");
                 return false;
             }
 
             button.disabled = true;
             button.textContent = "Verifying location...";
             verifiedPropertyLocation = null;
-
             message.textContent = "";
 
             try {
-                // Use Photon for browser-friendly address geocoding.
-                // This avoids the client-side Nominatim request that can be
-                // rejected because of Nominatim's request policy/headers.
-                const url =
-                    "https://photon.komoot.io/api/" +
-                    "?limit=1" +
-                    "&q=" +
-                    encodeURIComponent(address);
+                // Prefer the exact coordinates selected from the property-address
+                // suggestions. This prevents a generic address query from jumping
+                // to a similarly named place in another city/state.
+                const selectedLat = Number(addressInput.dataset.gdSelectedLat);
+                const selectedLng = Number(addressInput.dataset.gdSelectedLng);
+                const selectedAddress = String(addressInput.dataset.gdSelectedDisplayName || "").trim();
 
-                const response =
-                    await fetch(url, {
-                        headers: {
-                            "Accept": "application/json"
-                        }
-                    });
+                if (Number.isFinite(selectedLat) && Number.isFinite(selectedLng)) {
+                    verifiedPropertyLocation = {
+                        address: address,
+                        latitude: selectedLat,
+                        longitude: selectedLng
+                    };
 
-                if (!response.ok) {
-                    throw new Error(
-                        "Location verification service failed (" +
-                        response.status + ")."
-                    );
-                }
-
-                const data = await response.json();
-                const feature =
-                    Array.isArray(data.features) && data.features.length
-                        ? data.features[0]
-                        : null;
-
-                if (!feature || !feature.geometry ||
-                    !Array.isArray(feature.geometry.coordinates)) {
                     showMessage(
                         "verificationMessage",
-                        "❌ Location could not be found. Please enter a more complete address.",
-                        "error"
+                        "✓ Exact location selected. Property can now be submitted.",
+                        "success"
                     );
-
-                    return false;
+                    button.textContent = "✓ Location Verified";
+                    return true;
                 }
 
-                const longitude = Number(feature.geometry.coordinates[0]);
-                const latitude = Number(feature.geometry.coordinates[1]);
+                // No suggestion was selected. Try one exact geocoding request,
+                // but reject a result that is clearly unrelated to the typed text.
+                const url = "https://photon.komoot.io/api/?limit=5&lang=en&q=" + encodeURIComponent(address);
+                const response = await fetch(url,{headers:{Accept:"application/json"}});
+                if (!response.ok) throw new Error("Location service failed (" + response.status + ").");
 
-                if (
-                    !Number.isFinite(latitude) ||
-                    !Number.isFinite(longitude)
-                ) {
-                    throw new Error(
-                        "The location service returned invalid coordinates."
-                    );
+                const data = await response.json();
+                const features = Array.isArray(data.features) ? data.features : [];
+                const typed = address.toLowerCase();
+
+                const ranked = features
+                    .filter(f => f && f.geometry && Array.isArray(f.geometry.coordinates))
+                    .map(f => {
+                        const p=f.properties||{};
+                        const text=[p.name,p.street,p.locality,p.district,p.city,p.state,p.country].filter(Boolean).join(", ").toLowerCase();
+                        let score=0;
+                        typed.split(/[,\s]+/).filter(x=>x.length>2).forEach(token=>{if(text.includes(token))score+=1;});
+                        if(String(p.countrycode||"").toLowerCase()==="in")score+=2;
+                        return {f,score};
+                    })
+                    .sort((a,b)=>b.score-a.score);
+
+                const best=ranked[0]?.f;
+                if(!best || ranked[0].score < 2) {
+                    throw new Error("Please select the exact property location from the suggestions.");
                 }
 
-                const props = feature.properties || {};
-                const addressParts = [
-                    props.name,
-                    props.street,
-                    props.district,
-                    props.city,
-                    props.state,
-                    props.country
-                ].filter(Boolean);
+                const [longitude,latitude]=best.geometry.coordinates.map(Number);
+                if(!Number.isFinite(latitude)||!Number.isFinite(longitude)) throw new Error("Invalid coordinates.");
 
-                const verifiedAddress =
-                    addressParts.length ? addressParts.join(", ") : address;
+                const p=best.properties||{};
+                const verifiedAddress=[p.name,p.street,p.locality,p.district,p.city,p.state,p.country]
+                    .filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(", ");
 
-                verifiedPropertyLocation = {
-                    address: verifiedAddress,
-                    latitude: latitude,
-                    longitude: longitude
+                verifiedPropertyLocation={
+                    address:verifiedAddress || address,
+                    latitude,
+                    longitude
                 };
 
-                addressInput.value =
-                    verifiedAddress;
-
-                showMessage(
-                    "verificationMessage",
-                    "✓ Location confirmed. Your property can now be listed.",
-                    "success"
-                );
-
-                button.textContent =
-                    "✓ Location Verified";
+                addressInput.value=verifiedAddress || address;
+                showMessage("verificationMessage","✓ Location confirmed. Property can now be submitted.","success");
+                button.textContent="✓ Location Verified";
                 return true;
-
-            } catch (error) {
-                console.error(
-                    "Location verification error:",
-                    error
-                );
-
-                showMessage(
-                    "verificationMessage",
-                    "❌ Unable to verify location right now. Please try again.",
-                    "error"
-                );
+            } catch(error) {
+                console.error("Location verification error:",error);
+                showMessage("verificationMessage","❌ " + (error.message || "Unable to verify this property location.") ,"error");
                 return false;
-
             } finally {
-                button.disabled = false;
-                if (!verifiedPropertyLocation) {
-                    button.textContent = "📍 Verify Property Location";
-                }
+                button.disabled=false;
+                if(!verifiedPropertyLocation) button.textContent="📍 Verify Property Location";
             }
         }
 
@@ -10891,6 +10850,78 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 })();
 </script>
 
+<style id="ghardekho-property-location-autocomplete-v1">
+#propertyLocationWrap{position:relative;grid-column:1/-1}
+#gdPropertyLocationSuggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:40000;display:none;max-height:300px;overflow:auto;background:#fff;border:1px solid #dbe7e3;border-radius:12px;box-shadow:0 18px 40px rgba(7,31,28,.18);padding:5px}
+.gd-property-location-option{display:block;width:100%;padding:11px 12px;border:0;border-radius:9px;background:#fff;text-align:left;color:#173a36;cursor:pointer}
+.gd-property-location-option:hover,.gd-property-location-option:focus{background:#eef7f4;outline:none}
+.gd-property-location-option strong{display:block;font-size:13px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-property-location-option span{display:block;margin-top:3px;color:#72817c;font-size:11px;line-height:1.3}
+@media(max-width:680px){#gdPropertyLocationSuggestions{max-height:260px}.gd-property-location-option{min-height:56px}}
+</style>
+<script id="ghardekho-property-location-autocomplete-v1">
+(function(){
+  const API="https://photon.komoot.io/api/";
+  let timer=null,controller=null,last="";
+  function input(){return document.getElementById("propertyLocation")}
+  function box(){
+    const i=input(); if(!i)return null;
+    let b=document.getElementById("gdPropertyLocationSuggestions");
+    if(b)return b;
+    const p=i.parentElement; if(!p)return null;
+    if(getComputedStyle(p).position==="static")p.style.position="relative";
+    b=document.createElement("div");b.id="gdPropertyLocationSuggestions";p.appendChild(b);return b;
+  }
+  function hide(){const b=box();if(b){b.style.display="none";b.innerHTML=""}}
+  function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+  function search(q){
+    q=q.trim();if(!q||q===last)return;last=q;
+    if(controller)controller.abort();controller=new AbortController();
+    const b=box();if(!b)return;
+    b.innerHTML='<div style="padding:12px;color:#71817c;font-size:12px">Searching exact Indian locations…</div>';b.style.display="block";
+    fetch(API+"?"+new URLSearchParams({q,limit:"20",lang:"en"}),{signal:controller.signal,headers:{Accept:"application/json"}})
+      .then(r=>{if(!r.ok)throw Error("request failed");return r.json()})
+      .then(data=>{
+        const features=(data.features||[]).filter(f=>String(f.properties?.countrycode||"").toLowerCase()==="in");
+        b.innerHTML="";
+        if(!features.length){b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">No Indian location found. Try area + city + state.</div>';b.style.display="block";return}
+        features.slice(0,12).forEach(f=>{
+          const p=f.properties||{},co=f.geometry?.coordinates||[];
+          const title=[p.name,p.street].filter(Boolean).join(", ") || p.city || p.district || "Location";
+          const sub=[p.locality,p.district,p.city,p.state,"India"].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(" · ");
+          const btn=document.createElement("button");btn.type="button";btn.className="gd-property-location-option";
+          btn.innerHTML="<strong>"+esc(title)+"</strong><span>"+esc(sub)+"</span>";
+          btn.addEventListener("mousedown",e=>e.preventDefault());
+          btn.addEventListener("click",()=>{
+            const [lng,lat]=co;
+            input().value=[title,sub.replace(/ · India$/,"")].filter(Boolean).join(", ");
+            input().dataset.gdSelectedLat=String(lat||"");
+            input().dataset.gdSelectedLng=String(lng||"");
+            input().dataset.gdSelectedDisplayName=title;
+            hide();
+            document.getElementById("verificationMessage").textContent="Location selected. Tap Verify Property Location.";
+          });
+          b.appendChild(btn);
+        });
+        b.style.display="block";
+      })
+      .catch(e=>{if(e.name!=="AbortError"){b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">Location suggestions unavailable. Try again.</div>';b.style.display="block"}});
+  }
+  function bind(){
+    const i=input();if(!i||i.dataset.gdPropertyLocationBound==="1")return;
+    i.dataset.gdPropertyLocationBound="1";i.setAttribute("autocomplete","off");
+    i.addEventListener("input",()=>{
+      delete i.dataset.gdSelectedLat;delete i.dataset.gdSelectedLng;delete i.dataset.gdSelectedDisplayName;
+      clearTimeout(timer);timer=setTimeout(()=>search(i.value),250);
+    });
+    i.addEventListener("focus",()=>{if(i.value.trim())search(i.value)});
+    document.addEventListener("click",e=>{const b=document.getElementById("gdPropertyLocationSuggestions");if(b&&!b.contains(e.target)&&e.target!==i)hide()});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 </body>
 
 </html>
@@ -11219,3 +11250,26 @@ html,body{max-width:100%;overflow-x:hidden!important}
   new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+<style id="ghardekho-mobile-renter-readable-v1">
+@media(max-width:680px){
+  #renterDashboard .dashboard-card{width:100%!important;min-width:0!important;overflow:hidden!important}
+  #renterDashboard .dashboard-card-heading{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:8px!important}
+  #renterDashboard .dashboard-card-heading>div{width:100%!important;min-width:0!important}
+  #renterDashboard .dashboard-card-heading h3,
+  #renterDashboard .dashboard-card-heading p,
+  #renterDashboard .dashboard-muted,
+  #renterDashboard strong,
+  #renterDashboard span,
+  #renterDashboard p{overflow-wrap:anywhere!important;word-break:normal!important}
+  #renterDashboard .renter-profile-grid{grid-template-columns:1fr!important}
+  #renterDashboard .renter-profile-grid>div{min-width:0!important;width:100%!important}
+  #renterDashboard .renter-profile-grid>div>strong{font-size:15px!important}
+  #renterDashboard .dashboard-action-row{grid-template-columns:1fr!important}
+  #renterDashboard .saved-property-card{min-width:0!important}
+  #renterDashboard .saved-property-body{min-width:0!important}
+  #renterDashboard .saved-property-location{overflow-wrap:anywhere!important}
+  #ownerDashboard .owner-form-grid{grid-template-columns:1fr!important}
+  #ownerDashboard .owner-form-grid #propertyLocation{grid-column:1/-1!important}
+}
+#propertyLocationWrap{grid-column:1/-1!important}
+</style>
