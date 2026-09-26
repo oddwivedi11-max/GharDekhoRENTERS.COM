@@ -4496,7 +4496,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <div class="gd-v4-field-grid">
       <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
       <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" name="gd_new_email" placeholder="you@example.com" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
-      <label class="gd-v4-field"><span>Phone</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="9876543210" inputmode="numeric" autocomplete="off" readonly maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
+      <label class="gd-v4-field"><span>Phone</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter 10-digit mobile number" inputmode="numeric" autocomplete="off" readonly maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use the same email and password for both dashboards. Your selected dashboard is remembered for this login.</p></div>
@@ -4534,7 +4534,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
             <h2>Request a Visit</h2>
             <p id="selectedPropertyText"></p>
             <input type="text" id="visitName" placeholder="Your name" required>
-            <span class="gd-phone-wrap gd-visit-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="visitPhone" name="gd_visit_mobile_x7" placeholder="9876543210" inputmode="numeric" autocomplete="off" readonly maxlength="10" required></span>
+            <span class="gd-phone-wrap gd-visit-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="visitPhone" name="gd_visit_mobile_x7" placeholder="Enter 10-digit mobile number" inputmode="numeric" autocomplete="off" readonly maxlength="10" required></span>
             <input type="date" id="visitDate" required>
             <input type="time" id="visitTime" required>
             <button id="bookVisitBtn" type="button">Request Visit</button>
@@ -11163,7 +11163,7 @@ html,body{max-width:100%;overflow-x:hidden!important}
       input.setAttribute("spellcheck","false");
       input.setAttribute("maxlength","10");
       input.setAttribute("pattern","[0-9]{10}");
-      input.setAttribute("placeholder","9876543210");
+      input.setAttribute("placeholder","Enter 10-digit mobile number");
       input.setAttribute("aria-label","Indian mobile number, 10 digits");
 
       // Login/signup and visit forms must always start empty.
