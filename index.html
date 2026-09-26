@@ -1889,12 +1889,12 @@ footer {
 #renterDashboard.active { display:block !important; }
 #ownerDashboard.active { display:block !important; }
 
-body.gd-owner-mode #homeSection,
-body.gd-owner-mode #propertiesSection,
-body.gd-owner-mode #propertyDetails,
-body.gd-owner-mode #visitSection,
-body.gd-owner-mode #homeNavLink,
-body.gd-owner-mode #propertiesNavLink { display:none !important; }
+body.gd-owner-mode:not(.gd-owner-explore-mode) #homeSection,
+body.gd-owner-mode:not(.gd-owner-explore-mode) #propertiesSection,
+body.gd-owner-mode:not(.gd-owner-explore-mode) #propertyDetails,
+body.gd-owner-mode:not(.gd-owner-explore-mode) #visitSection,
+body.gd-owner-mode:not(.gd-owner-explore-mode) #homeNavLink,
+body.gd-owner-mode:not(.gd-owner-explore-mode) #propertiesNavLink { display:none !important; }
 
 body.gd-renter-mode #ownerNavLink { display:none !important; }
 body.gd-renter-mode #ownerDashboard { display:none !important; }
@@ -4272,14 +4272,22 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                     <p id="ownerVerificationText" class="dashboard-muted">Your owner verification status will appear here.</p>
                 </div>
 
-                <div class="owner-dashboard-overview">
+                <div class="owner-dashboard-overview owner-dashboard-quick-grid">
                     <div class="dashboard-card owner-quick-card">
                         <div>
-                            <span class="dashboard-section-kicker">QUICK ACTION</span>
+                            <span class="dashboard-section-kicker">LIST YOUR PROPERTY</span>
                             <h3>Add a Property</h3>
                             <p class="dashboard-muted">List a rental, confirm its location and start receiving visit requests.</p>
                         </div>
                         <button type="button" class="dashboard-primary-action" id="ownerAddPropertyBtn">＋ Add Property</button>
+                    </div>
+                    <div class="dashboard-card owner-quick-card owner-explore-card">
+                        <div>
+                            <span class="dashboard-section-kicker">LOOKING FOR A HOME TOO?</span>
+                            <h3>Explore Near Me</h3>
+                            <p class="dashboard-muted">Use the same search, nearby discovery, save and visit experience as a renter — without leaving your Owner account.</p>
+                        </div>
+                        <button type="button" class="dashboard-primary-action owner-explore-btn" id="ownerExploreNearbyBtn">📍 Explore Near Property by Me</button>
                     </div>
                 </div>
 
@@ -4620,6 +4628,7 @@ function openAdminLogin(){openLoginSection();const gateway=document.getElementBy
 
         let activeRole = "renter";
         let pendingLoginRole = sessionStorage.getItem("gd_pending_login_role") === "owner" ? "owner" : "renter";
+        let ownerExploreMode = false;
         let passwordResetEmail = "";
         let passwordResetVerified = false;
 
@@ -4911,9 +4920,11 @@ function setRoleSpecificUI(role) {
     const isOwner = role === "owner";
     const isRenter = role === "renter";
     const isAdmin = role === "admin";
+    const canExploreHomes = isRenter || (isOwner && ownerExploreMode);
 
     document.body.classList.add("gd-authenticated");
     document.body.classList.toggle("gd-owner-mode", isOwner);
+    document.body.classList.toggle("gd-owner-explore-mode", isOwner && ownerExploreMode);
     document.body.classList.toggle("gd-renter-mode", isRenter);
 
     if (landing) landing.style.display = "none";
@@ -4921,13 +4932,13 @@ function setRoleSpecificUI(role) {
     if (passwordResetSection) passwordResetSection.style.display = "none";
 
     // Renter-only public/search surface.
-    if (homeSection) homeSection.style.display = isRenter ? "block" : "none";
-    if (propertiesSection) propertiesSection.style.display = isRenter ? "block" : "none";
+    if (homeSection) homeSection.style.display = canExploreHomes ? "block" : "none";
+    if (propertiesSection) propertiesSection.style.display = canExploreHomes ? "block" : "none";
     if (propertyDetails) propertyDetails.style.display = isRenter ? propertyDetails.style.display : "none";
     if (visitSection) visitSection.style.display = isRenter ? visitSection.style.display : "none";
 
-    if (homeNavLink) homeNavLink.style.display = isRenter ? "inline-block" : "none";
-    if (propertiesNavLink) propertiesNavLink.style.display = isRenter ? "inline-block" : "none";
+    if (homeNavLink) homeNavLink.style.display = canExploreHomes ? "inline-block" : "none";
+    if (propertiesNavLink) propertiesNavLink.style.display = canExploreHomes ? "inline-block" : "none";
     if (ownerNavLink) ownerNavLink.style.display = isOwner ? "inline-block" : "none";
     if (adminNavLink) adminNavLink.style.display = isAdmin ? "inline-block" : "none";
     if (adminDashboard) {
@@ -4937,7 +4948,22 @@ function setRoleSpecificUI(role) {
     }
 }
 
+async function openOwnerNearbyHomes() {
+    if (!currentUser || !accountHasRole("owner")) { openLoginAs("owner"); return; }
+    ownerExploreMode = true;
+    setRoleSpecificUI("owner");
+    await loadProperties();
+    document.getElementById("homeSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+    showMessage("backendMessage","Owner home-explore mode is on. Search, save homes and request visits with this same account.","success");
+    setTimeout(() => document.getElementById("nearMeBtn")?.click(), 250);
+}
+function exitOwnerExploreMode() {
+    ownerExploreMode = false;
+    setRoleSpecificUI("owner");
+    scrollToSection("dashboardSection");
+}
 function resetRoleSpecificUI() {
+    ownerExploreMode = false;
     const landing = document.getElementById("loggedOutLanding");
     const homeSection = document.getElementById("homeSection");
     const propertiesSection = document.getElementById("propertiesSection");
@@ -6706,13 +6732,8 @@ async function renderActiveDashboard() {
                 return;
             }
 
-            if (activeRole !== "renter") {
-                showMessage(
-                    "backendMessage",
-                    "Only Renter can request visits.",
-                    "error"
-                );
-
+            if (activeRole !== "renter" && activeRole !== "owner") {
+                showMessage("backendMessage","Please choose Renter or Owner mode first.","error");
                 return;
             }
 
@@ -6745,9 +6766,8 @@ async function renderActiveDashboard() {
                 return;
             }
 
-            if (activeRole !== "renter") {
-                status.textContent =
-                    "Only Renter can request visits.";
+            if (activeRole !== "renter" && activeRole !== "owner") {
+                status.textContent = "Please choose Renter or Owner mode first.";
                 return;
             }
 
@@ -6877,8 +6897,8 @@ async function saveProperty(propertyId) {
         openLoginSection();
         return;
     }
-    if (activeRole !== "renter" || !accountHasRole("renter")) {
-        showMessage("backendMessage", "Only renter accounts can save properties.", "error");
+    if ((activeRole !== "renter" && activeRole !== "owner") || !accountHasRole(activeRole)) {
+        showMessage("backendMessage", "Please choose Renter or Owner mode first.", "error");
         return;
     }
     if (!propertyId) {
@@ -6934,7 +6954,7 @@ async function saveProperty(propertyId) {
 }
 
 async function refreshSaveButtons(propertyId) {
-    if (!currentUser || activeRole !== "renter") return;
+    if (!currentUser || (activeRole !== "renter" && activeRole !== "owner")) return;
     const { data, error } = await supabaseClient
         .from("saved_properties")
         .select("id")
@@ -8297,6 +8317,7 @@ async function updateVisitStatus(visitId, newStatus) {
             const renterFindHomeBtn = document.getElementById("renterFindHomeBtn");
             const renterTopPropertiesBtn = document.getElementById("renterTopPropertiesBtn");
             const ownerAddPropertyBtn = document.getElementById("ownerAddPropertyBtn");
+            const ownerExploreNearbyBtn = document.getElementById("ownerExploreNearbyBtn");
             const topLoginBtn = document.getElementById("loginBtn");
             const renterRoleChoice = document.querySelector(".gd-renter-choice");
             const ownerRoleChoice = document.querySelector(".gd-owner-choice");
@@ -8339,6 +8360,7 @@ async function updateVisitStatus(visitId, newStatus) {
             if (removePropertyImageBtn) removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
             if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", () => scrollToSection("homeSection"));
             if (renterTopPropertiesBtn) renterTopPropertiesBtn.addEventListener("click", () => scrollToSection("propertiesSection"));
+            if (ownerExploreNearbyBtn) ownerExploreNearbyBtn.addEventListener("click", openOwnerNearbyHomes);
             if (ownerAddPropertyBtn) ownerAddPropertyBtn.addEventListener("click", () => {
                 const card = document.getElementById("ownerAddPropertyCard");
                 if (card) card.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -8977,6 +8999,13 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
 #ownerProfileEditor .gd-property-editor-card input:focus{outline:3px solid rgba(23,107,99,.11);border-color:#176b63}
 #ownerProfileEditor .gd-property-editor-card input[readonly]{background:#f3f7f5;color:#687773;cursor:not-allowed}
 #ownerProfileEditor .gd-admin-muted{line-height:1.55}
+</style><style id="ghardekho-owner-explore-v1">
+.owner-dashboard-quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.owner-dashboard-quick-grid .owner-quick-card{height:100%;display:flex;align-items:center;justify-content:space-between;gap:18px}
+.owner-explore-card{background:linear-gradient(135deg,#f3fbf8 0%,#fff 55%,#fff7ee 100%)!important;border-color:#cfe5df!important}
+.owner-explore-btn{white-space:nowrap}
+body.gd-owner-explore-mode #ownerDashboard{display:none!important}
+@media(max-width:780px){.owner-dashboard-quick-grid{grid-template-columns:1fr}.owner-dashboard-quick-grid .owner-quick-card{display:grid}.owner-explore-btn{white-space:normal}}
 </style></style>
 <script id="ghardekho-final-ui-repair-v3-js">
 (function(){
