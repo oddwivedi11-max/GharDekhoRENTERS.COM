@@ -4298,16 +4298,19 @@ function resetRoleSpecificUI() {
     document.body.classList.remove("gd-owner-mode", "gd-renter-mode");
     document.body.classList.remove("gd-authenticated");
 
-    if (landing) landing.style.display = "block";
-    if (homeSection) homeSection.style.display = "none";
-    if (propertiesSection) propertiesSection.style.display = "none";
+    // The public landing is the same premium discovery surface used by renters.
+    // Keep the older role-selection landing in the DOM for compatibility, but do
+    // not show it as the primary homepage.
+    if (landing) landing.style.display = "none";
+    if (homeSection) homeSection.style.display = "block";
+    if (propertiesSection) propertiesSection.style.display = "block";
     if (propertyDetails) propertyDetails.style.display = "none";
     if (visitSection) visitSection.style.display = "none";
     if (loginSection) loginSection.style.display = "none";
     if (passwordResetSection) passwordResetSection.style.display = "none";
 
-    if (homeNavLink) homeNavLink.style.display = "none";
-    if (propertiesNavLink) propertiesNavLink.style.display = "none";
+    if (homeNavLink) homeNavLink.style.display = "inline-block";
+    if (propertiesNavLink) propertiesNavLink.style.display = "inline-block";
     if (ownerNavLink) ownerNavLink.style.display = "none";
     if (adminNavLink) adminNavLink.style.display = "none";
     if (adminDashboard) {
@@ -6696,7 +6699,14 @@ async function refreshSaveButtons(propertyId) {
         });
 
 
-        function closeLoginPage(){document.body.classList.remove("gd-auth-page");const e=document.getElementById("loginSection");if(e)e.style.display="none";history.pushState({},"",window.location.pathname+window.location.search);const l=document.getElementById("loggedOutLanding");if(l){l.style.display="block";l.scrollIntoView({behavior:"smooth",block:"start"});}}
+        function closeLoginPage(){
+    document.body.classList.remove("gd-auth-page");
+    const e=document.getElementById("loginSection");if(e)e.style.display="none";
+    history.pushState({},"",window.location.pathname+window.location.search);
+    const l=document.getElementById("loggedOutLanding");if(l)l.style.display="none";
+    const h=document.getElementById("homeSection");if(h){h.style.display="block";h.scrollIntoView({behavior:"smooth",block:"start");}}
+    const p=document.getElementById("propertiesSection");if(p)p.style.display="block";
+}
 
 function openPropertyEditor(id){
     if(isAdminAccount()) return openAdminPropertyEditor(id);
@@ -7813,7 +7823,7 @@ async function updateVisitStatus(visitId, newStatus) {
             }
 
             // Never initialize the ordinary home page over a password-recovery session.
-            if (initialLanding) initialLanding.style.display = recoveryInUrl ? "none" : "block";
+            if (initialLanding) initialLanding.style.display = "none";
             if (initialLogin) initialLogin.style.display = "none";
             if (initialPasswordReset) initialPasswordReset.style.display = "none";
 
