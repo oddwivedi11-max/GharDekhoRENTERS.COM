@@ -9057,10 +9057,44 @@ async function updateVisitStatus(visitId, newStatus) {
                 ]);
             }
 
-            // If the page was opened directly at /#login while logged out,
-            // render the actual login form instead of falling back to landing.
-            if (!handledRecovery && initialLoginHash && !currentUser) {
-                openLoginAs(pendingLoginRole);
+            // Final route guard: after Supabase finishes restoring the session,
+            // enforce the same state one last time. This prevents the logged-out
+            // landing page from repainting over an authenticated renter after a
+            // #login navigation/auth-state race.
+            if (!handledRecovery && initialLoginHash) {
+                if (currentUser) {
+                    const requestedDestination =
+                        sessionStorage.getItem("gd_login_destination") ||
+                        sessionStorage.getItem("gd_pending_login_role") ||
+                        pendingLoginRole ||
+                        "renter";
+                    const destinationRole = requestedDestination === "owner" ? "owner" : "renter";
+
+                    activeRole = destinationRole;
+                    pendingLoginRole = destinationRole;
+                    sessionStorage.setItem("gd_active_role", destinationRole);
+                    sessionStorage.setItem("gd_pending_login_role", destinationRole);
+
+                    setRoleSpecificUI(destinationRole);
+                    const landing = document.getElementById("loggedOutLanding");
+                    const loginSection = document.getElementById("loginSection");
+                    const homeSection = document.getElementById("homeSection");
+                    const propertiesSection = document.getElementById("propertiesSection");
+                    const dashboardSection = document.getElementById("dashboardSection");
+
+                    if (landing) landing.style.display = "none";
+                    if (loginSection) loginSection.style.display = "none";
+                    if (homeSection) homeSection.style.display = "block";
+                    if (propertiesSection) propertiesSection.style.display = "block";
+                    if (dashboardSection) dashboardSection.style.display = "block";
+
+                    await renderActiveDashboard();
+                    if (destinationRole === "renter" && homeSection) {
+                        homeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                    }
+                } else {
+                    openLoginAs(pendingLoginRole);
+                }
             }
 
             const propertyId = new URLSearchParams(window.location.search).get("property");
