@@ -4917,7 +4917,7 @@ function openAdminLogin(){openLoginSection();const gateway=document.getElementBy
            AUTH - EMAIL + PASSWORD
            ========================================================= */
 
-        let activeRole = "renter";
+        let activeRole = sessionStorage.getItem("gd_active_role") === "owner" ? "owner" : "renter";
         let pendingLoginRole = sessionStorage.getItem("gd_pending_login_role") === "owner" ? "owner" : "renter";
         let ownerExploreMode = false;
         let passwordResetEmail = "";
@@ -5148,6 +5148,8 @@ async function saveActiveAccountRole(role) {
 
     currentProfile = data;
     activeRole = normalized === "tenant" ? "renter" : "owner";
+    sessionStorage.setItem("gd_active_role", activeRole);
+    sessionStorage.setItem("gd_pending_login_role", activeRole);
     return true;
 }
 
@@ -5407,7 +5409,12 @@ async function updateAuthUI() {
         return;
     }
 
-    let requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
+    // The login choice is the active dashboard mode. Do NOT fall back to
+    // roles[0] here: dual-role accounts may store Owner first in the array,
+    // which previously forced a Renter login into the Owner dashboard when
+    // the profile update was blocked by RLS/network timing.
+    const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
+
     if (requestedRole === "owner" && !roles.includes("owner")) {
         const ownerEnabled = await saveActiveAccountRole("owner");
         if (ownerEnabled) {
@@ -5416,15 +5423,15 @@ async function updateAuthUI() {
     }
 
     if (roles.includes(requestedRole)) {
-        const saved = await saveActiveAccountRole(requestedRole);
-        if (!saved) {
-            activeRole = roles[0];
-        }
+        activeRole = requestedRole;
     } else {
-        activeRole = roles[0];
+        // Only fall back when the requested role genuinely does not exist.
+        activeRole = roles.includes("renter") ? "renter" : roles[0];
     }
+
     pendingLoginRole = activeRole;
     sessionStorage.setItem("gd_pending_login_role", activeRole);
+    sessionStorage.setItem("gd_active_role", activeRole);
 
     // Apply the role to the whole page, not only the dashboard.
     // This prevents owner accounts from seeing renter search/listing UI,
