@@ -10459,3 +10459,43 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   new MutationObserver(bindDualRoleSwitch).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
+
+<!-- GHARDEKHO OWNER DASHBOARD STATUS COLOR REPAIR V1 -->
+<style id="ghardekho-owner-status-colors-v1">
+/* Owner dashboard: make destructive Delete action unmistakably red. */
+.owner-property-actions .premium-delete-btn,
+.owner-delete-property-btn.premium-delete-btn {
+  background: #dc2626 !important;
+  background-color: #dc2626 !important;
+  color: #ffffff !important;
+  border: 1px solid #dc2626 !important;
+  box-shadow: 0 5px 14px rgba(220, 38, 38, .16) !important;
+}
+
+.owner-property-actions .premium-delete-btn:hover,
+.owner-delete-property-btn.premium-delete-btn:hover {
+  background: #b91c1c !important;
+  background-color: #b91c1c !important;
+  border-color: #b91c1c !important;
+  color: #ffffff !important;
+}
+
+/* Owner dashboard live vacancy: use orange for Vacant, not red/green. */
+.owner-occupancy-inline .gd-live-occupancy-btn.vacant,
+.gd-live-occupancy-btn.vacant {
+  background: #f59e0b !important;
+  background-color: #f59e0b !important;
+  color: #ffffff !important;
+  border: 1px solid #f59e0b !important;
+  box-shadow: 0 5px 14px rgba(245, 158, 11, .18) !important;
+}
+
+.owner-occupancy-inline .gd-live-occupancy-btn.vacant:hover,
+.gd-live-occupancy-btn.vacant:hover {
+  background: #d97706 !important;
+  background-color: #d97706 !important;
+  border-color: #d97706 !important;
+  color: #ffffff !important;
+}
+</style>
