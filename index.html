@@ -3777,6 +3777,29 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
 }
 </style>
 
+
+<style id="ghardekho-aesthetic-house-v1">
+.gd-v4-preview-image{position:relative!important;overflow:hidden!important;height:190px!important;padding:0!important;display:block!important;background:linear-gradient(180deg,#a9d8d0 0%,#dce8dc 48%,#7b9c78 49%,#4e7154 100%)!important;box-shadow:inset 0 -55px 70px rgba(18,45,38,.24)!important}
+.gd-v4-house-art{position:absolute;inset:0;overflow:hidden}
+.gd-v4-house-sky{position:absolute;inset:0;background:radial-gradient(circle at 78% 24%,rgba(255,255,255,.8) 0 8%,transparent 9%),linear-gradient(180deg,rgba(255,255,255,.2),transparent 55%)}
+.gd-v4-house{position:absolute;left:50%;bottom:28px;width:230px;height:116px;transform:translateX(-50%);filter:drop-shadow(0 12px 12px rgba(25,49,39,.2))}
+.gd-v4-house-roof{position:absolute;left:-15px;top:0;width:260px;height:68px;background:linear-gradient(135deg,#6f5143,#3d4038);clip-path:polygon(50% 0,100% 70%,94% 82%,6% 82%,0 70%);border-radius:8px 8px 0 0}
+.gd-v4-house-body{position:absolute;left:22px;right:22px;bottom:0;height:75px;background:linear-gradient(90deg,#f1e5d1,#d9cfbc);border-radius:3px 3px 7px 7px;box-shadow:inset 0 8px 0 rgba(255,255,255,.3)}
+.gd-v4-house-window{position:absolute;top:17px;width:43px;height:34px;background:linear-gradient(135deg,#9bd2d2,#4b8d8b);border:4px solid #f5efe2;box-shadow:inset 0 0 0 1px rgba(20,50,46,.25)}
+.gd-v4-house-window:after{content:"";position:absolute;left:50%;top:0;bottom:0;width:2px;background:rgba(255,255,255,.7);transform:translateX(-50%)}
+.gd-v4-house-window-left{left:17px}.gd-v4-house-window-right{right:17px}
+.gd-v4-house-door{position:absolute;left:50%;bottom:0;width:34px;height:58px;transform:translateX(-50%);background:linear-gradient(90deg,#73594a,#4e4037);border:3px solid #f1e5d1;border-bottom:0;border-radius:6px 6px 0 0}
+.gd-v4-house-door i{position:absolute;right:5px;top:30px;width:4px;height:4px;border-radius:50%;background:#e7c17b}
+.gd-v4-house-tree{position:absolute;bottom:29px;width:42px;height:66px;border-radius:50% 50% 42% 42%;background:radial-gradient(circle at 35% 30%,#91b47e 0 18%,#5c875e 19% 55%,#3f684a 56%);box-shadow:0 5px 0 -1px #5d4a3b}
+.gd-v4-house-tree i{position:absolute;bottom:-20px;left:17px;width:9px;height:28px;background:#5b493b;border-radius:3px}
+.gd-v4-house-tree-left{left:17px}.gd-v4-house-tree-right{right:17px;transform:scale(.82);transform-origin:bottom}
+.gd-v4-house-path{position:absolute;left:50%;bottom:-16px;width:65px;height:58px;transform:translateX(-50%);background:linear-gradient(90deg,transparent,#c6bba8 48%,transparent);clip-path:polygon(38% 0,62% 0,100% 100%,0 100%)}
+.gd-v4-preview-copy{position:absolute;left:17px;right:17px;bottom:12px;z-index:4;padding-top:44px;background:linear-gradient(transparent,rgba(24,46,39,.78) 55%)}
+.gd-v4-preview-copy span{font-size:9px;font-weight:900;letter-spacing:.14em;color:#fff!important}
+.gd-v4-preview-copy strong{display:block;font-size:21px;margin-top:4px;color:#fff!important}
+.gd-v4-preview-copy small{display:block;color:rgba(255,255,255,.9)!important;margin-top:2px}
+@media(max-width:560px){.gd-v4-preview-image{height:170px!important}.gd-v4-house{transform:translateX(-50%) scale(.88);transform-origin:bottom}.gd-v4-house-tree{transform:scale(.88);transform-origin:bottom}.gd-v4-house-tree-right{transform:scale(.72)}}
+</style>
 </head>
 
 <body>
@@ -4000,7 +4023,23 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
       <p>Search verified rental homes, save your favourites and book visits — all from one simple account.</p>
     </div>
     <div class="gd-v4-property-preview">
-      <div class="gd-v4-preview-image"><span>FEATURED HOME</span><strong>Modern 2 BHK</strong><small>Near your preferred location</small></div>
+      <div class="gd-v4-preview-image">
+        <div class="gd-v4-house-art" aria-hidden="true">
+          <div class="gd-v4-house-sky"></div>
+          <div class="gd-v4-house">
+            <div class="gd-v4-house-roof"></div>
+            <div class="gd-v4-house-body">
+              <div class="gd-v4-house-window gd-v4-house-window-left"></div>
+              <div class="gd-v4-house-door"><i></i></div>
+              <div class="gd-v4-house-window gd-v4-house-window-right"></div>
+            </div>
+          </div>
+          <div class="gd-v4-house-tree gd-v4-house-tree-left"><i></i></div>
+          <div class="gd-v4-house-tree gd-v4-house-tree-right"><i></i></div>
+          <div class="gd-v4-house-path"></div>
+        </div>
+        <div class="gd-v4-preview-copy"><span>FEATURED HOME</span><strong>Modern 2 BHK</strong><small>Near your preferred location</small></div>
+      </div>
       <div class="gd-v4-preview-meta"><strong>₹18,000<span>/month</span></strong><b>Available now</b></div>
     </div>
     <div class="gd-v4-stat-row"><div><strong>10K+</strong><small>Homes searched</small></div><div><strong>4.8★</strong><small>Rental experience</small></div><div><strong>24/7</strong><small>Easy access</small></div></div>
