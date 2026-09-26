@@ -3623,7 +3623,7 @@ body.gd-auth-page #loginSection{display:block!important}
     <div id="authStatus" class="auth-status">Not logged in</div>
     <div id="backendMessage" class="backend-message"></div>
     <div class="search-box gd-search-v6">
-      <label class="gd-v6-search-field gd-v6-location"><span>LOCATION</span><input type="text" id="locationInput" name="gd_search_location_x7k2" placeholder="City, area, PG or hostel" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" data-form-type="other" data-lpignore="true" data-1p-ignore="true" readonly></label>
+      <label class="gd-v6-search-field gd-v6-location"><span>LOCATION</span><input type="text" id="locationInput" name="gd_search_location_x7k2" placeholder="City, area, PG or hostel" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
       <label class="gd-v6-search-field"><span>STAY TYPE</span><select id="listingTypeSelect" aria-label="Listing type"><option value="">All stays</option><option value="home">🏠 Homes</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostels</option></select></label>
       <label class="gd-v6-search-field"><span>SIZE</span><select id="bhkSelect"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
       <label class="gd-v6-search-field"><span>BUDGET</span><select id="budgetSelect"><option value="">Any Budget</option><option value="5000">Up to ₹5,000</option><option value="10000">Up to ₹10,000</option><option value="15000">Up to ₹15,000</option><option value="20000">Up to ₹20,000</option><option value="30000">Up to ₹30,000</option></select></label>
@@ -6899,11 +6899,12 @@ async function refreshSaveButtons(propertyId) {
 
         function closeLoginPage(){
     document.body.classList.remove("gd-auth-page");
+    window.__gdAuthRequested=false;
     const e=document.getElementById("loginSection");if(e)e.style.display="none";
     const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
     if(gateway)gateway.style.display="block";
     if(form)form.style.display="none";
-    history.pushState({},"",window.location.pathname+window.location.search);
+    try{history.replaceState({},"",window.location.pathname+window.location.search);}catch(err){}
     const l=document.getElementById("loggedOutLanding");
     const h=document.getElementById("homeSection");
     const p=document.getElementById("propertiesSection");
@@ -6913,10 +6914,9 @@ async function refreshSaveButtons(propertyId) {
         if(p)p.style.display="none";
     }else{
         if(l)l.style.display="none";
-        if(h){h.style.display="block";h.scrollIntoView({behavior:"smooth",block:"start"});}
+        if(h){h.style.display="block";h.scrollIntoView({behavior:"smooth",block:"start");}}
         if(p)p.style.display="block";
     }
-}
 }
 
 function openPropertyEditor(id){
@@ -8537,6 +8537,107 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
 }
 </style>
 
+
+<!-- GHARDEKHO FINAL INTERACTION + CONTRAST REPAIR V2 -->
+<style id="ghardekho-final-interaction-contrast-v2">
+/* Final auth/navigation reliability + readable search input. */
+header,#loginBtn,#logoutBtn{pointer-events:auto!important}
+#loginBtn,#logoutBtn{position:relative!important;z-index:20000!important}
+.gd-auth-back,.gd-auth-gateway-back,
+.gd-auth-continue,.gd-hero-cta,.gd-role-choice,
+#signupBtn,#loginSubmitBtn,#googleLoginBtn,#adminLoginModeBtn,#forgotPasswordBtn{
+  position:relative!important;
+  z-index:20010!important;
+  pointer-events:auto!important;
+}
+#locationInput{
+  color:#173a36!important;
+  -webkit-text-fill-color:#173a36!important;
+  caret-color:#176b63!important;
+  background:#ffffff!important;
+  opacity:1!important;
+  font-weight:700!important;
+}
+#locationInput::placeholder{color:#667873!important;opacity:1!important}
+.gd-search-v6 .gd-v6-search-field>span{color:#176b63!important;font-weight:900!important}
+.gd-search-v6 input,.gd-search-v6 select{color:#173a36!important;-webkit-text-fill-color:#173a36!important}
+#userName,#userEmail,#userPhone,#userPassword{
+  color:#18201f!important;
+  -webkit-text-fill-color:#18201f!important;
+  background:#fbfcfc!important;
+  opacity:1!important;
+}
+#userName::placeholder,#userEmail::placeholder,#userPhone::placeholder,#userPassword::placeholder{
+  color:#71817c!important;opacity:1!important
+}
+body.gd-auth-page header{z-index:20000!important}
+@media(max-width:680px){
+  #locationInput{font-size:16px!important}
+}
+</style>
+<script id="ghardekho-final-interaction-contrast-v2-js">
+(function(){
+  function forceClick(id, fn){
+    const el=document.getElementById(id);
+    if(!el || el.dataset.gdFinalV2Bound==="1") return;
+    el.dataset.gdFinalV2Bound="1";
+    el.addEventListener("click",function(e){
+      e.preventDefault();
+      e.stopImmediatePropagation();
+      try{fn();}catch(err){console.error("GharDekho navigation error",err);}
+    },true);
+  }
+  function bind(){
+    forceClick("loginBtn",function(){
+      if(typeof openLoginSection==="function") openLoginSection();
+      else window.__gdOpenRole ? window.__gdOpenRole("renter") : null;
+    });
+    forceClick("signupBtn",function(){
+      if(typeof signupUser==="function") signupUser();
+    });
+    forceClick("loginSubmitBtn",function(){
+      if(typeof loginUser==="function") loginUser();
+    });
+    forceClick("googleLoginBtn",function(){
+      if(typeof loginWithGoogle==="function") loginWithGoogle();
+    });
+    forceClick("forgotPasswordBtn",function(){
+      if(typeof forgotPassword==="function") forgotPassword();
+    });
+    document.querySelectorAll(".gd-auth-back,.gd-auth-gateway-back").forEach(function(el){
+      if(el.dataset.gdFinalV2Bound==="1") return;
+      el.dataset.gdFinalV2Bound="1";
+      el.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        if(typeof closeLoginPage==="function"){
+          closeLoginPage();
+        }else{
+          document.body.classList.remove("gd-auth-page");
+          const login=document.getElementById("loginSection"),landing=document.getElementById("loggedOutLanding");
+          if(login)login.style.display="none";
+          if(landing)landing.style.display="block";
+        }
+      },true);
+    });
+    document.querySelectorAll(".gd-auth-continue").forEach(function(el){
+      if(el.dataset.gdFinalV2Bound==="1") return;
+      el.dataset.gdFinalV2Bound="1";
+      el.addEventListener("click",function(e){
+        e.preventDefault();
+        e.stopImmediatePropagation();
+        const role=el.classList.contains("gd-auth-continue-owner")?"owner":"renter";
+        if(typeof openLoginAs==="function") openLoginAs(role);
+        else if(window.__gdOpenRole) window.__gdOpenRole(role);
+      },true);
+    });
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);
+  else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 
 <!-- GHARDEKHO FINAL INTERACTION + CONTRAST REPAIR V1 -->
 <style id="ghardekho-final-interaction-contrast-v1">
