@@ -1597,6 +1597,23 @@ footer {
 .dashboard-secondary-action { background:#e8f3f1; color:#174a47; }
 .dashboard-primary-action:hover,
 .dashboard-secondary-action:hover { transform:translateY(-1px); }
+.premium-owner-section{position:relative;overflow:hidden;background:linear-gradient(145deg,#fff 0%,#fbfdfc 58%,#f2faf7 100%)!important;border-color:#d5e5e1!important}
+.premium-owner-section:before{content:"";position:absolute;right:-70px;top:-90px;width:210px;height:210px;border-radius:50%;background:rgba(207,235,226,.32);pointer-events:none}
+.premium-section-heading{position:relative;z-index:1;align-items:center}
+.premium-section-heading>div:first-child{display:flex;align-items:flex-start;gap:12px}
+.premium-section-icon{width:42px;height:42px;flex:0 0 42px;display:grid;place-items:center;border-radius:14px;background:linear-gradient(135deg,#dff3ed,#f7fcfa);color:#176b63;font-size:22px;font-weight:900;box-shadow:0 8px 18px rgba(23,107,99,.10)}
+.premium-section-icon.visit-icon{background:linear-gradient(135deg,#fff0e4,#fffaf6);color:#bd6930}.premium-section-icon.renter-icon{background:linear-gradient(135deg,#e7eefb,#f8fbff);color:#476ca8}
+.premium-count-badge{border:1px solid #cfe2dd!important;background:rgba(255,255,255,.78)!important;box-shadow:0 5px 14px rgba(23,74,71,.06)}
+.owner-properties-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.owner-property-premium-card{display:grid;grid-template-columns:145px 1fr;min-height:225px;overflow:hidden;border:1px solid #dce9e5;border-radius:18px;background:#fff;box-shadow:0 8px 24px rgba(23,74,71,.055);transition:.2s ease}
+.owner-property-premium-card:hover{transform:translateY(-2px);border-color:#b9d7d1;box-shadow:0 15px 34px rgba(23,74,71,.10)}
+.owner-property-photo{position:relative;min-height:100%;background:#eaf3f0;overflow:hidden}.owner-property-photo img{width:100%;height:100%;min-height:225px;object-fit:cover;display:block;transition:transform .3s ease}.owner-property-premium-card:hover .owner-property-photo img{transform:scale(1.035)}
+.owner-property-photo-badge{position:absolute;left:10px;top:10px;padding:6px 8px;border-radius:999px;background:rgba(255,255,255,.94);font-size:9px;font-weight:900;box-shadow:0 5px 14px rgba(0,0,0,.08)}.owner-property-photo-badge.available{color:#16734b}.owner-property-photo-badge.occupied{color:#b43b3b}.owner-property-photo-badge.pending,.owner-property-photo-badge.soon{color:#9a641c}.owner-property-photo-badge.rejected{color:#b43b3b}
+.owner-property-premium-body{padding:16px;min-width:0;display:flex;flex-direction:column}.owner-property-topline{display:flex;justify-content:space-between;align-items:center;gap:8px}.owner-property-type{padding:5px 8px;border-radius:999px;background:#e8f3f1;color:#1f5f5b;font-size:9px;font-weight:900}.owner-property-live-dot{color:#178255;font-size:9px;font-weight:900}.owner-property-premium-body h4{margin:9px 0 5px;font-size:17px;color:#172320}.owner-property-location{margin:0;color:#64716e;font-size:11px;line-height:1.45}
+.owner-property-tags{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}.owner-property-tags span{padding:5px 7px;border:1px solid #e2ebe8;border-radius:999px;background:#f8fbfa;color:#5d6d68;font-size:9px;font-weight:800}.owner-property-bottom{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-top:auto;padding-top:9px;border-top:1px solid #edf2f0}.owner-property-bottom strong{color:#176b63;font-size:16px}.owner-property-status-text{font-size:9px;color:#687874;font-weight:800}
+.premium-property-actions{margin-top:10px!important;display:grid!important;grid-template-columns:1.25fr .75fr .75fr;gap:6px!important}.premium-property-actions button{min-height:36px!important;padding:0 8px!important;border-radius:9px!important;font-size:10px!important;font-weight:900!important;cursor:pointer}.premium-view-btn{border:0;background:#1f5f5b;color:#fff}.premium-view-btn:hover{background:#174a47}.premium-edit-btn{border:1px solid #d5e2df;background:#f5f9f8;color:#174a47}.premium-delete-btn{border:1px solid #f0caca!important;background:#fff5f5!important;color:#c44747!important}.premium-occupancy{margin-top:8px!important;padding:7px 8px;border-radius:9px;background:#f7faf9;border:1px solid #e7eeec}
+.premium-visit-card{display:flex;gap:14px;padding:17px;border:1px solid #dce8e4;border-radius:17px;background:linear-gradient(135deg,#fff,#f8fbfa);box-shadow:0 7px 22px rgba(23,74,71,.05);margin:10px 0}.premium-visit-icon{width:44px;height:44px;flex:0 0 44px;display:grid;place-items:center;border-radius:14px;background:#fff0e5;color:#bd6930;font-size:24px;font-weight:900}.premium-visit-main{flex:1;min-width:0}.premium-visit-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}.premium-visit-kicker{font-size:8px;letter-spacing:.12em;font-weight:900;color:#1f5f5b}.premium-visit-head h4{margin:4px 0 0;font-size:16px}.premium-visit-status{padding:6px 10px;border-radius:999px;font-size:9px;font-weight:900}.premium-visit-status.pending{background:#fff1df;color:#9a641c}.premium-visit-status.approved{background:#e5f6ec;color:#19734b}.premium-visit-status.rejected{background:#fde8e8;color:#b43b3b}.premium-visit-status.completed{background:#e8eefb;color:#476ca8}.premium-visit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;margin:12px 0;color:#667671;font-size:10px}.premium-visit-grid span{padding:8px 9px;border-radius:9px;background:#f8fbfa;border:1px solid #e6eeeb}.premium-visit-grid b{color:#344944;margin-right:3px}.premium-visit-actions{margin-top:7px!important}.premium-approve-btn,.premium-reject-btn{min-height:37px;padding:0 12px;border-radius:9px;font-weight:900;cursor:pointer}.premium-approve-btn{border:0;background:#1f5f5b;color:#fff}.premium-reject-btn{border:1px solid #efcaca;background:#fff5f5;color:#c44747}
+@media(max-width:980px){.owner-properties-grid{grid-template-columns:1fr}.owner-property-premium-card{grid-template-columns:155px 1fr}}@media(max-width:680px){.premium-section-heading{align-items:flex-start}.premium-section-heading>div:first-child{width:100%}.premium-count-badge{display:none}.owner-property-premium-card{grid-template-columns:1fr}.owner-property-photo{min-height:180px}.owner-property-photo img{min-height:180px}.premium-visit-card{padding:13px}.premium-visit-grid{grid-template-columns:1fr}.premium-property-actions{grid-template-columns:1fr 1fr 1fr}.owner-property-premium-body{padding:14px}}
 .saved-properties-section-shell{overflow:hidden}
 .saved-property-card{display:grid;grid-template-columns:minmax(220px,34%) 1fr;min-height:220px;border:1px solid #dce9e5;border-radius:18px;overflow:hidden;background:linear-gradient(135deg,#ffffff 0%,#fbfdfc 100%);box-shadow:0 8px 24px rgba(23,74,71,.07);transition:transform .18s ease,box-shadow .18s ease,border-color .18s ease}
 .saved-property-card:hover{transform:translateY(-2px);border-color:#b9d7d1;box-shadow:0 14px 32px rgba(23,74,71,.11)}
@@ -4757,35 +4774,38 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                     </form>
                 </div>
 
-                <div class="dashboard-card">
-                    <div class="dashboard-card-heading">
-                        <div>
-                            <span class="dashboard-section-kicker">INVENTORY</span>
+                <div class="dashboard-card owner-inventory-card premium-owner-section">
+                    <div class="dashboard-card-heading premium-section-heading">
+                        <div><span class="premium-section-icon">⌂</span><div>
+                            <span class="dashboard-section-kicker">MY INVENTORY</span>
                             <h3>My Properties</h3>
-                        </div>
-                        <span class="dashboard-mini-badge">Vacant • Occupied • Pending</span>
+                            <p class="dashboard-muted">Manage your listings, check availability and open full property details.</p>
+                        </div></div>
+                        <span class="dashboard-mini-badge premium-count-badge">Vacant • Occupied • Pending</span>
                     </div>
-                    <div id="ownerPropertiesContainer"><p class="dashboard-empty">You have not added any properties yet.</p></div>
+                    <div id="ownerPropertiesContainer" class="owner-properties-grid"><p class="dashboard-empty">You have not added any properties yet.</p></div>
                 </div>
 
-                <div class="dashboard-card">
-                    <div class="dashboard-card-heading">
-                        <div>
+                <div class="dashboard-card owner-visits-card premium-owner-section">
+                    <div class="dashboard-card-heading premium-section-heading">
+                        <div><span class="premium-section-icon visit-icon">⌁</span><div>
                             <span class="dashboard-section-kicker">RENTER ACTIVITY</span>
                             <h3>Visit Requests</h3>
-                        </div>
-                        <span class="dashboard-mini-badge">Accept, reject or mark rented</span>
+                            <p class="dashboard-muted">Review visits, respond to requests and convert approved visits into rentals.</p>
+                        </div></div>
+                        <span class="dashboard-mini-badge premium-count-badge">Accept • Reject • Rent</span>
                     </div>
                     <div id="ownerVisitsContainer"><p class="dashboard-empty">No visit requests yet.</p></div>
                 </div>
 
-                <div class="dashboard-card owner-occupancy-card">
-                    <div class="dashboard-card-heading">
-                        <div>
+                <div class="dashboard-card owner-occupancy-card premium-owner-section">
+                    <div class="dashboard-card-heading premium-section-heading">
+                        <div><span class="premium-section-icon renter-icon">♙</span><div>
                             <span class="dashboard-section-kicker">ACTIVE RENTALS</span>
                             <h3>Current Renters</h3>
-                        </div>
-                        <span class="dashboard-mini-badge">Click a renter for details</span>
+                            <p class="dashboard-muted">Your active tenants and their current rental details.</p>
+                        </div></div>
+                        <span class="dashboard-mini-badge premium-count-badge">Click a renter for details</span>
                     </div>
                     <div id="ownerOccupancyContainer"><p class="dashboard-empty">No property is occupied yet.</p></div>
                 </div>
@@ -8242,56 +8262,72 @@ async function loadOwnerProperties() {
 
             container.innerHTML =
                 data.map(function (property) {
-                    let badge = '<span class="status-chip pending">Pending verification</span>';
-
-                    if (property.verification_status !== "verified") {
-                        badge = '<span class="status-chip pending">Pending admin verification</span>';
-                    } else if (property.status === "verified") {
-                        badge = '<span class="status-chip available">✓ Available</span>';
-                    } else if (property.status === "rejected") {
-                        badge = '<span class="status-chip rejected">Rejected</span>';
-                    } else if (property.status === "occupied") {
-                        badge = '<span class="status-chip occupied">Occupied</span>';
-                    } else if (property.status === "soon_available") {
-                        badge = '<span class="status-chip soon">Soon available</span>';
+                    let statusLabel = "Pending verification";
+                    let statusClass = "pending";
+                    if (property.verification_status === "verified") {
+                        if (property.status === "verified") { statusLabel = "Available"; statusClass = "available"; }
+                        else if (property.status === "occupied") { statusLabel = "Occupied"; statusClass = "occupied"; }
+                        else if (property.status === "soon_available") { statusLabel = "Soon available"; statusClass = "soon"; }
+                        else if (property.status === "rejected") { statusLabel = "Rejected"; statusClass = "rejected"; }
                     }
-
                     const propertyId = escapeHtml(property.id);
+                    const image = property.image_url || getDefaultPropertyImage();
+                    const typeLabel = property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home";
+                    const configLabel = property.listing_type === "home" || !property.listing_type ? (property.bhk ? property.bhk + " BHK" : "BHK not specified") : (property.room_type || "Shared stay");
 
                     return `
-                        <div class="owner-property-row" data-property-id="${propertyId}">
-                            <strong>${escapeHtml(property.title || "Rental Property")}</strong>
-                            <br>
-                            ${property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}${property.room_type ? " · " + escapeHtml(property.room_type) : ""}
-                            <br>
-                            📍 ${escapeHtml(property.location || "Location not specified")}
-                            <br>
-                            💰 ${formatRent(property.rent)}
-                            <br>
-                            <span class="owner-live-status">${badge}</span>
-                            <div class="owner-occupancy-inline" id="owner-occupancy-${propertyId}"><span class="small-text">Checking live occupancy…</span></div>
-
-                            <div class="owner-property-actions">
-                                <button type="button" class="owner-view-property-btn secondary-button" data-id="${propertyId}">View</button>
-                                <button type="button" class="owner-edit-property-btn secondary-button" data-id="${propertyId}">✏️ Edit</button>
-                                <button type="button" class="owner-delete-property-btn danger-action" data-id="${propertyId}">🗑️ Delete</button>
+                        <article class="owner-property-premium-card" data-property-id="${propertyId}">
+                            <div class="owner-property-photo">
+                                <img src="${escapeHtml(image)}" alt="${escapeHtml(property.title || "Rental property")}" loading="lazy" onerror="this.src='${getDefaultPropertyImage()}'">
+                                <span class="owner-property-photo-badge ${statusClass}">${statusLabel}</span>
                             </div>
-
-                        </div>
+                            <div class="owner-property-premium-body">
+                                <div class="owner-property-topline">
+                                    <span class="owner-property-type">${typeLabel}</span>
+                                    <span class="owner-property-live-dot">● Listing</span>
+                                </div>
+                                <h4>${escapeHtml(property.title || "Rental Property")}</h4>
+                                <p class="owner-property-location">📍 ${escapeHtml(property.location || "Location not specified")}</p>
+                                <div class="owner-property-tags">
+                                    <span>⌂ ${escapeHtml(configLabel)}</span>
+                                    <span>🛋️ ${escapeHtml(property.furnishing || "Not specified")}</span>
+                                </div>
+                                <div class="owner-property-bottom">
+                                    <strong>${formatRent(property.rent)}</strong>
+                                    <span class="owner-property-status-text">${statusLabel}</span>
+                                </div>
+                                <div class="owner-property-actions premium-property-actions">
+                                    <button type="button" class="owner-view-property-btn premium-view-btn" data-id="${propertyId}">◉ View Details</button>
+                                    <button type="button" class="owner-edit-property-btn premium-edit-btn" data-id="${propertyId}">✎ Edit</button>
+                                    <button type="button" class="owner-delete-property-btn premium-delete-btn" data-id="${propertyId}">⌫ Delete</button>
+                                </div>
+                                <div class="owner-occupancy-inline premium-occupancy" id="owner-occupancy-${propertyId}"><span class="small-text">Checking live occupancy…</span></div>
+                            </div>
+                        </article>
                     `;
-                })
-                .join("");
+                }).join("");
 
             container.querySelectorAll(".owner-view-property-btn").forEach(btn => {
-                btn.addEventListener("click", () => openPropertyDetails(btn.dataset.id));
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const propertyId = this.dataset.id;
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Opening…";
+                    try { await openPropertyDetails(propertyId); }
+                    catch (err) {
+                        console.error("Owner property details error:", err);
+                        showMessage("backendMessage", "Could not open property details. Please try again.", "error");
+                    }
+                    this.disabled = false;
+                    this.textContent = "◉ View Details";
+                });
             });
             container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyEditor(btn.dataset.id)));
             container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));
 
-
             await loadOwnerCurrentRenters(data);
-
-        }
 
 
 async function loadOwnerCurrentRenters(properties) {
@@ -8515,37 +8551,35 @@ async function loadOwnerVisits() {
     container.innerHTML = rows.map(visit => {
         const property = propertyMap.get(visit.property_id) || {};
         const status = String(visit.status || "pending").toLowerCase();
+        const statusLabel = status === "approved" ? "Approved" : status === "rejected" ? "Rejected" : status === "completed" ? "Completed" : "Pending";
         const actionButtons = status === "pending"
-            ? `
-                <div class="owner-property-actions">
-                    <button type="button" class="dashboard-primary-action" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','approved')">✓ Approve</button>
-                    <button type="button" class="secondary-button owner-delete-property-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','rejected')">✕ Reject</button>
-                </div>`
+            ? `<div class="owner-property-actions premium-visit-actions">
+                <button type="button" class="premium-approve-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','approved')">✓ Approve Visit</button>
+                <button type="button" class="premium-reject-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','rejected')">✕ Reject</button>
+              </div>`
             : status === "approved"
-                ? `
-                <div class="owner-property-actions">
-                    <button type="button" class="dashboard-primary-action gd-mark-renter-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="markVisitAsCurrentRenter('${escapeHtml(visit.id)}')">🏠 Mark as Current Renter</button>
-                </div>`
+                ? `<div class="owner-property-actions premium-visit-actions">
+                    <button type="button" class="dashboard-primary-action gd-mark-renter-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="markVisitAsCurrentRenter('${escapeHtml(visit.id)}')">⌂ Mark as Current Renter</button>
+                  </div>`
                 : "";
-
         return `
-            <div class="visit-row">
-                <strong>${escapeHtml(property.title || "Property")}</strong>
-                <br>
-                📍 ${escapeHtml(property.address || property.location || "Address not available")}
-                <br>
-                👤 Renter: <strong>${escapeHtml(visit.name || "Renter")}</strong>
-                <br>
-                📞 Phone: ${escapeHtml(visit.phone || "Not provided")}
-                <br>
-                📅 Date: ${escapeHtml(visit.visit_date || "-")}
-                <br>
-                🕐 Time: ${escapeHtml(visit.visit_time || "-")}
-                <br>
-                Status: <strong>${escapeHtml(status)}</strong>
-                ${actionButtons}
-            </div>
-        `;
+            <article class="premium-visit-card">
+                <div class="premium-visit-icon">⌁</div>
+                <div class="premium-visit-main">
+                    <div class="premium-visit-head">
+                        <div><span class="premium-visit-kicker">PROPERTY VISIT</span><h4>${escapeHtml(property.title || "Property")}</h4></div>
+                        <span class="premium-visit-status ${status}">${statusLabel}</span>
+                    </div>
+                    <div class="premium-visit-grid">
+                        <span>📍 <b>Location</b> ${escapeHtml(property.address || property.location || "Address not available")}</span>
+                        <span>♙ <b>Renter</b> ${escapeHtml(visit.name || "Renter")}</span>
+                        <span>☎ <b>Phone</b> ${escapeHtml(visit.phone || "Not provided")}</span>
+                        <span>📅 <b>Date</b> ${escapeHtml(visit.visit_date || "-")}</span>
+                        <span>◷ <b>Time</b> ${escapeHtml(visit.visit_time || "-")}</span>
+                    </div>
+                    ${actionButtons}
+                </div>
+            </article>`;
     }).join("");
 }
 
