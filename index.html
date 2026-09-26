@@ -12222,7 +12222,68 @@ html,body{max-width:100%;overflow-x:hidden!important}
 }
 </style>
 </style>
-<style id="ghardekho-mobile-property-modal-stack-v16">
+<style id="ghardekho-mobile-property-scroll-v17">
+@media(max-width:680px){
+  /* Make the Add Property sheet a real scroll container on mobile. */
+  body.gd-property-modal-active{
+    overflow:hidden!important;
+    overscroll-behavior:none!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open{
+    display:flex!important;
+    flex-direction:column!important;
+    box-sizing:border-box!important;
+    width:calc(100vw - 16px)!important;
+    height:calc(100dvh - 16px)!important;
+    max-height:calc(100dvh - 16px)!important;
+    top:8px!important;
+    bottom:8px!important;
+    left:8px!important;
+    transform:none!important;
+    overflow:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open > .dashboard-card-heading,
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open > .gd-owner-modal-head{
+    flex:0 0 auto!important;
+    position:sticky!important;
+    top:0!important;
+    z-index:40!important;
+    background:#fff!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open > form{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    height:auto!important;
+    max-height:none!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    box-sizing:border-box!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    touch-action:pan-y!important;
+    padding-bottom:120px!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open .gd-mobile-property-actionbar{
+    position:sticky!important;
+    bottom:0!important;
+    z-index:100!important;
+    flex-shrink:0!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open .owner-form-grid{
+    height:auto!important;
+    max-height:none!important;
+    overflow:visible!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open input,
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open select,
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open textarea{
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+}
+</style><style id="ghardekho-mobile-property-modal-stack-v16">
 @media(max-width:680px){
   /* The modal lives inside #ownerDashboard. Raise that stacking context
      above the page overlay, then keep the modal itself above its contents. */
