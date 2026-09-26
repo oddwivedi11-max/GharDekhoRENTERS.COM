@@ -5047,7 +5047,54 @@ function openLoginAs(role){
     bindLoginRoleControls();
     applyLoginRolePresentation(selectedRole);
 }
-function openAdminLogin(){openLoginSection();const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");if(gateway)gateway.style.display="none";if(form)form.style.display="grid";const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),signup=document.getElementById("signupBtn"),google=document.getElementById("googleLoginBtn"),roleSwitch=document.querySelector(".role-switch"),adminBtn=document.getElementById("adminLoginModeBtn");if(title)title.textContent="Admin Login";if(intro)intro.textContent="Secure administrator access. Email and password only.";if(brand)brand.textContent="Restricted Ghar Dekho administration workspace.";if(hint)hint.textContent="Only the authorized admin account can enter the Admin Control Center.";if(signup)signup.style.display="none";if(google)google.style.display="none";if(roleSwitch)roleSwitch.style.display="none";if(adminBtn)adminBtn.style.display="none";}
+function openAdminLogin(){
+    /*
+     * Admin is a separate destination. Never fall back to the Renter
+     * dashboard or the Renter login presentation when Admin is selected.
+     */
+    if (currentUser && isAdminAccount()) {
+        window.__gdAdminLoginRequested = false;
+        activeRole = "admin";
+        pendingLoginRole = "admin";
+        sessionStorage.setItem("gd_active_role", "admin");
+        sessionStorage.setItem("gd_pending_login_role", "admin");
+        sessionStorage.setItem("gd_login_destination", "admin");
+        setRoleSpecificUI("admin");
+        const loginSection = document.getElementById("loginSection");
+        if (loginSection) loginSection.style.display = "none";
+        const dashboard = document.getElementById("dashboardSection");
+        if (dashboard) dashboard.style.display = "block";
+        renderActiveDashboard();
+        openAdminArea();
+        return;
+    }
+
+    window.__gdAdminLoginRequested = true;
+    openLoginSection("renter");
+
+    const gateway=document.getElementById("gdAuthGateway");
+    const form=document.getElementById("gdAuthFormShell");
+    if(gateway) gateway.style.display="none";
+    if(form) form.style.display="grid";
+
+    const title=document.getElementById("premiumAuthTitle");
+    const intro=document.getElementById("premiumAuthIntro");
+    const brand=document.getElementById("gdAuthBrandText");
+    const hint=document.getElementById("loginRoleHint");
+    const signup=document.getElementById("signupBtn");
+    const google=document.getElementById("googleLoginBtn");
+    const roleSwitch=document.querySelector(".role-switch");
+    const adminBtn=document.getElementById("adminLoginModeBtn");
+
+    if(title) title.textContent="Admin Login";
+    if(intro) intro.textContent="Secure administrator access. Email and password only.";
+    if(brand) brand.textContent="Restricted Ghar Dekho administration workspace.";
+    if(hint) hint.textContent="Only the authorized admin account can enter the Admin Control Center.";
+    if(signup) signup.style.display="none";
+    if(google) google.style.display="none";
+    if(roleSwitch) roleSwitch.style.display="none";
+    if(adminBtn) adminBtn.style.display="none";
+}
         function openOwnerArea() {
             if (!currentUser) {
                 openLoginSection();
@@ -5625,6 +5672,36 @@ async function updateAuthUI() {
     }
 
     /*
+     * ADMIN DESTINATION:
+     * If the user explicitly entered Admin mode, or an existing admin session
+     * was restored after a refresh, keep the admin destination authoritative.
+     */
+    const adminDestination =
+        isAdminAccount() &&
+        (window.__gdAdminLoginRequested === true ||
+         sessionStorage.getItem("gd_login_destination") === "admin" ||
+         activeRole === "admin");
+
+    if (adminDestination) {
+        window.__gdAdminLoginRequested = false;
+        activeRole = "admin";
+        pendingLoginRole = "admin";
+        sessionStorage.setItem("gd_active_role", "admin");
+        sessionStorage.setItem("gd_pending_login_role", "admin");
+        sessionStorage.setItem("gd_login_destination", "admin");
+
+        setRoleSpecificUI("admin");
+        if (authStatus) authStatus.textContent = "Logged in as Admin";
+        if (dashboardIdentity) {
+            dashboardIdentity.textContent = (currentProfile?.name || currentUser.email || "Admin") + " • Admin";
+        }
+        dashboard.style.display = "block";
+        dashboard.setAttribute("aria-hidden", "false");
+        await renderActiveDashboard();
+        return;
+    }
+
+    /*
      * IMPORTANT: a single Ghar Dekho account may be used in both modes.
      * The role selected on THIS login is a UI/session choice. Do not rewrite
      * users.role on every login and do not let roles[0] decide the destination.
@@ -5780,6 +5857,57 @@ async function loginUser() {
         }
 
         currentUser = data.user;
+
+        /*
+         * ADMIN LOGIN MODE:
+         * openAdminLogin() marks the login attempt explicitly. The admin
+         * account must go directly to the Admin Control Center and must
+         * never be routed through the normal Renter/Owner role flow.
+         */
+        if (window.__gdAdminLoginRequested) {
+            if (!isAdminAccount()) {
+                await supabaseClient.auth.signOut();
+                currentUser = null;
+                authMessage.textContent = "This account is not authorized for Admin access.";
+                return;
+            }
+
+            window.__gdAdminLoginRequested = false;
+            currentProfile = null;
+            const { data: adminProfile } = await supabaseClient
+                .from("users")
+                .select("id,name,email,phone,role,roles")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            currentProfile = adminProfile || {
+                id: currentUser.id,
+                name: currentUser.email || "Admin",
+                email: currentUser.email || "",
+                phone: null,
+                role: "admin",
+                roles: ["admin"]
+            };
+
+            activeRole = "admin";
+            pendingLoginRole = "admin";
+            sessionStorage.setItem("gd_active_role", "admin");
+            sessionStorage.setItem("gd_pending_login_role", "admin");
+            sessionStorage.setItem("gd_login_destination", "admin");
+
+            authMessage.textContent = "Admin login successful.";
+            await updateAuthUI();
+            setRoleSpecificUI("admin");
+
+            const dashboard = document.getElementById("dashboardSection");
+            const loginSection = document.getElementById("loginSection");
+            if (loginSection) loginSection.style.display = "none";
+            if (dashboard) dashboard.style.display = "block";
+
+            await renderActiveDashboard();
+            scrollToSection("adminDashboard");
+            return;
+        }
 
         // IMPORTANT: the same Gmail account can be used as both Owner and Renter.
         // If Renter was selected on this login, make sure renter access is also
@@ -6167,6 +6295,8 @@ async function updatePassword() {
 async function logoutUser() {
     sessionStorage.removeItem("gd_pending_login_role");
     sessionStorage.removeItem("gd_active_role");
+    sessionStorage.removeItem("gd_login_destination");
+    window.__gdAdminLoginRequested = false;
     const logoutBtn = document.getElementById("logoutBtn");
     if (logoutBtn) { logoutBtn.disabled = true; logoutBtn.textContent = "Logging out..."; }
 
@@ -6434,8 +6564,32 @@ async function renderActiveDashboard() {
         }
         function openAdminArea() {
             if(!currentUser || !isAdminAccount()) return showAdminDenied();
+
+            window.__gdAdminLoginRequested = false;
+            activeRole = "admin";
+            pendingLoginRole = "admin";
+            sessionStorage.setItem("gd_active_role", "admin");
+            sessionStorage.setItem("gd_pending_login_role", "admin");
+            sessionStorage.setItem("gd_login_destination", "admin");
+
+            setRoleSpecificUI("admin");
+
+            const loginSection=document.getElementById("loginSection");
+            if(loginSection) loginSection.style.display="none";
+
+            const dashboard=document.getElementById("dashboardSection");
+            if(dashboard) {
+                dashboard.style.display="block";
+                dashboard.setAttribute("aria-hidden","false");
+            }
+
             const admin=document.getElementById("adminDashboard");
-            if(admin){admin.style.display="block";admin.classList.add("active");admin.setAttribute("aria-hidden","false");admin.scrollIntoView({behavior:"smooth",block:"start"});}
+            if(admin){
+                admin.style.display="block";
+                admin.classList.add("active");
+                admin.setAttribute("aria-hidden","false");
+                admin.scrollIntoView({behavior:"smooth",block:"start"});
+            }
             loadAdminDashboard();
         }
         async function loadAdminDashboard() {
@@ -9532,9 +9686,16 @@ function updateStayTypeFields() {
             const initialLoginHash = window.location.hash.toLowerCase() === "#login";
             window.__gdAuthRequested = initialLoginHash;
             if (initialLoginHash) {
+                const savedDestination = sessionStorage.getItem("gd_login_destination");
                 const savedRole = sessionStorage.getItem("gd_pending_login_role");
-                pendingLoginRole = savedRole === "owner" ? "owner" : "renter";
-                activeRole = pendingLoginRole;
+                if (savedDestination === "admin") {
+                    window.__gdAdminLoginRequested = true;
+                    pendingLoginRole = "admin";
+                    activeRole = "admin";
+                } else {
+                    pendingLoginRole = savedRole === "owner" ? "owner" : "renter";
+                    activeRole = pendingLoginRole;
+                }
             }
 
             const initialSearchParams = new URLSearchParams(window.location.search);
@@ -10498,4 +10659,3 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   border-color: #d97706 !important;
   color: #ffffff !important;
 }
-</style>
