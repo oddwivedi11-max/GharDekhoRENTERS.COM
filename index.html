@@ -3187,6 +3187,197 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 .gd-current-renter-facts span{padding:5px 8px;border:1px solid #dce7e3;border-radius:8px;background:#fff;font-size:8px;font-weight:800;color:#5e716b}
 @media(max-width:600px){.gd-current-renter-card-v2{padding:13px!important}.gd-current-renter-card-v2 .gd-current-renter-avatar{width:40px;height:40px;flex-basis:40px}.gd-current-renter-card-v2 .gd-current-renter-property{font-size:12px}.gd-current-renter-address{max-width:230px}.gd-current-renter-facts{gap:4px}}
 </style>
+<style id="ghardekho-home-premium-v12">
+/* GharDekho Home V12 — premium editorial / hospitality-style landing */
+#homeSection.gd-home-v6{
+  position:relative!important;
+  width:100%!important;
+  max-width:none!important;
+  margin:0!important;
+  padding:0 0 70px!important;
+  background:#081f1d!important;
+  color:#f7faf8!important;
+  overflow:hidden!important;
+}
+#homeSection.gd-home-v6:before{
+  content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    radial-gradient(circle at 74% 20%,rgba(28,167,151,.23),transparent 28rem),
+    radial-gradient(circle at 12% 68%,rgba(239,154,75,.10),transparent 25rem),
+    linear-gradient(180deg,#071c1a 0%,#0b2925 58%,#f3f6f3 58.1%,#f3f6f3 100%);
+}
+.gd-home-v6-hero{
+  position:relative!important;z-index:1!important;
+  min-height:650px!important;
+  padding:72px clamp(28px,6vw,92px) 82px!important;
+  border-radius:0!important;
+  background:
+    linear-gradient(90deg,rgba(7,28,26,.98) 0%,rgba(7,28,26,.86) 47%,rgba(7,28,26,.18) 100%),
+    radial-gradient(circle at 82% 40%,rgba(25,145,132,.25),transparent 31rem)!important;
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr) minmax(420px,.9fr)!important;
+  gap:50px!important;
+  align-items:center!important;
+}
+.gd-home-v6-grid{
+  opacity:.16!important;
+  background-image:linear-gradient(rgba(255,255,255,.08) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.08) 1px,transparent 1px)!important;
+  background-size:64px 64px!important;
+  mask-image:linear-gradient(90deg,#000,transparent 85%)!important;
+}
+.gd-home-v6-copy{position:relative!important;z-index:4!important;max-width:720px!important}
+.gd-home-v6-kicker{
+  color:#8de3d3!important;font-size:10px!important;letter-spacing:.24em!important;
+  font-weight:1000!important;margin-bottom:25px!important;
+}
+.gd-home-v6-kicker-dot{background:#f3a268!important;box-shadow:0 0 0 5px rgba(243,162,104,.10)!important}
+.gd-home-v6-copy h2{
+  margin:0!important;font-size:clamp(4rem,7.4vw,7.6rem)!important;
+  line-height:.86!important;letter-spacing:-.075em!important;font-weight:950!important;
+  color:#f7fbf9!important;max-width:780px!important;
+}
+.gd-home-v6-copy h2 span{
+  color:#6ed8c8!important;
+  background:linear-gradient(90deg,#72dfce,#a6f0e3)!important;
+  -webkit-background-clip:text!important;background-clip:text!important;-webkit-text-fill-color:transparent!important;
+}
+.gd-home-v6-copy p{
+  max-width:590px!important;margin:28px 0 25px!important;
+  color:rgba(240,249,246,.66)!important;font-size:15px!important;line-height:1.8!important;
+}
+.gd-home-v6-actions{gap:10px!important}
+.gd-home-v6-actions button{
+  min-height:50px!important;border-radius:12px!important;padding:0 20px!important;
+  font-size:11px!important;letter-spacing:.02em!important;
+  box-shadow:0 14px 35px rgba(0,0,0,.18)!important;
+}
+.gd-home-v6-actions button:first-child{
+  background:#f1a065!important;color:#102522!important;border:1px solid #f6b486!important;
+}
+.gd-home-v6-actions .gd-home-v6-ghost{
+  color:#eff8f5!important;background:rgba(255,255,255,.055)!important;
+  border:1px solid rgba(255,255,255,.16)!important;box-shadow:none!important;
+}
+.gd-home-v6-proof{
+  margin-top:34px!important;gap:16px!important;color:rgba(235,247,243,.54)!important;
+  font-size:9px!important;letter-spacing:.04em!important;text-transform:uppercase!important;
+}
+.gd-home-v6-proof b{color:#fff!important;font-weight:1000!important}
+.gd-home-v6-proof i{height:20px!important;background:rgba(255,255,255,.14)!important}
+
+.gd-home-v6-scene{
+  position:relative!important;height:550px!important;z-index:3!important;
+  display:block!important;transform:none!important;
+}
+.gd-home-v6-glow{
+  position:absolute!important;width:500px!important;height:500px!important;right:-80px!important;top:0!important;
+  border-radius:50%!important;background:rgba(24,161,146,.18)!important;filter:blur(40px)!important;
+}
+.gd-home-v6-image{
+  right:2%!important;top:25px!important;width:min(500px,94%)!important;height:510px!important;
+  border-radius:28px!important;transform:rotate(2.5deg)!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  box-shadow:0 45px 100px rgba(0,0,0,.42)!important;
+  background:
+    linear-gradient(180deg,rgba(8,29,27,.02),rgba(8,29,27,.38)),
+    radial-gradient(circle at 67% 27%,rgba(246,191,145,.40),transparent 13rem),
+    linear-gradient(145deg,#879d96 0%,#486e67 40%,#173e38 72%,#092622 100%)!important;
+}
+.gd-home-v6-image:after{
+  left:10%!important;top:22%!important;width:80%!important;height:43%!important;
+  border:1px solid rgba(255,255,255,.26)!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.22),rgba(8,29,27,.20))!important;
+  box-shadow:0 30px 70px rgba(0,0,0,.28)!important;
+}
+.gd-home-v6-image-overlay{background:linear-gradient(145deg,#b7a48c,#668d83 45%,#153a35 78%,#081f1c)!important;opacity:.34!important}
+.gd-home-v6-image-top span{background:rgba(7,31,28,.72)!important;color:#c4f2e8!important;border:1px solid rgba(255,255,255,.12)!important}
+.gd-home-v6-image-top b{background:rgba(255,255,255,.09)!important}
+.gd-home-v6-image-bottom strong{font-size:34px!important;color:#fff!important}
+.gd-home-v6-image-bottom small{color:#8ee5d5!important}
+.gd-home-v6-card{
+  border-radius:14px!important;background:rgba(248,252,250,.94)!important;
+  box-shadow:0 25px 55px rgba(0,0,0,.28)!important;
+}
+.gd-home-v6-card-top{left:-4%!important;top:18%!important}
+.gd-home-v6-card-bottom{right:-4%!important;bottom:17%!important}
+.gd-home-v6-price{
+  left:-1%!important;bottom:5%!important;padding:16px 18px!important;
+  border-radius:15px!important;background:#f1a065!important;color:#102522!important;
+  box-shadow:0 22px 45px rgba(0,0,0,.24)!important;
+}
+.gd-home-v6-price small{color:#31524b!important}.gd-home-v6-price strong{font-size:28px!important}.gd-home-v6-price span{color:#31524b!important}
+
+.gd-home-v6-search{
+  position:relative!important;z-index:10!important;
+  width:min(1120px,calc(100% - 36px))!important;margin:-52px auto 0!important;
+  padding:28px!important;border-radius:22px!important;
+  background:rgba(255,255,255,.97)!important;color:#142c29!important;
+  border:1px solid rgba(255,255,255,.8)!important;
+  box-shadow:0 28px 75px rgba(0,0,0,.22)!important;
+}
+.gd-home-v6-search-head{
+  display:flex!important;align-items:end!important;justify-content:space-between!important;
+  gap:20px!important;margin-bottom:20px!important;
+}
+.gd-home-v6-search-head span{color:#177b70!important;letter-spacing:.18em!important;font-size:8px!important;font-weight:1000!important}
+.gd-home-v6-search-head h3{margin:5px 0 0!important;font-size:22px!important;letter-spacing:-.04em!important}
+.gd-home-v6-search-head p{margin:0!important;color:#8a9893!important;font-size:10px!important}
+.gd-search-v6{gap:9px!important}
+.gd-v6-search-field{
+  border:1px solid #d9e5e1!important;border-radius:12px!important;background:#f9fbfa!important;
+  min-height:62px!important;padding:10px 13px!important;
+}
+.gd-v6-search-field:focus-within{border-color:#179386!important;box-shadow:0 0 0 4px rgba(23,147,134,.08)!important}
+.gd-v6-search-field>span{font-size:7px!important;letter-spacing:.14em!important;color:#78908a!important;font-weight:1000!important}
+.gd-v6-search-field input,.gd-v6-search-field select{color:#19332f!important;font-weight:750!important}
+.gd-search-v6 #searchBtn{
+  min-height:62px!important;border-radius:12px!important;background:#0d665d!important;
+  box-shadow:0 12px 25px rgba(13,102,93,.22)!important;
+}
+.gd-search-v6 #nearMeBtn,.gd-search-v6 #liveNearbyBtn{
+  min-height:62px!important;border-radius:12px!important;background:#e8f4f1!important;color:#125d55!important;
+  border:1px solid #cce3dd!important;
+}
+.gd-search-v6 #radiusSelect{border-radius:12px!important;min-height:62px!important;border:1px solid #d9e5e1!important}
+
+.gd-home-v6-bottom{
+  position:relative!important;z-index:2!important;width:min(1120px,calc(100% - 36px))!important;
+  margin:70px auto 0!important;padding:0!important;grid-template-columns:1.4fr 1fr 1fr 1fr!important;
+  gap:0!important;color:#172f2c!important;
+}
+.gd-home-v6-bottom>div:first-child{grid-column:auto!important;padding-right:30px!important}
+.gd-home-v6-bottom>div:first-child span{color:#18786e!important;font-size:8px!important;letter-spacing:.18em!important;font-weight:1000!important}
+.gd-home-v6-bottom>div:first-child h3{font-size:29px!important;line-height:1.05!important;letter-spacing:-.05em!important;color:#112c29!important}
+.gd-home-v6-feature{border-left:1px solid #d5dfdc!important;padding:8px 24px!important}
+.gd-home-v6-feature b{color:#1b8177!important;font-size:10px!important}.gd-home-v6-feature strong{font-size:14px!important;color:#172f2c!important}.gd-home-v6-feature p{font-size:10px!important;color:#71817c!important;line-height:1.5!important}
+
+@media(max-width:900px){
+ .gd-home-v6-hero{grid-template-columns:1fr!important;min-height:auto!important;padding:55px 24px 100px!important}
+ .gd-home-v6-scene{height:430px!important}
+ .gd-home-v6-image{height:400px!important;width:82%!important}
+ .gd-home-v6-copy h2{font-size:clamp(3.4rem,10vw,6rem)!important}
+ .gd-home-v6-bottom{grid-template-columns:1fr 1fr!important}
+ .gd-home-v6-bottom>div:first-child{grid-column:1/-1!important;padding:0 0 22px!important}
+}
+@media(max-width:620px){
+ #homeSection.gd-home-v6{padding-bottom:45px!important}
+ .gd-home-v6-hero{padding:43px 18px 82px!important}
+ .gd-home-v6-copy h2{font-size:clamp(3rem,15vw,4.6rem)!important}
+ .gd-home-v6-copy p{font-size:13px!important}
+ .gd-home-v6-actions{display:grid!important;grid-template-columns:1fr!important}
+ .gd-home-v6-proof{gap:8px!important;line-height:1.5}
+ .gd-home-v6-scene{height:350px!important}
+ .gd-home-v6-image{top:12px!important;right:2%!important;width:91%!important;height:325px!important}
+ .gd-home-v6-image-bottom strong{font-size:24px!important}
+ .gd-home-v6-card{padding:9px 10px!important}.gd-home-v6-card>span{width:29px;height:29px!important}.gd-home-v6-card b{font-size:9px!important}.gd-home-v6-card small{font-size:8px!important}
+ .gd-home-v6-card-top{left:-2%!important}.gd-home-v6-card-bottom{right:-2%!important}
+ .gd-home-v6-price{left:0!important;bottom:0!important;padding:10px 12px!important}.gd-home-v6-price strong{font-size:20px!important}
+ .gd-home-v6-search{width:calc(100% - 20px)!important;margin:-35px auto 0!important;padding:17px!important;border-radius:18px!important}
+ .gd-home-v6-search-head{display:block!important}.gd-home-v6-search-head p{margin-top:5px!important}
+ .gd-home-v6-bottom{width:calc(100% - 28px)!important;grid-template-columns:1fr!important;margin-top:45px!important}
+ .gd-home-v6-feature{border-left:0!important;border-top:1px solid #d5dfdc!important;padding:16px 0!important}
+}
+</style>
 </head>
 
 <body>
@@ -3282,25 +3473,25 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
   <div class="gd-home-v6-hero">
     <div class="gd-home-v6-grid"></div>
     <div class="gd-home-v6-copy">
-      <div class="gd-home-v6-kicker"><span class="gd-home-v6-kicker-dot"></span> GHAR DEKHO • FIND YOUR SPACE</div>
-      <h2>Not just a rental.<br><span>Your next chapter.</span></h2>
-      <p>Explore homes, PGs and hostels that fit your budget, location and lifestyle. Search nearby, save what you love and book a visit in minutes.</p>
+      <div class="gd-home-v6-kicker"><span class="gd-home-v6-kicker-dot"></span> GHAR DEKHO / RENTAL DISCOVERY</div>
+      <h2>Find a place<br><span>that feels like yours.</span></h2>
+      <p>A better way to discover homes, PGs and hostels. Search by what matters, see what is nearby, and move from shortlist to visit without the usual rental chaos.</p>
       <div class="gd-home-v6-actions">
         <button type="button" onclick="document.getElementById('locationInput').focus();document.querySelector('.gd-home-v6-search').scrollIntoView({behavior:'smooth',block:'center'});">Explore homes <span>→</span></button>
         <button type="button" class="gd-home-v6-ghost" id="gdV6NearMe" onclick="document.getElementById('nearMeBtn').click();">📍 Homes near me</button>
       </div>
-      <div class="gd-home-v6-proof"><span><b>10K+</b> searches</span><i></i><span><b>24/7</b> access</span><i></i><span><b>3 km</b> nearby discovery</span></div>
+      <div class="gd-home-v6-proof"><span><b>CURATED</b> rental discovery</span><i></i><span><b>NEARBY</b> homes around you</span><i></i><span><b>SIMPLE</b> visit requests</span></div>
     </div>
     <div class="gd-home-v6-scene" aria-hidden="true">
       <div class="gd-home-v6-glow"></div>
       <div class="gd-home-v6-image">
         <div class="gd-home-v6-image-overlay"></div>
         <div class="gd-home-v6-image-top"><span>FEATURED SPACE</span><b>♡</b></div>
-        <div class="gd-home-v6-image-bottom"><small>MODERN LIVING</small><strong>Find somewhere<br>worth coming home to.</strong></div>
+        <div class="gd-home-v6-image-bottom"><small>GHAR DEKHO / FEATURED</small><strong>A home should<br>feel like a choice.</strong></div>
       </div>
       <div class="gd-home-v6-card gd-home-v6-card-top"><span>📍</span><div><b>Nearby discovery</b><small>Homes within your radius</small></div></div>
       <div class="gd-home-v6-card gd-home-v6-card-bottom"><span>✓</span><div><b>Ready to explore</b><small>Search • Save • Visit</small></div></div>
-      <div class="gd-home-v6-price"><small>START EXPLORING</small><strong>₹5k+</strong><span>rental options</span></div>
+      <div class="gd-home-v6-price"><small>START YOUR SEARCH</small><strong>01</strong><span>choose • shortlist • visit</span></div>
     </div>
   </div>
 
@@ -3326,7 +3517,7 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
   </div>
 
   <div class="gd-home-v6-bottom">
-    <div><span>THE GHAR DEKHO WAY</span><h3>A calmer way to find where you belong.</h3></div>
+    <div><span>THE GHAR DEKHO WAY</span><h3>Less searching. More certainty.</h3></div>
     <div class="gd-home-v6-feature"><b>01</b><strong>Discover</strong><p>Search by area, budget, BHK and stay type.</p></div>
     <div class="gd-home-v6-feature"><b>02</b><strong>Shortlist</strong><p>Save the homes you genuinely like.</p></div>
     <div class="gd-home-v6-feature"><b>03</b><strong>Visit</strong><p>Request a visit without the back-and-forth.</p></div>
