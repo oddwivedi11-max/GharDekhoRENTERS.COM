@@ -8685,6 +8685,10 @@ async function updateVisitStatus(visitId, newStatus) {
     }
 }
 
+/* Keep the owner visit actions callable from dynamically-rendered buttons. */
+window.updateVisitStatus = updateVisitStatus;
+window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
+
 /* ==================================================
    OWNER - VISIT REQUESTS
    ================================================== */
