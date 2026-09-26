@@ -4328,6 +4328,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <div id="backendMessage" class="backend-message"></div>
     <div class="search-box gd-search-v6">
       <label class="gd-v6-search-field gd-v6-location"><span>LOCATION</span><input type="text" id="locationInput" name="gd_search_location_x7k2" placeholder="City, area, PG or hostel" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
+      <label class="gd-v6-search-field"><span>PROPERTY STATUS</span><select id="propertyStatusSelect" aria-label="Property availability"><option value="">All Properties</option><option value="vacant">Vacant Properties</option></select></label>
       <label class="gd-v6-search-field"><span>STAY TYPE</span><select id="listingTypeSelect" aria-label="Listing type"><option value="">All stays</option><option value="home">🏠 Homes</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostels</option></select></label>
       <label class="gd-v6-search-field"><span>SIZE</span><select id="bhkSelect"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
       <label class="gd-v6-search-field"><span>BUDGET</span><select id="budgetSelect"><option value="">Any Budget</option><option value="5000">Up to ₹5,000</option><option value="10000">Up to ₹10,000</option><option value="15000">Up to ₹15,000</option><option value="20000">Up to ₹20,000</option><option value="30000">Up to ₹30,000</option></select></label>
@@ -7338,6 +7339,7 @@ async function renderActiveDashboard() {
             const bhk = document.getElementById("bhkSelect")?.value || "";
             const budget = document.getElementById("budgetSelect")?.value || "";
             const furnishing = document.getElementById("furnishedSelect")?.value || "";
+            const propertyStatus = document.getElementById("propertyStatusSelect")?.value || "";
 
             const filtered =
                 allProperties.filter(function (property) {
@@ -7372,12 +7374,22 @@ async function renderActiveDashboard() {
                         !furnishing ||
                         property.furnishing === furnishing;
 
+                    // "Vacant Properties" means a verified listing with no current occupancy.
+                    // The database uses "verified" for vacant/available listings and
+                    // "occupied" for currently occupied listings.
+                    const propertyStatusMatch =
+                        !propertyStatus ||
+                        (propertyStatus === "vacant"
+                            ? property.status === "verified"
+                            : true);
+
                     return (
                         locationMatch &&
                         listingTypeMatch &&
                         bhkMatch &&
                         budgetMatch &&
-                        furnishingMatch
+                        furnishingMatch &&
+                        propertyStatusMatch
                     );
                 });
 
@@ -9504,6 +9516,8 @@ function updateStayTypeFields() {
             if (nearMeBtn) nearMeBtn.addEventListener("click", findPropertiesNearMe);
             if (liveNearbyBtn) liveNearbyBtn.addEventListener("click", startLiveNearby);
             if (listingTypeSelect) listingTypeSelect.addEventListener("change", filterProperties);
+            const propertyStatusSelect = document.getElementById("propertyStatusSelect");
+            if (propertyStatusSelect) propertyStatusSelect.addEventListener("change", filterProperties);
             if (propertyListingType) propertyListingType.addEventListener("change", updateStayTypeFields);
             if (locationInput) locationInput.addEventListener("keydown", event => {
                 if (event.key === "Enter") {
