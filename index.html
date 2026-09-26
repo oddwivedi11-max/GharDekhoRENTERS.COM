@@ -5599,7 +5599,29 @@ async function loginUser() {
         }
 
         currentUser = data.user;
-        // Lock the destination to the role selected on this login form.
+
+        // IMPORTANT: the same Gmail account can be used as both Owner and Renter.
+        // If Renter was selected on this login, make sure renter access is also
+        // present in the account's persistent roles. This does NOT remove Owner.
+        if (selectedLoginRole === "renter") {
+            const { data: profileBeforeRoleSync } = await supabaseClient
+                .from("users")
+                .select("id,name,email,phone,role,roles")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            currentProfile = profileBeforeRoleSync || currentProfile;
+            if (currentProfile) {
+                const renterRoleReady = await saveActiveAccountRole("renter");
+                if (!renterRoleReady) {
+                    console.error("Could not enable Renter access for this account.");
+                    authMessage.textContent = "Login succeeded, but Renter access could not be enabled. Please try again.";
+                    return;
+                }
+            }
+        }
+
+        // Lock the destination to the role selected on this login.
         // Do not let an older session/dashboard state decide where the user lands.
         activeRole = selectedLoginRole;
         pendingLoginRole = selectedLoginRole;
