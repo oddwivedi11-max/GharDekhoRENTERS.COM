@@ -4944,16 +4944,58 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
         }
 
         
+function applyLoginRolePresentation(role){
+    const selectedRole = role === "owner" ? "owner" : "renter";
+    const title=document.getElementById("premiumAuthTitle");
+    const intro=document.getElementById("premiumAuthIntro");
+    const brand=document.getElementById("gdAuthBrandText");
+    const hint=document.getElementById("loginRoleHint");
+    const benefit=document.getElementById("gdAuthBenefit3");
+
+    if(title) title.textContent = selectedRole === "owner" ? "Welcome back, Owner" : "Welcome back, Renter";
+    if(intro) intro.textContent = selectedRole === "owner"
+        ? "Sign in to manage properties, listings and renter visits."
+        : "Sign in to discover homes, save properties and manage visits.";
+    if(brand) brand.textContent = selectedRole === "owner"
+        ? "A premium workspace for owners to list, edit and manage their rental properties."
+        : "A polished rental experience for discovering homes and arranging visits.";
+    if(benefit) benefit.textContent = selectedRole === "owner"
+        ? "Manage your listings with ease"
+        : "Find homes that fit your needs";
+    if(hint) hint.textContent = selectedRole === "owner"
+        ? "Use the same email and password. If Owner access is not enabled yet, Ghar Dekho will enable it for this account."
+        : "Use the same email and password to enter your Renter dashboard.";
+}
+
+function bindLoginRoleControls(){
+    const renter=document.getElementById("roleRenter");
+    const owner=document.getElementById("roleOwner");
+    [renter,owner].forEach(function(control){
+        if(!control || control.dataset.gdRoleBound==="1") return;
+        control.dataset.gdRoleBound="1";
+        control.addEventListener("change",function(){
+            if(!control.checked) return;
+            const role=control.value === "owner" ? "owner" : "renter";
+            pendingLoginRole=role;
+            activeRole=role;
+            sessionStorage.setItem("gd_pending_login_role",role);
+            sessionStorage.setItem("gd_active_role",role);
+            applyLoginRolePresentation(role);
+        });
+    });
+}
+
 function clearAuthFormFields(){
     const ids=["userName","userEmail","userPhone","userPassword","newPassword","confirmNewPassword"];
     ids.forEach(id=>{const el=document.getElementById(id);if(el){el.value="";el.setAttribute("autocomplete",id==="userPassword"?"new-password":"off");}});
     const renter=document.getElementById("roleRenter"),owner=document.getElementById("roleOwner");
-    if(renter)renter.checked=true;
-    if(owner)owner.checked=false;
+    const roleToRestore = pendingLoginRole === "owner" ? "owner" : "renter";
+    if(renter) renter.checked = roleToRestore === "renter";
+    if(owner) owner.checked = roleToRestore === "owner";
+    bindLoginRoleControls();
+    applyLoginRolePresentation(roleToRestore);
     const msg=document.getElementById("authMessage");
     if(msg)msg.textContent="";
-    const hint=document.getElementById("loginRoleHint");
-    if(hint)hint.textContent="Choose the account type when creating a new account. Your saved account role controls the dashboard after login.";
 }
 
 function openLoginSection(role){
@@ -4984,19 +5026,26 @@ function openLoginSection(role){
     return false;
 }
 function openLoginAs(role){
-    pendingLoginRole = role === "owner" ? "owner" : "renter";
-    sessionStorage.setItem("gd_pending_login_role", pendingLoginRole);
-    const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),benefit=document.getElementById("gdAuthBenefit3"),o=document.getElementById("roleOwner"),r=document.getElementById("roleRenter");
-    const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");
-    openLoginSection(role);
-    if(gateway)gateway.style.display="none";
-    if(form)form.style.display="grid";
-    if(o)o.checked=role==="owner";if(r)r.checked=role!=="owner";
-    if(title)title.textContent=role==="owner"?"Welcome back, Owner":"Welcome back, Renter";
-    if(intro)intro.textContent=role==="owner"?"Sign in to manage properties, listings and renter visits.":"Sign in to discover homes, save properties and manage visits.";
-    if(brand)brand.textContent=role==="owner"?"A premium workspace for owners to list, edit and manage their rental properties.":"A polished rental experience for discovering homes and arranging visits.";
-    if(benefit)benefit.textContent=role==="owner"?"Manage your listings with ease":"Find homes that fit your needs";
-    if(hint)hint.textContent=role==="owner"?"Use the same email and password. If Owner access is not enabled yet, Ghar Dekho will enable it for this account.":"Use the same email and password to enter your Renter dashboard.";
+    const selectedRole = role === "owner" ? "owner" : "renter";
+    pendingLoginRole = selectedRole;
+    activeRole = selectedRole;
+    sessionStorage.setItem("gd_pending_login_role", selectedRole);
+    sessionStorage.setItem("gd_active_role", selectedRole);
+
+    const o=document.getElementById("roleOwner");
+    const r=document.getElementById("roleRenter");
+    const gateway=document.getElementById("gdAuthGateway");
+    const form=document.getElementById("gdAuthFormShell");
+
+    openLoginSection(selectedRole);
+
+    if(gateway) gateway.style.display="none";
+    if(form) form.style.display="grid";
+    if(o) o.checked = selectedRole === "owner";
+    if(r) r.checked = selectedRole === "renter";
+
+    bindLoginRoleControls();
+    applyLoginRolePresentation(selectedRole);
 }
 function openAdminLogin(){openLoginSection();const gateway=document.getElementById("gdAuthGateway"),form=document.getElementById("gdAuthFormShell");if(gateway)gateway.style.display="none";if(form)form.style.display="grid";const title=document.getElementById("premiumAuthTitle"),intro=document.getElementById("premiumAuthIntro"),brand=document.getElementById("gdAuthBrandText"),hint=document.getElementById("loginRoleHint"),signup=document.getElementById("signupBtn"),google=document.getElementById("googleLoginBtn"),roleSwitch=document.querySelector(".role-switch"),adminBtn=document.getElementById("adminLoginModeBtn");if(title)title.textContent="Admin Login";if(intro)intro.textContent="Secure administrator access. Email and password only.";if(brand)brand.textContent="Restricted Ghar Dekho administration workspace.";if(hint)hint.textContent="Only the authorized admin account can enter the Admin Control Center.";if(signup)signup.style.display="none";if(google)google.style.display="none";if(roleSwitch)roleSwitch.style.display="none";if(adminBtn)adminBtn.style.display="none";}
         function openOwnerArea() {
