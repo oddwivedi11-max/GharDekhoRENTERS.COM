@@ -7353,7 +7353,6 @@ async function updateVisitStatus(visitId, newStatus) {
     const file=document.getElementById('propertyImageFile');
     const drop=document.querySelector('.gd-upload-dropzone');
     const choose=document.getElementById('choosePropertyImageBtn');
-    if(file && choose && !choose.dataset.v7Ready){choose.dataset.v7Ready='1'; choose.addEventListener('click',()=>file.click());}
     if(file && drop && !drop.dataset.v7Ready){
       drop.dataset.v7Ready='1';
       ['dragenter','dragover'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('gd-upload-drag')}));
