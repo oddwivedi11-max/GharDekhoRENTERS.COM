@@ -4496,7 +4496,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <div class="gd-v4-field-grid">
       <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
       <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" name="gd_new_email" placeholder="you@example.com" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
-      <label class="gd-v4-field"><span>Phone</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_contact_mobile_new" placeholder="9876543210" inputmode="numeric" autocomplete="new-password" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
+      <label class="gd-v4-field"><span>Phone</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="9876543210" inputmode="numeric" autocomplete="off" readonly maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use the same email and password for both dashboards. Your selected dashboard is remembered for this login.</p></div>
@@ -4534,7 +4534,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
             <h2>Request a Visit</h2>
             <p id="selectedPropertyText"></p>
             <input type="text" id="visitName" placeholder="Your name" required>
-            <span class="gd-phone-wrap gd-visit-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="visitPhone" name="gd_visit_mobile_new" placeholder="9876543210" inputmode="numeric" autocomplete="new-password" maxlength="10" required></span>
+            <span class="gd-phone-wrap gd-visit-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="visitPhone" name="gd_visit_mobile_x7" placeholder="9876543210" inputmode="numeric" autocomplete="off" readonly maxlength="10" required></span>
             <input type="date" id="visitDate" required>
             <input type="time" id="visitTime" required>
             <button id="bookVisitBtn" type="button">Request Visit</button>
@@ -11169,13 +11169,35 @@ html,body{max-width:100%;overflow-x:hidden!important}
       // Login/signup and visit forms must always start empty.
       // Do not allow Chrome's saved phone number to become the user's new input.
       if(id==="userPhone" || id==="visitPhone"){
+        // Keep the new-number field readonly until the user explicitly taps it.
+        // This prevents Chrome saved-form autofill from inserting the previous
+        // phone number before the user has started typing.
         input.value="";
         input.defaultValue="";
-        const clearSaved=function(){ if(!input.dataset.gdUserStarted) input.value=""; };
+        input.readOnly=true;
+
+        const clearSaved=function(){
+          if(!input.dataset.gdUserStarted && document.activeElement!==input){
+            input.value="";
+            input.defaultValue="";
+          }
+        };
         requestAnimationFrame(clearSaved);
-        setTimeout(clearSaved,50);
-        setTimeout(clearSaved,250);
-        setTimeout(clearSaved,1000);
+        setTimeout(clearSaved,100);
+        setTimeout(clearSaved,500);
+        setTimeout(clearSaved,1500);
+
+        input.addEventListener("focus",function(){
+          if(!input.dataset.gdUserStarted){
+            input.value="";
+            input.defaultValue="";
+          }
+          input.readOnly=false;
+        },{capture:true});
+
+        input.addEventListener("click",function(){
+          input.readOnly=false;
+        });
       } else input.value=localDigits(input.value);
 
       input.addEventListener("input",function(){
