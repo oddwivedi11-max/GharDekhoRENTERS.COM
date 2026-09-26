@@ -1597,6 +1597,16 @@ footer {
 .dashboard-secondary-action { background:#e8f3f1; color:#174a47; }
 .dashboard-primary-action:hover,
 .dashboard-secondary-action:hover { transform:translateY(-1px); }
+.owner-quick-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:10px}
+.owner-saved-properties-card{width:100%;margin:0 0 18px;border:1px solid #eadfd4;background:linear-gradient(180deg,#fff 0%,#fffaf5 100%);box-shadow:0 10px 30px rgba(80,55,30,.07)}
+.owner-saved-properties-card .dashboard-card-heading h3{font-size:21px}
+.owner-saved-properties-card .dashboard-muted{margin:5px 0 0}
+#ownerSavedContainer{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#ownerSavedContainer .owner-property-row{margin:0;min-width:0;background:#fffaf5}
+#ownerSavedContainer .saved-view-btn{margin-top:10px;min-height:42px;padding:0 16px;border:0;border-radius:10px;background:#1f5f5b;color:#fff;font-weight:800;cursor:pointer}
+#ownerSavedContainer .saved-view-btn:hover{background:#174a47}
+#ownerSavedPropertiesBtn{background:#fff3e7;color:#8a531f;border:1px solid #f0d2b1}
+@media(max-width:680px){#ownerSavedContainer{grid-template-columns:1fr}.owner-quick-actions{justify-content:flex-start}}
 .renter-saved-properties-card{width:100%;margin:0 0 18px;border:1px solid #cfe1dc;background:linear-gradient(180deg,#fff 0%,#fbfdfc 100%);box-shadow:0 10px 30px rgba(23,74,71,.07)}
 .renter-saved-properties-card .dashboard-card-heading h3{font-size:21px}
 .renter-saved-properties-card .dashboard-muted{margin:5px 0 0}
@@ -4619,8 +4629,23 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
                             <h3>Explore Near Me</h3>
                             <p class="dashboard-muted">Use the same search, nearby discovery, save and visit experience as a renter — without leaving your Owner account.</p>
                         </div>
-                        <button type="button" class="dashboard-primary-action owner-explore-btn" id="ownerExploreNearbyBtn">📍 Explore Near Property by Me</button>
+                        <div class="owner-quick-actions">
+                            <button type="button" class="dashboard-primary-action owner-explore-btn" id="ownerExploreNearbyBtn">📍 Explore Near Property by Me</button>
+                            <button type="button" class="dashboard-secondary-action" id="ownerSavedPropertiesBtn">❤️ Saved Properties</button>
+                        </div>
                     </div>
+                </div>
+
+                <div class="dashboard-card owner-saved-properties-card" id="ownerSavedPropertiesSection">
+                    <div class="dashboard-card-heading">
+                        <div>
+                            <span class="dashboard-section-kicker">FAVOURITES</span>
+                            <h3>Saved Properties</h3>
+                            <p class="dashboard-muted">Properties you saved while exploring. These favourites are private to your Owner account.</p>
+                        </div>
+                        <span class="dashboard-mini-badge" id="ownerSavedSectionCount">0 saved</span>
+                    </div>
+                    <div id="ownerSavedContainer"><p class="dashboard-empty">No saved properties yet.</p></div>
                 </div>
 
                 <div class="dashboard-card owner-add-property-card" id="ownerAddPropertyCard">
@@ -6238,7 +6263,7 @@ async function renderActiveDashboard() {
         if (roleBadge) roleBadge.textContent = "OWNER";
         if (dashboardIdentity) dashboardIdentity.textContent =
             (currentProfile?.name || "User") + " • Owner";
-        await Promise.allSettled([loadOwnerProperties(), loadOwnerVisits()]);
+        await Promise.allSettled([loadOwnerProperties(), loadOwnerVisits(), loadSavedProperties()]);
         return;
     }
 
@@ -8614,8 +8639,10 @@ async function updateVisitStatus(visitId, newStatus) {
 }
         
         async function loadSavedProperties() {
-            if (!currentUser || activeRole !== "renter") return;
-            const container = document.getElementById("renterSavedContainer");
+            if (!currentUser || (activeRole !== "renter" && activeRole !== "owner")) return;
+            const isOwnerSavedView = activeRole === "owner";
+            const container = document.getElementById(isOwnerSavedView ? "ownerSavedContainer" : "renterSavedContainer");
+            if (!container) return;
             const { data: savedRows, error } = await supabaseClient
                 .from("saved_properties")
                 .select("property_id,created_at")
@@ -8625,16 +8652,16 @@ async function updateVisitStatus(visitId, newStatus) {
             if (error) {
                 console.error("Saved properties error:", error);
                 container.innerHTML = "<p>Unable to load saved homes right now.</p>";
-                const savedEl = document.getElementById("renterSavedCount");
+                const savedEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedCount");
                 if (savedEl) savedEl.textContent = "—";
-                const savedSectionCountEl = document.getElementById("renterSavedSectionCount");
+                const savedSectionCountEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedSectionCount");
                 if (savedSectionCountEl) savedSectionCountEl.textContent = "Unavailable";
                 return;
             }
 
-            const savedCountEl = document.getElementById("renterSavedCount");
-            const savedSectionCountEl = document.getElementById("renterSavedSectionCount");
             const savedTotal = savedRows?.length || 0;
+            const savedCountEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedCount");
+            const savedSectionCountEl = document.getElementById(isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedSectionCount");
             if (savedCountEl) savedCountEl.textContent = String(savedTotal);
             if (savedSectionCountEl) savedSectionCountEl.textContent = savedTotal + " saved";
 
@@ -8677,7 +8704,17 @@ async function updateVisitStatus(visitId, newStatus) {
             });
         }
 
-        function bindRenterSavedPropertiesShortcut() {
+        function bindOwnerSavedPropertiesShortcut() {
+    const btn=document.getElementById("ownerSavedPropertiesBtn");
+    const section=document.getElementById("ownerSavedPropertiesSection");
+    if(!btn||!section||btn.dataset.gdSavedBound==="1") return;
+    btn.dataset.gdSavedBound="1";
+    btn.addEventListener("click",function(){section.scrollIntoView({behavior:"smooth",block:"start"});});
+}
+bindOwnerSavedPropertiesShortcut();
+new MutationObserver(bindOwnerSavedPropertiesShortcut).observe(document.body,{childList:true,subtree:true});
+
+function bindRenterSavedPropertiesShortcut() {
     const btn=document.getElementById("renterSavedPropertiesBtn");
     const section=document.getElementById("renterSavedPropertiesSection");
     if(!btn||!section||btn.dataset.gdSavedBound==="1") return;
