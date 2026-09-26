@@ -3177,6 +3177,16 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 #addPropertyForm .small-text{display:none!important}
 .gd-owner-modal-sub{display:none!important}
 </style>
+<style id="ghardekho-current-renters-v11">
+.gd-current-renter-card-v2{align-items:flex-start!important;padding:17px!important}
+.gd-current-renter-card-v2 .gd-current-renter-main{gap:5px}
+.gd-renter-property-label{font-size:7px;letter-spacing:.16em;font-weight:1000;color:#176b63;margin-top:3px}
+.gd-current-renter-card-v2 .gd-current-renter-property{font-size:14px;font-weight:900;color:#173b35}
+.gd-current-renter-address{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:650px;font-size:10px;color:#6f7f7a}
+.gd-current-renter-facts{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.gd-current-renter-facts span{padding:5px 8px;border:1px solid #dce7e3;border-radius:8px;background:#fff;font-size:8px;font-weight:800;color:#5e716b}
+@media(max-width:600px){.gd-current-renter-card-v2{padding:13px!important}.gd-current-renter-card-v2 .gd-current-renter-avatar{width:40px;height:40px;flex-basis:40px}.gd-current-renter-card-v2 .gd-current-renter-property{font-size:12px}.gd-current-renter-address{max-width:230px}.gd-current-renter-facts{gap:4px}}
+</style>
 </head>
 
 <body>
@@ -6539,10 +6549,18 @@ async function loadOwnerCurrentRenters(properties) {
         const start = row.occupied_at ? new Date(row.occupied_at) : null;
         const startText = start && !Number.isNaN(start.getTime()) ? start.toLocaleDateString("en-IN", {day:"2-digit",month:"short",year:"numeric"}) : "—";
         const duration = start && !Number.isNaN(start.getTime()) ? formatRentalDuration(start) : "—";
-        return '<button type="button" class="gd-current-renter-card" data-occupancy-id="' + escapeHtml(row.id) + '">' +
+        const propertyName = p.title || p.name || "Rental property";
+        const propertyAddress = p.address || p.location || "Address not available";
+        const propertyType = p.listing_type ? String(p.listing_type).replace(/_/g, " ") : "Rental";
+        return '<button type="button" class="gd-current-renter-card gd-current-renter-card-v2" data-occupancy-id="' + escapeHtml(row.id) + '">' +
           '<div class="gd-current-renter-avatar">' + escapeHtml((row.renter_name || "R").trim().charAt(0).toUpperCase()) + '</div>' +
-          '<div class="gd-current-renter-main"><div class="gd-current-renter-top"><strong>' + escapeHtml(row.renter_name || "Renter") + '</strong><span class="gd-active-pill">● Active</span></div>' +
-          '<span class="gd-current-renter-property">' + escapeHtml(p.title || p.name || "Rental property") + '</span><span class="gd-current-renter-meta">Moved in ' + escapeHtml(startText) + ' · ' + escapeHtml(duration) + '</span></div>' +
+          '<div class="gd-current-renter-main">' +
+            '<div class="gd-current-renter-top"><strong>' + escapeHtml(row.renter_name || "Renter") + '</strong><span class="gd-active-pill">● Active</span></div>' +
+            '<div class="gd-renter-property-label">LIVING AT</div>' +
+            '<span class="gd-current-renter-property">' + escapeHtml(propertyName) + '</span>' +
+            '<span class="gd-current-renter-address">📍 ' + escapeHtml(propertyAddress) + '</span>' +
+            '<div class="gd-current-renter-facts"><span>' + escapeHtml(propertyType) + '</span><span>' + escapeHtml(formatRent(p.rent)) + '/month</span><span>Moved in ' + escapeHtml(startText) + '</span><span>' + escapeHtml(duration) + '</span></div>' +
+          '</div>' +
           '<span class="gd-current-renter-arrow">→</span></button>';
     }).join("");
 
