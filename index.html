@@ -4009,10 +4009,10 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <button type="button" class="gd-auth-back" onclick="closeLoginPage()">← Back to Ghar Dekho</button>
     <div class="gd-v4-form-head"><span class="gd-v4-form-kicker">WELCOME BACK</span><h2 id="premiumAuthTitle">Login / Create Account</h2><p id="premiumAuthIntro">Your next home is only a few clicks away.</p></div>
     <div class="gd-v4-field-grid">
-      <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" placeholder="Enter your name" autocomplete="name"></label>
-      <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" placeholder="you@example.com" autocomplete="email" name="gd_login_email"></label>
-      <label class="gd-v4-field"><span>Phone</span><input type="tel" id="userPhone" placeholder="+91 XXXXX XXXXX" inputmode="tel" autocomplete="tel"></label>
-      <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" placeholder="Minimum 8 characters" autocomplete="current-password" name="gd_login_password"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
+      <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
+      <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" name="gd_new_email" placeholder="you@example.com" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
+      <label class="gd-v4-field"><span>Phone</span><input type="tel" id="userPhone" name="gd_new_phone" placeholder="+91 XXXXX XXXXX" inputmode="tel" autocomplete="off" data-form-type="other"></label>
+      <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Choose the account type when creating a new account. Your saved account role controls the dashboard after login.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button">Login</button></div>
@@ -4469,7 +4469,20 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
             }
         }
 
-        function openLoginSection(){
+        
+function clearAuthFormFields(){
+    const ids=["userName","userEmail","userPhone","userPassword","newPassword","confirmNewPassword"];
+    ids.forEach(id=>{const el=document.getElementById(id);if(el){el.value="";el.setAttribute("autocomplete",id==="userPassword"?"new-password":"off");}});
+    const renter=document.getElementById("roleRenter"),owner=document.getElementById("roleOwner");
+    if(renter)renter.checked=true;
+    if(owner)owner.checked=false;
+    const msg=document.getElementById("authMessage");
+    if(msg)msg.textContent="";
+    const hint=document.getElementById("loginRoleHint");
+    if(hint)hint.textContent="Choose the account type when creating a new account. Your saved account role controls the dashboard after login.";
+}
+
+function openLoginSection(){
     const e=document.getElementById("loginSection");if(!e)return false;
     window.__gdAuthRequested=true;
     document.body.classList.add("gd-auth-page");
@@ -4483,6 +4496,9 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     if(gateway)gateway.style.display="block";
     if(form)form.style.display="none";
     try{history.pushState({gdAuth:true},"","#login");}catch(err){}
+    clearAuthFormFields();
+    setTimeout(clearAuthFormFields,120);
+    setTimeout(clearAuthFormFields,700);
     requestAnimationFrame(()=>e.scrollIntoView({behavior:"smooth",block:"start"}));
     return false;
 }
@@ -5298,10 +5314,23 @@ async function logoutUser() {
         currentProfile = null;
         currentProperty = null;
         activeRole = "renter";
+
+        // Never carry credentials or the previous login mode into a new session.
+        clearAuthFormFields();
+        try {
+            localStorage.removeItem("gd_last_login_email");
+            localStorage.removeItem("gd_last_login_name");
+            localStorage.removeItem("gd_last_login_phone");
+        } catch (e) {}
+
         await updateAuthUI();
-        // Logout always returns to the clean landing page.
-        const landing = document.getElementById("loggedOutLanding");
-        if (landing) landing.scrollIntoView({ behavior: "smooth", block: "start" });
+
+        // After logout, always open a completely clean renter login screen.
+        // This prevents the previous admin/owner/renter form from remaining visible.
+        openLoginAs("renter");
+        clearAuthFormFields();
+        setTimeout(clearAuthFormFields,120);
+        setTimeout(clearAuthFormFields,700);
     } finally {
         if (logoutBtn) { logoutBtn.disabled = false; logoutBtn.textContent = "Logout"; }
     }
