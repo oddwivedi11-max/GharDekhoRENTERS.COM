@@ -10622,6 +10622,33 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 })();
 </script>
 
+
+<style id="ghardekho-location-autocomplete-v1">
+#gdLocationSuggestions{position:absolute;left:12px;right:12px;top:calc(100% - 1px);z-index:30000;display:none;max-height:320px;overflow:auto;background:#fff;border:1px solid #dfe6e3;border-top:0;border-radius:0 0 14px 14px;box-shadow:0 14px 32px rgba(24,32,31,.14);padding:6px}
+.gd-location-suggestion{display:flex;align-items:flex-start;gap:10px;width:100%;min-height:48px;padding:10px 12px;border:0;border-radius:10px;background:#fff;color:#173a36;text-align:left;cursor:pointer;font-weight:700}
+.gd-location-suggestion:hover,.gd-location-suggestion:focus{background:#e8f3f1;outline:none}
+.gd-location-suggestion-icon{flex:0 0 auto;font-size:16px;line-height:1.4}.gd-location-suggestion-text{min-width:0}.gd-location-suggestion-main{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.gd-location-suggestion-sub{display:block;margin-top:2px;color:#71817c;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gd-location-loading,.gd-location-error{padding:12px;font-size:13px}.gd-location-loading{color:#71817c}.gd-location-error{color:#8a4b20}
+#locationInput.gd-location-open{border-radius:10px 10px 0 0!important}
+@media(max-width:680px){#gdLocationSuggestions{left:10px;right:10px}}
+</style>
+<script id="ghardekho-location-autocomplete-v1">
+/* GHARDEKHO LOCATION AUTOCOMPLETE V1 */
+(function(){
+  const API='https://nominatim.openstreetmap.org/search'; let timer=null,controller=null,lastQuery='';
+  function input(){return document.getElementById('locationInput')}
+  function box(){return document.getElementById('gdLocationSuggestions')}
+  function ensure(){const i=input();if(!i)return null;let b=box();if(b)return b;const p=i.parentElement;if(!p)return null;if(getComputedStyle(p).position==='static')p.style.position='relative';b=document.createElement('div');b.id='gdLocationSuggestions';b.setAttribute('role','listbox');p.appendChild(b);return b}
+  function hide(){const b=box(),i=input();if(b){b.style.display='none';b.innerHTML=''}if(i)i.classList.remove('gd-location-open')}
+  function msg(t,c){const b=ensure();if(!b)return;b.innerHTML='<div class="'+c+'">'+t+'</div>';b.style.display='block';const i=input();if(i)i.classList.add('gd-location-open')}
+  function esc(v){return String(v||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+  function render(data){const b=ensure(),i=input();if(!b||!i)return;b.innerHTML='';if(!data.length){msg('No matching locations found. Try a nearby area or city.','gd-location-error');return}data.forEach(function(p){const parts=(p.display_name||'').split(',').map(x=>x.trim()),name=p.name||parts[0],sub=parts.slice(1,4).join(', ');const btn=document.createElement('button');btn.type='button';btn.className='gd-location-suggestion';btn.setAttribute('role','option');btn.innerHTML='<span class="gd-location-suggestion-icon">📍</span><span class="gd-location-suggestion-text"><span class="gd-location-suggestion-main">'+esc(name)+'</span><span class="gd-location-suggestion-sub">'+esc(sub)+'</span></span>';btn.addEventListener('mousedown',e=>e.preventDefault());btn.addEventListener('click',function(){i.value=p.display_name||name;hide();i.dispatchEvent(new Event('change',{bubbles:true}));i.dispatchEvent(new Event('input',{bubbles:true}))});b.appendChild(btn)});b.style.display='block';i.classList.add('gd-location-open')}
+  async function search(q){if(!q.trim()){hide();return}if(q===lastQuery)return;lastQuery=q;if(controller)controller.abort();controller=new AbortController();msg('Searching locations…','gd-location-loading');const params=new URLSearchParams({q:q.trim(),format:'jsonv2',addressdetails:'1',limit:'6',countrycodes:'in','accept-language':'en'});try{const res=await fetch(API+'?'+params,{signal:controller.signal,headers:{Accept:'application/json'}});if(!res.ok)throw Error();render(await res.json())}catch(e){if(e.name!=='AbortError')msg('Location suggestions are temporarily unavailable. You can still type the location manually.','gd-location-error')}}
+  function bind(){const i=input();if(!i||i.dataset.gdLocationAutocomplete==='1')return;i.dataset.gdLocationAutocomplete='1';i.setAttribute('autocomplete','off');i.setAttribute('aria-autocomplete','list');i.addEventListener('input',function(){clearTimeout(timer);const q=i.value.trim();if(!q){hide();return}timer=setTimeout(()=>search(q),350)});i.addEventListener('focus',function(){const b=box();if(i.value.trim()&&b&&b.innerHTML){b.style.display='block';i.classList.add('gd-location-open')}});i.addEventListener('keydown',function(e){if(e.key==='Escape'){hide();return}if(e.key==='Enter'){const b=box(),f=b&&b.querySelector('.gd-location-suggestion');if(f&&b.style.display!=='none'){e.preventDefault();f.click()}}});document.addEventListener('click',function(e){const b=box();if(!b||e.target===i||b.contains(e.target))return;hide()})}
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bind);else bind();window.addEventListener('load',bind);new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 
 </html>
