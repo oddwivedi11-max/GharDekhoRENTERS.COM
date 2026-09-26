@@ -5842,11 +5842,38 @@ async function loginUser() {
                 homeSection.scrollIntoView({ behavior: "smooth", block: "start" });
             }
         } else {
+            // Owner login must persist Owner access before updateAuthUI/rendering.
+            // Otherwise an account whose users.roles still contains only renter
+            // can authenticate successfully but renderActiveDashboard() will
+            // reject the Owner destination because roles.includes("owner") is false.
+            const { data: profileBeforeOwnerSync } = await supabaseClient
+                .from("users")
+                .select("id,name,email,phone,role,roles")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            currentProfile = profileBeforeOwnerSync || currentProfile;
+            if (!currentProfile) {
+                authMessage.textContent = "Login succeeded, but your account profile could not be loaded. Please try again.";
+                return;
+            }
+
+            const ownerRoleReady = await saveActiveAccountRole("owner");
+            if (!ownerRoleReady) {
+                console.error("Could not enable Owner access for this account.");
+                authMessage.textContent = "Login succeeded, but Owner access could not be enabled. Please try again.";
+                return;
+            }
+
             sessionStorage.setItem("gd_login_destination", "owner");
             activeRole = "owner";
             pendingLoginRole = "owner";
             sessionStorage.setItem("gd_active_role", "owner");
             sessionStorage.setItem("gd_pending_login_role", "owner");
+
+            // Re-render from the now-updated profile so the Owner dashboard
+            // passes the canonical role check.
+            await updateAuthUI();
             setRoleSpecificUI("owner");
             await renderActiveDashboard();
             scrollToSection("dashboardSection");
