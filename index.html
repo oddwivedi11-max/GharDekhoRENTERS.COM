@@ -5840,20 +5840,51 @@ function closeOwnerProfileEditor(){document.getElementById("ownerProfileEditor")
 async function saveOwnerProfile(e){
     e.preventDefault();
     if(!currentUser||activeRole!=="owner") return;
+
     const name=document.getElementById("ownerProfileEditName").value.trim();
     const email=document.getElementById("ownerProfileEditEmail").value.trim().toLowerCase();
     const phone=document.getElementById("ownerProfileEditPhone").value.trim();
     const msg=document.getElementById("ownerProfileMessage");
-    if(!name||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){msg.textContent="Enter a valid name and email.";return;}
-    msg.textContent="Saving...";
-    const {data,error}=await supabaseClient.rpc("update_my_owner_profile",{p_name:name,p_email:email,p_phone:phone||null});
-    if(error){msg.textContent=getSafeErrorMessage(error,"Unable to update owner details.");return;}
-    currentOwnerProfile={...(currentOwnerProfile||{}),...data};
-    currentProfile={...(currentProfile||{}),name,email,phone};
-    updateOwnerProfileUI(currentOwnerProfile);
-    msg.textContent="Details updated successfully.";
-    showMessage("backendMessage","Owner profile updated successfully. ✓","success");
-    setTimeout(closeOwnerProfileEditor,500);
+    const saveButton=document.querySelector("#ownerProfileForm button[type='submit']");
+
+    if(!name||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+        msg.textContent="Enter a valid name and email.";
+        return;
+    }
+
+    if(saveButton){ saveButton.disabled=true; saveButton.textContent="Saving..."; }
+    msg.textContent="Saving your owner details...";
+
+    try{
+        const {data,error}=await supabaseClient.rpc("update_my_owner_profile",{
+            p_name:name,
+            p_email:email,
+            p_phone:phone||null
+        });
+
+        if(error){
+            console.error("Owner profile update failed:",error);
+            msg.textContent=getSafeErrorMessage(error,"Unable to save owner details. Please try again.");
+            showMessage("backendMessage",msg.textContent,"error");
+            return;
+        }
+
+        currentOwnerProfile={...(currentOwnerProfile||{}),...data};
+        currentProfile={...(currentProfile||{}),name,email,phone};
+
+        updateOwnerProfileUI(currentOwnerProfile);
+        updateDashboardProfile();
+
+        msg.textContent="Details updated successfully. ✓";
+        showMessage("backendMessage","Owner details saved successfully. ✓","success");
+        setTimeout(closeOwnerProfileEditor,700);
+    }catch(error){
+        console.error("Owner profile update exception:",error);
+        msg.textContent="Could not save details. Please try again.";
+        showMessage("backendMessage","Could not save owner details. Please try again.","error");
+    }finally{
+        if(saveButton){ saveButton.disabled=false; saveButton.textContent="Save details"; }
+    }
 }
 
 async function renderActiveDashboard() {
