@@ -4687,7 +4687,7 @@ async function renderActiveDashboard() {
                 error: propertyError
             } = await supabaseClient
                 .from("properties")
-                .select("id,owner_id,status")
+                .select("id,owner_id,status,verification_status")
                 .eq("id", currentProperty.id)
                 .maybeSingle();
 
