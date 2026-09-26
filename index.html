@@ -8537,6 +8537,137 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
 }
 </style>
 
+
+<!-- GHARDEKHO FINAL INTERACTION + CONTRAST REPAIR V1 -->
+<style id="ghardekho-final-interaction-contrast-v1">
+/* Header controls must remain above landing/auth layers. */
+header{position:relative!important;z-index:10000!important}
+header nav,header #loginBtn,header #logoutBtn{position:relative!important;z-index:10001!important;pointer-events:auto!important}
+#loginBtn{cursor:pointer!important}
+
+/* Make typed search text and dropdown values clearly readable. */
+.gd-search-v6 input,
+.gd-search-v6 select,
+.gd-search-v6 #locationInput{
+  color:#173a36!important;
+  -webkit-text-fill-color:#173a36!important;
+  caret-color:#0b766d!important;
+  font-weight:750!important;
+}
+.gd-search-v6 input::placeholder{color:#71817c!important;opacity:1!important}
+.gd-search-v6 input:-webkit-autofill{
+  -webkit-text-fill-color:#173a36!important;
+  box-shadow:0 0 0 1000px #fbfcfa inset!important;
+}
+.gd-search-v6 select option{color:#173a36!important;background:#fff!important}
+
+/* Auth back control must always be clickable. */
+body.gd-auth-page .gd-v4-auth-form,
+body.gd-auth-page .gd-auth-back,
+body.gd-auth-page .gd-auth-gateway-back{
+  pointer-events:auto!important;
+}
+body.gd-auth-page .gd-auth-back,
+body.gd-auth-page .gd-auth-gateway-back{
+  position:relative!important;
+  z-index:10020!important;
+  cursor:pointer!important;
+}
+
+/* Prevent visual layers from sitting above auth controls. */
+body.gd-auth-page #loginSection{position:relative!important;z-index:10000!important}
+body.gd-auth-page #gdAuthGateway,
+body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!important}
+
+/* Auth fields: typed text must remain dark and visible. */
+#userName,#userEmail,#userPhone,#userPassword{
+  color:#18201f!important;
+  -webkit-text-fill-color:#18201f!important;
+  caret-color:#0b766d!important;
+}
+#userName::placeholder,#userEmail::placeholder,#userPhone::placeholder,#userPassword::placeholder{
+  color:#7b8884!important;opacity:1!important;
+}
+</style>
+<script id="ghardekho-final-interaction-contrast-v1-js">
+(function(){
+  function showHomeFallback(){
+    document.body.classList.remove('gd-auth-page');
+    window.__gdAuthRequested=false;
+    const login=document.getElementById('loginSection');
+    const gateway=document.getElementById('gdAuthGateway');
+    const form=document.getElementById('gdAuthFormShell');
+    const landing=document.getElementById('loggedOutLanding');
+    const home=document.getElementById('homeSection');
+    const props=document.getElementById('propertiesSection');
+    const reset=document.getElementById('passwordResetSection');
+    if(login) login.style.display='none';
+    if(gateway) gateway.style.display='block';
+    if(form) form.style.display='none';
+    if(reset) reset.style.display='none';
+    if(landing) landing.style.display=document.body.classList.contains('gd-authenticated')?'none':'block';
+    if(home) home.style.display=document.body.classList.contains('gd-authenticated')?'block':'none';
+    if(props) props.style.display=document.body.classList.contains('gd-authenticated')?'block':'none';
+    try{history.replaceState({},'',window.location.pathname+window.location.search);}catch(err){}
+    requestAnimationFrame(function(){
+      const target=document.body.classList.contains('gd-authenticated')?home:landing;
+      if(target) target.scrollIntoView({behavior:'smooth',block:'start'});
+    });
+  }
+
+  function bindFinalControls(){
+    const bind=(selector,fn)=>{
+      document.querySelectorAll(selector).forEach(function(el){
+        if(el.dataset.gdFinalBound==='1') return;
+        el.dataset.gdFinalBound='1';
+        el.addEventListener('click',function(e){
+          e.preventDefault();
+          e.stopImmediatePropagation();
+          try{fn(el,e)}catch(err){console.error('GharDekho control error:',err)}
+        },true);
+      });
+    };
+
+    bind('#loginBtn',function(){
+      if(typeof window.openLoginSection==='function') window.openLoginSection();
+      else showHomeFallback();
+    });
+
+    bind('.gd-auth-back,.gd-auth-gateway-back',function(){
+      if(typeof window.closeLoginPage==='function') window.closeLoginPage();
+      else showHomeFallback();
+    });
+
+    bind('#signupBtn',function(){
+      if(typeof window.signupUser==='function') window.signupUser();
+    });
+    bind('#loginSubmitBtn',function(){
+      if(typeof window.loginUser==='function') window.loginUser();
+    });
+    bind('#googleLoginBtn',function(){
+      if(typeof window.loginWithGoogle==='function') window.loginWithGoogle();
+    });
+    bind('#adminLoginModeBtn',function(){
+      if(typeof window.openAdminLogin==='function') window.openAdminLogin();
+    });
+    bind('#forgotPasswordBtn',function(){
+      if(typeof window.forgotPassword==='function') window.forgotPassword();
+    });
+
+    const search=document.getElementById('locationInput');
+    if(search){
+      search.setAttribute('autocomplete','off');
+      search.setAttribute('spellcheck','false');
+    }
+  }
+
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',bindFinalControls);
+  else bindFinalControls();
+  window.addEventListener('load',bindFinalControls);
+  new MutationObserver(bindFinalControls).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 
 </html>
