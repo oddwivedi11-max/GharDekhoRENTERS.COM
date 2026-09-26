@@ -9429,16 +9429,45 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
     });
   }
   function repairLoggedOutState(){
+    /*
+     * IMPORTANT:
+     * Do not repaint the logged-out landing page while the app is still
+     * restoring Supabase auth or while #login is the active client route.
+     * The old version only checked body classes; on first load those classes
+     * can briefly be empty, so the window "load" handler brought the landing
+     * page back over the login/authenticated UI.
+     */
     const auth=document.body.classList.contains('gd-auth-page');
     const loggedIn=document.body.classList.contains('gd-authenticated');
+    const loginRoute=String(window.location.hash||'').toLowerCase()==='#login'
+      || window.__gdAuthRequested===true;
+    const hasCurrentUser=(typeof currentUser!=='undefined' && !!currentUser);
+
     const landing=document.getElementById('loggedOutLanding');
     const home=document.getElementById('homeSection');
     const props=document.getElementById('propertiesSection');
-    if(!auth && !loggedIn){
+    const login=document.getElementById('loginSection');
+    const dashboard=document.getElementById('dashboardSection');
+
+    if(loggedIn || hasCurrentUser){
+      if(landing)landing.style.display='none';
+      if(login)login.style.display='none';
+      if(home && document.body.classList.contains('gd-renter-mode'))home.style.display='block';
+      if(props && document.body.classList.contains('gd-renter-mode'))props.style.display='block';
+    }else if(auth || loginRoute){
+      if(landing)landing.style.display='none';
+      if(home)home.style.display='none';
+      if(props)props.style.display='none';
+      if(login)login.style.display='block';
+      document.body.classList.add('gd-auth-page');
+    }else{
       if(landing)landing.style.display='block';
       if(home)home.style.display='none';
       if(props)props.style.display='none';
+      if(login)login.style.display='none';
+      if(dashboard)dashboard.style.display='none';
     }
+
     bindGharDekhoControls();
   }
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindGharDekhoControls);
