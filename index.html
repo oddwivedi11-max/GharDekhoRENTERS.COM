@@ -8617,7 +8617,7 @@ async function loadOwnerCurrentRenters(properties) {
             '<span class="gd-current-renter-address">📍 ' + escapeHtml(propertyAddress) + '</span>' +
             '<div class="gd-current-renter-facts"><span>' + escapeHtml(propertyType) + '</span><span>' + escapeHtml(formatRent(p.rent)) + '/month</span><span>Moved in ' + escapeHtml(startText) + '</span><span>' + escapeHtml(duration) + '</span></div>' +
           '</div>' +
-          '<span class="gd-current-renter-arrow">→</span></button>';
+          '</button>';
     }).join("");
 
     container.querySelectorAll(".gd-current-renter-card").forEach(btn => btn.addEventListener("click", () => openCurrentRenterDetails(btn.dataset.occupancyId)));
