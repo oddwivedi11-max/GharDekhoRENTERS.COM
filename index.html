@@ -5827,15 +5827,30 @@ async function saveRenterProfile(e){
     const email=document.getElementById("renterProfileEditEmail").value.trim().toLowerCase();
     const phone=document.getElementById("renterProfileEditPhone").value.trim();
     const msg=document.getElementById("renterProfileMessage");
-    if(!name||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){msg.textContent="Enter a valid name and email.";return;}
-    msg.textContent="Saving...";
-    const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone||null});
-    if(error){msg.textContent=getSafeErrorMessage(error,"Unable to update renter details.");return;}
-    currentProfile={...(currentProfile||{}),...data,name,email,phone};
-    updateDashboardProfile();
-    msg.textContent="Details updated successfully.";
-    showMessage("backendMessage","Renter profile updated successfully. ✓","success");
-    setTimeout(closeRenterProfileEditor,500);
+    const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
+    if(!name||!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){msg.textContent="Enter a valid name and email.";return;}
+    if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
+    msg.textContent="Saving your renter details...";
+    try{
+        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone||null});
+        if(error){
+            console.error("Renter profile update failed:",error);
+            msg.textContent=getSafeErrorMessage(error,"Unable to save renter details. Please try again.");
+            showMessage("backendMessage",msg.textContent,"error");
+            return;
+        }
+        currentProfile={...(currentProfile||{}),...data,name,email,phone};
+        updateDashboardProfile();
+        msg.textContent="Details updated successfully. ✓";
+        showMessage("backendMessage","Renter details saved successfully. ✓","success");
+        setTimeout(closeRenterProfileEditor,700);
+    }catch(error){
+        console.error("Renter profile update exception:",error);
+        msg.textContent="Could not save renter details. Please try again.";
+        showMessage("backendMessage","Could not save renter details. Please try again.","error");
+    }finally{
+        if(saveButton){saveButton.disabled=false;saveButton.textContent="Save details";}
+    }
 }
 
 function updateOwnerProfileUI(ownerRecord) {
@@ -5870,7 +5885,7 @@ async function saveOwnerProfile(e){
     const msg=document.getElementById("ownerProfileMessage");
     const saveButton=document.querySelector("#ownerProfileForm button[type='submit']");
 
-    if(!name||!email||!/^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test(email)){
+    if(!name||!email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)){
         msg.textContent="Enter a valid name and email.";
         return;
     }
