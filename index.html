@@ -12200,6 +12200,27 @@ html,body{max-width:100%;overflow-x:hidden!important}
     border:1px solid #cbe8df!important;
   }
 }
+<style id="ghardekho-mobile-property-submit-visibility-v14">
+@media(max-width:680px){
+  /* Do not let the fixed mobile navigation cover the final submit action. */
+  body.gd-property-modal-active #gdMobileBottomNav{
+    display:none!important;
+  }
+  #ownerDashboard .owner-add-property-card.gd-property-modal-open form{
+    padding-bottom:110px!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+  }
+  #ownerDashboard .owner-add-property-card.gd-property-modal-open #addPropertyBtn{
+    display:block!important;
+    visibility:visible!important;
+    opacity:1!important;
+    min-height:54px!important;
+    height:54px!important;
+    margin:14px 0 0!important;
+  }
+}
+</style>
 </style>
 <script id="ghardekho-mobile-submit-v13-js">
 (function(){
