@@ -3317,6 +3317,21 @@ body{background:#f3f5f1!important}
 <style id="ghardekho-profile-edit-clean-v1">
 #ownerProfileMessage[hidden],#renterProfileMessage[hidden]{display:none!important}
 #ownerProfileForm input[type="text"],#renterProfileForm input[type="text"]{font-family:inherit}
+</style><style id="ghardekho-dashboard-premium-v2">
+.dashboard-card,.dashboard-stat-card{border:1px solid #d9e7e2!important;background:linear-gradient(145deg,#fff 0%,#fbfdfc 100%)!important;box-shadow:0 16px 40px rgba(12,53,47,.07)!important}
+.dashboard-card-heading h3{color:#123b35!important;font-weight:900!important;letter-spacing:-.035em!important}
+.dashboard-section-kicker{color:#0b756a!important;font-weight:1000!important;letter-spacing:.18em!important}
+.dashboard-mini-badge,.owner-badge{background:#edf8f5!important;color:#12675e!important;border:1px solid #cfe5df!important;font-weight:850!important}
+.dashboard-empty{min-height:72px!important;display:flex!important;align-items:center!important;padding:18px!important;border:1px dashed #cfdfda!important;border-radius:16px!important;background:linear-gradient(135deg,#f7fbfa,#fff)!important;color:#60736e!important;font-size:13px!important;font-weight:650!important}
+.renter-current-rental-card,.renter-account-card,.owner-profile-card{overflow:hidden}
+.renter-profile-grid{gap:12px!important}
+.renter-profile-grid>div{padding:18px!important;border:1px solid #dce8e4!important;border-radius:16px!important;background:#f9fcfb!important}
+.renter-profile-grid>div>span{color:#6c817b!important;font-size:10px!important;font-weight:900!important;letter-spacing:.08em!important;text-transform:uppercase}
+.renter-profile-grid>div>strong{display:block!important;margin-top:7px!important;color:#163c36!important;font-size:15px!important;font-weight:850!important;overflow-wrap:anywhere}
+.dashboard-stat-label{color:#6a7c77!important;font-weight:800!important}
+.dashboard-stat-card strong{color:#123b35!important;font-weight:950!important}
+#ownerProfileMessage[hidden],#renterProfileMessage[hidden]{display:none!important}
+#ownerProfileEditor .gd-property-editor-card,#renterProfileEditor .gd-property-editor-card{border:1px solid #d6e5e0!important;box-shadow:0 35px 100px rgba(7,31,28,.22)!important}
 </style></style>
 <style id="ghardekho-owner-flow-v7">
 /* Owner flow V7: inventory drill-down + add-property modal + media uploader */
@@ -5844,27 +5859,26 @@ async function saveRenterProfile(e){
     const name=document.getElementById("renterProfileEditName").value.trim();
     const email=document.getElementById("renterProfileEditEmail").value.trim().toLowerCase();
     const phone=document.getElementById("renterProfileEditPhone").value.trim();
-    const msg=document.getElementById("renterProfileMessage");
     const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
     if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
-    msg.textContent="Saving your renter details...";
     try{
         const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone||null});
         if(error){
             console.error("Renter profile update failed:",error);
-            msg.textContent=getSafeErrorMessage(error,"Unable to save renter details. Please try again.");
-            showMessage("backendMessage",msg.textContent,"error");
+            const raw=String(error?.message||"");
+            const message=raw.toLowerCase().includes("already used")
+                ?"That contact email is already linked to another Ghar Dekho account."
+                :"Unable to save renter details. Please try again.";
+            showMessage("backendMessage",message,"error");
             return;
         }
-        currentProfile={...(currentProfile||{}),...data,name,email,phone};
+        currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateDashboardProfile();
-        msg.textContent="Details updated successfully. ✓";
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
-        setTimeout(closeRenterProfileEditor,700);
+        closeRenterProfileEditor();
     }catch(error){
         console.error("Renter profile update exception:",error);
-        msg.textContent="Could not save renter details. Please try again.";
         showMessage("backendMessage","Could not save renter details. Please try again.","error");
     }finally{
         if(saveButton){saveButton.disabled=false;saveButton.textContent="Save details";}
@@ -5908,38 +5922,37 @@ async function saveOwnerProfile(e){
         return;
     }
 
-    if(saveButton){ saveButton.disabled=true; saveButton.textContent="Saving..."; }
-    msg.textContent="Saving your owner details...";
+    if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
+    if(msg){msg.textContent="";msg.hidden=true;}
 
     try{
         const {data,error}=await supabaseClient.rpc("update_my_owner_profile",{
-            p_name:name,
-            p_email:email,
-            p_phone:phone||null
+            p_name:name,p_email:email,p_phone:phone||null
         });
 
         if(error){
             console.error("Owner profile update failed:",error);
-            msg.textContent=getSafeErrorMessage(error,"Unable to save owner details. Please try again.");
-            showMessage("backendMessage",msg.textContent,"error");
+            const raw=String(error?.message||"");
+            let message="Unable to save owner details. Please try again.";
+            if(raw.toLowerCase().includes("already used")) message="That contact email is already linked to another Ghar Dekho account.";
+            else if(raw.toLowerCase().includes("owner profile not found")) message="Owner profile is not linked to this account yet.";
+            else if(raw.toLowerCase().includes("authentication")) message="Your session has expired. Please log in again.";
+            showMessage("backendMessage",message,"error");
             return;
         }
 
-        currentOwnerProfile={...(currentOwnerProfile||{}),...data};
-        currentProfile={...(currentProfile||{}),name,email,phone};
-
+        currentOwnerProfile={...(currentOwnerProfile||{}),...(data||{}),name,email,phone};
+        currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateOwnerProfileUI(currentOwnerProfile);
         updateDashboardProfile();
 
-        msg.textContent="Details updated successfully. ✓";
         showMessage("backendMessage","Owner details saved successfully. ✓","success");
-        setTimeout(closeOwnerProfileEditor,700);
+        closeOwnerProfileEditor();
     }catch(error){
         console.error("Owner profile update exception:",error);
-        msg.textContent="Could not save details. Please try again.";
         showMessage("backendMessage","Could not save owner details. Please try again.","error");
     }finally{
-        if(saveButton){ saveButton.disabled=false; saveButton.textContent="Save details"; }
+        if(saveButton){saveButton.disabled=false;saveButton.textContent="Save details";}
     }
 }
 
