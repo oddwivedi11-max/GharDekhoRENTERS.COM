@@ -3140,6 +3140,19 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
 .gd-image-url-row{display:grid;grid-template-columns:35px 1fr;align-items:center;gap:8px;margin-top:12px}.gd-image-url-row>span{text-align:center;font-size:8px;font-weight:1000;color:#9aa6a2}.gd-image-url-row input{height:43px!important;border:1px solid #dce5e2!important;border-radius:11px!important;padding:0 12px!important;background:#fff!important}
 @media(max-width:700px){#ownerDashboard .owner-add-property-card{width:calc(100% - 16px);max-height:92vh;border-radius:22px!important}#ownerDashboard .owner-form-grid{grid-template-columns:1fr!important}.gd-owner-modal-head{padding:20px 18px 16px}#ownerDashboard .owner-add-property-card form{padding:0 18px 22px}.gd-owner-image-v7{padding:13px!important}.gd-upload-dropzone{min-height:135px!important;flex-wrap:wrap}.gd-upload-dropzone>b{width:100%;text-align:center}.gd-upload-head{display:block}.gd-upload-limit{text-align:left;display:block;margin-top:6px}}
 </style>
+<style id="ghardekho-current-renters-v8">
+.gd-current-renter-card{width:100%;display:flex;align-items:center;gap:14px;text-align:left;border:1px solid #dce7e3!important;border-radius:18px!important;background:linear-gradient(135deg,#fff,#f5faf8)!important;padding:15px!important;margin:9px 0;box-shadow:0 8px 24px rgba(17,43,39,.045)!important;min-height:78px!important;color:#17312d!important}
+.gd-current-renter-card:hover{transform:translateY(-2px)!important;border-color:#b9d7cf!important;box-shadow:0 15px 32px rgba(17,43,39,.09)!important}
+.gd-current-renter-avatar{width:46px;height:46px;flex:0 0 46px;display:grid;place-items:center;border-radius:14px;background:#dff2ed;color:#176b63;font-size:17px;font-weight:1000}
+.gd-current-renter-main{min-width:0;flex:1;display:grid;gap:3px}.gd-current-renter-top{display:flex;align-items:center;gap:8px}.gd-current-renter-top strong{font-size:14px}.gd-active-pill{padding:4px 8px;border-radius:999px;background:#e5f7ed;color:#16734b;font-size:8px;font-weight:1000}.gd-current-renter-property{font-size:11px;color:#38544e}.gd-current-renter-meta{font-size:10px;color:#7c8985}.gd-current-renter-arrow{font-size:19px;color:#7c918b}
+.gd-renter-empty{padding:28px 18px;text-align:center;border:1px dashed #cddbd6;border-radius:17px;background:#f8fbfa}.gd-renter-empty-icon{margin:0 auto 8px;width:42px;height:42px;display:grid;place-items:center;border-radius:13px;background:#e7f4f0;color:#176b63;font-size:22px}.gd-renter-empty strong{font-size:14px}.gd-renter-empty p{max-width:500px;margin:5px auto 0;color:#7b8984;font-size:11px;line-height:1.6}
+.gd-mark-renter-btn{background:#176b63!important;color:#fff!important}
+.gd-current-renter-modal{display:none;position:fixed;inset:0;z-index:5000}.gd-current-renter-modal.active{display:block}.gd-current-renter-backdrop{position:absolute;inset:0;background:rgba(7,27,25,.55);backdrop-filter:blur(7px)}.gd-current-renter-dialog{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(620px,calc(100% - 28px));max-height:90vh;overflow:auto;border:1px solid #d9e5e0;border-radius:25px;background:#fff;box-shadow:0 35px 100px rgba(5,28,25,.27);padding:25px}
+.gd-renter-modal-head{display:flex;justify-content:space-between;gap:20px;padding-bottom:17px;border-bottom:1px solid #e5ece9}.gd-renter-modal-head h3{margin:5px 0 3px;font-size:28px;letter-spacing:-.05em}.gd-renter-modal-head p{margin:0;color:#7a8984;font-size:11px}.gd-renter-modal-close{width:38px!important;height:38px!important;min-height:38px!important;padding:0!important;border:1px solid #dce6e2!important;border-radius:11px!important;background:#f6faf8!important;font-size:19px!important}
+.gd-renter-detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}.gd-renter-detail-grid>div{padding:14px;border:1px solid #e0e8e5;border-radius:14px;background:#fafcfb;display:grid;gap:4px}.gd-renter-detail-grid span,.gd-renter-modal-note>span{font-size:8px;letter-spacing:.13em;font-weight:1000;color:#81908b}.gd-renter-detail-grid strong{font-size:12px;color:#203b35}.gd-renter-detail-grid small{font-size:10px;color:#7a8884}.gd-renter-detail-wide{grid-column:1/-1}.gd-status-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:#25a86b;margin-right:5px}
+.gd-renter-modal-note{margin-top:12px;padding:14px;border-radius:14px;background:#f0f8f5;border:1px solid #d6ebe5}.gd-renter-modal-note strong{display:block;margin-top:3px;font-size:13px;color:#176b63}.gd-renter-modal-note p{margin:5px 0 0;font-size:10px;line-height:1.55;color:#71817b}.gd-renter-modal-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}.gd-renter-modal-actions button{min-height:42px!important;border-radius:11px!important}.gd-release-renter-btn{background:#fff1f1!important;color:#a93636!important;border:1px solid #efc6c6!important}
+@media(max-width:600px){.gd-current-renter-dialog{padding:19px;border-radius:21px}.gd-renter-detail-grid{grid-template-columns:1fr}.gd-renter-detail-wide{grid-column:auto}.gd-renter-modal-actions{flex-direction:column}.gd-renter-modal-actions button{width:100%}}
+</style>
 </head>
 
 <body>
@@ -3620,10 +3633,10 @@ body.gd-property-modal-active:after{content:"";position:fixed;inset:0;z-index:29
                 <div class="dashboard-card owner-occupancy-card">
                     <div class="dashboard-card-heading">
                         <div>
-                            <span class="dashboard-section-kicker">OCCUPANCY</span>
-                            <h3>Current Tenants</h3>
+                            <span class="dashboard-section-kicker">ACTIVE RENTALS</span>
+                            <h3>Current Renters</h3>
                         </div>
-                        <span class="dashboard-mini-badge">Owner private</span>
+                        <span class="dashboard-mini-badge">Click a renter for details</span>
                     </div>
                     <div id="ownerOccupancyContainer"><p class="dashboard-empty">No property is occupied yet.</p></div>
                 </div>
@@ -6451,9 +6464,115 @@ async function loadOwnerProperties() {
             container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));
 
 
-            await loadOwnerOccupancies(data);
+            await loadOwnerCurrentRenters(data);
 
         }
+
+
+async function loadOwnerCurrentRenters(properties) {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
+    const container = document.getElementById("ownerOccupancyContainer");
+    if (!container) return;
+
+    const { data: rows, error } = await supabaseClient
+        .from("property_occupancies")
+        .select("id,property_id,renter_id,visit_id,renter_name,renter_phone,occupied_at,released_at")
+        .is("released_at", null)
+        .order("occupied_at", { ascending: false });
+
+    if (error) {
+        console.error("Current renters error:", error);
+        container.innerHTML = '<p class="dashboard-empty">Unable to load current renters right now.</p>';
+        return;
+    }
+
+    const activeRows = Array.isArray(rows) ? rows : [];
+    if (!activeRows.length) {
+        container.innerHTML = '<div class="gd-renter-empty"><div class="gd-renter-empty-icon">⌂</div><strong>No current renters</strong><p>When an approved visit becomes a rental, the renter will appear here with their move-in date and rental status.</p></div>';
+        return;
+    }
+
+    const ids = [...new Set(activeRows.map(r => r.property_id).filter(Boolean))];
+    const { data: propertyRows } = ids.length
+        ? await supabaseClient.from("properties").select("id,title,name,location,address,rent,listing_type,status").in("id", ids)
+        : { data: [] };
+    const propertyMap = new Map((propertyRows || []).map(p => [String(p.id), p]));
+
+    window.__gdCurrentRenters = activeRows.map(row => ({...row, property: propertyMap.get(String(row.property_id)) || {}}));
+
+    container.innerHTML = window.__gdCurrentRenters.map(row => {
+        const p = row.property || {};
+        const start = row.occupied_at ? new Date(row.occupied_at) : null;
+        const startText = start && !Number.isNaN(start.getTime()) ? start.toLocaleDateString("en-IN", {day:"2-digit",month:"short",year:"numeric"}) : "—";
+        const duration = start && !Number.isNaN(start.getTime()) ? formatRentalDuration(start) : "—";
+        return '<button type="button" class="gd-current-renter-card" data-occupancy-id="' + escapeHtml(row.id) + '">' +
+          '<div class="gd-current-renter-avatar">' + escapeHtml((row.renter_name || "R").trim().charAt(0).toUpperCase()) + '</div>' +
+          '<div class="gd-current-renter-main"><div class="gd-current-renter-top"><strong>' + escapeHtml(row.renter_name || "Renter") + '</strong><span class="gd-active-pill">● Active</span></div>' +
+          '<span class="gd-current-renter-property">' + escapeHtml(p.title || p.name || "Rental property") + '</span><span class="gd-current-renter-meta">Moved in ' + escapeHtml(startText) + ' · ' + escapeHtml(duration) + '</span></div>' +
+          '<span class="gd-current-renter-arrow">→</span></button>';
+    }).join("");
+
+    container.querySelectorAll(".gd-current-renter-card").forEach(btn => btn.addEventListener("click", () => openCurrentRenterDetails(btn.dataset.occupancyId)));
+}
+
+function formatRentalDuration(start) {
+    const now = new Date();
+    let months = (now.getFullYear() - start.getFullYear()) * 12 + (now.getMonth() - start.getMonth());
+    if (now.getDate() < start.getDate()) months--;
+    if (months >= 1) return months === 1 ? "1 month" : months + " months";
+    const days = Math.max(0, Math.floor((now - start) / 86400000));
+    return days <= 1 ? "Started today" : days + " days";
+}
+
+function openCurrentRenterDetails(occupancyId) {
+    const row = (window.__gdCurrentRenters || []).find(r => String(r.id) === String(occupancyId));
+    if (!row) return;
+    let modal = document.getElementById("gdCurrentRenterModal");
+    if (!modal) { modal = document.createElement("div"); modal.id = "gdCurrentRenterModal"; modal.className = "gd-current-renter-modal"; document.body.appendChild(modal); }
+    const p = row.property || {};
+    const start = row.occupied_at ? new Date(row.occupied_at) : null;
+    const startText = start && !Number.isNaN(start.getTime()) ? start.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}) : "—";
+    const duration = start && !Number.isNaN(start.getTime()) ? formatRentalDuration(start) : "—";
+    modal.innerHTML = '<div class="gd-current-renter-backdrop" data-close-renter-modal></div>' +
+      '<div class="gd-current-renter-dialog" role="dialog" aria-modal="true" aria-label="Current renter details">' +
+      '<div class="gd-renter-modal-head"><div><span class="dashboard-section-kicker">CURRENT RENTER</span><h3>' + escapeHtml(row.renter_name || "Renter") + '</h3><p>Active rental at ' + escapeHtml(p.title || p.name || "your property") + '</p></div><button type="button" class="gd-renter-modal-close" data-close-renter-modal>×</button></div>' +
+      '<div class="gd-renter-detail-grid">' +
+      '<div><span>RENTAL STATUS</span><strong><i class="gd-status-dot"></i> Active</strong></div>' +
+      '<div><span>MOVE-IN DATE</span><strong>' + escapeHtml(startText) + '</strong></div>' +
+      '<div><span>TIME IN PROPERTY</span><strong>' + escapeHtml(duration) + '</strong></div>' +
+      '<div><span>MONTHLY RENT</span><strong>' + escapeHtml(formatRent(p.rent)) + '</strong></div>' +
+      '<div class="gd-renter-detail-wide"><span>PROPERTY</span><strong>' + escapeHtml(p.title || p.name || "Rental property") + '</strong><small>' + escapeHtml(p.address || p.location || "Address not available") + '</small></div>' +
+      '<div class="gd-renter-detail-wide"><span>CONTACT</span><strong>' + escapeHtml(row.renter_phone || "Phone not provided") + '</strong></div></div>' +
+      '<div class="gd-renter-modal-note"><span>RENTAL CONDITION</span><strong>Active / Ongoing</strong><p>The current database tracks the renter, move-in date and active or released state. A separate physical-condition field is not currently stored.</p></div>' +
+      '<div class="gd-renter-modal-actions"><button type="button" class="secondary-button" data-close-renter-modal>Close</button><button type="button" class="danger-action gd-release-renter-btn" data-property-id="' + escapeHtml(row.property_id) + '">Release Renter</button></div></div>';
+    modal.classList.add("active");
+    modal.querySelectorAll("[data-close-renter-modal]").forEach(el => el.addEventListener("click", closeCurrentRenterDetails));
+    modal.querySelector(".gd-release-renter-btn")?.addEventListener("click", async () => {
+        if (!confirm("Release this renter and mark the property available again?")) return;
+        const btn = modal.querySelector(".gd-release-renter-btn"); btn.disabled = true;
+        const { error } = await supabaseClient.rpc("release_property_occupancy", {p_property_id: row.property_id});
+        if (error) { showMessage("backendMessage", getSafeErrorMessage(error, "Unable to release this renter."), "error"); btn.disabled = false; return; }
+        closeCurrentRenterDetails();
+        await Promise.allSettled([loadOwnerProperties(), loadOwnerVisits()]);
+    });
+}
+
+function closeCurrentRenterDetails() {
+    const modal = document.getElementById("gdCurrentRenterModal");
+    if (modal) modal.classList.remove("active");
+}
+
+async function markVisitAsCurrentRenter(visitId) {
+    if (!currentUser || activeRole !== "owner") return;
+    const btns = document.querySelectorAll('[data-visit-id="' + CSS.escape(String(visitId)) + '"]');
+    btns.forEach(b => b.disabled = true);
+    try {
+        const { error } = await supabaseClient.rpc("mark_property_occupied", {p_visit_id: visitId});
+        if (error) { showMessage("backendMessage", getSafeErrorMessage(error, "Unable to mark this renter as current."), "error"); return; }
+        showMessage("backendMessage", "Renter marked as current successfully.", "success");
+        await Promise.allSettled([loadOwnerProperties(), loadOwnerVisits()]);
+    } finally { btns.forEach(b => b.disabled = false); }
+}
 
 async function loadOwnerVisits() {
     if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
@@ -6523,7 +6642,12 @@ async function loadOwnerVisits() {
                     <button type="button" class="dashboard-primary-action" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','approved')">✓ Approve</button>
                     <button type="button" class="secondary-button owner-delete-property-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="updateVisitStatus('${escapeHtml(visit.id)}','rejected')">✕ Reject</button>
                 </div>`
-            : "";
+            : status === "approved"
+                ? `
+                <div class="owner-property-actions">
+                    <button type="button" class="dashboard-primary-action gd-mark-renter-btn" data-visit-id="${escapeHtml(visit.id)}" onclick="markVisitAsCurrentRenter('${escapeHtml(visit.id)}')">🏠 Mark as Current Renter</button>
+                </div>`
+                : "";
 
         return `
             <div class="visit-row">
