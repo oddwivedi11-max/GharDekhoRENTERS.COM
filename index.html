@@ -8279,6 +8279,114 @@ async function updateVisitStatus(visitId, newStatus) {
   window.addEventListener('load',initOwnerFlowV7);
 })();
 </script>
-</body>
+
+<style id="ghardekho-final-ui-repair-v1">
+/* FINAL UI REPAIR — readable text, stable layout, clickable controls */
+html,body{overflow-x:hidden!important}
+#loggedOutLanding{display:block!important;position:relative!important;z-index:2!important;color:#17332f!important}
+body.gd-auth-page #loggedOutLanding,body.gd-authenticated #loggedOutLanding,body.gd-owner-mode #loggedOutLanding,body.gd-renter-mode #loggedOutLanding{display:none!important}
+body:not(.gd-auth-page):not(.gd-authenticated) #homeSection,body:not(.gd-auth-page):not(.gd-authenticated) #propertiesSection{display:none!important}
+#loggedOutLanding .gd-landing-hero{position:relative!important;isolation:isolate!important;min-height:560px!important;display:grid!important;grid-template-columns:minmax(0,1.02fr) minmax(360px,.98fr)!important;align-items:center!important;gap:42px!important;padding:64px clamp(28px,5vw,68px)!important;background:linear-gradient(135deg,#082e2a 0%,#0b5f57 60%,#0b766d 100%)!important;color:#fff!important;overflow:hidden!important}
+#loggedOutLanding .gd-landing-copy{position:relative!important;z-index:20!important;min-width:0!important;color:#fff!important}
+#loggedOutLanding .gd-landing-copy h2{max-width:650px!important;margin:14px 0 20px!important;font-size:clamp(3.1rem,6.2vw,6.3rem)!important;line-height:.92!important;letter-spacing:-.065em!important;color:#fff!important;overflow-wrap:normal!important;word-break:normal!important}
+#loggedOutLanding .gd-landing-copy h2 span{color:#f2ad78!important}
+#loggedOutLanding .gd-landing-copy>p{max-width:560px!important;margin:0!important;color:rgba(255,255,255,.78)!important;font-size:1rem!important;line-height:1.7!important}
+#loggedOutLanding .gd-landing-trust{position:relative!important;z-index:21!important;display:flex!important;flex-wrap:wrap!important;gap:8px!important;margin-top:24px!important}
+#loggedOutLanding .gd-landing-visual{position:relative!important;z-index:10!important;min-width:0!important;height:430px!important}
+#loggedOutLanding .gd-house-card-main{z-index:11!important;right:2%!important;top:8px!important;width:min(430px,94%)!important;height:405px!important;transform:rotate(2deg)!important}
+#loggedOutLanding .gd-floating-one{z-index:30!important;left:-8px!important;bottom:38px!important}
+#loggedOutLanding .gd-floating-two{z-index:30!important;right:-4px!important;top:28px!important}
+#loggedOutLanding .gd-login-prompt{position:relative!important;z-index:50!important;margin:-28px 22px 0!important;padding:28px!important}
+#loggedOutLanding .gd-role-choice-grid{position:relative!important;z-index:51!important}
+#loggedOutLanding .gd-role-choice{position:relative!important;z-index:52!important;pointer-events:auto!important;user-select:none!important}
+#loggedOutLanding .gd-role-choice strong,#loggedOutLanding .gd-role-choice small{pointer-events:none!important}
+#loggedOutLanding .gd-landing-features{position:relative!important;z-index:2!important}
+#loggedOutLanding .gd-landing-features article{min-width:0!important}
+header,#loginBtn,#logoutBtn{position:relative!important;z-index:5000!important}
+#loginBtn,#logoutBtn{pointer-events:auto!important;cursor:pointer!important}
+button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
+.gd-home-v6-actions,.gd-home-v6-actions button,.gd-search-v6 button{position:relative!important;z-index:20!important;pointer-events:auto!important}
+.gd-home-v6-copy{min-width:0!important}
+.gd-home-v6-copy h2{overflow-wrap:normal!important;word-break:normal!important}
+.gd-home-v6-scene{pointer-events:none!important}
+@media(max-width:820px){
+ #loggedOutLanding .gd-landing-hero{grid-template-columns:1fr!important;gap:12px!important;padding:40px 24px 54px!important;min-height:0!important}
+ #loggedOutLanding .gd-landing-copy h2{font-size:clamp(3rem,13vw,4.7rem)!important}
+ #loggedOutLanding .gd-landing-visual{height:330px!important;min-height:330px!important;margin-top:10px!important}
+ #loggedOutLanding .gd-house-card-main{left:3%!important;right:auto!important;width:94%!important;height:305px!important;transform:rotate(1deg)!important}
+ #loggedOutLanding .gd-floating-one{left:0!important;bottom:10px!important}
+ #loggedOutLanding .gd-floating-two{right:0!important;top:10px!important}
+ #loggedOutLanding .gd-login-prompt{margin:-12px 8px 0!important;padding:22px!important}
+}
+@media(max-width:560px){
+ #loggedOutLanding{padding:12px 10px 42px!important}
+ #loggedOutLanding .gd-landing-hero{border-radius:24px!important;padding:32px 18px 38px!important}
+ #loggedOutLanding .gd-landing-copy h2{font-size:clamp(2.8rem,14vw,4rem)!important}
+ #loggedOutLanding .gd-landing-copy>p{font-size:.92rem!important}
+ #loggedOutLanding .gd-landing-visual{height:285px!important;min-height:285px!important}
+ #loggedOutLanding .gd-house-card-main{height:270px!important;border-width:5px!important}
+ #loggedOutLanding .gd-floating-card{padding:11px 12px!important;font-size:10px!important}
+ #loggedOutLanding .gd-login-prompt{margin:-4px 2px 0!important;padding:18px!important;border-radius:20px!important}
+ #loggedOutLanding .gd-role-choice-grid{grid-template-columns:1fr!important}
+ #loggedOutLanding .gd-role-choice{min-height:92px!important;padding:15px!important}
+ #loggedOutLanding .gd-landing-features{grid-template-columns:1fr!important}
+}
+</style>
+<script id="ghardekho-final-ui-repair-v1-js">
+(function(){
+  function bindGharDekhoControls(){
+    const login=document.getElementById('loginBtn');
+    if(login && login.dataset.gdRepairBound!=='1'){
+      login.dataset.gdRepairBound='1';
+      login.removeAttribute('onclick');
+      login.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(typeof openLoginSection==='function')openLoginSection();},true);
+    }
+    const renter=document.querySelector('#loggedOutLanding .gd-renter-choice');
+    if(renter && renter.dataset.gdRepairBound!=='1'){
+      renter.dataset.gdRepairBound='1';renter.removeAttribute('onclick');
+      renter.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(typeof openLoginAs==='function')openLoginAs('renter');},true);
+    }
+    const owner=document.querySelector('#loggedOutLanding .gd-owner-choice');
+    if(owner && owner.dataset.gdRepairBound!=='1'){
+      owner.dataset.gdRepairBound='1';owner.removeAttribute('onclick');
+      owner.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(typeof openLoginAs==='function')openLoginAs('owner');},true);
+    }
+    const explore=document.querySelector('#homeSection .gd-home-v6-actions button:first-child');
+    if(explore && explore.dataset.gdRepairBound!=='1'){
+      explore.dataset.gdRepairBound='1';explore.removeAttribute('onclick');
+      explore.addEventListener('click',function(){const input=document.getElementById('locationInput');if(input){input.removeAttribute('readonly');input.focus();}document.querySelector('.gd-home-v6-search')?.scrollIntoView({behavior:'smooth',block:'center'});});
+    }
+    const near=document.getElementById('gdV6NearMe');
+    if(near && near.dataset.gdRepairBound!=='1'){
+      near.dataset.gdRepairBound='1';near.removeAttribute('onclick');
+      near.addEventListener('click',function(){document.getElementById('nearMeBtn')?.click();});
+    }
+    const backButtons=document.querySelectorAll('.gd-auth-gateway-back,.gd-auth-back');
+    backButtons.forEach(function(btn){
+      if(btn.dataset.gdRepairBound==='1')return;
+      btn.dataset.gdRepairBound='1';btn.removeAttribute('onclick');
+      btn.addEventListener('click',function(e){e.preventDefault();if(typeof closeLoginPage==='function')closeLoginPage();});
+    });
+  }
+  function repairLoggedOutState(){
+    const auth=document.body.classList.contains('gd-auth-page');
+    const loggedIn=document.body.classList.contains('gd-authenticated');
+    const landing=document.getElementById('loggedOutLanding');
+    const home=document.getElementById('homeSection');
+    const props=document.getElementById('propertiesSection');
+    if(!auth && !loggedIn){
+      if(landing)landing.style.display='block';
+      if(home)home.style.display='none';
+      if(props)props.style.display='none';
+    }
+    bindGharDekhoControls();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',bindGharDekhoControls);
+  else bindGharDekhoControls();
+  window.addEventListener('load',function(){bindGharDekhoControls();repairLoggedOutState();});
+  new MutationObserver(function(){bindGharDekhoControls();}).observe(document.body,{attributes:true,attributeFilter:['class']});
+})();
+</script>
+\n</body>
 
 </html>
