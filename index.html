@@ -10663,6 +10663,99 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 })();
 </script>
 
+
+<!-- GHARDEKHO GOOGLE MAPS CITY AUTOCOMPLETE V1 -->
+<script id="ghardekho-google-city-autocomplete-v1">
+(function(){
+  /*
+    Google Maps/Places autocomplete is enabled when a browser-restricted
+    Google Maps API key is supplied here. Keep the key restricted to the
+    GharDekho website and Maps JavaScript API + Places API.
+  */
+  const GOOGLE_MAPS_API_KEY = window.GHARDEKHO_GOOGLE_MAPS_API_KEY || "";
+  const input = () => document.getElementById("locationInput");
+
+  function markGoogleReady(){
+    const i = input();
+    if(i) i.dataset.gdGooglePlacesReady = "1";
+  }
+
+  function initGoogleAutocomplete(){
+    const i = input();
+    if(!i || !window.google || !google.maps || !google.maps.places) return false;
+    if(i.dataset.gdGooglePlacesBound === "1") return true;
+
+    const autocomplete = new google.maps.places.Autocomplete(i, {
+      fields: ["formatted_address","geometry","name","place_id","address_components"],
+      componentRestrictions: { country: "in" },
+      types: ["(cities)"]
+    });
+
+    autocomplete.addListener("place_changed", function(){
+      const place = autocomplete.getPlace();
+      if(!place || !place.geometry || !place.geometry.location) return;
+
+      i.value = place.formatted_address || place.name || i.value;
+      i.dataset.gdSelectedPlaceId = place.place_id || "";
+      i.dataset.gdSelectedLat = String(place.geometry.location.lat());
+      i.dataset.gdSelectedLng = String(place.geometry.location.lng());
+
+      const box = document.getElementById("gdLocationSuggestions");
+      if(box) {
+        box.style.display = "none";
+        box.innerHTML = "";
+      }
+      i.classList.remove("gd-location-open");
+
+      i.dispatchEvent(new Event("change", {bubbles:true}));
+      i.dispatchEvent(new Event("input", {bubbles:true}));
+    });
+
+    i.dataset.gdGooglePlacesBound = "1";
+    markGoogleReady();
+    return true;
+  }
+
+  function loadGoogleMaps(){
+    if(!GOOGLE_MAPS_API_KEY) return;
+    if(initGoogleAutocomplete()) return;
+    if(document.getElementById("gd-google-maps-loader")) return;
+
+    const s = document.createElement("script");
+    s.id = "gd-google-maps-loader";
+    s.async = true;
+    s.defer = true;
+    s.src = "https://maps.googleapis.com/maps/api/js?key=" +
+      encodeURIComponent(GOOGLE_MAPS_API_KEY) +
+      "&libraries=places&loading=async";
+    s.onload = function(){
+      let tries = 0;
+      const wait = setInterval(function(){
+        tries++;
+        if(initGoogleAutocomplete() || tries > 40) clearInterval(wait);
+      }, 250);
+    };
+    s.onerror = function(){
+      console.error("GharDekho: Google Maps could not be loaded.");
+    };
+    document.head.appendChild(s);
+  }
+
+  function bind(){
+    const i = input();
+    if(!i) return;
+    i.setAttribute("autocomplete","off");
+    loadGoogleMaps();
+    initGoogleAutocomplete();
+  }
+
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", bind);
+  else bind();
+  window.addEventListener("load", bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
 </body>
 
 </html>
