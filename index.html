@@ -2031,11 +2031,13 @@ body.gd-owner-mode #renterDashboard { display:none !important; }
 .gd-landing-features strong{display:block;margin-top:10px;color:#1b2926;font-size:15px;}
 .gd-landing-features p{margin:5px 0 0;color:#71807c;font-size:13px;line-height:1.55;}
 
-#loggedOutLanding{display:block;}
+/* Logged-out users use the same premium homepage as authenticated renters.
+   Keep the legacy landing markup hidden so two different home designs cannot appear. */
+#loggedOutLanding{display:none!important;}
 body:not(.gd-authenticated) #backendMessage{display:none!important;}
 body:not(.gd-authenticated) #homeSection,
-body:not(.gd-authenticated) #propertiesSection{display:none!important;}
-body.gd-authenticated #loggedOutLanding{display:none!important;}
+body:not(.gd-authenticated) #propertiesSection{display:block!important;}
+body.gd-authenticated #loggedOutLanding,
 body.gd-owner-mode #loggedOutLanding,
 body.gd-renter-mode #loggedOutLanding{display:none!important;}
 
