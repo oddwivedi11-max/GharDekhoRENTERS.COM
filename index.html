@@ -4140,6 +4140,51 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
 .gd-v4-preview-copy small{display:block;color:rgba(255,255,255,.9)!important;margin-top:2px}
 @media(max-width:560px){.gd-v4-preview-image{height:170px!important}.gd-v4-house{transform:translateX(-50%) scale(.88);transform-origin:bottom}.gd-v4-house-tree{transform:scale(.88);transform-origin:bottom}.gd-v4-house-tree-right{transform:scale(.72)}}
 </style>
+<style id="ghardekho-phone-fixed-prefix-v3">
+.gd-phone-wrap{
+  display:flex!important;
+  align-items:stretch!important;
+  width:100%!important;
+  min-width:0!important;
+  overflow:hidden!important;
+  border:1px solid #cbd5d1!important;
+  border-radius:10px!important;
+  background:#fff!important;
+}
+.gd-phone-prefix{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  flex:0 0 54px!important;
+  min-width:54px!important;
+  padding:0 9px!important;
+  color:#245b55!important;
+  background:#f1f7f5!important;
+  border-right:1px solid #d7e3df!important;
+  font-weight:700!important;
+  font-size:14px!important;
+}
+.gd-phone-wrap input{
+  flex:1 1 auto!important;
+  width:100%!important;
+  min-width:0!important;
+  border:0!important;
+  outline:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+.gd-phone-wrap:focus-within{
+  border-color:#168a78!important;
+  box-shadow:0 0 0 3px rgba(22,138,120,.10)!important;
+}
+.gd-visit-phone-wrap{
+  margin:0!important;
+}
+@media(max-width:680px){
+  .gd-phone-prefix{flex-basis:52px!important;min-width:52px!important}
+  .gd-phone-wrap input{font-size:16px!important;min-height:48px!important}
+}
+</style>
 </head>
 
 <body>
@@ -4451,7 +4496,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <div class="gd-v4-field-grid">
       <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
       <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" name="gd_new_email" placeholder="you@example.com" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
-      <label class="gd-v4-field"><span>Phone</span><input type="tel" id="userPhone" name="gd_new_phone" placeholder="+91 XXXXX XXXXX" inputmode="tel" autocomplete="off" data-form-type="other"></label>
+      <label class="gd-v4-field"><span>Phone</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_new_phone" placeholder="9876543210" inputmode="numeric" autocomplete="tel" maxlength="10" data-form-type="other"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use the same email and password for both dashboards. Your selected dashboard is remembered for this login.</p></div>
@@ -4489,7 +4534,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
             <h2>Request a Visit</h2>
             <p id="selectedPropertyText"></p>
             <input type="text" id="visitName" placeholder="Your name" required>
-            <input type="tel" id="visitPhone" placeholder="Phone number e.g. +91XXXXXXXXXX" inputmode="tel" autocomplete="tel" required>
+            <span class="gd-phone-wrap gd-visit-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="visitPhone" placeholder="9876543210" inputmode="numeric" autocomplete="tel" maxlength="10" required></span>
             <input type="date" id="visitDate" required>
             <input type="time" id="visitTime" required>
             <button id="bookVisitBtn" type="button">Request Visit</button>
@@ -4829,9 +4874,9 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
 <div id="adminPanelActivity" class="gd-admin-panel dashboard-card"><p class="gd-admin-muted">Recent activity based on timestamps available in the current tables. This is not a full server audit log.</p><div id="adminActivityBody"></div></div>
 </section>
 <div id="adminAccessDenied" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Admin access only</h3><p>This area is restricted to the configured administrator account.</p><button type="button" class="dashboard-primary-action" onclick="closeAdminDenied()">OK</button></div></div>
-<div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required autocomplete="off"></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<input id="adminOwnerPhone" maxlength="30" autocomplete="off"></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
-<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<input id="ownerProfileEditPhone" maxlength="30" autocomplete="off"></label><p class="gd-admin-muted">These details update your Ghar Dekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
-<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<input id="renterProfileEditPhone" maxlength="30" autocomplete="off"></label><p class="gd-admin-muted">These details update your Ghar Dekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required autocomplete="off"></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="adminOwnerPhone" maxlength="10" inputmode="numeric" autocomplete="tel"></span></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
+<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" maxlength="10" inputmode="numeric" autocomplete="tel"></span></label><p class="gd-admin-muted">These details update your Ghar Dekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" maxlength="10" inputmode="numeric" autocomplete="tel"></span></label><p class="gd-admin-muted">These details update your Ghar Dekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
         
 
 <div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><label class="gd-editor-full">Property photo<input type="file" id="editPropertyImageFile" accept="image/jpeg,image/png,image/webp"><span id="editPropertyImageName" class="small-text">Choose a new JPG, PNG or WebP photo (max 5 MB).</span></label><label class="gd-editor-full"><input type="text" id="editPropertyImageUrl" maxlength="2000" placeholder="Or paste an HTTPS image URL"></label></div><div class="gd-editor-actions"><button type="button" class="secondary-button gd-admin-danger" id="deletePropertyFromEditorBtn">🗑️ Delete Property</button><button type="button" class="secondary-button" id="cancelPropertyEditorBtn">Cancel</button><button type="submit" class="dashboard-primary-action" id="savePropertyEditBtn">Save Changes</button></div><p id="propertyEditorMessage" class="small-text"></p></form></div></div>    </main>
@@ -11093,67 +11138,45 @@ html,body{max-width:100%;overflow-x:hidden!important}
 }
 </style>
 
-<script id="ghardekho-india-phone-v2">
+<script id="ghardekho-india-phone-v3">
 (function(){
   const PHONE_IDS=["userPhone","visitPhone","ownerProfileEditPhone","adminOwnerPhone","renterProfileEditPhone"];
 
   function localDigits(value){
     const raw=String(value||"").trim();
     let digits=raw.replace(/\D/g,"");
-    // If the control already contains its visible +91 prefix, remove only
-    // that prefix. This lets a local number beginning with 91 remain valid.
+    // Database values may already contain +91; the UI prefix is separate.
     if(raw.startsWith("+91")) digits=digits.slice(2);
     else if(digits.startsWith("91") && digits.length>10) digits=digits.slice(2);
     if(digits.startsWith("0") && digits.length>10) digits=digits.replace(/^0+/,"");
     return digits.slice(0,10);
   }
 
-  function format(input){
-    const digits=localDigits(input.value);
-    input.value="+91 "+digits;
-    input.dataset.gdPhoneDigits=digits;
-    try{
-      const pos=input.value.length;
-      input.setSelectionRange(pos,pos);
-    }catch(e){}
-  }
-
-  function keepPrefix(input){
-    if(!input.value || !input.value.startsWith("+91 ")) input.value="+91 "+localDigits(input.value);
-  }
-
   function bind(){
     PHONE_IDS.forEach(function(id){
       const input=document.getElementById(id);
-      if(!input || input.dataset.gdIndiaPhoneBound==="2") return;
-      input.dataset.gdIndiaPhoneBound="2";
+      if(!input || input.dataset.gdIndiaPhoneBound==="3") return;
+      input.dataset.gdIndiaPhoneBound="3";
       input.setAttribute("inputmode","numeric");
       input.setAttribute("autocomplete","tel");
-      input.setAttribute("maxlength","14");
-      input.setAttribute("pattern","\\+91 [0-9]{10}");
-      input.setAttribute("placeholder","+91 9876543210");
+      input.setAttribute("maxlength","10");
+      input.setAttribute("pattern","[0-9]{10}");
+      input.setAttribute("placeholder","9876543210");
       input.setAttribute("aria-label","Indian mobile number, 10 digits");
 
-      input.addEventListener("focus",function(){format(input)});
-      input.addEventListener("input",function(){format(input)});
+      // Never put +91 inside the editable value.
+      input.value=localDigits(input.value);
+
+      input.addEventListener("input",function(){
+        const digits=localDigits(input.value);
+        input.value=digits;
+      });
       input.addEventListener("paste",function(){
-        setTimeout(function(){format(input)},0);
+        setTimeout(function(){input.value=localDigits(input.value)},0);
       });
       input.addEventListener("keydown",function(e){
-        const start=input.selectionStart||0;
-        const end=input.selectionEnd||0;
-        if((e.key==="Backspace" || e.key==="Delete") && start<=4 && end<=4){
-          e.preventDefault();
-          try{input.setSelectionRange(4,4)}catch(err){}
-        }
-        if(e.key==="Home"){
-          e.preventDefault();
-          try{input.setSelectionRange(4,4)}catch(err){}
-        }
+        if(e.key===" " || e.key==="+" || e.key==="-") e.preventDefault();
       });
-
-      if(input.value.trim()) format(input);
-      else input.value="+91 ";
     });
   }
 
