@@ -8399,7 +8399,7 @@ async function loadOwnerProperties() {
             container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));
 
             await loadOwnerCurrentRenters(data);
-
+        }
 
 async function loadOwnerCurrentRenters(properties) {
     if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
