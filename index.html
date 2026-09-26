@@ -5571,9 +5571,31 @@ async function loginUser() {
         }
 
         currentUser = data.user;
+        // Lock the destination to the role selected on this login form.
+        // Do not let an older session/dashboard state decide where the user lands.
+        activeRole = selectedLoginRole;
+        pendingLoginRole = selectedLoginRole;
+        sessionStorage.setItem("gd_active_role", selectedLoginRole);
+        sessionStorage.setItem("gd_pending_login_role", selectedLoginRole);
+
         authMessage.textContent = "Login successful.";
         await updateAuthUI();
-        scrollToSection("dashboardSection");
+
+        // Renter login opens the authenticated renter home/search experience.
+        // The same profile loaded from the users table remains available in
+        // the Renter Dashboard under "My Renter Profile".
+        if (activeRole === "renter") {
+            setRoleSpecificUI("renter");
+            await renderActiveDashboard();
+            const renterHome = document.getElementById("homeSection");
+            if (renterHome) {
+                renterHome.scrollIntoView({ behavior: "smooth", block: "start" });
+            } else {
+                scrollToSection("dashboardSection");
+            }
+        } else {
+            scrollToSection("dashboardSection");
+        }
     } finally {
         isAuthenticating = false;
         if (loginButton) { loginButton.disabled = false; loginButton.textContent = "Login"; }
