@@ -6061,15 +6061,11 @@ async function loginWithGoogle() {
     if (authMessage) authMessage.textContent = "Opening Google account selection...";
 
     try {
-        // Keep OAuth on the same GharDekho app that started the login.
-        // Local development returns to the exact local HTML file.
-        // Production returns to the production Worker URL.
-        const isLocal =
-            window.location.hostname === "localhost" ||
-            window.location.hostname === "127.0.0.1";
-        const redirectTo = isLocal
-            ? window.location.origin + window.location.pathname
-            : "https://ghardekhorenters-com.od-dwivedi11.workers.dev/";
+        // Always return OAuth to the exact host that started the login.
+        // This keeps local development and future custom domains working
+        // without hardcoding the current workers.dev hostname.
+        const redirectTo =
+            window.location.origin + window.location.pathname;
         const { error } = await supabaseClient.auth.signInWithOAuth({
             provider: "google",
             options: {
