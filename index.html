@@ -5662,8 +5662,8 @@ async function renderActiveDashboard() {
 
     // Canonical role: only one role can be active for an account.
     const roles = getAccountRoles(currentProfile);
-    const isOwner = roles.length === 1 && roles[0] === "owner";
-    const isRenter = roles.length === 1 && roles[0] === "renter";
+    const isOwner = activeRole === "owner" && roles.includes("owner");
+    const isRenter = activeRole === "renter" && roles.includes("renter");
 
     // Hard visibility lock: never leave both dashboards rendered.
     renter.classList.remove("active");
@@ -7568,6 +7568,9 @@ async function loadOwnerProperties() {
                 return;
             }
 
+            currentOwnerProfile = ownerRecord;
+            updateOwnerProfileUI(ownerRecord);
+
             const {
                 data,
                 error
@@ -8966,7 +8969,15 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
 @media(max-width:820px){#loggedOutLanding .gd-landing-visual-v2{min-height:370px!important}#loggedOutLanding .gd-visual-scene{height:330px;width:96%}#loggedOutLanding .gd-visual-house{transform:translateX(-50%) scale(.8);transform-origin:bottom}.gd-visual-float-location{left:-4px!important;top:65px!important}.gd-visual-float-verified{right:0!important;top:15px!important}.gd-visual-float-rent{right:0!important;bottom:24px!important}}
 @media(max-width:560px){#loggedOutLanding .gd-landing-visual-v2{min-height:290px!important}.gd-visual-scene{height:270px!important}.gd-visual-house{transform:translateX(-50%) scale(.64)!important}.gd-visual-float{transform:scale(.84);transform-origin:center}.gd-visual-float-location{left:-16px!important;top:50px!important}.gd-visual-float-verified{right:-12px!important;top:5px!important}.gd-visual-float-rent{right:-10px!important;bottom:10px!important}}
 </style>
-</style>
+<style id="ghardekho-owner-profile-self-edit-v1">
+#ownerProfileEditor .gd-property-editor-card{max-width:560px}
+#ownerProfileEditor .gd-property-editor-card form{display:grid;gap:14px}
+#ownerProfileEditor .gd-property-editor-card label{display:grid;gap:7px;font-weight:800;color:#26403b}
+#ownerProfileEditor .gd-property-editor-card input{width:100%;box-sizing:border-box;padding:13px 14px;border:1px solid #d5e2df;border-radius:12px;background:#fff;color:#173b36}
+#ownerProfileEditor .gd-property-editor-card input:focus{outline:3px solid rgba(23,107,99,.11);border-color:#176b63}
+#ownerProfileEditor .gd-property-editor-card input[readonly]{background:#f3f7f5;color:#687773;cursor:not-allowed}
+#ownerProfileEditor .gd-admin-muted{line-height:1.55}
+</style></style>
 <script id="ghardekho-final-ui-repair-v3-js">
 (function(){
   /*
