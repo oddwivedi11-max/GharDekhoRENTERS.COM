@@ -11169,6 +11169,156 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   }
 }
 </style>
+
+<style id="ghardekho-mobile-owner-form-clean-v17">
+@media(max-width:680px){
+  /* CLEAN MOBILE ADD-PROPERTY EXPERIENCE */
+  body.gd-property-modal-active{
+    overflow:hidden!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card{
+    position:fixed!important;
+    left:3vw!important;
+    right:3vw!important;
+    top:3vh!important;
+    bottom:3vh!important;
+    width:auto!important;
+    max-width:none!important;
+    max-height:none!important;
+    height:auto!important;
+    transform:none!important;
+    border-radius:22px!important;
+    overflow:hidden!important;
+    z-index:65000!important;
+    display:flex!important;
+    flex-direction:column!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-owner-modal-head,
+  body.gd-property-modal-active #ownerDashboard .dashboard-card-heading{
+    flex:0 0 auto!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card form{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    -webkit-overflow-scrolling:touch!important;
+    padding:10px 14px 18px!important;
+  }
+
+  /* One clean column on phones instead of a cramped desktop grid. */
+  body.gd-property-modal-active #ownerDashboard .owner-form-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:11px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .owner-form-grid > input,
+  body.gd-property-modal-active #ownerDashboard .owner-form-grid > select,
+  body.gd-property-modal-active #ownerDashboard .owner-form-grid > textarea{
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .owner-form-grid input,
+  body.gd-property-modal-active #ownerDashboard .owner-form-grid select{
+    min-height:50px!important;
+    height:50px!important;
+    font-size:15px!important;
+  }
+
+  /* Compact image area — the previous version consumed too much vertical space. */
+  body.gd-property-modal-active #ownerDashboard .gd-owner-image-v7{
+    padding:12px!important;
+    margin:2px 0!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-upload-head{
+    gap:8px!important;
+    margin-bottom:9px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-upload-limit{
+    display:none!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-upload-dropzone{
+    min-height:100px!important;
+    padding:14px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-upload-dropzone small{
+    display:none!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-upload-dropzone b{
+    min-height:42px!important;
+    padding:10px 18px!important;
+  }
+
+  /* The large second gallery button duplicates the dropzone on mobile. */
+  body.gd-property-modal-active #ownerDashboard #choosePropertyImageBtn{
+    min-height:44px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-stay-details-shell{
+    padding:12px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-stay-fields{
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard #verifyLocationBtn{
+    min-height:50px!important;
+    height:50px!important;
+    margin:10px 0 6px!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard #propertyDescription{
+    width:100%!important;
+    min-height:105px!important;
+    box-sizing:border-box!important;
+    font-size:15px!important;
+    margin-top:4px!important;
+  }
+
+  /* Submit action stays inside the modal and never covers form content. */
+  body.gd-property-modal-active #ownerDashboard .gd-mobile-form-actions{
+    position:sticky!important;
+    left:auto!important;
+    right:auto!important;
+    bottom:0!important;
+    z-index:65010!important;
+    margin:10px -14px -18px!important;
+    padding:10px 14px calc(10px + env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.98)!important;
+    border-top:1px solid #e3ece9!important;
+    box-shadow:0 -8px 22px rgba(15,45,40,.08)!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard #addPropertyBtn{
+    position:static!important;
+    width:100%!important;
+    height:52px!important;
+    min-height:52px!important;
+    margin:0!important;
+    font-size:15px!important;
+  }
+
+  /* Hide BOTH mobile navigation bars while the form is open. */
+  body.gd-property-modal-active #gdMobileBottomNav,
+  body.gd-property-modal-active .gd-mobile-nav{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+}
+</style>
 </body>
 
 </html>
