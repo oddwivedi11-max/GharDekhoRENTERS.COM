@@ -4918,7 +4918,13 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
 <div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" inputmode="numeric" autocomplete="off"></span></label><p class="gd-admin-muted">These details update your Ghar Dekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
         
 
-<div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><label class="gd-editor-full">Property photo<input type="file" id="editPropertyImageFile" accept="image/jpeg,image/png,image/webp"><span id="editPropertyImageName" class="small-text">Choose a new JPG, PNG or WebP photo (max 5 MB).</span></label><label class="gd-editor-full"><input type="text" id="editPropertyImageUrl" maxlength="2000" placeholder="Or paste an HTTPS image URL"></label></div><div class="gd-editor-actions"><button type="button" class="secondary-button gd-admin-danger" id="deletePropertyFromEditorBtn">🗑️ Delete Property</button><button type="button" class="secondary-button" id="cancelPropertyEditorBtn">Cancel</button><button type="submit" class="dashboard-primary-action" id="savePropertyEditBtn">Save Changes</button></div><p id="propertyEditorMessage" class="small-text"></p></form></div></div>    </main>
+<div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><div class="gd-editor-full gd-editor-photo-box">
+<label class="gd-editor-photo-label">Property photo</label>
+<input type="file" id="editPropertyImageFile" accept="image/jpeg,image/png,image/webp">
+<span id="editPropertyImageName" class="small-text gd-editor-photo-note">Choose a new JPG, PNG or WebP photo (max 5 MB).</span>
+<label class="gd-editor-url-label" for="editPropertyImageUrl">Image URL <em>(optional)</em></label>
+<input type="text" id="editPropertyImageUrl" maxlength="2000" placeholder="https://example.com/property-photo.jpg" inputmode="url" autocomplete="url">
+</div></div><div class="gd-editor-actions"><button type="button" class="secondary-button gd-admin-danger" id="deletePropertyFromEditorBtn">🗑️ Delete Property</button><button type="button" class="secondary-button" id="cancelPropertyEditorBtn">Cancel</button><button type="submit" class="dashboard-primary-action" id="savePropertyEditBtn">Save Changes</button></div><p id="propertyEditorMessage" class="small-text"></p></form></div></div>    </main>
 
     <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -11985,6 +11991,277 @@ input,select,textarea{
   .dashboard-stats-grid,
   .owner-stats-grid{
     grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+}
+</style>
+<style id="ghardekho-property-editor-mobile-final-v22">
+/* =========================================================
+   PROPERTY EDITOR — MOBILE FINAL
+   Fixes: bottom-nav interception, cramped actions, URL overflow,
+   tiny/narrow controls and unreadable image section.
+   ========================================================= */
+
+.gd-editor-photo-box{
+  display:grid!important;
+  gap:8px!important;
+  min-width:0!important;
+}
+.gd-editor-photo-label,
+.gd-editor-url-label{
+  display:block!important;
+  color:#53615e!important;
+  font-size:.82rem!important;
+  font-weight:800!important;
+}
+.gd-editor-url-label{
+  margin-top:8px!important;
+}
+.gd-editor-url-label em{
+  color:#7b8582!important;
+  font-style:normal!important;
+  font-weight:600!important;
+}
+#editPropertyImageFile{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+}
+#editPropertyImageUrl{
+  width:100%!important;
+  min-width:0!important;
+  max-width:100%!important;
+  box-sizing:border-box!important;
+  overflow:hidden!important;
+  text-overflow:ellipsis!important;
+}
+#editPropertyImageName{
+  display:block!important;
+  overflow-wrap:anywhere!important;
+  line-height:1.4!important;
+}
+
+@media(max-width:680px){
+  /* The editor is above EVERYTHING interactive on mobile.
+     The bottom nav must never steal taps from Cancel/Save/Delete. */
+  body:has(#propertyEditor.active){
+    overflow:hidden!important;
+  }
+  body:has(#propertyEditor.active) #gdMobileBottomNav,
+  body:has(#propertyEditor.active) .gd-mobile-nav{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+  #propertyEditor{
+    z-index:90000!important;
+    position:fixed!important;
+    inset:0!important;
+    display:none!important;
+    place-items:start center!important;
+    padding:10px!important;
+    overflow:hidden!important;
+    box-sizing:border-box!important;
+  }
+  #propertyEditor.active{
+    display:grid!important;
+    visibility:visible!important;
+    pointer-events:auto!important;
+  }
+  #propertyEditor .gd-property-editor-card{
+    position:relative!important;
+    z-index:90001!important;
+    width:100%!important;
+    max-width:520px!important;
+    height:calc(100dvh - 20px)!important;
+    max-height:calc(100dvh - 20px)!important;
+    min-height:0!important;
+    margin:0!important;
+    padding:0!important;
+    display:flex!important;
+    flex-direction:column!important;
+    overflow:hidden!important;
+    border-radius:20px!important;
+    box-sizing:border-box!important;
+  }
+  #propertyEditor .gd-property-editor-head{
+    flex:0 0 auto!important;
+    min-height:72px!important;
+    margin:0!important;
+    padding:13px 14px!important;
+    align-items:center!important;
+    border-bottom:1px solid var(--gd-border)!important;
+    background:#fff!important;
+  }
+  #propertyEditor .gd-property-editor-head>div{
+    min-width:0!important;
+    flex:1 1 auto!important;
+  }
+  #propertyEditor .gd-property-editor-head h3{
+    margin:2px 0!important;
+    font-size:21px!important;
+    line-height:1.15!important;
+  }
+  #propertyEditor .gd-property-editor-head p{
+    margin:3px 0 0!important;
+  }
+  #propertyEditor .gd-editor-close{
+    flex:0 0 44px!important;
+    width:44px!important;
+    height:44px!important;
+    min-height:44px!important;
+    margin-left:8px!important;
+    font-size:23px!important;
+    touch-action:manipulation!important;
+  }
+  #propertyEditorForm{
+    flex:1 1 auto!important;
+    min-height:0!important;
+    overflow-y:auto!important;
+    overflow-x:hidden!important;
+    -webkit-overflow-scrolling:touch!important;
+    overscroll-behavior:contain!important;
+    padding:15px 14px calc(92px + env(safe-area-inset-bottom))!important;
+    box-sizing:border-box!important;
+  }
+  #propertyEditor .gd-editor-grid{
+    width:100%!important;
+    min-width:0!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:12px!important;
+  }
+  #propertyEditor .gd-editor-grid>label,
+  #propertyEditor .gd-editor-full{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+  }
+  #propertyEditor .gd-editor-grid label{
+    display:grid!important;
+    gap:6px!important;
+    color:#53615e!important;
+    font-size:13px!important;
+    line-height:1.3!important;
+    font-weight:800!important;
+  }
+  #propertyEditor .gd-editor-grid input,
+  #propertyEditor .gd-editor-grid select,
+  #propertyEditor .gd-editor-grid textarea,
+  #propertyEditor .gd-editor-full input,
+  #propertyEditor .gd-editor-full textarea{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    box-sizing:border-box!important;
+    min-height:52px!important;
+    font-size:16px!important;
+    border-radius:12px!important;
+  }
+  #propertyEditor .gd-editor-grid textarea,
+  #propertyEditor .gd-editor-full textarea{
+    min-height:120px!important;
+  }
+  #propertyEditor .gd-editor-stay-only{
+    width:100%!important;
+    min-width:0!important;
+    box-sizing:border-box!important;
+  }
+  #propertyEditor .gd-editor-stay-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin-top:10px!important;
+  }
+  #propertyEditor .gd-editor-photo-box{
+    margin-top:2px!important;
+    padding:14px!important;
+    border:1px solid var(--gd-border)!important;
+    border-radius:16px!important;
+    background:#f8faf9!important;
+  }
+  #propertyEditor #editPropertyImageFile{
+    min-height:50px!important;
+    height:auto!important;
+    padding:8px!important;
+    background:#fff!important;
+    border:1px solid var(--gd-border)!important;
+    border-radius:11px!important;
+    font-size:14px!important;
+  }
+  #propertyEditor #editPropertyImageUrl{
+    min-height:52px!important;
+    padding:0 12px!important;
+    font-size:15px!important;
+  }
+
+  /* One clear action per row: no "Delete Property" wrapping into
+     Delete / Propert / y and no tiny Cancel column. */
+  #propertyEditor .gd-editor-actions{
+    position:sticky!important;
+    bottom:0!important;
+    z-index:30!important;
+    width:100%!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    margin:14px 0 0!important;
+    padding:10px 0 calc(10px + env(safe-area-inset-bottom))!important;
+    background:rgba(255,255,255,.98)!important;
+    border-top:1px solid var(--gd-border)!important;
+    box-shadow:0 -8px 20px rgba(24,32,31,.08)!important;
+  }
+  #propertyEditor .gd-editor-actions button{
+    width:100%!important;
+    min-width:0!important;
+    max-width:100%!important;
+    min-height:52px!important;
+    height:52px!important;
+    margin:0!important;
+    padding:8px 12px!important;
+    border-radius:13px!important;
+    font-size:15px!important;
+    line-height:1.2!important;
+    white-space:normal!important;
+    overflow-wrap:anywhere!important;
+  }
+  #propertyEditor #deletePropertyFromEditorBtn{
+    order:3!important;
+  }
+  #propertyEditor #cancelPropertyEditorBtn{
+    order:2!important;
+  }
+  #propertyEditor #savePropertyEditBtn{
+    order:1!important;
+    font-weight:900!important;
+  }
+  #propertyEditor #propertyEditorMessage{
+    display:block!important;
+    width:100%!important;
+    min-height:20px!important;
+    margin:8px 0!important;
+    overflow-wrap:anywhere!important;
+    line-height:1.4!important;
+  }
+}
+
+@media(max-width:390px){
+  #propertyEditor{
+    padding:6px!important;
+  }
+  #propertyEditor .gd-property-editor-card{
+    height:calc(100dvh - 12px)!important;
+    max-height:calc(100dvh - 12px)!important;
+    border-radius:17px!important;
+  }
+  #propertyEditorForm{
+    padding-left:11px!important;
+    padding-right:11px!important;
+  }
+  #propertyEditor .gd-editor-actions button{
+    min-height:50px!important;
+    height:50px!important;
   }
 }
 </style>
