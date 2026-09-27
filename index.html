@@ -5048,6 +5048,7 @@ function bindLoginRoleControls(){
             activeRole=role;
             sessionStorage.setItem("gd_pending_login_role",role);
             sessionStorage.setItem("gd_active_role",role);
+            localStorage.setItem("gd_preferred_role",role);
             applyLoginRolePresentation(role);
         });
     });
