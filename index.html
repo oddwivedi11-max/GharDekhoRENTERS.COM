@@ -12381,6 +12381,188 @@ input,select,textarea{
   }
 }
 </style>
+<style id="ghardekho-auth-interaction-final-v25">
+/* FINAL AUTH INTERACTION LAYER
+   Deliberately independent of the normal initialization/event binding.
+   This guarantees the Renter/Owner auth gateway and form remain clickable
+   even if a previous UI patch or startup race leaves another layer above it. */
+body.gd-auth-page #loginSection{
+  position:relative!important;
+  z-index:200000!important;
+  pointer-events:auto!important;
+}
+body.gd-auth-page #loginSection::before,
+body.gd-auth-page #loginSection::after{
+  pointer-events:none!important;
+}
+body.gd-auth-page #gdAuthGateway,
+body.gd-auth-page #gdAuthFormShell{
+  position:relative!important;
+  z-index:200001!important;
+  pointer-events:auto!important;
+}
+body.gd-auth-page #gdAuthGateway button,
+body.gd-auth-page #gdAuthFormShell button,
+body.gd-auth-page #gdAuthFormShell input,
+body.gd-auth-page #gdAuthFormShell select,
+body.gd-auth-page #gdAuthFormShell label{
+  position:relative!important;
+  z-index:200002!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+body.gd-auth-page #gdAuthFormShell{
+  min-height:0!important;
+}
+@media(max-width:680px){
+  body.gd-auth-page #loginSection{
+    width:100%!important;
+    min-height:calc(100dvh - 58px)!important;
+    padding:10px!important;
+  }
+  body.gd-auth-page #gdAuthGateway{
+    min-height:calc(100dvh - 78px)!important;
+  }
+  body.gd-auth-page #gdAuthFormShell{
+    width:100%!important;
+    min-height:0!important;
+    grid-template-columns:1fr!important;
+    border-radius:20px!important;
+    overflow:hidden!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-auth-visual{
+    display:none!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form{
+    width:100%!important;
+    min-width:0!important;
+    padding:24px 16px 28px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-field-grid{
+    grid-template-columns:1fr!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-actions,
+  body.gd-auth-page #gdAuthFormShell .gd-v4-secondary{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-actions button,
+  body.gd-auth-page #gdAuthFormShell .gd-v4-secondary button{
+    width:100%!important;
+    min-height:52px!important;
+  }
+}
+</style>
+<script id="ghardekho-auth-delegated-final-v25">
+(function(){
+  function closestFromTarget(target, selector){
+    return target && target.closest ? target.closest(selector) : null;
+  }
+
+  document.addEventListener("click", function(event){
+    const t = event.target;
+    if (!t) return;
+
+    const roleChoice = closestFromTarget(t, ".gd-auth-continue-renter,.gd-auth-continue-owner,.gd-renter-choice,.gd-owner-choice,[data-gd-action]");
+    if (roleChoice) {
+      const role =
+        roleChoice.classList.contains("gd-auth-continue-owner") ||
+        roleChoice.classList.contains("gd-owner-choice") ||
+        roleChoice.getAttribute("data-gd-action") === "owner"
+          ? "owner" : "renter";
+
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+
+      if (typeof openLoginAs === "function") openLoginAs(role);
+      return;
+    }
+
+    const back = closestFromTarget(t, ".gd-auth-gateway-back,.gd-auth-back");
+    if (back) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (typeof closeLoginPage === "function") closeLoginPage();
+      return;
+    }
+
+    const login = closestFromTarget(t, "#loginSubmitBtn");
+    if (login) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (typeof loginUser === "function") loginUser();
+      return;
+    }
+
+    const signup = closestFromTarget(t, "#signupBtn");
+    if (signup) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (typeof signupUser === "function") signupUser();
+      return;
+    }
+
+    const forgot = closestFromTarget(t, "#forgotPasswordBtn");
+    if (forgot) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (typeof forgotPassword === "function") forgotPassword();
+      return;
+    }
+
+    const google = closestFromTarget(t, "#googleLoginBtn");
+    if (google) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (typeof loginWithGoogle === "function") loginWithGoogle();
+      return;
+    }
+
+    const admin = closestFromTarget(t, "#adminLoginModeBtn");
+    if (admin) {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      if (typeof openAdminLogin === "function") openAdminLogin();
+      return;
+    }
+
+    const passwordToggle = closestFromTarget(t, ".gd-password-toggle");
+    if (passwordToggle && typeof togglePasswordVisibility === "function") {
+      event.preventDefault();
+      event.stopPropagation();
+      event.stopImmediatePropagation();
+      togglePasswordVisibility(passwordToggle);
+      return;
+    }
+  }, true);
+
+  document.addEventListener("change", function(event){
+    const control = event.target;
+    if (!control || control.name !== "accountRole") return;
+
+    const role = control.value === "owner" ? "owner" : "renter";
+    event.stopPropagation();
+    if (typeof applyLoginRolePresentation === "function") applyLoginRolePresentation(role);
+  }, true);
+
+  document.addEventListener("submit", function(event){
+    const form = event.target;
+    if (!form || form.id !== "loginForm") return;
+    event.preventDefault();
+    event.stopPropagation();
+    event.stopImmediatePropagation();
+    if (typeof loginUser === "function") loginUser();
+  }, true);
+})();
+</script>
 </body>
 
 </html>
