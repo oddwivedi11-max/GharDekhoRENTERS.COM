@@ -4500,9 +4500,9 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use the same email and password for both dashboards. Your selected dashboard is remembered for this login.</p></div>
-    <div class="gd-v4-actions"><button id="signupBtn" type="button">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button">Login</button></div>
-    <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button">Admin Login</button></div>
-    <div class="gd-v4-bottom"><button id="forgotPasswordBtn" type="button" class="text-button">Forgot password?</button><p id="authMessage" class="small-text"></p></div>
+    <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
+    <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button" onclick="openAdminLogin()">Admin Login</button></div>
+    <div class="gd-v4-bottom"><button id="forgotPasswordBtn" type="button" class="text-button" onclick="forgotPassword()">Forgot password?</button><p id="authMessage" class="small-text"></p></div>
   </div>
 </div></section>
 
@@ -12563,6 +12563,24 @@ body.gd-auth-page #gdAuthFormShell{
   }, true);
 })();
 </script>
+<style id="ghardekho-auth-direct-click-final-v26">
+body.gd-auth-page #gdAuthFormShell,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form,
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions,
+body.gd-auth-page #gdAuthFormShell .gd-v4-secondary,
+body.gd-auth-page #gdAuthFormShell .gd-v4-bottom{
+  pointer-events:auto!important;
+}
+body.gd-auth-page #gdAuthFormShell button:not(:disabled){
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  cursor:pointer!important;
+}
+body.gd-auth-page #gdAuthFormShell input{
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+</style>
 </body>
 
 </html>
