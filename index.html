@@ -10191,7 +10191,7 @@ function updateStayTypeFields() {
       saved.querySelector(".gd-nav-icon").textContent=isOwner?"⌂":isAdmin?"⚙":"♡";
     }
     const account=nav.querySelector('[data-gd-nav="account"]');
-    if(account) account.querySelector("span:last-child").textContent=currentUser?"Account":"Login";
+    if(account) account.querySelector("span:last-child").textContent=document.body.classList.contains("gd-authenticated")?"Account":"Login";
     if(document.body.classList.contains("gd-auth-page")) nav.style.display="none";
   }
 
