@@ -5132,7 +5132,9 @@ function openLoginAs(role){
     pendingLoginRole = selectedRole;
     activeRole = selectedRole;
     sessionStorage.setItem("gd_pending_login_role", selectedRole);
+    localStorage.setItem("gd_preferred_role", selectedRole);
     sessionStorage.setItem("gd_active_role", selectedRole);
+    localStorage.setItem("gd_preferred_role", selectedRole);
 
     const o=document.getElementById("roleOwner");
     const r=document.getElementById("roleRenter");
@@ -5236,8 +5238,15 @@ function openAdminLogin(){
            AUTH - EMAIL + PASSWORD
            ========================================================= */
 
-        let activeRole = sessionStorage.getItem("gd_active_role") === "owner" ? "owner" : "renter";
-        let pendingLoginRole = sessionStorage.getItem("gd_pending_login_role") === "owner" ? "owner" : "renter";
+        const storedPreferredRole =
+            sessionStorage.getItem("gd_active_role") ||
+            localStorage.getItem("gd_preferred_role") ||
+            "renter";
+        let activeRole = storedPreferredRole === "owner" ? "owner" : "renter";
+        let pendingLoginRole =
+            (sessionStorage.getItem("gd_pending_login_role") ||
+             localStorage.getItem("gd_preferred_role") ||
+             "renter") === "owner" ? "owner" : "renter";
         let ownerExploreMode = false;
         let passwordResetEmail = "";
         let passwordResetVerified = false;
@@ -5840,6 +5849,7 @@ async function updateAuthUI() {
     pendingLoginRole = activeRole;
     sessionStorage.setItem("gd_pending_login_role", activeRole);
     sessionStorage.setItem("gd_active_role", activeRole);
+    localStorage.setItem("gd_preferred_role", activeRole);
 
     // Apply the role to the whole page, not only the dashboard.
     // This prevents owner accounts from seeing renter search/listing UI,
