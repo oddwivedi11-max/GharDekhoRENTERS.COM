@@ -7481,6 +7481,14 @@ async function renderActiveDashboard() {
            ========================================================= */
 
         async function openPropertyDetails(propertyId) {
+            /* Owner dashboard details are a controlled transition out of the
+               owner-only dashboard surface. The role guard intentionally hides
+               #propertyDetails unless owner-explore mode is active. */
+            if (activeRole === "owner" && currentUser) {
+                ownerExploreMode = true;
+                setRoleSpecificUI("owner");
+            }
+
             /* Owner dashboard properties come from the owner inventory query.
                Reuse that trusted row first. This avoids a second direct
                properties-table read being blocked by owner-side RLS and makes
@@ -7691,7 +7699,15 @@ async function renderActiveDashboard() {
 
             const backButton = document.getElementById("backToPropertiesBtn");
             if (backButton) {
-                backButton.addEventListener("click", () => scrollToSection("propertiesSection"));
+                backButton.addEventListener("click", () => {
+                    if (activeRole === "owner") {
+                        ownerExploreMode = false;
+                        setRoleSpecificUI("owner");
+                        scrollToSection("dashboardSection");
+                        return;
+                    }
+                    scrollToSection("propertiesSection");
+                });
             }
 
             const visitButton = document.getElementById("detailsVisitBtn");
