@@ -8276,7 +8276,34 @@ async function refreshSaveButtons(propertyId) {
 
             if (!title || !location || !Number.isFinite(rentNumber) ||
                 rentNumber <= 0 || rentNumber > APP_LIMITS.maxRent) {
-                showMessage("backendMessage", "Enter a valid title, address and monthly rent.", "error");
+                const missingField =
+                    !title ? document.getElementById("propertyTitle") :
+                    !location ? document.getElementById("propertyLocation") :
+                    document.getElementById("propertyRent");
+
+                const message = !title
+                    ? "Please enter the property name."
+                    : !location
+                    ? "Please enter the property address."
+                    : "Please enter a valid monthly rent.";
+
+                showMessage("backendMessage", message, "error");
+
+                /* On mobile, take the user directly to the field that
+                   prevented submission instead of leaving the error hidden
+                   underneath the sticky action bar. */
+                if (missingField) {
+                    missingField.focus({preventScroll:true});
+                    const form = document.getElementById("addPropertyForm");
+                    if (form && typeof missingField.offsetTop === "number") {
+                        form.scrollTo({
+                            top: Math.max(0, missingField.offsetTop - 24),
+                            behavior: "smooth"
+                        });
+                    } else {
+                        missingField.scrollIntoView({behavior:"smooth", block:"center"});
+                    }
+                }
                 return;
             }
 
@@ -11316,6 +11343,24 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
     display:none!important;
     visibility:hidden!important;
     pointer-events:none!important;
+  }
+}
+</style>
+
+<style id="ghardekho-mobile-validation-ux-v18">
+@media(max-width:680px){
+  body.gd-property-modal-active #ownerDashboard .gd-mobile-form-actions{
+    flex:0 0 auto!important;
+    position:sticky!important;
+  }
+  body.gd-property-modal-active #ownerDashboard #mobilePropertySubmitStatus{
+    margin:8px 0!important;
+    font-size:13px!important;
+  }
+  body.gd-property-modal-active #ownerDashboard #mobilePropertySubmitStatus.error{
+    position:relative!important;
+    z-index:1!important;
+    margin-bottom:8px!important;
   }
 }
 </style>
