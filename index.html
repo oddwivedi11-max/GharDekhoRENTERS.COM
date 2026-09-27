@@ -9622,8 +9622,50 @@ function updateStayTypeFields() {
             document.getElementById("cancelPropertyEditorBtn")?.addEventListener("click", closePropertyEditor);
             document.getElementById("deletePropertyFromEditorBtn")?.addEventListener("click", () => {
                 const id = document.getElementById("editPropertyId")?.value;
-                if (id) deleteAdminProperty(id);
+                if (id) deleteOwnerProperty(id);
             });
+
+            /* Mobile property editor action guard.
+             * The editor has its own action layer, so handle these four controls
+             * at capture phase. This prevents the fixed mobile navigation or
+             * another parent click handler from swallowing the tap.
+             * Save still uses the existing form submit handler; no business logic
+             * is duplicated here.
+             */
+            document.addEventListener("click", function gdPropertyEditorTapGuard(event) {
+                const button = event.target?.closest?.(
+                    "#propertyEditor #closePropertyEditorBtn, " +
+                    "#propertyEditor #cancelPropertyEditorBtn, " +
+                    "#propertyEditor #deletePropertyFromEditorBtn, " +
+                    "#propertyEditor #savePropertyEditBtn"
+                );
+                if (!button) return;
+                if (!document.getElementById("propertyEditor")?.classList.contains("active")) return;
+
+                event.preventDefault();
+                event.stopPropagation();
+                event.stopImmediatePropagation();
+
+                if (button.id === "closePropertyEditorBtn" || button.id === "cancelPropertyEditorBtn") {
+                    closePropertyEditor();
+                    return;
+                }
+
+                if (button.id === "deletePropertyFromEditorBtn") {
+                    const id = document.getElementById("editPropertyId")?.value;
+                    if (id) deleteOwnerProperty(id);
+                    return;
+                }
+
+                if (button.id === "savePropertyEditBtn") {
+                    const form = document.getElementById("propertyEditorForm");
+                    if (form && typeof form.requestSubmit === "function") {
+                        form.requestSubmit(button);
+                    } else if (form) {
+                        form.dispatchEvent(new Event("submit", { bubbles: true, cancelable: true }));
+                    }
+                }
+            }, true);
             document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="reject-owner")rejectAdminOwner(id);else if(action==="revoke-owner")revokeAdminOwner(id);else if(action==="release-occupancy")releaseAdminOccupancy(id);else if(action==="delete-property")deleteAdminProperty(id);});
             document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");if(isAdminAccount())loadAdminPeopleAndConnections();}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch","adminConnectionSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
             const signupBtn = document.getElementById("signupBtn");
@@ -12262,6 +12304,41 @@ input,select,textarea{
   #propertyEditor .gd-editor-actions button{
     min-height:50px!important;
     height:50px!important;
+  }
+}
+</style>
+<style id="ghardekho-property-editor-interaction-fix-v23">
+/* FINAL INTERACTION FIX: make the editor itself the only interactive layer
+   while it is open. No visual redesign or backend changes. */
+@media(max-width:680px){
+  #propertyEditor.active{
+    pointer-events:auto!important;
+    z-index:100000!important;
+  }
+  #propertyEditor.active::before,
+  #propertyEditor.active::after{
+    pointer-events:none!important;
+  }
+  #propertyEditor.active .gd-property-editor-card,
+  #propertyEditor.active .gd-property-editor-head,
+  #propertyEditor.active #propertyEditorForm,
+  #propertyEditor.active .gd-editor-actions,
+  #propertyEditor.active .gd-editor-actions button{
+    pointer-events:auto!important;
+  }
+  #propertyEditor.active .gd-editor-actions{
+    position:sticky!important;
+    z-index:100010!important;
+  }
+  #propertyEditor.active .gd-editor-actions button{
+    position:relative!important;
+    z-index:100011!important;
+    touch-action:manipulation!important;
+    cursor:pointer!important;
+  }
+  #propertyEditor.active #savePropertyEditBtn{
+    -webkit-user-select:none!important;
+    user-select:none!important;
   }
 }
 </style>
