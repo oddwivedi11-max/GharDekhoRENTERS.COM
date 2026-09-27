@@ -11138,6 +11138,37 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   }
 }
 </style>
+
+<style id="ghardekho-submit-always-visible-v16">
+@media(max-width:680px){
+  /* Keep the primary submission action visibly available on every
+     scroll position inside the Add Property modal. */
+  body.gd-property-modal-active #ownerDashboard #addPropertyBtn{
+    position:fixed!important;
+    left:16px!important;
+    right:16px!important;
+    bottom:calc(16px + env(safe-area-inset-bottom))!important;
+    width:calc(100vw - 32px)!important;
+    max-width:none!important;
+    min-height:56px!important;
+    height:56px!important;
+    margin:0!important;
+    z-index:65020!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+    box-shadow:0 12px 30px rgba(7,31,28,.28)!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card form{
+    padding-bottom:calc(92px + env(safe-area-inset-bottom))!important;
+  }
+}
+</style>
 </body>
 
 </html>
