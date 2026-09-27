@@ -6062,9 +6062,14 @@ async function loginUser() {
             if (currentProfile) {
                 const renterRoleReady = await saveActiveAccountRole("renter");
                 if (!renterRoleReady) {
-                    console.error("Could not enable Renter access for this account.");
-                    authMessage.textContent = "Login succeeded, but Renter access could not be enabled. Please try again.";
-                    return;
+                    /* Authentication itself succeeded. Do not lock the user
+                       out of the dashboard because a secondary role-profile
+                       persistence update failed. Keep the selected role in
+                       the current session and continue. */
+                    console.warn("Renter role persistence failed; continuing with authenticated session.");
+                    const existing = getAccountRoles(currentProfile);
+                    currentProfile.roles = [...new Set([...existing, "renter"])];
+                    currentProfile.role = "tenant";
                 }
             }
         }
@@ -6127,9 +6132,14 @@ async function loginUser() {
 
             const ownerRoleReady = await saveActiveAccountRole("owner");
             if (!ownerRoleReady) {
-                console.error("Could not enable Owner access for this account.");
-                authMessage.textContent = "Login succeeded, but Owner access could not be enabled. Please try again.";
-                return;
+                /* Authentication itself succeeded. A failure here is in the
+                   optional role/profile persistence step, not the password
+                   login. Continue using the role explicitly selected by the
+                   user for this session. */
+                console.warn("Owner role persistence failed; continuing with authenticated session.");
+                const existing = getAccountRoles(currentProfile);
+                currentProfile.roles = [...new Set([...existing, "owner"])];
+                currentProfile.role = "owner";
             }
 
             sessionStorage.setItem("gd_login_destination", "owner");
@@ -12339,6 +12349,35 @@ input,select,textarea{
   #propertyEditor.active #savePropertyEditBtn{
     -webkit-user-select:none!important;
     user-select:none!important;
+  }
+}
+</style>
+<style id="ghardekho-login-mobile-final-v24">
+@media(max-width:680px){
+  #loginSection .gd-v4-auth-form{
+    width:100%!important;
+    min-width:0!important;
+  }
+  #loginSection .gd-v4-actions{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+  }
+  #loginSection #loginSubmitBtn,
+  #loginSection #signupBtn{
+    width:100%!important;
+    min-height:52px!important;
+    height:52px!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+  #loginSection input{
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+  #loginSection .gd-v4-role-switch label{
+    min-height:58px!important;
+    pointer-events:auto!important;
   }
 }
 </style>
