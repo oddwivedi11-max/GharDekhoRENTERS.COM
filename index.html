@@ -8379,14 +8379,31 @@ async function refreshSaveButtons(propertyId) {
 
             if (selectedPropertyImageFile) {
                 try {
-                    showMessage("backendMessage", "Uploading property image...", "info");
-                    imageUrl = await uploadPropertyImage(selectedPropertyImageFile);
+                    showMessage("backendMessage", "Uploading property image… please wait.", "info");
+
+                    /* Mobile networks/storage requests can occasionally hang
+                       without returning an error. Never leave the owner stuck
+                       on "Submitting…" forever. */
+                    const uploadPromise = uploadPropertyImage(selectedPropertyImageFile);
+                    const timeoutPromise = new Promise((_, reject) =>
+                        setTimeout(() => reject(new Error(
+                            "Image upload is taking too long. Please try again with a smaller photo or remove the photo and submit."
+                        )), 25000)
+                    );
+
+                    imageUrl = await Promise.race([uploadPromise, timeoutPromise]);
                 } catch (uploadError) {
                     console.error("Property image upload error:", uploadError);
-                    showMessage("backendMessage", getSafeErrorMessage(uploadError, "Unable to upload the property image. Please try again."), "error");
+                    showMessage(
+                        "backendMessage",
+                        getSafeErrorMessage(uploadError, "Unable to upload the property image. Please try again."),
+                        "error"
+                    );
                     return;
                 }
             }
+
+            showMessage("backendMessage", "Saving property details…", "info");
 
             const {
                 error
@@ -8426,7 +8443,9 @@ async function refreshSaveButtons(propertyId) {
                 return;
             }
 
-            showMessage(
+            showMessage("backendMessage", "✓ Property submitted successfully.", "success");
+
+            showMessage
                 "backendMessage",
                 "Property listed successfully. Location was confirmed from the address you entered.",
                 "success"
