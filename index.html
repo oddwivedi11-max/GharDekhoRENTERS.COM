@@ -11106,6 +11106,38 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
   window.__gdSyncOwnerData=syncOwnerData;
 })();
 </script>
+
+<style id="ghardekho-mobile-modal-nav-fix-v15">
+@media(max-width:680px){
+  /* The global mobile bottom navigation must never sit above the
+     Owner Add Property modal. It was intercepting taps on the submit
+     area at the bottom of the modal. */
+  body.gd-property-modal-active #gdMobileBottomNav,
+  body.gd-property-modal-active .gd-mobile-nav{
+    display:none!important;
+    pointer-events:none!important;
+    visibility:hidden!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open{
+    z-index:65000!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard .gd-mobile-form-actions{
+    position:sticky!important;
+    bottom:0!important;
+    z-index:65010!important;
+  }
+
+  body.gd-property-modal-active #ownerDashboard #addPropertyBtn,
+  body.gd-property-modal-active #ownerDashboard #verifyLocationBtn{
+    position:relative!important;
+    z-index:65011!important;
+    pointer-events:auto!important;
+    touch-action:manipulation!important;
+  }
+}
+</style>
 </body>
 
 </html>
