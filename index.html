@@ -4185,7 +4185,28 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
   .gd-phone-wrap input{font-size:16px!important;min-height:48px!important}
 }
 </style>
-</head>
+<style id="ghardekho-mobile-owner-modal-final-v20">
+@media(max-width:680px){
+  /* Keep the owner modal's stacking context above the dim/blur layer. */
+  body.gd-property-modal-active #ownerDashboard{
+    position:relative!important;
+    z-index:20001!important;
+  }
+  body.gd-property-modal-active:after{
+    z-index:19999!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open{
+    z-index:20002!important;
+    display:flex!important;
+    visibility:visible!important;
+    opacity:1!important;
+    pointer-events:auto!important;
+  }
+  body.gd-property-modal-active #ownerDashboard .owner-add-property-card.gd-property-modal-open > *{
+    pointer-events:auto!important;
+  }
+}
+</style></head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
