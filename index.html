@@ -7481,7 +7481,25 @@ async function renderActiveDashboard() {
            ========================================================= */
 
         async function openPropertyDetails(propertyId) {
-            let property = allProperties.find(item => item.id === propertyId);
+            /* Owner dashboard properties come from the owner inventory query.
+               Reuse that trusted row first. This avoids a second direct
+               properties-table read being blocked by owner-side RLS and makes
+               the View Details button work reliably for owners. */
+            propertyId = String(propertyId || "").trim();
+            if (!propertyId) {
+                showMessage("backendMessage", "Property ID is missing.", "error");
+                return;
+            }
+
+            let property = allProperties.find(item => String(item.id) === propertyId);
+
+            if (!property && Array.isArray(ownerPropertiesCache)) {
+                property = ownerPropertiesCache.find(item => String(item.id) === propertyId) || null;
+            }
+
+            if (property && activeRole === "owner" && !property.owner_id && currentOwnerProfile?.id) {
+                property = { ...property, owner_id: currentOwnerProfile.id };
+            }
 
             if (!property) {
                 const baseSelect = "id,title,location,bhk,rent,furnishing,description,image_url,latitude,longitude,status,verification_status,created_at,owner_id";
@@ -8657,7 +8675,7 @@ async function loadOwnerProperties() {
                 error
             } = await supabaseClient
                 .from("properties")
-                .select("id,title,name,location,address,rent,status,verification_status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description")
+                .select("id,title,name,location,address,rent,status,verification_status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description,image_url,latitude,longitude,owner_id")
                 .eq("owner_id", ownerRecord.id)
                 .order("created_at", {
                     ascending: false
