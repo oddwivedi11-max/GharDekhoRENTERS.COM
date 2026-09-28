@@ -4185,6 +4185,220 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
   .gd-phone-wrap input{font-size:16px!important;min-height:48px!important}
 }
 </style>
+<style id="ghardekho-mobile-first-v10">
+/* =========================================================
+   GharDekho Mobile-First V10
+   Same brand/pattern, rebuilt for one-hand phone use.
+   ========================================================= */
+@media (max-width:680px){
+  html,body{width:100%;max-width:100%;overflow-x:hidden!important}
+  body{font-size:15px;line-height:1.45}
+  main{width:100%!important;margin:0!important;padding:8px 12px 92px!important}
+  section{scroll-margin-top:76px!important}
+
+  /* Compact mobile header */
+  header{
+    min-height:58px!important;
+    height:58px!important;
+    padding:7px 10px!important;
+    gap:8px!important;
+    border-radius:0 0 16px 16px!important;
+    z-index:5000!important;
+  }
+  header h1{font-size:0!important;max-width:none!important;flex:1!important;overflow:visible!important}
+  header h1:before{width:34px!important;height:34px!important;display:grid!important;place-items:center!important}
+  #loginBtn,#logoutBtn{
+    min-width:92px!important;width:auto!important;height:42px!important;min-height:42px!important;
+    padding:0 14px!important;margin-left:auto!important;border-radius:13px!important;font-size:12px!important
+  }
+
+  /* Home/search: no cramped 2-column form */
+  #homeSection.gd-home-v6{padding-bottom:26px!important}
+  .gd-home-v6-hero{min-height:auto!important;padding:30px 18px 28px!important;display:block!important}
+  .gd-home-v6-copy h1,.gd-home-v6-copy h2{font-size:clamp(2.35rem,12vw,3.5rem)!important;line-height:.98!important}
+  .gd-home-v6-visual{display:none!important}
+  .gd-home-v6-search{padding:18px 12px!important;margin-top:0!important}
+  .gd-home-v6-search-head{display:block!important;margin-bottom:12px!important}
+  .gd-home-v6-search-head h3{font-size:20px!important;margin:4px 0!important}
+  .gd-home-v6-search-head p{font-size:12px!important;margin:0!important}
+
+  .gd-search-v6{
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:9px!important;
+    padding:10px!important;
+    margin-top:10px!important;
+    overflow:visible!important;
+    border-radius:18px!important;
+  }
+  .gd-search-v6 .gd-v6-search-field{
+    min-width:0!important;
+    width:100%!important;
+    margin:0!important;
+    border-radius:15px!important;
+  }
+  .gd-search-v6 .gd-v6-location{grid-column:1/-1!important}
+  .gd-search-v6 .gd-v6-location input{
+    min-height:54px!important;width:100%!important;font-size:15px!important
+  }
+  .gd-search-v6 .gd-v6-search-field:not(.gd-v6-location) select{
+    min-height:52px!important;width:100%!important;font-size:13px!important;
+    padding-left:13px!important;padding-right:34px!important
+  }
+  .gd-search-v6 #searchBtn,.gd-search-v6 #nearMeBtn{
+    grid-column:auto!important;width:100%!important;min-height:52px!important
+  }
+  .gd-search-v6 #liveNearbyBtn,.gd-search-v6 #radiusSelect{grid-column:1/-1!important}
+  #gdLocationSuggestions{
+    left:0!important;right:0!important;top:calc(100% + 5px)!important;
+    width:100%!important;max-height:230px!important;
+    border:1px solid #d6e4e0!important;border-radius:14px!important;
+    box-shadow:0 16px 35px rgba(10,45,40,.18)!important;
+    padding:5px!important;z-index:2147483000!important;
+  }
+  .gd-location-suggestion{min-height:50px!important;padding:9px 10px!important;font-size:14px!important}
+  .gd-location-suggestion-sub{font-size:11px!important}
+
+  /* Property cards always fit the viewport */
+  #propertiesSection{padding-top:20px!important}
+  .property-grid{grid-template-columns:1fr!important;gap:12px!important}
+  .property-card{width:100%!important;min-width:0!important;border-radius:18px!important}
+  .property-card-image{height:190px!important}
+  .property-card-body{padding:14px!important}
+  .property-card-body h3{font-size:18px!important}
+  .property-actions{grid-template-columns:1fr 1fr!important}
+  .property-actions button{min-width:0!important;width:100%!important}
+
+  /* Dashboard header + actual Renter/Owner switch */
+  #dashboardSection.role-dashboard-shell{
+    width:100%!important;margin:10px 0 35px!important;padding:0!important
+  }
+  #dashboardSection .dashboard-heading{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:12px!important;padding:18px!important;margin-bottom:14px!important;
+    border:1px solid #d8e7e3!important;border-radius:20px!important;
+    background:linear-gradient(145deg,#fff,#f3faf7)!important;
+    box-shadow:0 10px 28px rgba(13,57,51,.07)!important
+  }
+  #dashboardSection .dashboard-heading h2{
+    font-size:32px!important;line-height:1.02!important;margin:5px 0!important
+  }
+  #dashboardSection .dashboard-subtitle{font-size:13px!important}
+  .dashboard-heading-actions{width:100%!important;display:flex!important;flex-direction:column!important;gap:9px!important}
+  #dashboardRoleSwitch{
+    display:flex!important;width:100%!important;padding:4px!important;gap:4px!important;
+    background:#e8f2ef!important;border:1px solid #cfe0db!important;border-radius:16px!important;
+    box-shadow:inset 0 1px 2px rgba(0,0,0,.04)!important
+  }
+  #dashboardRoleSwitch button{
+    flex:1 1 0!important;width:50%!important;min-height:46px!important;height:46px!important;
+    border:0!important;border-radius:12px!important;background:transparent!important;
+    color:#54706a!important;font-size:14px!important;font-weight:850!important;
+    padding:0 8px!important;touch-action:manipulation!important
+  }
+  #dashboardRoleSwitch button.active{
+    background:#0b766d!important;color:#fff!important;
+    box-shadow:0 7px 16px rgba(11,118,109,.20)!important
+  }
+  .dashboard-user-chip{
+    width:100%!important;min-height:44px!important;justify-content:flex-start!important;
+    border-radius:13px!important;padding:9px 12px!important;font-size:12px!important
+  }
+
+  /* Dashboard stats/actions */
+  .dashboard-stats-grid,.owner-stats-grid{
+    grid-template-columns:1fr 1fr!important;gap:9px!important
+  }
+  .dashboard-stat-card{min-height:86px!important;padding:13px!important;border-radius:16px!important;gap:9px!important}
+  .dashboard-stat-icon{width:38px!important;height:38px!important;border-radius:11px!important;font-size:17px!important}
+  .dashboard-stat-label{font-size:10px!important}
+  .dashboard-stat-card strong{font-size:23px!important}
+  .dashboard-action-row{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .dashboard-primary-action,.dashboard-secondary-action{
+    min-height:48px!important;width:100%!important;padding:9px 8px!important;font-size:12px!important
+  }
+  .dashboard-card{padding:16px!important;border-radius:17px!important;margin-bottom:12px!important}
+  .dashboard-card-heading h3{font-size:18px!important}
+  .dashboard-card-heading{gap:8px!important}
+  .owner-form-grid,.renter-profile-grid{grid-template-columns:1fr!important}
+  .owner-form-grid input,.owner-form-grid select,.owner-form-grid textarea{min-width:0!important;width:100%!important}
+  .owner-dashboard .owner-quick-card{flex-direction:column!important;align-items:stretch!important}
+
+  /* Admin: convert wide desktop table into readable mobile cards */
+  #adminDashboard{
+    width:100%!important;max-width:none!important;padding:8px 0 100px!important;margin:0!important
+  }
+  #adminDashboard .dashboard-heading{
+    display:flex!important;flex-direction:column!important;align-items:stretch!important;
+    gap:8px!important;margin-bottom:12px!important;padding:16px!important;
+    background:linear-gradient(145deg,#fff,#f3faf7)!important;border:1px solid #d8e7e3!important;
+    border-radius:19px!important
+  }
+  #adminDashboard .dashboard-heading h2{font-size:29px!important;line-height:1.05!important}
+  .gd-admin-grid{grid-template-columns:1fr 1fr!important;gap:9px!important;margin:12px 0!important}
+  .gd-admin-stat{min-height:78px!important;padding:13px!important;border-radius:15px!important}
+  .gd-admin-stat strong{font-size:25px!important}
+  .gd-admin-toolbar{display:block!important;margin-bottom:10px!important}
+  #adminRefreshBtn{width:100%!important;margin-bottom:8px!important}
+  .gd-admin-tabs{
+    display:flex!important;flex-wrap:nowrap!important;overflow-x:auto!important;
+    gap:7px!important;margin:10px 0!important;padding:2px 1px 7px!important;
+    scrollbar-width:none!important;-webkit-overflow-scrolling:touch!important
+  }
+  .gd-admin-tabs::-webkit-scrollbar{display:none!important}
+  .gd-admin-tab{flex:0 0 auto!important;min-height:42px!important;padding:0 14px!important;font-size:12px!important}
+  #adminPanelProperties,#adminPanelOwners,#adminPanelRenters,#adminPanelVisits,#adminPanelConnections,#adminPanelActivity{
+    padding:12px!important;border-radius:17px!important
+  }
+  .gd-admin-search{
+    width:100%!important;max-width:none!important;min-height:50px!important;margin-bottom:11px!important;
+    font-size:14px!important
+  }
+  .gd-admin-table-wrap{
+    overflow:visible!important;border:0!important;border-radius:0!important
+  }
+  .gd-admin-table{
+    width:100%!important;min-width:0!important;display:block!important;border-collapse:separate!important
+  }
+  .gd-admin-table thead{display:none!important}
+  .gd-admin-table tbody{display:grid!important;gap:10px!important}
+  .gd-admin-table tr{
+    display:block!important;width:100%!important;padding:12px!important;
+    border:1px solid #dbe7e3!important;border-radius:15px!important;
+    background:#fff!important;box-shadow:0 7px 18px rgba(10,50,45,.06)!important
+  }
+  .gd-admin-table td{
+    display:grid!important;grid-template-columns:82px minmax(0,1fr)!important;gap:9px!important;
+    width:100%!important;padding:8px 0!important;border:0!important;
+    font-size:13px!important;line-height:1.4!important;overflow-wrap:anywhere!important
+  }
+  .gd-admin-table td:before{
+    font-size:10px!important;font-weight:900!important;letter-spacing:.08em!important;
+    color:#6a7d78!important;text-transform:uppercase!important
+  }
+  .gd-admin-table td:nth-child(1):before{content:"Property"}
+  .gd-admin-table td:nth-child(2):before{content:"Owner"}
+  .gd-admin-table td:nth-child(3):before{content:"Rent / Status"}
+  .gd-admin-table td:nth-child(4):before{content:"Location"}
+  .gd-admin-table td:nth-child(5):before{content:"Actions"}
+  .gd-admin-table td:nth-child(5){display:block!important;padding-top:11px!important;margin-top:5px!important;border-top:1px solid #edf2f0!important}
+  .gd-admin-table td:nth-child(5):before{display:block!important;margin-bottom:7px!important}
+  .gd-admin-actions{display:grid!important;grid-template-columns:1fr 1fr!important;width:100%!important}
+  .gd-admin-actions button{width:100%!important;min-height:44px!important}
+}
+@media(max-width:390px){
+  main{padding-left:9px!important;padding-right:9px!important}
+  .gd-search-v6{grid-template-columns:1fr!important}
+  .gd-search-v6 .gd-v6-location,
+  .gd-search-v6 #searchBtn,.gd-search-v6 #nearMeBtn,
+  .gd-search-v6 #liveNearbyBtn,.gd-search-v6 #radiusSelect{grid-column:1!important}
+  .dashboard-stats-grid,.owner-stats-grid,.dashboard-action-row{grid-template-columns:1fr!important}
+  .dashboard-stat-card{min-height:76px!important}
+  .gd-admin-grid{grid-template-columns:1fr 1fr!important}
+  .gd-admin-table td{grid-template-columns:72px minmax(0,1fr)!important}
+  .gd-admin-actions{grid-template-columns:1fr!important}
+}
+</style>
 </head>
 
 <body>
