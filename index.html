@@ -4399,6 +4399,122 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
   .gd-admin-actions{grid-template-columns:1fr!important}
 }
 </style>
+<style id="ghardekho-final-mobile-v11">
+/* =========================================================
+   GharDekho FINAL MOBILE V11
+   Search-first mobile layout + always-visible role switch.
+   No backend/auth/property rules changed.
+   ========================================================= */
+@media (max-width:680px){
+  html,body{width:100%!important;max-width:100%!important;overflow-x:hidden!important}
+  body{min-width:0!important}
+
+  /* Keep the first useful action visible quickly on phones. */
+  main{width:100%!important;max-width:100%!important;margin:0!important;padding:0 10px 96px!important}
+  #homeSection.gd-home-v6{
+    width:100%!important;min-height:0!important;height:auto!important;
+    padding:0 0 28px!important;overflow:visible!important
+  }
+  #homeSection.gd-home-v6:before{position:absolute!important;inset:0!important}
+  .gd-home-v6-hero{
+    width:100%!important;min-height:0!important;height:auto!important;
+    display:block!important;padding:30px 14px 22px!important;
+    border-radius:0!important;overflow:visible!important
+  }
+  .gd-home-v6-copy{max-width:100%!important}
+  .gd-home-v6-kicker{margin-bottom:14px!important;font-size:9px!important}
+  .gd-home-v6-copy h2{
+    max-width:100%!important;font-size:clamp(2.55rem,12vw,4.2rem)!important;
+    line-height:.91!important;letter-spacing:-.065em!important
+  }
+  .gd-home-v6-copy p{
+    max-width:100%!important;margin:16px 0 17px!important;
+    font-size:13px!important;line-height:1.55!important
+  }
+  .gd-home-v6-actions{display:grid!important;grid-template-columns:1fr 1fr!important;gap:8px!important}
+  .gd-home-v6-actions button{width:100%!important;min-height:48px!important;padding:0 9px!important;font-size:11px!important}
+  .gd-home-v6-visual{display:none!important}
+
+  /* Search is the first major mobile block, not buried below a desktop hero. */
+  .gd-home-v6-search{
+    position:relative!important;z-index:20!important;
+    width:100%!important;margin:0!important;padding:14px 10px!important;
+    border-radius:20px!important
+  }
+  .gd-home-v6-search-head{
+    display:block!important;margin:0 2px 10px!important
+  }
+  .gd-home-v6-search-head strong,.gd-home-v6-search-head h3{font-size:19px!important;line-height:1.15!important}
+  .gd-home-v6-search-head small,.gd-home-v6-search-head p{font-size:11px!important}
+  .gd-search-v6{
+    width:100%!important;display:grid!important;
+    grid-template-columns:1fr 1fr!important;gap:8px!important;
+    padding:0!important;margin:0!important;overflow:visible!important
+  }
+  .gd-search-v6 .gd-v6-location{grid-column:1/-1!important}
+  .gd-search-v6 .gd-v6-search-field{min-width:0!important;width:100%!important}
+  .gd-search-v6 .gd-v6-search-field input,
+  .gd-search-v6 .gd-v6-search-field select{
+    width:100%!important;min-width:0!important;min-height:50px!important;
+    font-size:13px!important
+  }
+  .gd-search-v6 #searchBtn,.gd-search-v6 #nearMeBtn{
+    width:100%!important;min-width:0!important;min-height:50px!important
+  }
+  .gd-search-v6 #liveNearbyBtn,.gd-search-v6 #radiusSelect{grid-column:1/-1!important;width:100%!important}
+  #gdLocationSuggestions{
+    left:0!important;right:0!important;width:100%!important;
+    max-height:240px!important;z-index:2147483000!important
+  }
+
+  #propertiesSection{
+    width:100%!important;padding:18px 0 0!important;
+    margin:0!important
+  }
+  .property-grid{grid-template-columns:1fr!important;width:100%!important;gap:12px!important}
+  .property-card{width:100%!important;min-width:0!important}
+  .property-card-image{height:185px!important}
+  .property-card-body{padding:13px!important}
+
+  /* Role switch: large, thumb-friendly and impossible to hide on phones. */
+  #dashboardSection .dashboard-heading-actions{width:100%!important}
+  #dashboardRoleSwitch{
+    display:flex!important;width:100%!important;min-height:54px!important;
+    padding:4px!important;gap:4px!important;margin:0!important;
+    border-radius:16px!important
+  }
+  #dashboardRoleSwitch button{
+    display:inline-flex!important;flex:1 1 0!important;width:50%!important;
+    min-width:0!important;min-height:46px!important;height:46px!important;
+    align-items:center!important;justify-content:center!important;
+    font-size:14px!important;font-weight:850!important;touch-action:manipulation!important
+  }
+  #dashboardRoleSwitch button:disabled{opacity:1!important;cursor:default!important}
+  #dashboardRoleSwitch button.active{background:#0b766d!important;color:#fff!important}
+  .dashboard-user-chip{width:100%!important;margin-top:0!important}
+
+  /* Dashboard cards stay single-column and scroll naturally. */
+  #dashboardSection{width:100%!important;min-width:0!important}
+  #dashboardSection .dashboard-heading{
+    width:100%!important;padding:16px!important;border-radius:18px!important
+  }
+  #dashboardSection .dashboard-heading h2{font-size:30px!important}
+  .dashboard-stats-grid,.owner-stats-grid{grid-template-columns:1fr 1fr!important}
+  .dashboard-action-row{grid-template-columns:1fr 1fr!important}
+  .dashboard-card{width:100%!important;min-width:0!important}
+  .owner-form-grid,.renter-profile-grid{grid-template-columns:1fr!important}
+  #ownerDashboard .owner-add-property-card{max-height:94vh!important;overflow:auto!important}
+}
+@media(max-width:390px){
+  main{padding-left:8px!important;padding-right:8px!important}
+  .gd-home-v6-hero{padding-left:12px!important;padding-right:12px!important}
+  .gd-search-v6{grid-template-columns:1fr!important}
+  .gd-search-v6 .gd-v6-location,
+  .gd-search-v6 #searchBtn,.gd-search-v6 #nearMeBtn,
+  .gd-search-v6 #liveNearbyBtn,.gd-search-v6 #radiusSelect{grid-column:1!important}
+  .gd-home-v6-actions,.dashboard-stats-grid,.owner-stats-grid,.dashboard-action-row{grid-template-columns:1fr!important}
+}
+</style>
 </head>
 
 <body>
@@ -5771,12 +5887,21 @@ async function switchAccountRole(role) {
 function updateDashboardRoleSwitcher() {
     const switcher = document.getElementById("dashboardRoleSwitch");
     if (!switcher) return;
-    const roles = getAccountRoles(currentProfile);
-    switcher.style.display = roles.length > 1 ? "flex" : "none";
+
+    // Show the Renter/Owner switch for every authenticated renter/owner
+    // session. Owner access can be provisioned when the user taps Owner,
+    // so the switch must not disappear just because the account currently
+    // has only one persisted role.
+    const isRoleAccount = activeRole === "renter" || activeRole === "owner";
+    switcher.style.display = (currentUser && isRoleAccount) ? "flex" : "none";
+
     switcher.querySelectorAll("[data-role-switch]").forEach(button => {
         const role = button.getAttribute("data-role-switch");
-        button.style.display = roles.includes(role) ? "inline-flex" : "none";
+        const allowed = role === "renter" || role === "owner";
+        button.style.display = allowed ? "inline-flex" : "none";
+        button.disabled = role === activeRole;
         button.classList.toggle("active", role === activeRole);
+        button.setAttribute("aria-pressed", role === activeRole ? "true" : "false");
     });
 }
 
@@ -12795,6 +12920,41 @@ body.gd-auth-page #gdAuthFormShell input{
   touch-action:manipulation!important;
 }
 </style>
+<script id="ghardekho-final-role-switch-v11">
+(function(){
+  function bindGharDekhoRoleSwitch(){
+    const switcher=document.getElementById("dashboardRoleSwitch");
+    if(!switcher || switcher.dataset.gdV11Bound==="1") return;
+    switcher.dataset.gdV11Bound="1";
+    switcher.addEventListener("click",function(event){
+      const button=event.target.closest("[data-role-switch]");
+      if(!button) return;
+      event.preventDefault();
+      event.stopPropagation();
+      const role=button.getAttribute("data-role-switch")==="owner" ? "owner" : "renter";
+      if(typeof window.switchAccountRole==="function"){
+        window.switchAccountRole(role);
+      } else if(typeof switchAccountRole==="function"){
+        switchAccountRole(role);
+      }
+    });
+  }
+
+  function exposeRoleSwitcher(){
+    bindGharDekhoRoleSwitch();
+    if(typeof window.updateDashboardRoleSwitcher==="function"){
+      window.updateDashboardRoleSwitcher();
+    }
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",exposeRoleSwitcher,{once:true});
+  }else{
+    exposeRoleSwitcher();
+  }
+  new MutationObserver(exposeRoleSwitcher).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 </body>
 
 </html>
