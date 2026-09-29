@@ -5738,9 +5738,6 @@ function openAdminLogin(){
     if(adminBtn) adminBtn.style.display="none";
 }
 
-// Bootstrap the private admin entry route when /admin or ?admin=1 is opened.
-openPrivateAdminAccess();
-
         async function openOwnerArea() {
             if (!currentUser) {
                 openLoginSection("owner");
