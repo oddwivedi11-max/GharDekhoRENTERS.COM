@@ -5714,6 +5714,17 @@ function openAdminLogin(){
     window.__gdAdminLoginRequested = true;
     openLoginSection("renter");
 
+    // Keep the Admin destination authoritative after openLoginSection()
+    // changes the temporary auth hash to #login.
+    activeRole = "admin";
+    pendingLoginRole = "admin";
+    sessionStorage.setItem("gd_active_role", "admin");
+    sessionStorage.setItem("gd_pending_login_role", "admin");
+    sessionStorage.setItem("gd_login_destination", "admin");
+    try {
+        window.history.replaceState({gdAdmin:true}, document.title, window.location.origin + "/admin");
+    } catch (err) {}
+
     const gateway=document.getElementById("gdAuthGateway");
     const form=document.getElementById("gdAuthFormShell");
     if(gateway) gateway.style.display="none";
