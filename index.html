@@ -248,6 +248,51 @@ section {
   border-radius: var(--gd-radius-sm);
 }
 
+#ownerAddPropertyCard input::placeholder,
+#ownerAddPropertyCard textarea::placeholder {
+  color: #a8b5b2 !important;
+  opacity: 1 !important;
+  font-weight: 500 !important;
+}
+
+#ownerAddPropertyCard input,
+#ownerAddPropertyCard textarea {
+  color: var(--gd-text);
+}
+
+#mobilePropertySubmitStatus {
+  margin: 10px 0 8px;
+  padding: 0 4px;
+  min-height: 0;
+  font-size: 13px;
+  line-height: 1.45;
+  font-weight: 650;
+}
+
+#mobilePropertySubmitStatus.error {
+  padding: 11px 13px;
+  color: #8a2f2f;
+  background: #fff4f4;
+  border: 1px solid #f0caca;
+  border-radius: 12px;
+}
+
+#mobilePropertySubmitStatus.info {
+  padding: 11px 13px;
+  color: #49645f;
+  background: #f4f9f7;
+  border: 1px solid #d9e8e3;
+  border-radius: 12px;
+}
+
+#mobilePropertySubmitStatus.success {
+  padding: 11px 13px;
+  color: #17665e;
+  background: #eef9f5;
+  border: 1px solid #cce7df;
+  border-radius: 12px;
+}
+
 /* ---------- Search ---------- */
 
 .search-box {
@@ -5349,6 +5394,14 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
             element.textContent = message;
             if (elementId === "backendMessage") {
                 element.className = "backend-message " + type;
+
+                // Keep the submission result visible next to the mobile
+                // Submit button, where it cannot be missed after validation.
+                const mobileStatus = document.getElementById("mobilePropertySubmitStatus");
+                if (mobileStatus) {
+                    mobileStatus.textContent = message;
+                    mobileStatus.className = "mobile-property-submit-status " + type;
+                }
             } else {
                 element.className = "small-text " + type;
             }
@@ -8790,7 +8843,7 @@ async function refreshSaveButtons(propertyId) {
                     "backendMessage",
                     getSafeErrorMessage(
                         error,
-                        "Property could not be saved. Please verify the location and try again."
+                        "Property could not be submitted. Please check the details you entered (property name, address, rent, and required property/PG details) and try again."
                     ),
                     "error"
                 );
@@ -8829,7 +8882,7 @@ async function refreshSaveButtons(propertyId) {
                 console.error("Add property failed:", error);
                 showMessage(
                     "backendMessage",
-                    getSafeErrorMessage(error, error?.message || "Property could not be submitted. Please try again."),
+                    getSafeErrorMessage(error, "Property could not be submitted. Please check the details you entered and try again."),
                     "error"
                 );
             } finally {
