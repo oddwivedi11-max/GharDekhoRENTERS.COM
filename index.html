@@ -10718,6 +10718,13 @@ function updateStayTypeFields() {
 })();
 </script>
 
+<style id="ghardekho-password-toggle-fix-v27">
+.gd-password-wrap{position:relative!important;display:block!important;width:100%!important;overflow:visible!important}
+.gd-password-wrap > input{width:100%!important;box-sizing:border-box!important;padding-right:78px!important}
+.gd-password-wrap > .gd-password-toggle{display:inline-flex!important;visibility:visible!important;opacity:1!important;align-items:center!important;justify-content:center!important;position:absolute!important;z-index:200010!important;right:8px!important;top:50%!important;transform:translateY(-50%)!important;width:auto!important;min-width:54px!important;max-width:64px!important;height:34px!important;min-height:34px!important;margin:0!important;padding:0 9px!important;border:1px solid #c9ddd7!important;border-radius:9px!important;background:#eef5f2!important;color:#176b63!important;font-size:11px!important;line-height:1!important;font-weight:900!important;text-align:center!important;cursor:pointer!important;pointer-events:auto!important;touch-action:manipulation!important}
+.gd-password-wrap > .gd-password-toggle.is-visible{background:#d8efe8!important;color:#0e514a!important}
+@media(max-width:680px){.gd-password-wrap > .gd-password-toggle{min-width:58px!important;height:36px!important;min-height:36px!important;right:7px!important}}
+</style>
 <script id="ghardekho-password-toggle-bridge-v1">
 /*
  * The final auth click guard intercepts password-toggle clicks in capture
@@ -10725,16 +10732,17 @@ function updateStayTypeFields() {
  * works reliably on mobile and desktop.
  */
 function togglePasswordVisibility(button){
-  if(!button) return;
+  if(!button) return false;
   const targetId=button.getAttribute("data-password-target");
   const input=targetId ? document.getElementById(targetId) : null;
-  if(!input) return;
-
+  if(!input) return false;
   const visible=input.type === "text";
   input.type=visible ? "password" : "text";
   button.textContent=visible ? "Show" : "Hide";
   button.classList.toggle("is-visible",!visible);
   button.setAttribute("aria-label",visible ? "Show password" : "Hide password");
+  button.setAttribute("aria-pressed",visible ? "false" : "true");
+  return true;
 }
 </script>
 <script id="ghardekho-password-toggle-v5">
