@@ -10759,6 +10759,21 @@ function updateStayTypeFields() {
 
             setupEventListeners();
 
+            // DIRECT ADMIN ROUTE: handle /admin and /admin/ before the normal
+            // renter/owner route can render. This keeps Admin Login authoritative.
+            const directAdminRoute =
+                window.location.pathname.replace(/\\/+$/, "") === "/admin" ||
+                new URLSearchParams(window.location.search).get("admin") === "1";
+
+            if (directAdminRoute) {
+                window.__gdAdminLoginRequested = true;
+                sessionStorage.setItem("gd_login_destination", "admin");
+                await loadCurrentUser();
+                openAdminLogin();
+                console.log("Ghar Dekho Admin route ready.");
+                return;
+            }
+
             const tokenHashRecovery = await handlePasswordRecoveryTokenHash();
             const handledRecovery = tokenHashRecovery || await handlePasswordRecoveryLink();
 
@@ -10960,7 +10975,8 @@ function updateStayTypeFields() {
     if(target.classList.contains("view-property-btn")) gdSetMobileNavActive("properties");
   },true);
 
-  window.addEventListener("load",gdUpdateMobileNav);\n  window.addEventListener("load",openPrivateAdminAccess);
+  window.addEventListener("load",gdUpdateMobileNav);
+  window.addEventListener("load",openPrivateAdminAccess);
 })();
 </script>
 
