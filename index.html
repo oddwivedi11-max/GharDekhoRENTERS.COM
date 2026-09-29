@@ -13645,13 +13645,22 @@ body.gd-auth-page #gdAuthFormShell input{
   new MutationObserver(exposeRoleSwitcher).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+<section id="gd-about-section" class="gd-about-section" aria-label="About GharDekho Renters">
+  <div class="gd-about-card">
+    <p class="gd-about-kicker">ABOUT GHARDEKHO RENTERS</p>
+    <h2>A simpler way to discover rental homes</h2>
+    <p>GharDekho Renters is a rental property discovery platform designed to help tenants find homes, rooms, PGs and hostels and connect with property owners. Our goal is to make rental discovery simpler, clearer and more accessible while helping renters explore properties based on location, budget, BHK, furnishing and availability.</p>
+    <p>GharDekho Renters is founded and created by <strong>OD Dwivedi</strong>.</p>
+  </div>
+</section>
+
 <section id="gd-contact-section" class="gd-contact-section" aria-label="Contact GharDekho Renters">
   <div class="gd-contact-card">
     <p class="gd-contact-kicker">CONTACT GHARDEKHO RENTERS</p>
-    <h2>Need help or want to report an issue?</h2>
-    <p>For support, property-listing questions, account issues, feedback or legal/privacy requests, contact our team by email.</p>
-    <a class="gd-contact-email" href="mailto:support@ghardekhorenters.com">support@ghardekhorenters.com</a>
-    <p class="gd-contact-note">Please include your registered email, relevant property/listing details and a clear description of the issue when contacting support. Do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</p>
+    <h2>Need help or want to get in touch?</h2>
+    <p>For support, property-listing questions, account issues, feedback, business enquiries or legal and privacy requests, please contact GharDekho Renters by email.</p>
+    <a class="gd-contact-email" href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a>
+    <p class="gd-contact-note">For faster assistance, please include your registered email and relevant property or account details. Please do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</p>
     <nav class="gd-legal-links" aria-label="Legal links">
       <a href="/contact.html">Contact</a>
       <a href="/privacy.html">Privacy Policy</a>
@@ -13674,10 +13683,24 @@ body.gd-auth-page #gdAuthFormShell input{
 @media(max-width:680px){.gd-contact-card{padding:19px;border-radius:17px}.gd-legal-links{display:grid;grid-template-columns:1fr}.gd-legal-links a{text-align:center}}
 </style>
 
-<footer id="gd-founder-footer" aria-label="GharDekho founder credit">
+<style id="gd-about-section-v1">
+.gd-about-section{width:min(900px,100%);margin:38px auto 0}
+.gd-about-card{padding:26px;background:#fff;border:1px solid #dfe6e3;border-radius:20px;box-shadow:0 8px 28px rgba(24,32,31,.07)}
+.gd-about-kicker{margin:0 0 7px;color:#1f5f5b;font-size:.78rem;font-weight:850;letter-spacing:.08em}
+.gd-about-card h2{margin:0 0 10px;color:#18201f;font-size:clamp(1.45rem,3vw,2rem);letter-spacing:-.03em}
+.gd-about-card p:not(.gd-about-kicker){margin:0 0 12px;color:#5f6b68}
+.gd-about-card p:last-child{margin-bottom:0}
+.gd-founder-credit{display:flex;flex-wrap:wrap;gap:7px 18px;align-items:center}
+.gd-founder-credit a{color:inherit;font-weight:700;text-decoration:none}
+@media(max-width:680px){.gd-about-card{padding:19px;border-radius:17px}.gd-founder-credit{display:grid;gap:6px}}
+</style>
+
+<footer id="gd-founder-footer" aria-label="GharDekho Renters footer">
     <div class="gd-founder-credit">
         <strong>GharDekho Renters</strong>
         <span>Founded &amp; Created by <strong>OD Dwivedi</strong></span>
+        <span>Contact: <a href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a></span>
+        <span>&copy; 2026 GharDekho Renters. All rights reserved.</span>
     </div>
 </footer>
 
