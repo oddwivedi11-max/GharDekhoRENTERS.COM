@@ -4912,7 +4912,7 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your email and password to log in. Your selected dashboard is remembered for this login.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="prepareSignupForm(); signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
-    <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button" onclick="openAdminLogin()">Admin Login</button></div>
+    <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button></div>
     <div class="gd-v4-bottom">
   <button id="forgotPasswordBtn" type="button" class="text-button gd-forgot-btn" onclick="forgotPassword()">Forgot password?</button>
   <p id="authMessage" class="small-text gd-auth-message" aria-live="polite"></p>
@@ -5666,6 +5666,18 @@ function openLoginAs(role){
     applyLoginRolePresentation(selectedRole);
     showSignInPage();
 }
+function openPrivateAdminAccess(){
+    // Admin access is intentionally not exposed on the public login screen.
+    // The URL is only an entry point; Supabase admin authorization remains required.
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("admin") !== "1") return;
+    try {
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+    } catch (err) {}
+    openAdminLogin();
+}
+
 function openAdminLogin(){
     /*
      * Admin is a separate destination. Never fall back to the Renter
@@ -10935,7 +10947,7 @@ function updateStayTypeFields() {
     if(target.classList.contains("view-property-btn")) gdSetMobileNavActive("properties");
   },true);
 
-  window.addEventListener("load",gdUpdateMobileNav);
+  window.addEventListener("load",gdUpdateMobileNav);\n  window.addEventListener("load",openPrivateAdminAccess);
 })();
 </script>
 
