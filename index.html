@@ -7230,6 +7230,41 @@ async function saveOwnerProfile(e){
     }
 }
 
+async function loadCurrentRental() {
+    const container = document.getElementById("renterCurrentRentalContainer");
+    if (!container || !currentUser || activeRole !== "renter") return;
+
+    const { data, error } = await supabaseClient.rpc("get_my_current_rental");
+
+    if (error) {
+        console.error("Current rental load error:", error);
+        container.innerHTML = '<p class="dashboard-empty">Current rental information is unavailable right now.</p>';
+        return;
+    }
+
+    const rental = Array.isArray(data) ? data[0] : data;
+    if (!rental) {
+        container.innerHTML = '<p class="dashboard-empty">No confirmed rental yet.</p>';
+        return;
+    }
+
+    const stayType = rental.listing_type === "pg"
+        ? "PG"
+        : rental.listing_type === "hostel"
+            ? "Hostel"
+            : "Home";
+
+    container.innerHTML = `
+        <div class="renter-current-rental">
+            <strong>${escapeHtml(rental.title || "Current rental")}</strong>
+            <div>📍 ${escapeHtml(rental.location || rental.address || "Location not available")}</div>
+            <div>🏠 ${escapeHtml(stayType)}${rental.room_type ? " · " + escapeHtml(rental.room_type) : ""}</div>
+            <div>💰 ${formatRent(rental.rent)}</div>
+            <div>🗓️ Active since ${escapeHtml(String(rental.occupied_at || "").slice(0,10) || "recently")}</div>
+        </div>
+    `;
+}
+
 async function renderActiveDashboard() {
     const renter = document.getElementById("renterDashboard");
     const owner = document.getElementById("ownerDashboard");
@@ -8610,28 +8645,27 @@ async function saveProperty(propertyId) {
             return;
         }
 
-        if (existing) {
-            const { error } = await supabaseClient
-                .from("saved_properties")
-                .delete()
-                .eq("id", existing.id);
-            if (error) {
-                console.error("Favorite delete error:", error);
-                showMessage("backendMessage", getSafeErrorMessage(error, "Unable to remove this saved home right now."), "error");
-                return;
-            }
-            showMessage("backendMessage", "Removed from saved homes.", "success");
-        } else {
-            const { error } = await supabaseClient
-                .from("saved_properties")
-                .insert({ user_id: currentUser.id, property_id: propertyId });
-            if (error) {
-                console.error("Favorite insert error:", error);
-                showMessage("backendMessage", getSafeErrorMessage(error, "Unable to save this home right now."), "error");
-                return;
-            }
-            showMessage("backendMessage", "Home saved successfully.", "success");
+        // Use a security-definer RPC for the actual toggle. This avoids
+        // browser-side RLS/403 failures while the database function still
+        // verifies the authenticated user and property eligibility.
+        const { data: toggleData, error: toggleError } = await supabaseClient
+            .rpc("toggle_saved_property", { p_property_id: propertyId });
+
+        if (toggleError) {
+            console.error("Favorite toggle error:", toggleError);
+            showMessage("backendMessage", getSafeErrorMessage(toggleError, "Unable to update saved homes right now."), "error");
+            return;
         }
+
+        const isSavedNow = Array.isArray(toggleData)
+            ? Boolean(toggleData[0]?.saved)
+            : Boolean(toggleData?.saved);
+
+        showMessage(
+            "backendMessage",
+            isSavedNow ? "Home saved successfully." : "Removed from saved homes.",
+            "success"
+        );
 
         await refreshSaveButtons(propertyId);
         await loadSavedProperties();
