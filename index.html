@@ -9511,15 +9511,36 @@ async function loadOwnerCurrentRenters(properties) {
 
         const propertyCard = document.querySelector('.owner-property-premium-card[data-property-id="'+CSS.escape(String(property.id))+'"]');
         if (propertyCard) {
+            const isOccupied = effective === "occupied" || effective === "partially_occupied";
+            const statusText = effective === "occupied"
+                ? "OCCUPIED"
+                : effective === "partially_occupied"
+                    ? "PARTIALLY OCCUPIED"
+                    : "VACANT";
+
+            // Keep the property card itself in sync with the live occupancy
+            // result. Do not rely on the properties.status value for display,
+            // because that value can lag behind the active rental record.
+            const photoBadge = propertyCard.querySelector(".owner-property-photo-badge");
+            if (photoBadge) {
+                photoBadge.textContent = statusText;
+                photoBadge.className = "owner-property-photo-badge " + (isOccupied ? "occupied" : "available");
+            }
+
+            const bottomStatus = propertyCard.querySelector(".owner-property-status-text");
+            if (bottomStatus) {
+                bottomStatus.textContent = statusText;
+                bottomStatus.className = "owner-property-status-text " + (isOccupied ? "occupied" : "vacant");
+            }
+
             const occupancyEl = propertyCard.querySelector(".owner-occupancy-inline");
             if (occupancyEl) {
+                occupancyEl.setAttribute("data-live-status", effective);
                 occupancyEl.innerHTML = effective === "occupied"
-                    ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● Occupied</button><span class="gd-live-occupancy-label">Currently occupied</span>'
+                    ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● OCCUPIED</button><span class="gd-live-occupancy-label">This property currently has an active renter.</span>'
                     : effective === "partially_occupied"
-                        ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● Partially occupied</button><span class="gd-live-occupancy-label">Some beds are occupied</span>'
-                        : effective === "available"
-                            ? '<button type="button" class="gd-live-occupancy-btn vacant" disabled>● Vacant</button><span class="gd-live-occupancy-label">Available for a renter</span>'
-                            : '<button type="button" class="gd-live-occupancy-btn vacant" disabled>● Vacant</button><span class="gd-live-occupancy-label">Currently vacant • Property verification pending</span>';
+                        ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● PARTIALLY OCCUPIED</button><span class="gd-live-occupancy-label">Some beds are currently occupied.</span>'
+                        : '<button type="button" class="gd-live-occupancy-btn vacant" disabled>● VACANT</button><span class="gd-live-occupancy-label">No active renter — property is available.</span>';
             }
         }
     });
@@ -9581,6 +9602,19 @@ gdLiveOccupancyStyle.textContent = `
 .gd-live-occupancy-label{font-size:12px;font-weight:700;color:#475569}
 `;
 document.head.appendChild(gdLiveOccupancyStyle);
+
+const gdOwnerPropertyStatusStyle = document.createElement("style");
+gdOwnerPropertyStatusStyle.id = "gd-owner-property-status-live-v1";
+gdOwnerPropertyStatusStyle.textContent = `
+.owner-property-photo-badge.available{background:#fff3cd!important;color:#8a5a00!important;border:1px solid #f0d58a!important}
+.owner-property-photo-badge.occupied{background:#dcfce7!important;color:#166534!important;border:1px solid #86efac!important}
+.owner-property-status-text{font-weight:900!important;letter-spacing:.04em}
+.owner-property-status-text.vacant{color:#b45309!important}
+.owner-property-status-text.occupied{color:#15803d!important}
+.owner-occupancy-inline[data-live-status="available"]{border-color:#f0d58a!important;background:#fffaf0!important}
+.owner-occupancy-inline[data-live-status="occupied"]{border-color:#86efac!important;background:#f0fdf4!important}
+`;
+document.head.appendChild(gdOwnerPropertyStatusStyle);
 
 function formatRentalDuration(start) {
     const now = new Date();
