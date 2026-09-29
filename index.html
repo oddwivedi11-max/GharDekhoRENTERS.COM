@@ -7606,13 +7606,11 @@ async function renderActiveDashboard() {
             try {
                 // IMPORTANT: use only columns that exist in the core GharDekho
                 // properties schema. Optional PG/Hostel columns are not queried here.
-                const propertyQuery = supabaseClient
-                    .from("properties")
-                    .select("id,owner_id,title,location,latitude,longitude,bhk,rent,furnishing,description,status,verification_status,image_url,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds")
-                    .eq("verification_status", "verified")
-                    .in("status", ["verified","occupied","soon_available"])
-                    .order("created_at", { ascending: false })
-                    .limit(APP_LIMITS.maxPropertyLoad);
+                // Public inventory is served through a SECURITY DEFINER RPC.
+                // Only properties belonging to admin-verified owners are public.
+                // Property verification may still be pending; that state is shown
+                // publicly and visit booking remains blocked until verification.
+                const propertyQuery = supabaseClient.rpc("get_public_properties");
 
                 // Prevent the UI from being stuck on "Loading properties..." forever.
                 const timeout = new Promise((_, reject) =>
@@ -7683,7 +7681,11 @@ async function renderActiveDashboard() {
                                 ? '<button type="button" class="property-status-button occupied" disabled aria-label="Property occupied">● Occupied</button>'
                                 : property.status === "soon_available"
                                 ? '<button type="button" class="property-status-button soon" disabled aria-label="Property will be available soon">● Soon Available</button>'
-                                : '<button type="button" class="property-status-button available" disabled aria-label="Property available">✓ Available</button>'}
+                                : '<button type="button" class="property-status-button available" disabled aria-label="Property vacant">✓ Vacant</button>'}
+                                ${property.verification_status === "verified"
+                                ? '<span class="owner-badge">✓ Verified Property</span>'
+                                : '<span class="pending-badge">Property verification pending</span>'}
+                                <span class="owner-badge">✓ Verified Owner</span>
                             </div>
                             <div class="property-actions">
                                 <button type="button" class="view-property-btn" data-id="${escapeHtml(property.id)}">View Details</button>
@@ -9285,8 +9287,13 @@ async function loadOwnerProperties() {
 
             ownerPropertiesCache = Array.isArray(data) ? data : [];
             const ownerPropertyCount = Array.isArray(data) ? data.length : 0;
-            const ownerAvailableCount = 0;
-            const ownerOccupiedCount = 0;
+            // Show the current owner-side condition even before admin property verification.
+            const ownerOccupiedCount = Array.isArray(data)
+                ? data.filter(property => property.status === "occupied").length
+                : 0;
+            const ownerAvailableCount = Array.isArray(data)
+                ? data.filter(property => property.status !== "occupied" && property.status !== "rejected").length
+                : 0;
             const ownerPropertyCountEl = document.getElementById("ownerPropertyCount");
             const ownerAvailableCountEl = document.getElementById("ownerAvailableCount");
             const ownerOccupiedCountEl = document.getElementById("ownerOccupiedCount");
@@ -9303,13 +9310,20 @@ async function loadOwnerProperties() {
 
             container.innerHTML =
                 data.map(function (property) {
-                    let statusLabel = "Pending verification";
+                    let statusLabel = "Vacant • Property verification pending";
                     let statusClass = "pending";
-                    if (property.verification_status === "verified") {
-                        if (property.status === "verified") { statusLabel = "Available"; statusClass = "available"; }
-                        else if (property.status === "occupied") { statusLabel = "Occupied"; statusClass = "occupied"; }
-                        else if (property.status === "soon_available") { statusLabel = "Soon available"; statusClass = "soon"; }
-                        else if (property.status === "rejected") { statusLabel = "Rejected"; statusClass = "rejected"; }
+                    if (property.status === "occupied") {
+                        statusLabel = "Occupied";
+                        statusClass = "occupied";
+                    } else if (property.status === "soon_available") {
+                        statusLabel = "Soon available";
+                        statusClass = "soon";
+                    } else if (property.status === "rejected" || property.verification_status === "rejected") {
+                        statusLabel = "Rejected";
+                        statusClass = "rejected";
+                    } else if (property.status === "verified" && property.verification_status === "verified") {
+                        statusLabel = "Vacant";
+                        statusClass = "available";
                     }
                     const propertyId = escapeHtml(property.id);
                     const image = property.image_url || getDefaultPropertyImage();
@@ -9405,7 +9419,7 @@ async function loadOwnerCurrentRenters(properties) {
                 ? "occupied"
                 : hasActive
                     ? "partially_occupied"
-                    : (property.verification_status === "verified" ? "available" : "pending"));
+                    : "available");
 
         if (effective === "occupied") occupiedCount++;
         if (effective === "available" || effective === "partially_occupied") availableCount++;
@@ -9420,7 +9434,7 @@ async function loadOwnerCurrentRenters(properties) {
                         ? '<button type="button" class="gd-live-occupancy-btn occupied" disabled>● Partially occupied</button><span class="gd-live-occupancy-label">Some beds are occupied</span>'
                         : effective === "available"
                             ? '<button type="button" class="gd-live-occupancy-btn vacant" disabled>● Vacant</button><span class="gd-live-occupancy-label">Available for a renter</span>'
-                            : '<button type="button" class="gd-live-occupancy-btn pending" disabled>● Pending</button><span class="gd-live-occupancy-label">Verification pending</span>';
+                            : '<button type="button" class="gd-live-occupancy-btn vacant" disabled>● Vacant</button><span class="gd-live-occupancy-label">Currently vacant • Property verification pending</span>';
             }
         }
     });
