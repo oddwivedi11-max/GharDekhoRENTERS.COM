@@ -10762,7 +10762,7 @@ function updateStayTypeFields() {
             // DIRECT ADMIN ROUTE: handle /admin and /admin/ before the normal
             // renter/owner route can render. This keeps Admin Login authoritative.
             const directAdminRoute =
-                window.location.pathname.replace(/\\/+$/, "") === "/admin" ||
+                window.location.pathname.replace(/\/+$/, "") === "/admin" ||
                 new URLSearchParams(window.location.search).get("admin") === "1";
 
             if (directAdminRoute) {
