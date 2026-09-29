@@ -5627,15 +5627,31 @@ function openAdminLogin(){
     if(roleSwitch) roleSwitch.style.display="none";
     if(adminBtn) adminBtn.style.display="none";
 }
-        function openOwnerArea() {
+        async function openOwnerArea() {
             if (!currentUser) {
-                openLoginSection();
+                openLoginSection("owner");
                 return;
             }
             if (!accountHasRole("owner")) {
                 showMessage("backendMessage", "This account is not registered as an owner.", "error");
                 return;
             }
+
+            // Returning to "For Owners" must ALWAYS leave owner-explore/search
+            // mode. Previously the dashboard nav only scrolled to the dashboard,
+            // so the renter search surface could remain visible underneath the
+            // owner dashboard after "Explore Near Property by me" was used.
+            ownerExploreMode = false;
+            setRoleSpecificUI("owner");
+            updateDashboardRoleSwitcher();
+            await renderActiveDashboard();
+
+            const backendMessage = document.getElementById("backendMessage");
+            if (backendMessage) {
+                backendMessage.textContent = "";
+                backendMessage.className = "backend-message";
+            }
+
             scrollToSection("dashboardSection");
         }
 
