@@ -11405,7 +11405,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 </style>
 <script id="ghardekho-property-location-autocomplete-v1">
 (function(){
-  const API="https://photon.komoot.io/api/";
+  const API="https://nominatim.openstreetmap.org/search";
   let timer=null,controller=null,last="";
   function input(){return document.getElementById("propertyLocation")}
   function box(){
@@ -11417,49 +11417,78 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
     b=document.createElement("div");b.id="gdPropertyLocationSuggestions";p.appendChild(b);return b;
   }
   function hide(){const b=box();if(b){b.style.display="none";b.innerHTML=""}}
-  function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
-  function search(q){
-    q=q.trim();if(!q||q===last)return;last=q;
-    if(controller)controller.abort();controller=new AbortController();
+  function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[c]))}
+  function renderResults(items){
+    const b=box(); if(!b)return;
+    b.innerHTML="";
+    if(!items.length){
+      b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">No location found. Try area + city + state.</div>';
+      b.style.display="block"; return;
+    }
+    items.slice(0,10).forEach(item=>{
+      const title=item.display_name?.split(",").slice(0,2).join(", ") || "Location";
+      const sub=item.display_name?.split(",").slice(2,6).join(" · ") || "India";
+      const lat=Number(item.lat),lng=Number(item.lon);
+      const btn=document.createElement("button");
+      btn.type="button";btn.className="gd-property-location-option";
+      btn.innerHTML="<strong>"+esc(title)+"</strong><span>"+esc(sub)+"</span>";
+      btn.addEventListener("mousedown",e=>e.preventDefault());
+      btn.addEventListener("click",()=>{
+        input().value=item.display_name||title;
+        input().dataset.gdSelectedLat=String(lat);
+        input().dataset.gdSelectedLng=String(lng);
+        input().dataset.gdSelectedDisplayName=item.display_name||title;
+        hide();
+        const msg=document.getElementById("verificationMessage");
+        if(msg)msg.textContent="Location selected. You can submit directly or verify it.";
+      });
+      b.appendChild(btn);
+    });
+    b.style.display="block";
+  }
+  async function search(q){
+    q=q.trim();
+    if(!q||q===last)return;
+    last=q;
+    if(controller)controller.abort();
+    controller=new AbortController();
     const b=box();if(!b)return;
-    b.innerHTML='<div style="padding:12px;color:#71817c;font-size:12px">Searching exact Indian locations…</div>';b.style.display="block";
-    fetch(API+"?"+new URLSearchParams({q,limit:"20",lang:"en"}),{signal:controller.signal,headers:{Accept:"application/json"}})
-      .then(r=>{if(!r.ok)throw Error("request failed");return r.json()})
-      .then(data=>{
-        const features=(data.features||[]).filter(f=>String(f.properties?.countrycode||"").toLowerCase()==="in");
-        b.innerHTML="";
-        if(!features.length){b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">No Indian location found. Try area + city + state.</div>';b.style.display="block";return}
-        features.slice(0,12).forEach(f=>{
-          const p=f.properties||{},co=f.geometry?.coordinates||[];
-          const title=[p.name,p.street].filter(Boolean).join(", ") || p.city || p.district || "Location";
-          const sub=[p.locality,p.district,p.city,p.state,"India"].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(" · ");
-          const btn=document.createElement("button");btn.type="button";btn.className="gd-property-location-option";
-          btn.innerHTML="<strong>"+esc(title)+"</strong><span>"+esc(sub)+"</span>";
-          btn.addEventListener("mousedown",e=>e.preventDefault());
-          btn.addEventListener("click",()=>{
-            const [lng,lat]=co;
-            input().value=[title,sub.replace(/ · India$/,"")].filter(Boolean).join(", ");
-            input().dataset.gdSelectedLat=String(lat||"");
-            input().dataset.gdSelectedLng=String(lng||"");
-            input().dataset.gdSelectedDisplayName=title;
-            hide();
-            document.getElementById("verificationMessage").textContent="Location selected. Tap Verify Property Location.";
-          });
-          b.appendChild(btn);
-        });
+    b.innerHTML='<div style="padding:12px;color:#71817c;font-size:12px">Searching Indian locations…</div>';
+    b.style.display="block";
+    try{
+      const url=API+"?"+new URLSearchParams({
+        q:q+", India",format:"json",addressdetails:"1",limit:"12",countrycodes:"in"
+      });
+      const response=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
+      if(!response.ok)throw Error("request failed");
+      const data=await response.json();
+      const items=(Array.isArray(data)?data:[]).filter(x=>{
+        const a=x.address||{};
+        return String(a.country_code||"").toLowerCase()==="in";
+      });
+      renderResults(items);
+    }catch(e){
+      if(e.name!=="AbortError"){
+        b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">Location suggestions unavailable. You can still type the address and submit.</div>';
         b.style.display="block";
-      })
-      .catch(e=>{if(e.name!=="AbortError"){b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">Location suggestions unavailable. Try again.</div>';b.style.display="block"}});
+      }
+    }
   }
   function bind(){
     const i=input();if(!i||i.dataset.gdPropertyLocationBound==="1")return;
     i.dataset.gdPropertyLocationBound="1";i.setAttribute("autocomplete","off");
     i.addEventListener("input",()=>{
       delete i.dataset.gdSelectedLat;delete i.dataset.gdSelectedLng;delete i.dataset.gdSelectedDisplayName;
-      clearTimeout(timer);timer=setTimeout(()=>search(i.value),250);
+      clearTimeout(timer);last="";
+      const q=i.value.trim();
+      if(!q){hide();return}
+      timer=setTimeout(()=>search(q),700);
     });
     i.addEventListener("focus",()=>{if(i.value.trim())search(i.value)});
-    document.addEventListener("click",e=>{const b=document.getElementById("gdPropertyLocationSuggestions");if(b&&!b.contains(e.target)&&e.target!==i)hide()});
+    document.addEventListener("click",e=>{
+      const b=document.getElementById("gdPropertyLocationSuggestions");
+      if(b&&!b.contains(e.target)&&e.target!==i)hide();
+    });
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
   window.addEventListener("load",bind);
