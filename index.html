@@ -559,6 +559,17 @@ section {
   color: var(--gd-text-soft);
 }
 
+/* ---------- Owner explore restrictions ---------- */
+/* Owners may explore nearby properties and request visits, but do not get
+   renter-only favourites/save controls while in Owner explore mode. */
+body.gd-owner-explore-mode #detailsSaveBtn,
+body.gd-owner-explore-mode .favorite-property-btn,
+body.gd-owner-explore-mode .favorite-btn,
+body.gd-owner-mode .owner-saved-properties-card,
+body.gd-owner-mode #ownerSavedPropertiesBtn {
+  display: none !important;
+}
+
 /* ---------- Auth ---------- */
 
 #loginSection {
@@ -4964,10 +4975,6 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
                     <p id="dashboardSubtitle" class="dashboard-subtitle">Your Ghar Dekho Renters account overview.</p>
                 </div>
                 <div class="dashboard-heading-actions">
-                    <div class="dashboard-role-switch" id="dashboardRoleSwitch" style="display:none;" aria-label="Switch dashboard">
-                        <button type="button" data-role-switch="renter">Renter</button>
-                        <button type="button" data-role-switch="owner">Owner</button>
-                    </div>
                     <div class="dashboard-user-chip">
                         <span class="dashboard-user-dot" aria-hidden="true"></span>
                         <span id="dashboardIdentity">Login to access your account.</span>
@@ -5135,25 +5142,12 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
                         <div>
                             <span class="dashboard-section-kicker">LOOKING FOR A HOME TOO?</span>
                             <h3>Explore Near Me</h3>
-                            <p class="dashboard-muted">Use the same search, nearby discovery, save and visit experience as a renter — without leaving your Owner account.</p>
+                            <p class="dashboard-muted">Use nearby discovery and request property visits without leaving your Owner account.</p>
                         </div>
                         <div class="owner-quick-actions">
                             <button type="button" class="dashboard-primary-action owner-explore-btn" id="ownerExploreNearbyBtn">📍 Explore Near Property by Me</button>
-                            <button type="button" class="dashboard-secondary-action" id="ownerSavedPropertiesBtn">❤️ Saved Properties</button>
                         </div>
                     </div>
-                </div>
-
-                <div class="dashboard-card owner-saved-properties-card" id="ownerSavedPropertiesSection">
-                    <div class="dashboard-card-heading">
-                        <div>
-                            <span class="dashboard-section-kicker">FAVOURITES</span>
-                            <h3>Saved Properties</h3>
-                            <p class="dashboard-muted">Properties you saved while exploring. These favourites are private to your Owner account.</p>
-                        </div>
-                        <span class="dashboard-mini-badge" id="ownerSavedSectionCount">0 saved</span>
-                    </div>
-                    <div id="ownerSavedContainer"><p class="dashboard-empty">No saved properties yet.</p></div>
                 </div>
 
                 <div class="dashboard-card owner-add-property-card" id="ownerAddPropertyCard">
@@ -6081,24 +6075,10 @@ async function switchAccountRole(role) {
 }
 
 function updateDashboardRoleSwitcher() {
+    // Renter/Owner dashboard switching is intentionally disabled after login.
+    // The selected role at login controls the dashboard for this session.
     const switcher = document.getElementById("dashboardRoleSwitch");
-    if (!switcher) return;
-
-    // Show the Renter/Owner switch for every authenticated renter/owner
-    // session. Owner access can be provisioned when the user taps Owner,
-    // so the switch must not disappear just because the account currently
-    // has only one persisted role.
-    const isRoleAccount = activeRole === "renter" || activeRole === "owner";
-    switcher.style.display = (currentUser && isRoleAccount) ? "flex" : "none";
-
-    switcher.querySelectorAll("[data-role-switch]").forEach(button => {
-        const role = button.getAttribute("data-role-switch");
-        const allowed = role === "renter" || role === "owner";
-        button.style.display = allowed ? "inline-flex" : "none";
-        button.disabled = role === activeRole;
-        button.classList.toggle("active", role === activeRole);
-        button.setAttribute("aria-pressed", role === activeRole ? "true" : "false");
-    });
+    if (switcher) switcher.style.display = "none";
 }
 
 function setRoleSpecificUI(role) {
@@ -6152,7 +6132,7 @@ async function openOwnerNearbyHomes() {
     setRoleSpecificUI("owner");
     await loadProperties();
     document.getElementById("homeSection")?.scrollIntoView({behavior:"smooth",block:"start"});
-    showMessage("backendMessage","Owner home-explore mode is on. Search, save homes and request visits with this same account.","success");
+    showMessage("backendMessage","Nearby property discovery is on. You can view properties and request visits with this same Owner account.","success");
     setTimeout(() => document.getElementById("nearMeBtn")?.click(), 250);
 }
 function exitOwnerExploreMode() {
@@ -10827,9 +10807,12 @@ function updateStayTypeFields() {
 
                     if (landing) landing.style.display = "none";
                     if (loginSection) loginSection.style.display = "none";
-                    if (homeSection) homeSection.style.display = "block";
-                    if (propertiesSection) propertiesSection.style.display = "block";
                     if (dashboardSection) dashboardSection.style.display = "block";
+
+                    // Never expose the renter discovery surface after an Owner login.
+                    // Owners can open it only through "Explore Near Property by Me".
+                    if (homeSection) homeSection.style.display = destinationRole === "renter" ? "block" : "none";
+                    if (propertiesSection) propertiesSection.style.display = destinationRole === "renter" ? "block" : "none";
 
                     await renderActiveDashboard();
                     if (destinationRole === "renter" && homeSection) {
