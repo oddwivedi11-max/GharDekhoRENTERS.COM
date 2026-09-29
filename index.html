@@ -10693,6 +10693,25 @@ function updateStayTypeFields() {
 })();
 </script>
 
+<script id="ghardekho-password-toggle-bridge-v1">
+/*
+ * The final auth click guard intercepts password-toggle clicks in capture
+ * phase. Expose the same toggle function there so the Show/Hide control
+ * works reliably on mobile and desktop.
+ */
+function togglePasswordVisibility(button){
+  if(!button) return;
+  const targetId=button.getAttribute("data-password-target");
+  const input=targetId ? document.getElementById(targetId) : null;
+  if(!input) return;
+
+  const visible=input.type === "text";
+  input.type=visible ? "password" : "text";
+  button.textContent=visible ? "Show" : "Hide";
+  button.classList.toggle("is-visible",!visible);
+  button.setAttribute("aria-label",visible ? "Show password" : "Hide password");
+}
+</script>
 <script id="ghardekho-password-toggle-v5">
 (function(){
   function initPasswordToggles(){
