@@ -6391,18 +6391,18 @@ async function updateAuthUI() {
     const requestedRole = pendingLoginRole === "owner" ? "owner" : "renter";
 
     if (requestedRole === "owner") {
+        // Never create Owner access during an ordinary login. Only accounts
+        // already registered as Owners (including dual renter+owner accounts)
+        // may enter/switch to the Owner dashboard.
         if (!roles.includes("owner")) {
-            const ownerReady = await ensureOwnerAccess();
-            if (!ownerReady) {
-                activeRole = "renter";
-                pendingLoginRole = "renter";
-                sessionStorage.setItem("gd_active_role", "renter");
-                sessionStorage.setItem("gd_pending_login_role", "renter");
-                setRoleSpecificUI("renter");
-                showMessage("backendMessage", "Owner access is not available for this account yet. You are signed in as Renter.", "error");
-                await renderActiveDashboard();
-                return;
-            }
+            activeRole = "renter";
+            pendingLoginRole = "renter";
+            sessionStorage.setItem("gd_active_role", "renter");
+            sessionStorage.setItem("gd_pending_login_role", "renter");
+            setRoleSpecificUI("renter");
+            showMessage("backendMessage", "This account is not registered as an Owner. Use Renter login or create an Owner account.", "error");
+            await renderActiveDashboard();
+            return;
         }
         activeRole = "owner";
     } else {
@@ -6740,6 +6740,11 @@ async function loginUser() {
             currentProfile = profileBeforeOwnerSync || currentProfile;
             if (!currentProfile) {
                 authMessage.textContent = "Login succeeded, but your account profile could not be loaded. Please try again.";
+                return;
+            }
+
+            if (!getAccountRoles(currentProfile).includes("owner")) {
+                authMessage.textContent = "This account is not registered as an Owner. Use Renter login or create an Owner account.";
                 return;
             }
 
