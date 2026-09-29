@@ -4875,7 +4875,7 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your email and password to log in. Your selected dashboard is remembered for this login.</p></div>
-    <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
+    <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="prepareSignupForm(); signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button" onclick="openAdminLogin()">Admin Login</button></div>
     <div class="gd-v4-bottom">
   <button id="forgotPasswordBtn" type="button" class="text-button gd-forgot-btn" onclick="forgotPassword()">Forgot password?</button>
@@ -5439,7 +5439,37 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
         }
 
         
+function setAuthLoginMode(isLoginMode){
+    const phoneField = document.getElementById("userPhone")?.closest(".gd-v4-field");
+    const nameField = document.getElementById("userName")?.closest(".gd-v4-field");
+    if (phoneField) phoneField.style.display = isLoginMode ? "none" : "";
+    if (nameField) nameField.style.display = isLoginMode ? "none" : "";
+    const title = document.getElementById("premiumAuthTitle");
+    const intro = document.getElementById("premiumAuthIntro");
+    const signupButton = document.getElementById("signupBtn");
+    const loginButton = document.getElementById("loginSubmitBtn");
+    if (isLoginMode) {
+        if (title) title.textContent = pendingLoginRole === "owner" ? "Welcome back, Owner" : "Welcome back, Renter";
+        if (intro) intro.textContent = pendingLoginRole === "owner"
+            ? "Sign in to manage properties, listings and renter visits."
+            : "Sign in to discover homes, save properties and manage visits.";
+        if (signupButton) signupButton.textContent = "Create Account →";
+        if (loginButton) loginButton.style.display = "";
+    } else {
+        if (title) title.textContent = "Create your Ghar Dekho account";
+        if (intro) intro.textContent = "Create your account to find homes or manage your property.";
+        if (signupButton) signupButton.textContent = "Create Account →";
+        if (loginButton) loginButton.style.display = "";
+    }
+}
+
+function prepareSignupForm(){
+    setAuthLoginMode(false);
+    document.getElementById("userName")?.focus();
+}
+
 function applyLoginRolePresentation(role){
+    setAuthLoginMode(true);
     const selectedRole = role === "owner" ? "owner" : "renter";
     const title=document.getElementById("premiumAuthTitle");
     const intro=document.getElementById("premiumAuthIntro");
