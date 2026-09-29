@@ -4867,6 +4867,10 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
   </div>
   <div class="gd-v4-auth-form">
     <button type="button" class="gd-auth-back" onclick="closeLoginPage()">← Back to Ghar Dekho</button>
+    <div class="gd-auth-mode-tabs" style="display:flex;gap:8px;margin:18px 0 10px;padding:5px;background:#eef5f3;border-radius:14px;">
+      <button type="button" id="authSignInTab" onclick="showSignInPage()" style="flex:1;border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer;background:#0b3430;color:#fff;">Sign In</button>
+      <button type="button" id="authSignUpTab" onclick="showSignUpPage()" style="flex:1;border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer;background:transparent;color:#0b3430;">Sign Up</button>
+    </div>
     <div class="gd-v4-form-head"><span class="gd-v4-form-kicker">WELCOME BACK</span><h2 id="premiumAuthTitle">Login / Create Account</h2><p id="premiumAuthIntro">Your next home is only a few clicks away.</p></div>
     <div class="gd-v4-field-grid">
       <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
@@ -5442,30 +5446,50 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
 function setAuthLoginMode(isLoginMode){
     const phoneField = document.getElementById("userPhone")?.closest(".gd-v4-field");
     const nameField = document.getElementById("userName")?.closest(".gd-v4-field");
-    if (phoneField) phoneField.style.display = isLoginMode ? "none" : "";
-    if (nameField) nameField.style.display = isLoginMode ? "none" : "";
     const title = document.getElementById("premiumAuthTitle");
     const intro = document.getElementById("premiumAuthIntro");
     const signupButton = document.getElementById("signupBtn");
     const loginButton = document.getElementById("loginSubmitBtn");
+    const signInTab = document.getElementById("authSignInTab");
+    const signUpTab = document.getElementById("authSignUpTab");
+    if (phoneField) phoneField.style.display = isLoginMode ? "none" : "";
+    if (nameField) nameField.style.display = isLoginMode ? "none" : "";
+    if (signupButton) signupButton.style.display = isLoginMode ? "none" : "";
+    if (loginButton) loginButton.style.display = isLoginMode ? "" : "none";
+    if (signInTab) {
+        signInTab.style.background = isLoginMode ? "#0b3430" : "transparent";
+        signInTab.style.color = isLoginMode ? "#fff" : "#0b3430";
+    }
+    if (signUpTab) {
+        signUpTab.style.background = isLoginMode ? "transparent" : "#0b3430";
+        signUpTab.style.color = isLoginMode ? "#0b3430" : "#fff";
+    }
     if (isLoginMode) {
         if (title) title.textContent = pendingLoginRole === "owner" ? "Welcome back, Owner" : "Welcome back, Renter";
         if (intro) intro.textContent = pendingLoginRole === "owner"
             ? "Sign in to manage properties, listings and renter visits."
             : "Sign in to discover homes, save properties and manage visits.";
-        if (signupButton) signupButton.textContent = "Create Account →";
-        if (loginButton) loginButton.style.display = "";
     } else {
         if (title) title.textContent = "Create your Ghar Dekho account";
         if (intro) intro.textContent = "Create your account to find homes or manage your property.";
-        if (signupButton) signupButton.textContent = "Create Account →";
-        if (loginButton) loginButton.style.display = "";
     }
 }
 
-function prepareSignupForm(){
+function showSignInPage(){
+    setAuthLoginMode(true);
+    document.getElementById("authMessage").textContent = "";
+    try { history.replaceState({gdAuth:true, mode:"signin"},"","#login"); } catch(e) {}
+}
+
+function showSignUpPage(){
     setAuthLoginMode(false);
+    document.getElementById("authMessage").textContent = "";
+    try { history.replaceState({gdAuth:true, mode:"signup"},"","#signup"); } catch(e) {}
     document.getElementById("userName")?.focus();
+}
+
+function prepareSignupForm(){
+    showSignUpPage();
 }
 
 function applyLoginRolePresentation(role){
@@ -5608,6 +5632,7 @@ function openLoginAs(role){
 
     bindLoginRoleControls();
     applyLoginRolePresentation(selectedRole);
+    showSignInPage();
 }
 function openAdminLogin(){
     /*
