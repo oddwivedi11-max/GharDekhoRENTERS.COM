@@ -5808,8 +5808,10 @@ async function saveActiveAccountRole(role) {
     const normalized = role === "owner" ? "owner" : "tenant";
     if (!currentUser) return false;
 
-    // Always load the real users row before changing roles. This prevents a
-    // startup/profile race from silently skipping dual-role persistence.
+    // GharDekho deliberately prevents a client from changing users.role
+    // directly (trigger: prevent_self_role_change). The account can still
+    // operate in BOTH modes through the roles[] array. Therefore this
+    // function must never update users.role from the browser.
     if (!currentProfile) {
         const { data: profile, error: profileError } = await supabaseClient
             .from("users")
@@ -5834,9 +5836,12 @@ async function saveActiveAccountRole(role) {
         normalized
     ])];
 
+    // Only roles[] is changed. Updating users.role here would trigger
+    // prevent_self_role_change and is exactly why Owner access previously
+    // failed with "Owner access could not be enabled".
     const { data, error } = await supabaseClient
         .from("users")
-        .update({ role: normalized, roles: roleValues })
+        .update({ roles: roleValues })
         .eq("id", currentUser.id)
         .select("id,name,email,phone,role,roles")
         .maybeSingle();
