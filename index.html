@@ -5670,7 +5670,7 @@ function openPrivateAdminAccess(){
     // Admin access is intentionally not exposed on the public login screen.
     // The URL is only an entry point; Supabase admin authorization remains required.
     const params = new URLSearchParams(window.location.search);
-    if (params.get("admin") !== "1") return;
+    if (window.location.pathname !== "/admin") return;
     try {
         const cleanUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
