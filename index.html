@@ -6341,8 +6341,19 @@ async function signupUser() {
             authMessage.textContent = "Enter a valid email address.";
             return;
         }
-        if (!/^\+91\d{10}$/.test(phone)) {
-            authMessage.textContent = "Enter exactly 10 digits after +91.";
+        /*
+         * Indian mobile validation:
+         * exactly +91 followed by 10 digits, starting with 6-9.
+         * Also reject obvious dummy/test numbers such as 1111111111.
+         */
+        const mobileDigits = phone.replace(/^\+91/, "");
+        const validIndianMobile =
+            /^\+91[6-9]\d{9}$/.test(phone) &&
+            !/^([0-9])\1{9}$/.test(mobileDigits);
+
+        if (!validIndianMobile) {
+            authMessage.textContent = "Invalid phone number. Please enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.";
+            document.getElementById("userPhone")?.focus();
             return;
         }
         if (!password || password.length < 8) {
@@ -6448,7 +6459,7 @@ async function loginUser() {
                 await supabaseClient.auth.signOut({ scope: "local" });
                 currentUser = null;
                 currentProfile = null;
-                authMessage.textContent = "Enter the registered 10-digit phone number linked to this account.";
+                authMessage.textContent = "Invalid phone number. Please enter your registered 10-digit Indian mobile number.";
                 return;
             }
 
