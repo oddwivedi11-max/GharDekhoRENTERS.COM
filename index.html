@@ -5704,10 +5704,13 @@ function openAdminLogin(){
             const message = String(error?.message || "").toLowerCase();
 
             if (message.includes("invalid login credentials")) {
-                return "Incorrect email or password.";
+                return "Incorrect email or password. If you are creating a new account, use Create Account with an email that is not already registered.";
             }
-            if (message.includes("user already registered")) {
-                return "This email is already registered. Please login.";
+            if (message.includes("user already registered") || message.includes("email address already exists") || message.includes("email_exists")) {
+                return "This email is already registered. Please use Login, or use Forgot password if you do not remember the password.";
+            }
+            if (message.includes("signup_disabled")) {
+                return "New account creation is currently disabled in Supabase Authentication. Please enable Allow new users to sign up.";
             }
             if (message.includes("email") && message.includes("not confirmed")) {
                 return "Incorrect email or password.";
@@ -6376,6 +6379,17 @@ async function signupUser() {
         if (error) {
             console.error("Signup error:", error);
             authMessage.textContent = getFriendlyAuthError(error);
+            return;
+        }
+
+        /*
+         * Supabase can intentionally return an obfuscated user for an email
+         * that already exists (depending on email/phone confirmation settings).
+         * Never tell the user that a new account was created in that case.
+         */
+        if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+            authMessage.textContent = "This email is already registered. Please use Login, or use Forgot password if you do not remember the password.";
+            document.getElementById("userPassword")?.focus();
             return;
         }
 
