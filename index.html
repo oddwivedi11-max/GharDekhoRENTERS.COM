@@ -11393,7 +11393,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
     b=document.createElement("div");b.id="gdPropertyLocationSuggestions";p.appendChild(b);return b;
   }
   function hide(){const b=box();if(b){b.style.display="none";b.innerHTML=""}}
-  function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",""":"&quot;","'":"&#39;"}[c]))}
+  function esc(v){return String(v||"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]))}
   function renderResults(items){
     const b=box(); if(!b)return;
     b.innerHTML="";
