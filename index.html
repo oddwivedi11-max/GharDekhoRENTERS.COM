@@ -9394,8 +9394,8 @@ async function loadOwnerProperties() {
 
             container.innerHTML =
                 data.map(function (property) {
-                    let statusLabel = "Vacant • Property verification pending";
-                    let statusClass = "pending";
+                    let statusLabel = "Vacant";
+                    let statusClass = "available";
                     if (property.status === "occupied") {
                         statusLabel = "Occupied";
                         statusClass = "occupied";
@@ -9405,9 +9405,6 @@ async function loadOwnerProperties() {
                     } else if (property.status === "rejected" || property.verification_status === "rejected") {
                         statusLabel = "Rejected";
                         statusClass = "rejected";
-                    } else if (property.status === "verified" && property.verification_status === "verified") {
-                        statusLabel = "Vacant";
-                        statusClass = "available";
                     }
                     const propertyId = escapeHtml(property.id);
                     const image = property.image_url || getDefaultPropertyImage();
@@ -9497,8 +9494,12 @@ async function loadOwnerCurrentRenters(properties) {
         const active = activeByProperty.get(String(property.id)) || [];
         const hasActive = active.length > 0;
         const type = property.listing_type || "home";
+        // LIVE OCCUPANCY is determined by active rental records, not by
+        // admin verification. Verification and occupancy are separate states.
+        // A property with no active renter is vacant even while verification
+        // is still pending.
         const effective = type === "home"
-            ? (hasActive ? "occupied" : (property.verification_status === "verified" ? "available" : "pending"))
+            ? (hasActive ? "occupied" : "available")
             : (hasActive && Number(property.available_beds || 0) <= 0
                 ? "occupied"
                 : hasActive
