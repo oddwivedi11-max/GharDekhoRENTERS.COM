@@ -5382,6 +5382,23 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
             return fallback;
         }
 
+        /*
+         * AUTH FLOW SAFETY:
+         * Never leave the Login/Create Account button stuck forever if a
+         * Supabase Auth/RLS request becomes slow or never resolves.
+         * The underlying request is not cancelled; the UI simply regains
+         * control after the timeout and shows a useful error.
+         */
+        function withAuthTimeout(promise, label = "Authentication request", timeoutMs = 12000) {
+            let timer;
+            const timeout = new Promise((_, reject) => {
+                timer = setTimeout(() => reject(new Error(
+                    label + " timed out. Please check your internet connection and try again."
+                )), timeoutMs);
+            });
+            return Promise.race([Promise.resolve(promise), timeout]).finally(() => clearTimeout(timer));
+        }
+
         /* =========================================================
            COMMON HELPERS
            ========================================================= */
@@ -6466,7 +6483,11 @@ async function loginUser() {
         if (signupButton) signupButton.disabled = true;
         authMessage.textContent = "Logging in...";
 
-        const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+        const { data, error } = await withAuthTimeout(
+            supabaseClient.auth.signInWithPassword({ email, password }),
+            "Login request",
+            12000
+        );
         if (error) {
             console.error("Login error:", error);
             authMessage.textContent = getFriendlyAuthError(error);
@@ -6492,11 +6513,15 @@ async function loginUser() {
                 return;
             }
 
-            const { data: authorizedProfile, error: authorizedPhoneError } = await supabaseClient
-                .from("users")
-                .select("id,name,email,phone,role,roles")
-                .eq("id", currentUser.id)
-                .maybeSingle();
+            const { data: authorizedProfile, error: authorizedPhoneError } = await withAuthTimeout(
+                supabaseClient
+                    .from("users")
+                    .select("id,name,email,phone,role,roles")
+                    .eq("id", currentUser.id)
+                    .maybeSingle(),
+                "Account verification",
+                10000
+            );
 
             if (authorizedPhoneError || !authorizedProfile) {
                 console.error("Authorized phone lookup failed:", authorizedPhoneError);
@@ -6574,15 +6599,26 @@ async function loginUser() {
         // If Renter was selected on this login, make sure renter access is also
         // present in the account's persistent roles. This does NOT remove Owner.
         if (selectedLoginRole === "renter") {
-            const { data: profileBeforeRoleSync } = await supabaseClient
-                .from("users")
-                .select("id,name,email,phone,role,roles")
-                .eq("id", currentUser.id)
-                .maybeSingle();
+            const { data: profileBeforeRoleSync } = await withAuthTimeout(
+                supabaseClient
+                    .from("users")
+                    .select("id,name,email,phone,role,roles")
+                    .eq("id", currentUser.id)
+                    .maybeSingle(),
+                "Profile loading",
+                10000
+            );
 
             currentProfile = profileBeforeRoleSync || currentProfile;
             if (currentProfile) {
-                const renterRoleReady = await saveActiveAccountRole("renter");
+                const renterRoleReady = await withAuthTimeout(
+                    saveActiveAccountRole("renter"),
+                    "Renter access sync",
+                    10000
+                ).catch(error => {
+                    console.warn("Renter access sync timed out:", error);
+                    return false;
+                });
                 if (!renterRoleReady) {
                     /* Authentication itself succeeded. Do not lock the user
                        out of the dashboard because a secondary role-profile
@@ -6609,7 +6645,7 @@ async function loginUser() {
         // also used by the final navigation guard below to prevent an older
         // Owner session from repainting the page after Supabase auth events.
         sessionStorage.setItem("gd_login_destination", selectedLoginRole);
-        await updateAuthUI();
+        await withAuthTimeout(updateAuthUI(), "Dashboard preparation", 12000);
 
         if (selectedLoginRole === "renter") {
             activeRole = "renter";
@@ -6631,7 +6667,9 @@ async function loginUser() {
             if (propertiesSection) propertiesSection.style.display = "block";
             if (dashboardSection) dashboardSection.style.display = "block";
 
-            await renderActiveDashboard();
+            await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
+                console.warn("Renter dashboard loading timed out:", error);
+            });
             if (homeSection) {
                 homeSection.scrollIntoView({ behavior: "smooth", block: "start" });
             }
@@ -6640,11 +6678,15 @@ async function loginUser() {
             // Otherwise an account whose users.roles still contains only renter
             // can authenticate successfully but renderActiveDashboard() will
             // reject the Owner destination because roles.includes("owner") is false.
-            const { data: profileBeforeOwnerSync } = await supabaseClient
-                .from("users")
-                .select("id,name,email,phone,role,roles")
-                .eq("id", currentUser.id)
-                .maybeSingle();
+            const { data: profileBeforeOwnerSync } = await withAuthTimeout(
+                supabaseClient
+                    .from("users")
+                    .select("id,name,email,phone,role,roles")
+                    .eq("id", currentUser.id)
+                    .maybeSingle(),
+                "Owner profile loading",
+                10000
+            );
 
             currentProfile = profileBeforeOwnerSync || currentProfile;
             if (!currentProfile) {
@@ -6652,7 +6694,14 @@ async function loginUser() {
                 return;
             }
 
-            const ownerRoleReady = await saveActiveAccountRole("owner");
+            const ownerRoleReady = await withAuthTimeout(
+                saveActiveAccountRole("owner"),
+                "Owner access sync",
+                10000
+            ).catch(error => {
+                console.warn("Owner access sync timed out:", error);
+                return false;
+            });
             if (!ownerRoleReady) {
                 /* Authentication itself succeeded. A failure here is in the
                    optional role/profile persistence step, not the password
@@ -6672,9 +6721,13 @@ async function loginUser() {
 
             // Re-render from the now-updated profile so the Owner dashboard
             // passes the canonical role check.
-            await updateAuthUI();
+            await withAuthTimeout(updateAuthUI(), "Owner dashboard preparation", 12000).catch(error => {
+                console.warn("Owner dashboard preparation timed out:", error);
+            });
             setRoleSpecificUI("owner");
-            await renderActiveDashboard();
+            await withAuthTimeout(renderActiveDashboard(), "Owner dashboard loading", 12000).catch(error => {
+                console.warn("Owner dashboard loading timed out:", error);
+            });
             scrollToSection("dashboardSection");
         }
     } finally {
