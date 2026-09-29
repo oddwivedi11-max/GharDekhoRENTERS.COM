@@ -8714,24 +8714,16 @@ async function refreshSaveButtons(propertyId) {
             const verificationText = document.getElementById("ownerVerificationText");
             const verificationTitle = document.getElementById("ownerVerificationTitle");
 
+            // Location suggestions are optional. Owners may type any address
+            // freely and submit without selecting a suggestion or pressing
+            // "Verify Location". If an exact suggestion was selected earlier,
+            // keep its coordinates for maps/distance features.
             if (!verifiedPropertyLocation) {
-                const locationVerified = await verifyPropertyLocation();
-                if (!locationVerified) {
-                    // Exact coordinates are helpful for map/distance features,
-                    // but they must not block an owner from submitting a listing.
-                    // Save the typed address as pending; admin can verify the
-                    // location later and add coordinates.
-                    verifiedPropertyLocation = {
-                        address: location,
-                        latitude: null,
-                        longitude: null
-                    };
-                    showMessage(
-                        "verificationMessage",
-                        "⚠ Location could not be matched exactly. You can still submit this property. It will remain pending for admin location verification.",
-                        "info"
-                    );
-                }
+                verifiedPropertyLocation = {
+                    address: location,
+                    latitude: null,
+                    longitude: null
+                };
             }
 
             // Prepare the owner row first, then read it directly.
