@@ -13804,3 +13804,58 @@ body.gd-auth-page #loginSection .gd-auth-message{
   }
 }
 </style>
+
+<style id="ghardekho-mobile-final-v1">
+/* Final mobile hardening: prevent clipping, overlap and hidden actions. */
+html,body{max-width:100%;overflow-x:hidden}
+button,input,select,textarea{font-family:inherit}
+@media(max-width:680px){
+  main{width:calc(100% - 24px);padding:24px 0 48px}
+  section{scroll-margin-top:72px}
+  #homeSection{padding:30px 0 22px}
+  #homeSection>h2{font-size:clamp(1.85rem,9vw,2.55rem);line-height:1.06}
+  #homeSection>p:not(#locationStatus){font-size:.98rem;margin:12px 0 18px}
+  .search-box{grid-template-columns:1fr;gap:9px;padding:10px;margin-top:18px}
+  .search-box input,.search-box select,#searchBtn,#nearMeBtn{min-height:48px;font-size:16px}
+  .dashboard-card,.owner-panel{padding:14px}
+  #ownerAddPropertyCard{overflow:visible}
+  #addPropertyForm{overflow:visible;min-width:0}
+  .owner-form-grid{grid-template-columns:1fr!important;gap:12px!important}
+  .gd-form-field,.gd-form-field-wide{grid-column:1 / -1!important;min-width:0}
+  .gd-form-field input,.gd-form-field select,.gd-form-field textarea{width:100%;min-height:48px;font-size:16px;box-sizing:border-box}
+  .owner-image-upload-field,.gd-stay-details-shell{grid-column:1 / -1!important;min-width:0}
+  .gd-upload-dropzone{min-height:118px!important;padding:14px!important}
+  .gd-upload-actions{display:grid!important;grid-template-columns:1fr 1fr;gap:8px!important}
+  .gd-upload-actions button{min-height:46px}
+  .gd-image-url-row{grid-template-columns:auto minmax(0,1fr)!important}
+  #verifyLocationBtn,#addPropertyBtn{width:100%;min-height:50px;font-size:15px}
+  #verifyLocationBtn{margin-top:12px}
+  .gd-mobile-form-actions{position:sticky;bottom:10px;z-index:30;margin-top:10px;padding:8px;background:rgba(255,255,255,.94);backdrop-filter:blur(10px);border:1px solid #dce9e5;border-radius:14px;box-shadow:0 8px 24px rgba(15,23,42,.12)}
+  #mobilePropertySubmitStatus{font-size:13px;overflow-wrap:anywhere}
+  #visitSection{margin:18px auto;padding:16px;width:100%;box-sizing:border-box}
+  #visitSection input{font-size:16px;min-height:48px}
+  .property-detail-card{grid-template-columns:1fr!important}
+  .property-detail-body{padding:15px!important;min-width:0}
+  .property-detail-image{min-height:210px!important;max-height:280px!important}
+  .detail-actions{grid-template-columns:1fr!important}
+  .detail-actions button,.detail-actions a{min-height:48px;width:100%;box-sizing:border-box}
+  .saved-property-card{grid-template-columns:1fr!important}
+  .saved-property-image-wrap,.saved-property-image{min-height:190px!important}
+  .saved-property-body{padding:15px!important}
+  .saved-property-footer{gap:8px;flex-wrap:wrap}
+  .owner-property-actions,.premium-property-actions{grid-template-columns:1fr!important}
+  .owner-property-actions button,.premium-property-actions button{min-height:46px}
+  .dashboard-heading-actions{gap:8px!important}
+  .dashboard-role-switch{overflow:hidden}
+  .dashboard-role-switch button{min-height:42px;font-size:13px}
+  .gd-live-occupancy-inline{flex-wrap:wrap!important}
+  .gd-live-occupancy-label{white-space:normal!important}
+  .renter-owner-details-grid{grid-template-columns:1fr!important}
+  .renter-payment-warning{font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+}
+@media(max-width:390px){
+  main{width:calc(100% - 18px)}
+  .gd-upload-actions{grid-template-columns:1fr!important}
+  .dashboard-role-switch button{padding:0 9px!important;font-size:12px}
+}
+</style>
