@@ -8726,36 +8726,10 @@ async function refreshSaveButtons(propertyId) {
                 };
             }
 
-            // Prepare the owner row first, then read it directly.
-            // This avoids relying on a client RPC permission/function race on mobile.
-            const ownerReady = await ensureOwnerAccess();
-            if (!ownerReady) {
-                throw new Error("Owner profile could not be prepared. Please log out and log in again as Owner.");
-            }
-
-            const { data: ownerRecord, error: ownerLookupError } = await supabaseClient
-                .from("owners")
-                .select("id,name,phone,verification_status")
-                .eq("user_id", currentUser.id)
-                .maybeSingle();
-
-            currentOwnerProfile = ownerRecord || null;
-            updateOwnerProfileUI(ownerRecord);
-
-            if (verificationBadge) {
-                const verified = ownerRecord?.verification_status === "verified";
-                verificationBadge.textContent = verified ? "✓ Verified Owner" : "Pending verification";
-                verificationBadge.className = verified ? "owner-badge" : "pending-badge";
-            }
-            if (verificationText) verificationText.textContent = ownerRecord?.verification_status === "verified"
-                ? "Your identity is verified by Ghar Dekho administration."
-                : "Your owner profile is awaiting verification by Ghar Dekho administration.";
-            if (verificationTitle) verificationTitle.textContent = ownerRecord?.name ? ownerRecord.name + " • Owner verification" : "Owner verification";
-
-            if (ownerLookupError || !ownerRecord) {
-                console.error("Owner lookup error:", ownerLookupError);
-                throw new Error(getSafeErrorMessage(ownerLookupError, "Owner profile could not be prepared. Please try again."));
-            }
+            // The secure owner_add_property RPC verifies auth.uid() and the
+            // owner record server-side. Do not block submission on a client-side
+            // owners-table read (which may be restricted by RLS).
+            const ownerReady = true;
 
             if (selectedPropertyImageFile) {
                 try {
