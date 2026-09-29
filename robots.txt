@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# Keep private/admin and account-only areas out of search crawling.
+Disallow: /admin
+Disallow: /?admin=1
+
+Sitemap: https://ghardekhorenters.com/sitemap.xml
