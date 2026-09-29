@@ -8716,8 +8716,21 @@ async function refreshSaveButtons(propertyId) {
 
             if (!verifiedPropertyLocation) {
                 const locationVerified = await verifyPropertyLocation();
-                if (!locationVerified || !verifiedPropertyLocation) {
-                    return;
+                if (!locationVerified) {
+                    // Exact coordinates are helpful for map/distance features,
+                    // but they must not block an owner from submitting a listing.
+                    // Save the typed address as pending; admin can verify the
+                    // location later and add coordinates.
+                    verifiedPropertyLocation = {
+                        address: location,
+                        latitude: null,
+                        longitude: null
+                    };
+                    showMessage(
+                        "verificationMessage",
+                        "⚠ Location could not be matched exactly. You can still submit this property. It will remain pending for admin location verification.",
+                        "info"
+                    );
                 }
             }
 
