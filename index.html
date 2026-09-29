@@ -4575,6 +4575,23 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
   .gd-home-v6-actions,.dashboard-stats-grid,.owner-stats-grid,.dashboard-action-row{grid-template-columns:1fr!important}
 }
 </style>
+<style id="ghardekho-launch-polish-v1">
+/* Launch polish: consistent focus, tap targets and safe mobile viewport behavior. */
+:root{scroll-behavior:smooth}
+button,a,input,select,textarea{ -webkit-tap-highlight-color:transparent }
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{
+ outline:3px solid rgba(31,95,91,.22);outline-offset:2px
+}
+@media(max-width:680px){
+ body{min-width:0}
+ button,a{touch-action:manipulation}
+ .gd-v4-actions button,.gd-v4-secondary button{min-height:48px}
+ #forgotPasswordBtn{min-height:44px;padding:8px 10px}
+ .property-detail-body h2{overflow-wrap:anywhere}
+ .detail-meta{grid-template-columns:1fr!important}
+ .detail-meta-item{min-width:0}
+}
+</style>
 </head>
 
 <body>
