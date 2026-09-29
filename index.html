@@ -5678,7 +5678,7 @@ function openPrivateAdminAccess(){
     const params = new URLSearchParams(window.location.search);
     const adminQuery = params.get("admin") === "1";
     // GitHub Pages/Cloudflare may serve the route as /admin/ with a trailing slash.
-    const normalizedPath = window.location.pathname.replace(/\\/+$/, "") || "/";
+    const normalizedPath = window.location.pathname.replace(/\/+$/, "") || "/";
     if (normalizedPath !== "/admin" && !adminQuery) return;
     try {
         const cleanUrl = normalizedPath === "/admin"
