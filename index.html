@@ -6339,15 +6339,27 @@ async function signupUser() {
             return;
         }
 
-        if (!data.session) {
-            authMessage.textContent = "Account created successfully. You can now log in with the same email. Choose Renter or Owner when you return.";
-            return;
+        /*
+         * SIGNUP MUST NEVER AUTO-REDIRECT.
+         * Supabase may return a session immediately when email confirmation is
+         * disabled. That session is intentionally not treated as a completed
+         * login: the user must finish/confirm the signup flow and then
+         * explicitly log in with the registered phone number.
+         */
+        if (data.session) {
+            await supabaseClient.auth.signOut({ scope: "local" });
         }
+        currentUser = null;
+        currentProfile = null;
+        sessionStorage.removeItem("gd_login_destination");
+        sessionStorage.setItem("gd_pending_login_role", selectedRole);
+        sessionStorage.setItem("gd_active_role", selectedRole);
 
-        currentUser = data.user;
-        authMessage.textContent = "Account created successfully.";
-        await updateAuthUI();
-        scrollToSection("dashboardSection");
+        authMessage.textContent =
+            "Account created. Please confirm your email, then log in using the same email, your registered +91 phone number, and password.";
+        const passwordField = document.getElementById("userPassword");
+        if (passwordField) passwordField.value = "";
+        return;
     } finally {
         isAuthenticating = false;
         if (signupButton) { signupButton.disabled = false; signupButton.textContent = "Create Account"; }
@@ -6393,6 +6405,50 @@ async function loginUser() {
         }
 
         currentUser = data.user;
+
+        /*
+         * AUTHORIZED PHONE CHECK:
+         * Normal Renter/Owner login requires the phone number entered on the
+         * login form to exactly match the phone stored for this account.
+         * This runs immediately after password authentication and BEFORE any
+         * role sync, dashboard rendering, or data loading.
+         */
+        if (!window.__gdAdminLoginRequested) {
+            const enteredPhone = normalizePhone(document.getElementById("userPhone")?.value);
+            if (!enteredPhone) {
+                await supabaseClient.auth.signOut({ scope: "local" });
+                currentUser = null;
+                currentProfile = null;
+                authMessage.textContent = "Enter the registered 10-digit phone number linked to this account.";
+                return;
+            }
+
+            const { data: authorizedProfile, error: authorizedPhoneError } = await supabaseClient
+                .from("users")
+                .select("id,name,email,phone,role,roles")
+                .eq("id", currentUser.id)
+                .maybeSingle();
+
+            if (authorizedPhoneError || !authorizedProfile) {
+                console.error("Authorized phone lookup failed:", authorizedPhoneError);
+                await supabaseClient.auth.signOut({ scope: "local" });
+                currentUser = null;
+                currentProfile = null;
+                authMessage.textContent = "We could not verify the authorized phone number. Please try again.";
+                return;
+            }
+
+            const registeredPhone = normalizePhone(authorizedProfile.phone);
+            if (!registeredPhone || registeredPhone !== enteredPhone) {
+                await supabaseClient.auth.signOut({ scope: "local" });
+                currentUser = null;
+                currentProfile = null;
+                authMessage.textContent = "This phone number is not authorized for this account. Use the registered +91 number.";
+                return;
+            }
+
+            currentProfile = authorizedProfile;
+        }
 
         /*
          * ADMIN LOGIN MODE:
