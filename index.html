@@ -5676,12 +5676,14 @@ function openPrivateAdminAccess(){
     // Admin access is intentionally not exposed on the public login screen.
     // The URL is only an entry point; Supabase admin authorization remains required.
     const params = new URLSearchParams(window.location.search);
-    const adminQuery = new URLSearchParams(window.location.search).get("admin") === "1";
-    if (window.location.pathname !== "/admin" && !adminQuery) return;
+    const adminQuery = params.get("admin") === "1";
+    // GitHub Pages/Cloudflare may serve the route as /admin/ with a trailing slash.
+    const normalizedPath = window.location.pathname.replace(/\\/+$/, "") || "/";
+    if (normalizedPath !== "/admin" && !adminQuery) return;
     try {
-        const cleanUrl = window.location.pathname === "/admin"
+        const cleanUrl = normalizedPath === "/admin"
             ? window.location.origin + "/admin"
-            : window.location.origin + window.location.pathname;
+            : window.location.origin + normalizedPath;
         window.history.replaceState({}, document.title, cleanUrl);
     } catch (err) {}
     openAdminLogin();
