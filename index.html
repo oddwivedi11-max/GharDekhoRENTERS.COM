@@ -13645,6 +13645,35 @@ body.gd-auth-page #gdAuthFormShell input{
   new MutationObserver(exposeRoleSwitcher).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+<section id="gd-contact-section" class="gd-contact-section" aria-label="Contact GharDekho Renters">
+  <div class="gd-contact-card">
+    <p class="gd-contact-kicker">CONTACT GHARDEKHO RENTERS</p>
+    <h2>Need help or want to report an issue?</h2>
+    <p>For support, property-listing questions, account issues, feedback or legal/privacy requests, contact our team by email.</p>
+    <a class="gd-contact-email" href="mailto:support@ghardekhorenters.com">support@ghardekhorenters.com</a>
+    <p class="gd-contact-note">Please include your registered email, relevant property/listing details and a clear description of the issue when contacting support. Do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</p>
+    <nav class="gd-legal-links" aria-label="Legal links">
+      <a href="/contact.html">Contact</a>
+      <a href="/privacy.html">Privacy Policy</a>
+      <a href="/terms.html">Terms of Use</a>
+    </nav>
+  </div>
+</section>
+
+<style id="gd-contact-formality-v1">
+.gd-contact-section{width:min(900px,100%);margin:38px auto 24px;padding:0}
+.gd-contact-card{padding:26px;background:#fff;border:1px solid #dfe6e3;border-radius:20px;box-shadow:0 8px 28px rgba(24,32,31,.07)}
+.gd-contact-kicker{margin:0 0 7px;color:#1f5f5b;font-size:.78rem;font-weight:850;letter-spacing:.08em}
+.gd-contact-card h2{margin:0 0 9px;color:#18201f;font-size:clamp(1.45rem,3vw,2rem);letter-spacing:-.03em}
+.gd-contact-card>p:not(.gd-contact-kicker):not(.gd-contact-note){margin:0 0 15px;color:#5f6b68}
+.gd-contact-email{display:inline-flex;align-items:center;min-height:46px;padding:0 15px;border-radius:11px;background:#e8f3f1;color:#174a47;font-weight:850;text-decoration:none;overflow-wrap:anywhere}
+.gd-contact-note{margin:15px 0 0;color:#7b8582;font-size:.85rem;line-height:1.55}
+.gd-legal-links{display:flex;flex-wrap:wrap;gap:9px;margin-top:18px}
+.gd-legal-links a{padding:9px 12px;border:1px solid #dfe6e3;border-radius:10px;color:#174a47;text-decoration:none;font-size:.86rem;font-weight:750;background:#fff}
+.gd-legal-links a:hover{background:#f2f5f3}
+@media(max-width:680px){.gd-contact-card{padding:19px;border-radius:17px}.gd-legal-links{display:grid;grid-template-columns:1fr}.gd-legal-links a{text-align:center}}
+</style>
+
 <footer id="gd-founder-footer" aria-label="GharDekho founder credit">
     <div class="gd-founder-credit">
         <strong>GharDekho Renters</strong>
