@@ -10089,7 +10089,25 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
     const section=document.getElementById("ownerSavedPropertiesSection");
     if(!btn||!section||btn.dataset.gdSavedBound==="1") return;
     btn.dataset.gdSavedBound="1";
-    btn.addEventListener("click",function(){section.scrollIntoView({behavior:"smooth",block:"start"});});
+    btn.addEventListener("click",async function(){
+        btn.disabled=true;
+        const oldText=btn.textContent;
+        btn.textContent="Loading saved…";
+        try{
+            // Always refresh the owner favourites before opening the section.
+            // This prevents a stale "0 saved" state after switching
+            // between Renter and Owner mode with the same login.
+            if(typeof loadSavedProperties==="function" && currentUser && activeRole==="owner"){
+                await loadSavedProperties();
+            }
+            section.scrollIntoView({behavior:"smooth",block:"start"});
+        }catch(err){
+            console.warn("Owner saved properties refresh failed:",err);
+        }finally{
+            btn.disabled=false;
+            btn.textContent=oldText;
+        }
+    });
 }
 bindOwnerSavedPropertiesShortcut();
 new MutationObserver(bindOwnerSavedPropertiesShortcut).observe(document.body,{childList:true,subtree:true});
