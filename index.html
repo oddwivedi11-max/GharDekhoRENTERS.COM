@@ -8780,39 +8780,37 @@ async function refreshSaveButtons(propertyId) {
 
             showMessage("backendMessage", "Saving property details…", "info");
 
-            const {
-                error
-            } = await supabaseClient
-                .from("properties")
-                .insert({
-                    owner_id: ownerRecord.id,
-                    listing_type: listingType,
-                    room_type: listingType === "home" ? null : roomType,
-                    gender_preference: listingType === "home" ? null : genderPreference,
-                    food_included: listingType === "home" ? null : (foodIncludedValue === "yes" ? true : foodIncludedValue === "no" ? false : null),
-                    total_beds: listingType === "home" ? null : totalBeds,
-                    available_beds: listingType === "home" ? null : availableBeds,
-                    name: title,
-                    title: title,
-                    location: location,
-                    area: location,
-                    address: verifiedPropertyLocation.address,
-                    latitude: verifiedPropertyLocation.latitude,
-                    longitude: verifiedPropertyLocation.longitude,
-                    bhk: bhkNumber,
-                    rent: rentNumber,
-                    furnishing: furnishing || null,
-                    description: description || null,
-                    image_url: imageUrl || null,
-                    status: "pending",
-                    verification_status: "pending"
-                });
+            const { data: savedProperty, error } = await supabaseClient.rpc("owner_add_property", {
+                p_listing_type: listingType,
+                p_room_type: roomType,
+                p_gender_preference: genderPreference,
+                p_food_included: listingType === "home"
+                    ? null
+                    : (foodIncludedValue === "yes" ? true : foodIncludedValue === "no" ? false : null),
+                p_total_beds: listingType === "home" ? null : totalBeds,
+                p_available_beds: listingType === "home" ? null : availableBeds,
+                p_name: title,
+                p_title: title,
+                p_location: location,
+                p_area: location,
+                p_address: verifiedPropertyLocation.address,
+                p_latitude: verifiedPropertyLocation.latitude,
+                p_longitude: verifiedPropertyLocation.longitude,
+                p_bhk: listingType === "home" ? bhkNumber : null,
+                p_rent: rentNumber,
+                p_furnishing: furnishing || null,
+                p_description: description || null,
+                p_image_url: imageUrl || null
+            });
 
-            if (error) {
+            if (error || !savedProperty) {
                 console.error("Add property error:", error);
                 showMessage(
                     "backendMessage",
-                    getSafeErrorMessage(error, "Unable to add this property right now."),
+                    getSafeErrorMessage(
+                        error,
+                        "Property could not be saved. Please verify the location and try again."
+                    ),
                     "error"
                 );
                 return;
