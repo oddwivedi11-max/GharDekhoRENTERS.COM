@@ -8479,8 +8479,10 @@ async function refreshSaveButtons(propertyId) {
                     longitude
                 };
 
-                addressInput.value=verifiedAddress || address;
-                showMessage("verificationMessage","✓ Location confirmed. Property can now be submitted.","success");
+                // Keep exactly what the owner typed in the address field.
+                // Geocoding is only used to obtain coordinates; it must never
+                // replace or rewrite the owner's original address.
+                showMessage("verificationMessage","✓ Location confirmed. Your entered address has been kept unchanged.","success");
                 button.textContent="✓ Location Verified";
                 return true;
             } catch(error) {
