@@ -6178,6 +6178,34 @@ async function updateAuthUI() {
         return;
     }
 
+    /*
+     * OAuth phone authorization gate.
+     * The phone entered before Google redirect must match the phone stored
+     * against the authenticated Ghar Dekho account before any dashboard is
+     * rendered. A mismatch immediately ends the local session.
+     */
+    const pendingOAuthPhone = sessionStorage.getItem("gd_pending_oauth_phone");
+    if (pendingOAuthPhone && !isAdminAccount(profile)) {
+        const registeredPhone = normalizePhone(profile.phone);
+        sessionStorage.removeItem("gd_pending_oauth_phone");
+
+        if (!registeredPhone || registeredPhone !== pendingOAuthPhone) {
+            await supabaseClient.auth.signOut({ scope: "local" });
+            currentUser = null;
+            currentProfile = null;
+            activeRole = "renter";
+            pendingLoginRole = "renter";
+            sessionStorage.removeItem("gd_login_destination");
+            sessionStorage.setItem("gd_active_role", "renter");
+            sessionStorage.setItem("gd_pending_login_role", "renter");
+
+            if (authMessage) authMessage.textContent =
+                "This phone number is not authorized for this Google account. Use the registered +91 number.";
+            openLoginAs("renter");
+            return;
+        }
+    }
+
     currentProfile = profile;
     updateDashboardProfile();
 
@@ -6620,6 +6648,24 @@ window.loginUser = loginUser;
 async function loginWithGoogle() {
     const button = document.getElementById("googleLoginBtn");
     const authMessage = document.getElementById("authMessage");
+    const enteredPhone = normalizePhone(document.getElementById("userPhone")?.value);
+
+    /*
+     * Google login follows the same authorized-phone rule as password login.
+     * The phone is captured before the OAuth redirect and verified against the
+     * account's stored phone as soon as Supabase restores the OAuth session.
+     */
+    if (!enteredPhone) {
+        if (authMessage) authMessage.textContent = "Enter your registered +91 phone number before using Google Login.";
+        document.getElementById("userPhone")?.focus();
+        return;
+    }
+
+    try {
+        sessionStorage.setItem("gd_pending_oauth_phone", enteredPhone);
+    } catch (e) {
+        console.warn("Could not store pending OAuth phone:", e);
+    }
 
     if (button) {
         button.disabled = true;
