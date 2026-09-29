@@ -9950,11 +9950,12 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
             const container = document.getElementById(isOwnerSavedView ? "ownerSavedContainer" : "renterSavedContainer");
             if (!container) return;
 
+            // Use the owner-safe RPC so a user's own saved homes are
+            // visible even while a property's public verification is pending.
+            // Directly selecting properties here was blocked by public RLS,
+            // which made the Saved Homes count appear as 0/empty.
             const { data: savedRows, error } = await supabaseClient
-                .from("saved_properties")
-                .select("id,property_id,created_at")
-                .eq("user_id", currentUser.id)
-                .order("created_at", { ascending: false });
+                .rpc("get_my_saved_properties");
 
             const countEl = document.getElementById(
                 isOwnerSavedView ? "ownerSavedSectionCount" : "renterSavedCount"
@@ -9990,25 +9991,24 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
                 return;
             }
 
-            const propertyIds = [...new Set(
-                savedRows.map(row => row.property_id).filter(Boolean)
-            )];
-
-            const { data: properties, error: propertyError } = await supabaseClient
-                .from("properties")
-                .select("id,title,location,address,bhk,rent,furnishing,image_url,status,listing_type,room_type")
-                .in("id", propertyIds);
-
-            if (propertyError) {
-                console.error("Saved property details error:", propertyError);
-                container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">!</div><strong>Unable to load property details</strong><p>Please refresh and try again.</p></div>';
-                return;
-            }
-
-            const propertyMap = new Map((properties || []).map(p => [String(p.id), p]));
-
+            // get_my_saved_properties() already returns the saved row plus
+            // its property details, so no second RLS-blocked properties query
+            // is needed.
             container.innerHTML = savedRows.map(row => {
-                const property = propertyMap.get(String(row.property_id)) || {};
+                const property = {
+                    id: row.property_id,
+                    title: row.title,
+                    location: row.location,
+                    address: row.address,
+                    bhk: row.bhk,
+                    rent: row.rent,
+                    furnishing: row.furnishing,
+                    image_url: row.image_url,
+                    status: row.status,
+                    listing_type: row.listing_type,
+                    room_type: row.room_type,
+                    verification_status: row.verification_status
+                };
                 const image = property.image_url || getDefaultPropertyImage();
                 const stayType = property.listing_type === "pg"
                     ? "🛏️ PG"
