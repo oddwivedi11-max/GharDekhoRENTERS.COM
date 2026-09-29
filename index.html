@@ -4621,6 +4621,45 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
  .detail-meta-item{min-width:0}
 }
 </style>
+<style id="ghardekho-founder-credit-v1">
+#gd-founder-footer{
+  width:min(1180px,calc(100% - 40px));
+  margin:0 auto 28px;
+  padding:22px 0 4px;
+  border-top:1px solid #dfe6e3;
+  color:#5f6b68;
+  text-align:center;
+  font-size:.84rem;
+}
+#gd-founder-footer .gd-founder-credit{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  flex-wrap:wrap;
+  gap:6px 10px;
+  line-height:1.5;
+}
+#gd-founder-footer .gd-founder-credit>strong{
+  color:#174a47;
+  font-weight:850;
+}
+#gd-founder-footer .gd-founder-credit span strong{
+  color:#1f5f5b;
+  font-weight:850;
+}
+@media(max-width:680px){
+  #gd-founder-footer{
+    width:calc(100% - 28px);
+    margin-bottom:84px;
+    padding-top:18px;
+    font-size:.78rem;
+  }
+  #gd-founder-footer .gd-founder-credit{
+    gap:4px 7px;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -13471,6 +13510,13 @@ body.gd-auth-page #gdAuthFormShell input{
   new MutationObserver(exposeRoleSwitcher).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+<footer id="gd-founder-footer" aria-label="GharDekho founder credit">
+    <div class="gd-founder-credit">
+        <strong>GharDekho Renters</strong>
+        <span>Founded &amp; Created by <strong>OD Dwivedi</strong></span>
+    </div>
+</footer>
+
 </body>
 
 </html>
