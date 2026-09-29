@@ -4877,7 +4877,10 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your registered email, registered +91 phone number and password. Your selected dashboard is remembered for this login.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button" onclick="openAdminLogin()">Admin Login</button></div>
-    <div class="gd-v4-bottom"><button id="forgotPasswordBtn" type="button" class="text-button" onclick="forgotPassword()">Forgot password?</button><p id="authMessage" class="small-text"></p></div>
+    <div class="gd-v4-bottom">
+  <button id="forgotPasswordBtn" type="button" class="text-button gd-forgot-btn" onclick="forgotPassword()">Forgot password?</button>
+  <p id="authMessage" class="small-text gd-auth-message" aria-live="polite"></p>
+</div>
   </div>
 </div></section>
 
@@ -6394,15 +6397,27 @@ async function signupUser() {
         }
 
         /*
-         * SIGNUP MUST NEVER AUTO-REDIRECT.
-         * Supabase may return a session immediately when email confirmation is
-         * disabled. That session is intentionally not treated as a completed
-         * login: the user must finish/confirm the signup flow and then
-         * explicitly log in with the registered phone number.
+         * If Supabase returns an authenticated session immediately, finish
+         * signup as a real login and open the selected dashboard directly.
+         * Do NOT show the old "Account created" message or send the user back
+         * to the login screen.
+         *
+         * If email confirmation is enabled, Supabase will not return a session.
+         * In that case a direct dashboard is impossible until the email is
+         * confirmed, so show one short, clear instruction instead.
          */
         if (data.session) {
-            await supabaseClient.auth.signOut({ scope: "local" });
+            currentUser = data.session.user;
+            currentProfile = null;
+            sessionStorage.removeItem("gd_login_destination");
+            sessionStorage.setItem("gd_pending_login_role", selectedRole);
+            sessionStorage.setItem("gd_active_role", selectedRole);
+            const passwordField = document.getElementById("userPassword");
+            if (passwordField) passwordField.value = "";
+            await updateAuthUI();
+            return;
         }
+
         currentUser = null;
         currentProfile = null;
         sessionStorage.removeItem("gd_login_destination");
@@ -6410,7 +6425,7 @@ async function signupUser() {
         sessionStorage.setItem("gd_active_role", selectedRole);
 
         authMessage.textContent =
-            "Account created. Please confirm your email, then log in using the same email, your registered +91 phone number, and password.";
+            "Confirm your email first, then log in with your registered +91 phone number and password.";
         const passwordField = document.getElementById("userPassword");
         if (passwordField) passwordField.value = "";
         return;
@@ -6895,6 +6910,7 @@ async function loginWithGoogle() {
     if (resetSection) resetSection.style.display = "block";
 
     window.__gdPasswordRecovery = true;
+    document.body.classList.add("gd-password-recovery");
     passwordResetVerified = true;
     document.body.classList.add("gd-auth-page");
     preparePasswordResetForm();
@@ -6905,6 +6921,7 @@ function cancelPasswordReset() {
     const loginSection = document.getElementById("loginSection");
     const resetSection = document.getElementById("passwordResetSection");
     window.__gdPasswordRecovery = false;
+    document.body.classList.remove("gd-password-recovery");
     passwordResetEmail = "";
     passwordResetVerified = false;
     if (resetSection) resetSection.style.display = "none";
@@ -13517,3 +13534,100 @@ body.gd-auth-page #gdAuthFormShell input{
   new MutationObserver(bindMobilePropertySubmit).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
+<style id="ghardekho-auth-signup-reset-final-v27">
+/* Final auth polish:
+   - Signup with an immediate Supabase session opens the dashboard directly.
+   - Forgot-password is a clean, full-width action instead of a cramped link.
+   - Recovery screen is allowed to override the normal auth-page hide rule. */
+body.gd-auth-page.gd-password-recovery #loginSection{
+  display:none!important;
+}
+body.gd-auth-page.gd-password-recovery #passwordResetSection{
+  display:block!important;
+  width:min(620px,calc(100% - 28px))!important;
+  max-width:620px!important;
+  margin:32px auto 60px!important;
+  padding:0!important;
+}
+body.gd-auth-page.gd-password-recovery #passwordResetSection > h2{
+  margin:0 0 14px!important;
+  color:#102d2a!important;
+  font-size:clamp(1.8rem,5vw,2.35rem)!important;
+  font-weight:900!important;
+  letter-spacing:-.04em!important;
+}
+body.gd-auth-page.gd-password-recovery #passwordResetSection .auth-card{
+  display:block!important;
+  width:100%!important;
+  padding:24px!important;
+  border:1px solid #dfe6e3!important;
+  border-radius:20px!important;
+  background:#fff!important;
+  box-shadow:0 16px 42px rgba(24,32,31,.10)!important;
+}
+body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
+  width:100%!important;
+  min-height:52px!important;
+  margin-top:14px!important;
+  border:0!important;
+  border-radius:13px!important;
+  background:#176b63!important;
+  color:#fff!important;
+  font-weight:900!important;
+}
+body.gd-auth-page.gd-password-recovery #passwordResetSection #cancelPasswordResetBtn{
+  width:100%!important;
+  min-height:48px!important;
+  margin-top:9px!important;
+  border:1px solid #d7e2de!important;
+  border-radius:13px!important;
+  background:#f6f9f8!important;
+  color:#174a47!important;
+  font-weight:800!important;
+}
+body.gd-auth-page #loginSection .gd-v4-bottom{
+  display:grid!important;
+  grid-template-columns:1fr!important;
+  gap:8px!important;
+  align-items:stretch!important;
+  margin-top:14px!important;
+}
+body.gd-auth-page #loginSection .gd-forgot-btn{
+  width:100%!important;
+  min-height:44px!important;
+  padding:0 14px!important;
+  border:1px solid #d7e2de!important;
+  border-radius:12px!important;
+  background:#f7faf9!important;
+  color:#176b63!important;
+  text-decoration:none!important;
+  font-size:13px!important;
+  font-weight:850!important;
+  text-align:center!important;
+}
+body.gd-auth-page #loginSection .gd-forgot-btn:hover{
+  background:#eaf4f1!important;
+  border-color:#bdd6d0!important;
+}
+body.gd-auth-page #loginSection .gd-auth-message{
+  width:100%!important;
+  min-height:0!important;
+  margin:0!important;
+  padding:0 3px!important;
+  color:#60706c!important;
+  font-size:12px!important;
+  line-height:1.5!important;
+  text-align:left!important;
+}
+@media(max-width:560px){
+  body.gd-auth-page.gd-password-recovery #passwordResetSection{
+    width:calc(100% - 20px)!important;
+    margin:18px auto 90px!important;
+  }
+  body.gd-auth-page.gd-password-recovery #passwordResetSection .auth-card{
+    padding:18px!important;
+    border-radius:17px!important;
+  }
+}
+</style>
