@@ -562,12 +562,8 @@ section {
 /* ---------- Owner explore restrictions ---------- */
 /* Owners may explore nearby properties and request visits, but do not get
    renter-only favourites/save controls while in Owner explore mode. */
-body.gd-owner-explore-mode #detailsSaveBtn,
-body.gd-owner-explore-mode .favorite-property-btn,
-body.gd-owner-explore-mode .favorite-btn,
-body.gd-owner-mode .owner-saved-properties-card,
-body.gd-owner-mode #ownerSavedPropertiesBtn {
-  display: none !important;
+body.gd-owner-mode .owner-saved-properties-card {
+  display: block !important;
 }
 
 /* ---------- Auth ---------- */
@@ -4975,6 +4971,10 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
                     <p id="dashboardSubtitle" class="dashboard-subtitle">Your Ghar Dekho Renters account overview.</p>
                 </div>
                 <div class="dashboard-heading-actions">
+                    <div class="dashboard-role-switch" id="dashboardRoleSwitch" style="display:none;" aria-label="Switch dashboard">
+                        <button type="button" data-role-switch="renter">Renter</button>
+                        <button type="button" data-role-switch="owner">Owner</button>
+                    </div>
                     <div class="dashboard-user-chip">
                         <span class="dashboard-user-dot" aria-hidden="true"></span>
                         <span id="dashboardIdentity">Login to access your account.</span>
@@ -5141,12 +5141,25 @@ button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,te
                         <div>
                             <span class="dashboard-section-kicker">LOOKING FOR A HOME TOO?</span>
                             <h3>Explore Near Me</h3>
-                            <p class="dashboard-muted">Use nearby discovery and request property visits without leaving your Owner account.</p>
+                            <p class="dashboard-muted">Use nearby discovery, save properties and request visits without leaving your Owner account.</p>
                         </div>
                         <div class="owner-quick-actions">
                             <button type="button" class="dashboard-primary-action owner-explore-btn" id="ownerExploreNearbyBtn">📍 Explore Near Property by Me</button>
+                            <button type="button" class="dashboard-secondary-action" id="ownerSavedPropertiesBtn">❤️ Saved Properties</button>
                         </div>
                     </div>
+                </div>
+
+                <div class="dashboard-card owner-saved-properties-card" id="ownerSavedPropertiesSection">
+                    <div class="dashboard-card-heading">
+                        <div>
+                            <span class="dashboard-section-kicker">FAVOURITES</span>
+                            <h3>Saved Properties</h3>
+                            <p class="dashboard-muted">Properties you saved while exploring. These favourites stay private to your Owner account.</p>
+                        </div>
+                        <span class="dashboard-mini-badge" id="ownerSavedSectionCount">0 saved</span>
+                    </div>
+                    <div id="ownerSavedContainer"><p class="dashboard-empty">No saved properties yet.</p></div>
                 </div>
 
                 <div class="dashboard-card owner-add-property-card" id="ownerAddPropertyCard">
@@ -5663,9 +5676,12 @@ function openPrivateAdminAccess(){
     // Admin access is intentionally not exposed on the public login screen.
     // The URL is only an entry point; Supabase admin authorization remains required.
     const params = new URLSearchParams(window.location.search);
-    if (window.location.pathname !== "/admin") return;
+    const adminQuery = new URLSearchParams(window.location.search).get("admin") === "1";
+    if (window.location.pathname !== "/admin" && !adminQuery) return;
     try {
-        const cleanUrl = window.location.origin + window.location.pathname;
+        const cleanUrl = window.location.pathname === "/admin"
+            ? window.location.origin + "/admin"
+            : window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
     } catch (err) {}
     openAdminLogin();
@@ -6048,22 +6064,15 @@ async function switchAccountRole(role) {
 
     const availableRoles = getAccountRoles(currentProfile);
     if (!availableRoles.includes(target)) {
-        if (target === "owner") {
-            showMessage("backendMessage", "Enabling Owner access on this same Ghar Dekho account...", "success");
-            const ok = await saveActiveAccountRole("owner");
-            if (!ok) {
-                showMessage("backendMessage", "Owner access could not be enabled. Please try again.", "error");
-                return;
-            }
-        } else {
-            return;
-        }
-    } else {
-        const ok = await saveActiveAccountRole(target);
-        if (!ok) {
-            showMessage("backendMessage", "Could not switch dashboard. Please try again.", "error");
-            return;
-        }
+        showMessage("backendMessage", "This account does not have Owner access.", "error");
+        updateDashboardRoleSwitcher();
+        return;
+    }
+
+    const ok = await saveActiveAccountRole(target);
+    if (!ok) {
+        showMessage("backendMessage", "Could not switch dashboard. Please try again.", "error");
+        return;
     }
 
     setRoleSpecificUI(activeRole);
@@ -6074,10 +6083,24 @@ async function switchAccountRole(role) {
 }
 
 function updateDashboardRoleSwitcher() {
-    // Renter/Owner dashboard switching is intentionally disabled after login.
-    // The selected role at login controls the dashboard for this session.
     const switcher = document.getElementById("dashboardRoleSwitch");
-    if (switcher) switcher.style.display = "none";
+    if (!switcher) return;
+
+    // Only an account that is ALREADY an Owner may switch between its
+    // Renter and Owner dashboards. A normal renter never gets an Owner switch.
+    const hasOwnerRole = !!currentUser && !!currentProfile && accountHasRole("owner");
+    const isRenterOrOwner = activeRole === "renter" || activeRole === "owner";
+    const canSwitch = hasOwnerRole && isRenterOrOwner;
+
+    switcher.style.display = canSwitch ? "flex" : "none";
+    switcher.querySelectorAll("[data-role-switch]").forEach(button => {
+        const role = button.getAttribute("data-role-switch");
+        const allowed = role === "renter" || role === "owner";
+        button.style.display = allowed ? "inline-flex" : "none";
+        button.disabled = role === activeRole;
+        button.classList.toggle("active", role === activeRole);
+        button.setAttribute("aria-pressed", role === activeRole ? "true" : "false");
+    });
 }
 
 function setRoleSpecificUI(role) {
