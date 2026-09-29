@@ -8632,19 +8632,6 @@ async function saveProperty(propertyId) {
     buttons.forEach(btn => { btn.disabled = true; btn.textContent = "Saving..."; });
 
     try {
-        const { data: existing, error: lookupError } = await supabaseClient
-            .from("saved_properties")
-            .select("id")
-            .eq("user_id", currentUser.id)
-            .eq("property_id", propertyId)
-            .maybeSingle();
-
-        if (lookupError) {
-            console.error("Favorite lookup error:", lookupError);
-            showMessage("backendMessage", getSafeErrorMessage(lookupError, "Unable to update saved homes right now."), "error");
-            return;
-        }
-
         // Use a security-definer RPC for the actual toggle. This avoids
         // browser-side RLS/403 failures while the database function still
         // verifies the authenticated user and property eligibility.
@@ -8676,17 +8663,16 @@ async function saveProperty(propertyId) {
 
 async function refreshSaveButtons(propertyId) {
     if (!currentUser || (activeRole !== "renter" && activeRole !== "owner")) return;
-    const { data, error } = await supabaseClient
-        .from("saved_properties")
-        .select("id")
-        .eq("user_id", currentUser.id)
-        .eq("property_id", propertyId)
-        .maybeSingle();
+    // Read saved state through the same user-scoped RPC used by the
+    // dashboard. This keeps the browser out of the RLS-sensitive table query.
+    const { data: rows, error } = await supabaseClient.rpc("get_my_saved_properties");
     if (error) {
         console.error("Saved state error:", error);
         return;
     }
-    const saved = Boolean(data);
+    const saved = (Array.isArray(rows) ? rows : []).some(
+        row => String(row.property_id) === String(propertyId)
+    );
     document.querySelectorAll(`.favorite-property-btn[data-id="${CSS.escape(String(propertyId))}"]`).forEach(btn => {
         btn.textContent = saved ? "♥ Saved" : "♡ Save";
         btn.setAttribute("aria-pressed", saved ? "true" : "false");
