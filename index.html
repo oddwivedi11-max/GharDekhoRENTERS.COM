@@ -4871,10 +4871,10 @@ body.gd-auth-page #loginSection .gd-v4-auth-visual .gd-v4-preview-image small{
     <div class="gd-v4-field-grid">
       <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
       <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" name="gd_new_email" placeholder="you@example.com" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
-      <label class="gd-v4-field"><span>Registered phone</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter your registered 10-digit number" inputmode="numeric" autocomplete="off" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span><small class="form-help">Only the phone number linked to this Ghar Dekho account can log in.</small></label>
+      <label class="gd-v4-field"><span>Phone number</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter 10-digit number" inputmode="numeric" autocomplete="off" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span><small class="form-help">Used for your Ghar Dekho account. Not required when logging in.</small></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
-    <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your registered email, registered +91 phone number and password. Your selected dashboard is remembered for this login.</p></div>
+    <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your email and password to log in. Your selected dashboard is remembered for this login.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button><button id="adminLoginModeBtn" type="button" class="secondary-button" onclick="openAdminLogin()">Admin Login</button></div>
     <div class="gd-v4-bottom">
@@ -5459,7 +5459,7 @@ function applyLoginRolePresentation(role){
         : "Find homes that fit your needs";
     if(hint) hint.textContent = selectedRole === "owner"
         ? "Use the same email and password. If Owner access is not enabled yet, Ghar Dekho will enable it for this account."
-        : "Use the same email and password to enter your Renter dashboard.";
+        : "Use your email and password to enter your Renter dashboard.";
 }
 
 function bindLoginRoleControls(){
@@ -6513,52 +6513,11 @@ async function loginUser() {
         currentUser = data.user;
 
         /*
-         * AUTHORIZED PHONE CHECK:
-         * Normal Renter/Owner login requires the phone number entered on the
-         * login form to exactly match the phone stored for this account.
-         * This runs immediately after password authentication and BEFORE any
-         * role sync, dashboard rendering, or data loading.
+         * LOGIN AUTHENTICATION:
+         * Renter/Owner login uses Supabase email + password only.
+         * The phone number remains part of account/profile data, but it is
+         * NOT required to authenticate an existing account.
          */
-        if (!window.__gdAdminLoginRequested) {
-            const enteredPhone = normalizePhone(document.getElementById("userPhone")?.value);
-            if (!enteredPhone) {
-                await supabaseClient.auth.signOut({ scope: "local" });
-                currentUser = null;
-                currentProfile = null;
-                authMessage.textContent = "Invalid phone number. Please enter your registered 10-digit Indian mobile number.";
-                return;
-            }
-
-            const { data: authorizedProfile, error: authorizedPhoneError } = await withAuthTimeout(
-                supabaseClient
-                    .from("users")
-                    .select("id,name,email,phone,role,roles")
-                    .eq("id", currentUser.id)
-                    .maybeSingle(),
-                "Account verification",
-                10000
-            );
-
-            if (authorizedPhoneError || !authorizedProfile) {
-                console.error("Authorized phone lookup failed:", authorizedPhoneError);
-                await supabaseClient.auth.signOut({ scope: "local" });
-                currentUser = null;
-                currentProfile = null;
-                authMessage.textContent = "We could not verify the authorized phone number. Please try again.";
-                return;
-            }
-
-            const registeredPhone = normalizePhone(authorizedProfile.phone);
-            if (!registeredPhone || registeredPhone !== enteredPhone) {
-                await supabaseClient.auth.signOut({ scope: "local" });
-                currentUser = null;
-                currentProfile = null;
-                authMessage.textContent = "This phone number is not authorized for this account. Use the registered +91 number.";
-                return;
-            }
-
-            currentProfile = authorizedProfile;
-        }
 
         /*
          * ADMIN LOGIN MODE:
