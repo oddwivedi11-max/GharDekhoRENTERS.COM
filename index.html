@@ -13649,8 +13649,8 @@ body.gd-owner-explore-mode #ownerDashboard{display:none!important}
      */
     const selectedRole = role === 'owner' ? 'owner' : 'renter';
     try{
-      window.pendingLoginRole = selectedRole;
-      window.activeRole = selectedRole;
+      pendingLoginRole = selectedRole;
+      activeRole = selectedRole;
       sessionStorage.setItem('gd_pending_login_role', selectedRole);
       sessionStorage.setItem('gd_active_role', selectedRole);
       localStorage.setItem('gd_preferred_role', selectedRole);
