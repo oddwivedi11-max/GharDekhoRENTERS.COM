@@ -13638,12 +13638,21 @@ body.gd-owner-explore-mode #ownerDashboard{display:none!important}
    * globally visible; it falls back to opening the auth form directly.
    */
   function openRoleDirect(role){
+    /*
+     * HARD ROLE -> LOGIN ROUTE
+     * Do not call the generic openLoginAs wrapper here. That wrapper has
+     * several legacy compatibility layers around the auth gateway and can
+     * leave the browser on #signup. A role choice is unambiguously a LOGIN
+     * action, so open the actual email/password form directly.
+     */
+    const selectedRole = role === 'owner' ? 'owner' : 'renter';
     try{
-      if(typeof window.openLoginAs==='function'){
-        window.openLoginAs(role);
-        return;
-      }
-    }catch(err){ console.warn('GharDekho auth helper failed:',err); }
+      window.pendingLoginRole = selectedRole;
+      window.activeRole = selectedRole;
+      sessionStorage.setItem('gd_pending_login_role', selectedRole);
+      sessionStorage.setItem('gd_active_role', selectedRole);
+      localStorage.setItem('gd_preferred_role', selectedRole);
+    }catch(err){ console.warn('GharDekho role state storage failed:',err); }
 
     const login=document.getElementById('loginSection');
     const landing=document.getElementById('loggedOutLanding');
@@ -13664,22 +13673,38 @@ body.gd-owner-explore-mode #ownerDashboard{display:none!important}
 
     const owner=document.getElementById('roleOwner');
     const renter=document.getElementById('roleRenter');
-    if(owner) owner.checked=role==='owner';
-    if(renter) renter.checked=role!=='owner';
+    if(owner) owner.checked=selectedRole==='owner';
+    if(renter) renter.checked=selectedRole!=='owner';
 
+    /*
+     * Force SIGN-IN mode. Never let a role CTA inherit the signup hash/state.
+     */
+    if(typeof window.setAuthLoginMode === 'function'){
+      try{ window.setAuthLoginMode(true); }catch(err){}
+    }
+    if(typeof window.applyLoginRolePresentation === 'function'){
+      try{ window.applyLoginRolePresentation(selectedRole); }catch(err){}
+    }
     const title=document.getElementById('premiumAuthTitle');
     const intro=document.getElementById('premiumAuthIntro');
     const brand=document.getElementById('gdAuthBrandText');
     const hint=document.getElementById('loginRoleHint');
     const benefit=document.getElementById('gdAuthBenefit3');
-    if(title) title.textContent=role==='owner'?'Welcome back, Owner':'Welcome back, Renter';
-    if(intro) intro.textContent=role==='owner'?'Sign in to manage properties, listings and renter visits.':'Sign in to discover homes, save properties and manage visits.';
-    if(brand) brand.textContent=role==='owner'?'A premium workspace for owners to list, edit and manage their rental properties.':'A polished rental experience for discovering homes and arranging visits.';
-    if(benefit) benefit.textContent=role==='owner'?'Manage your listings with ease':'Find homes that fit your needs';
-    if(hint) hint.textContent=role==='owner'?'Owner selected. Your saved account role is checked after login.':'Renter selected. Your saved account role is checked after login.';
+    if(title) title.textContent=selectedRole==='owner'?'Welcome back, Owner':'Welcome back, Renter';
+    if(intro) intro.textContent=selectedRole==='owner'?'Sign in to manage properties, listings and renter visits.':'Sign in to discover homes, save properties and manage visits.';
+    if(brand) brand.textContent=selectedRole==='owner'?'A premium workspace for owners to list, edit and manage their rental properties.':'A polished rental experience for discovering homes and arranging visits.';
+    if(benefit) benefit.textContent=selectedRole==='owner'?'Manage your listings with ease':'Find homes that fit your needs';
+    if(hint) hint.textContent=selectedRole==='owner'?'Owner selected. Your saved account role is checked after login.':'Renter selected. Your saved account role is checked after login.';
 
-    try{ history.pushState({gdAuth:true},'', '#login'); }catch(err){}
-    requestAnimationFrame(function(){ login.scrollIntoView({behavior:'smooth',block:'start'}); });
+    try{ history.replaceState({gdAuth:true,mode:'signin'},'', '#login'); }catch(err){}
+    if(typeof window.clearAuthFormFields === 'function'){
+      try{ window.clearAuthFormFields(); }catch(err){}
+    }
+    requestAnimationFrame(function(){
+      if(login) login.scrollIntoView({behavior:'auto',block:'start'});
+      const email=document.getElementById('userEmail');
+      if(email) email.focus({preventScroll:true});
+    });
   }
 
   window.__gdOpenRole=openRoleDirect;
