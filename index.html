@@ -5518,6 +5518,101 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   }
 }
 </style>
+<style id="gdr-final-overlap-and-brand-v6">
+/* Final screenshot corrections — visual layer only */
+
+/* Auth visual brand: make GharDekho clearly visible against dark green. */
+.gd-v4-visual-top .gd-auth-brand-lock{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+}
+.gd-v4-visual-top .gd-auth-brand-lock img{
+  width:48px!important;
+  height:48px!important;
+  flex:none!important;
+}
+.gd-v4-visual-top .gd-auth-brand-lock span{
+  display:grid!important;
+  gap:2px!important;
+}
+.gd-v4-visual-top .gd-auth-brand-lock strong{
+  color:#f2cf83!important;
+  font-size:21px!important;
+  font-weight:950!important;
+  letter-spacing:-.035em!important;
+  line-height:1!important;
+  text-shadow:0 1px 12px rgba(0,0,0,.18)!important;
+}
+.gd-v4-visual-top .gd-auth-brand-lock small{
+  color:#f0a56f!important;
+  font-size:8px!important;
+  font-weight:950!important;
+  letter-spacing:.18em!important;
+  line-height:1!important;
+}
+
+/* Section 02: exact requested message, old premium serif treatment. */
+#loggedOutLanding .gdr-story-value .gdr-brokerage-title{
+  max-width:650px!important;
+  margin:12px 0 20px!important;
+  color:#073f38!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(2.45rem,5.15vw,4.8rem)!important;
+  font-weight:700!important;
+  line-height:.98!important;
+  letter-spacing:-.055em!important;
+  white-space:normal!important;
+}
+#loggedOutLanding .gdr-story-value .gdr-brokerage-title em{
+  display:inline-block!important;
+  margin:0!important;
+  color:#c97849!important;
+  font-weight:500!important;
+  font-style:italic!important;
+  line-height:.98!important;
+}
+
+/* Section 03: prevent the two editorial lines from touching/overlapping. */
+#loggedOutLanding .gdr-story-photo>.gdr-story-copy{
+  min-width:0!important;
+  overflow:visible!important;
+}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy h3{
+  width:100%!important;
+  max-width:430px!important;
+  margin:0 0 18px!important;
+  font-size:clamp(2.35rem,4.25vw,4rem)!important;
+  line-height:1.04!important;
+  letter-spacing:-.05em!important;
+  overflow:visible!important;
+}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy h3 em{
+  display:block!important;
+  margin-top:6px!important;
+  padding-bottom:4px!important;
+  line-height:1.04!important;
+  white-space:normal!important;
+}
+
+/* Make the entire image/text split breathe more on desktop. */
+@media(min-width:761px){
+  #loggedOutLanding .gdr-story-photo>.gdr-story-copy{
+    padding:52px 46px!important;
+  }
+}
+@media(max-width:760px){
+  #loggedOutLanding .gdr-story-value .gdr-brokerage-title{
+    font-size:2.45rem!important;
+    line-height:.98!important;
+  }
+  #loggedOutLanding .gdr-story-photo .gdr-story-copy h3{
+    max-width:100%!important;
+    font-size:2.3rem!important;
+    line-height:1.02!important;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -5641,7 +5736,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
         <div class="gdr-story-number">02, NO BROKERAGE</div>
         <div class="gdr-story-copy">
           <span class="gdr-story-kicker">DIRECT. CLEAR. HUMAN.</span>
-          <h3>Better discovery<br><em>starts with fewer layers.</em></h3>
+          <h3 class="gdr-brokerage-title">NO BROKERAGE<br><em>COST BY GDR.</em></h3>
           <p>GharDekho is built to help renters discover properties and connect with owners without the usual brokerage-first experience.</p>
           <button type="button" class="gdr-story-link" onclick="openLoginAs('renter')">Explore homes <span>↗</span></button>
         </div>
