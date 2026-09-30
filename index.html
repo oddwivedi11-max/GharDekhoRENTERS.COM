@@ -5725,6 +5725,93 @@ body.gd-public-explore-mode .gd-home-v6-search{
   scroll-margin-top:24px;
 }
 </style>
+<style id="gdr-auth-visibility-v1">
+/* Final auth visual correction: keep the GDR brand readable on the dark panel. */
+#gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock{
+  display:flex!important;
+  align-items:center!important;
+  gap:10px!important;
+  padding:8px 12px!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  border-radius:15px!important;
+  background:rgba(255,255,255,.09)!important;
+  box-shadow:0 10px 26px rgba(0,0,0,.14)!important;
+}
+#gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock img{
+  width:48px!important;
+  height:48px!important;
+  display:block!important;
+  opacity:1!important;
+  filter:drop-shadow(0 5px 12px rgba(0,0,0,.25))!important;
+}
+#gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock span{
+  display:flex!important;
+  flex-direction:column!important;
+  gap:3px!important;
+  opacity:1!important;
+}
+#gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock strong{
+  color:#fff8ed!important;
+  font-size:21px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  letter-spacing:-.035em!important;
+  text-shadow:0 2px 10px rgba(0,0,0,.32)!important;
+}
+#gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock small{
+  color:#f6bd7d!important;
+  font-size:8px!important;
+  font-weight:950!important;
+  line-height:1!important;
+  letter-spacing:.18em!important;
+  text-shadow:0 1px 7px rgba(0,0,0,.25)!important;
+}
+#gdAuthFormShell .gd-auth-tagline{
+  display:inline-flex!important;
+  align-items:center!important;
+  gap:7px!important;
+  margin-top:18px!important;
+  padding:11px 14px!important;
+  border-left:3px solid #ffad76!important;
+  border-radius:0 12px 12px 0!important;
+  background:rgba(255,255,255,.09)!important;
+  color:#fff8ed!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-size:11px!important;
+  font-weight:900!important;
+  letter-spacing:.045em!important;
+  line-height:1.35!important;
+  box-shadow:0 8px 22px rgba(0,0,0,.10)!important;
+}
+#gdAuthFormShell .gd-auth-tagline strong{
+  color:#fff8ed!important;
+  font-weight:950!important;
+}
+#gdAuthFormShell .gd-auth-tagline em{
+  color:#ffb47e!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-style:italic!important;
+  font-weight:700!important;
+}
+@media(max-width:760px){
+  #gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock{
+    padding:7px 10px!important;
+  }
+  #gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock img{
+    width:44px!important;
+    height:44px!important;
+  }
+  #gdAuthFormShell .gd-v4-visual-top .gd-auth-brand-lock strong{
+    font-size:18px!important;
+  }
+  #gdAuthFormShell .gd-auth-tagline{
+    max-width:100%!important;
+    flex-wrap:wrap!important;
+    font-size:10px!important;
+    margin-top:14px!important;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -6060,7 +6147,7 @@ body.gd-public-explore-mode .gd-home-v6-search{
       <span class="gd-v4-eyebrow">RENT WITHOUT THE RUNAROUND</span>
       <h2>Find a place<br><em>that feels like home.</em></h2>
       <p>Search verified rental homes, save your favourites and book visits — all from one simple account.</p>
-      <div class="gd-auth-tagline">DESERVE DIFFERENT. <em>DISCOVER DIFFERENT PLACES.</em></div>
+      <div class="gd-auth-tagline"><strong>NO BROKERAGE</strong> <em>COST BY GDR.</em></div>
     </div>
     <div class="gd-v4-property-preview">
       <div class="gd-v4-preview-image">
