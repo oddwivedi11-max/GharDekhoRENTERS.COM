@@ -6868,7 +6868,7 @@ html.gd-login-route body.gd-auth-page #loginSection{
           <span>Easy Visit Requests<small>Connect without unnecessary hassle</small></span>
         </div>
         <div class="gd-hero-actions-v2 gdr-home-actions" aria-label="Choose how to continue">
-          <button type="button" class="gd-hero-cta" onclick="gdExploreHomes(event)">Explore Rentals <span>→</span></button>
+          <button type="button" class="gd-hero-cta" onclick="gdrOpenPublicExplore(event)">Explore Rentals <span>→</span></button>
           <button type="button" class="gd-hero-cta" onclick="openLoginAs('owner')">List Your Property <span>→</span></button>
         </div>
       </div>
@@ -6911,7 +6911,7 @@ html.gd-login-route body.gd-auth-page #loginSection{
           <span class="gdr-story-kicker">DIRECT. CLEAR. HUMAN.</span>
           <h3 class="gdr-brokerage-title">NO BROKERAGE<br><em>COST BY GDR.</em></h3>
           <p>GharDekho is built to help renters discover properties and connect with owners without the usual brokerage-first experience.</p>
-          <button type="button" class="gdr-story-link" onclick="gdExploreHomes(event)">Explore homes <span>↗</span></button>
+          <button type="button" class="gdr-story-link" onclick="gdrOpenPublicExplore(event)">Explore homes <span>↗</span></button>
         </div>
         <div class="gdr-story-stat"><strong>01</strong><span>direct discovery</span></div>
       </section>
@@ -6946,7 +6946,7 @@ html.gd-login-route body.gd-auth-page #loginSection{
           <div class="gdr-final-overlay">
             <span>05, FIND YOUR PLACE</span>
             <strong>Find a home. Skip the hassle.</strong>
-            <button type="button" onclick="gdExploreHomes(event)">Explore Homes <span>→</span></button>
+            <button type="button" onclick="gdrOpenPublicExplore(event)">Explore Homes <span>→</span></button>
           </div>
         </div>
       </section>
@@ -6983,7 +6983,7 @@ html.gd-login-route body.gd-auth-page #loginSection{
       <h2>Find a place<br><span>that feels like yours.</span></h2>
       <p>A better way to discover homes, PGs and hostels. Search by what matters, see what is nearby, and move from shortlist to visit without the usual rental chaos.</p>
       <div class="gd-home-v6-actions">
-        <button type="button" onclick="gdExploreHomes(event)">Explore homes <span>→</span></button>
+        <button type="button" onclick="gdrOpenPublicExplore(event)">Explore homes <span>→</span></button>
         <button type="button" class="gd-home-v6-ghost" id="gdV6NearMe" onclick="document.getElementById('nearMeBtn').click();">📍 Homes near me</button>
       </div>
       <div class="gd-home-v6-proof"><span><b>CURATED</b> rental discovery</span><i></i><span><b>NEARBY</b> homes around you</span><i></i><span><b>SIMPLE</b> visit requests</span></div>
@@ -10408,17 +10408,20 @@ async function renderActiveDashboard() {
                 if (properties) properties.style.display = "block";
                 if (login) login.style.display = "none";
 
-                // Load public listings on demand so Explore responds immediately.
-                if (!Array.isArray(allProperties) || allProperties.length === 0) {
+                // Public Explore always refreshes the public inventory.
+                // The CTA must land on real rental cards, not an empty hero.
+                if (typeof loadProperties === "function") {
                     loadProperties();
                 }
 
-                if (searchSection) {
-                    searchSection.scrollIntoView({ behavior: "auto", block: "center" });
+                if (properties) {
+                    properties.scrollIntoView({ behavior: "auto", block: "start" });
+                } else if (searchSection) {
+                    searchSection.scrollIntoView({ behavior: "auto", block: "start" });
                 }
+
                 if (input) {
                     input.focus({ preventScroll: true });
-                    input.select?.();
                 }
                 return false;
             }
