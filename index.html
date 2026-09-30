@@ -13740,6 +13740,54 @@ body.gd-owner-explore-mode #ownerDashboard{display:none!important}
   new MutationObserver(bindV3).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+<style id="ghardekho-login-route-hard-final-css">
+html.gd-login-route body.gd-auth-page #loggedOutLanding,
+html.gd-login-route body.gd-auth-page #homeSection,
+html.gd-login-route body.gd-auth-page #propertiesSection,
+html.gd-login-route body.gd-auth-page #dashboardSection,
+html.gd-login-route body.gd-auth-page #visitSection,
+html.gd-login-route body.gd-auth-page #propertyDetails{display:none!important}
+html.gd-login-route body.gd-auth-page #loginSection{display:grid!important;visibility:visible!important;opacity:1!important}
+</style>
+<script id="ghardekho-login-route-hard-final-js">
+(function(){
+  function forceLoginRoute(){
+    if(String(window.location.hash||'').toLowerCase() !== '#login') return;
+    window.__gdAuthRequested = true;
+    document.documentElement.classList.add('gd-login-route');
+    document.body.classList.add('gd-auth-page');
+    const ids=['loggedOutLanding','homeSection','propertiesSection','dashboardSection','visitSection','propertyDetails'];
+    ids.forEach(function(id){
+      const el=document.getElementById(id);
+      if(el) el.style.setProperty('display','none','important');
+    });
+    const login=document.getElementById('loginSection');
+    if(login){
+      login.style.setProperty('display','grid','important');
+      login.style.setProperty('visibility','visible','important');
+      login.style.setProperty('opacity','1','important');
+    }
+    const role=sessionStorage.getItem('gd_pending_login_role') === 'owner' ? 'owner' : 'renter';
+    try{
+      pendingLoginRole=role;
+      activeRole=role;
+      sessionStorage.setItem('gd_active_role',role);
+    }catch(e){}
+    if(typeof setAuthLoginMode==='function') setAuthLoginMode(true);
+    if(typeof applyLoginRolePresentation==='function') applyLoginRolePresentation(role);
+    requestAnimationFrame(function(){
+      if(login) login.scrollIntoView({behavior:'auto',block:'start'});
+      const email=document.getElementById('userEmail');
+      if(email) email.focus({preventScroll:true});
+    });
+  }
+  window.gdrForceLoginRoute=forceLoginRoute;
+  window.addEventListener('hashchange',forceLoginRoute);
+  window.addEventListener('pageshow',forceLoginRoute);
+  if(document.readyState==='loading') document.addEventListener('DOMContentLoaded',forceLoginRoute);
+  else forceLoginRoute();
+})();
+</script>
 <style id="ghardekho-final-ui-repair-v3">
 /* Simplified landing visual: the property photo is the hero visual; floating labels add noise. */
 #loggedOutLanding .gd-landing-visual{
