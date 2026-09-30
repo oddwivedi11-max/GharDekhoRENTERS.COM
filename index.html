@@ -5927,44 +5927,6 @@ body.gd-public-explore-mode .gd-home-v6-search{
   }
 }
 </style>
-<style id="gdr-mobile-rental-line-visibility-v2">
-/* Mobile: keep the India rental discovery message visible with the visual instead of letting it disappear above the fold. */
-@media(max-width:760px){
-  #loggedOutLanding .gdr-home-copy .gdr-india-rental-line{
-    display:none!important;
-  }
-  #loggedOutLanding .gdr-home-visual{
-    position:relative!important;
-    padding-top:46px!important;
-  }
-  #loggedOutLanding .gdr-home-visual:before{
-    content:"Discover different places to rent in India."!important;
-    position:absolute!important;
-    top:8px!important;
-    left:50%!important;
-    transform:translateX(-50%)!important;
-    z-index:12!important;
-    width:calc(100% - 18px)!important;
-    box-sizing:border-box!important;
-    padding:9px 12px!important;
-    border:1px solid rgba(255,255,255,.22)!important;
-    border-radius:12px!important;
-    background:rgba(255,244,225,.96)!important;
-    color:#07584c!important;
-    font-family:Georgia,"Times New Roman",serif!important;
-    font-size:15px!important;
-    font-weight:800!important;
-    font-style:italic!important;
-    line-height:1.2!important;
-    text-align:center!important;
-    letter-spacing:.005em!important;
-    box-shadow:0 10px 24px rgba(0,0,0,.16)!important;
-  }
-  #loggedOutLanding .gdr-logo-plaque{
-    top:50px!important;
-  }
-}
-</style>
 <style id="gdr-final-home-visibility-v1">
 /* Final editorial home card: keep the house visible; use a compact caption instead of a giant text overlay. */
 #loggedOutLanding .gdr-story-final .gdr-editorial-image-final{
@@ -6010,6 +5972,235 @@ body.gd-public-explore-mode .gd-home-v6-search{
     font-size:2rem!important;
     line-height:1.02!important;
     margin-bottom:14px!important;
+  }
+}
+</style>
+<style id="gdr-mobile-first-redesign-v3">
+/* GDR mobile-first home: clean hierarchy, no overlapping hero copy. */
+@media(max-width:760px){
+  #loggedOutLanding{
+    padding:0 0 96px!important;
+    background:#f5f1e8!important;
+  }
+  #loggedOutLanding .gdr-home-shell{
+    width:100%!important;
+    margin:0!important;
+    border-radius:0!important;
+    box-shadow:none!important;
+    background:#f5f1e8!important;
+  }
+
+  /* Header */
+  #loggedOutLanding .gdr-home-brandbar{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    min-height:62px!important;
+    padding:9px 15px!important;
+    gap:12px!important;
+    background:#fffdf8!important;
+    border-bottom:1px solid rgba(7,88,76,.10)!important;
+  }
+  #loggedOutLanding .gdr-home-logo img{
+    width:39px!important;height:39px!important;
+  }
+  #loggedOutLanding .gdr-home-logo strong{
+    font-size:17px!important;
+  }
+  #loggedOutLanding .gdr-home-logo small{
+    font-size:7px!important;
+  }
+  #loggedOutLanding .gdr-header-tagline{
+    font-size:10px!important;
+    line-height:1.15!important;
+    letter-spacing:.02em!important;
+    text-align:right!important;
+    white-space:normal!important;
+    max-width:150px!important;
+  }
+
+  /* Hero becomes a single clean vertical flow. */
+  #loggedOutLanding .gdr-home-grid{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:0!important;
+    padding:30px 16px 28px!important;
+    background:
+      radial-gradient(circle at 88% 3%,rgba(244,190,116,.18),transparent 25%),
+      linear-gradient(160deg,#063f38 0%,#07594f 62%,#0a665b 100%)!important;
+  }
+  #loggedOutLanding .gdr-home-copy{
+    display:contents!important;
+  }
+  #loggedOutLanding .gdr-eyebrow{
+    order:1!important;
+    margin:0 4px 12px!important;
+    color:#cce9e1!important;
+    font-size:8px!important;
+    letter-spacing:.17em!important;
+    line-height:1.4!important;
+  }
+  #loggedOutLanding .gdr-brand-headline{
+    order:2!important;
+    margin:0 4px!important;
+    font-size:clamp(3.1rem,15vw,4.6rem)!important;
+    line-height:.84!important;
+    letter-spacing:-.075em!important;
+  }
+  #loggedOutLanding .gdr-brand-headline strong{
+    font-weight:950!important;
+  }
+  #loggedOutLanding .gdr-brand-headline em{
+    margin-top:6px!important;
+    font-size:.82em!important;
+    line-height:.88!important;
+  }
+
+  /* The sentence is now a normal part of the flow, never over the photo. */
+  #loggedOutLanding .gdr-india-rental-line{
+    order:3!important;
+    display:block!important;
+    width:auto!important;
+    max-width:330px!important;
+    margin:16px 4px 20px!important;
+    padding:0!important;
+    color:#ffe0bf!important;
+    font-family:Georgia,"Times New Roman",serif!important;
+    font-size:18px!important;
+    font-weight:700!important;
+    font-style:italic!important;
+    line-height:1.25!important;
+    text-align:left!important;
+    background:none!important;
+    border:0!important;
+    box-shadow:none!important;
+  }
+
+  /* Visual comes before CTAs on phones. */
+  #loggedOutLanding .gdr-home-visual{
+    order:4!important;
+    min-height:0!important;
+    height:auto!important;
+    margin:0!important;
+    padding:0!important;
+    display:block!important;
+  }
+  #loggedOutLanding .gdr-house-scene{
+    position:relative!important;
+    height:410px!important;
+    min-height:410px!important;
+    border-radius:24px!important;
+    box-shadow:0 22px 50px rgba(0,0,0,.28)!important;
+  }
+  #loggedOutLanding .gdr-hero-photo{
+    object-position:center center!important;
+  }
+  #loggedOutLanding .gdr-logo-plaque{
+    top:12px!important;
+    right:12px!important;
+    width:150px!important;
+    z-index:8!important;
+  }
+  #loggedOutLanding .gdr-float{
+    transform:scale(.78)!important;
+    transform-origin:center!important;
+    z-index:9!important;
+  }
+  #loggedOutLanding .gdr-float-one{
+    top:64px!important;
+    right:-4px!important;
+  }
+  #loggedOutLanding .gdr-float-two{
+    top:145px!important;
+    left:-5px!important;
+  }
+  #loggedOutLanding .gdr-price{
+    right:10px!important;
+    bottom:12px!important;
+    z-index:9!important;
+    transform:scale(.82)!important;
+    transform-origin:bottom right!important;
+  }
+  #loggedOutLanding .gdr-photo-caption{
+    left:16px!important;
+    right:90px!important;
+    bottom:18px!important;
+    z-index:8!important;
+  }
+  #loggedOutLanding .gdr-photo-caption span{
+    font-size:8px!important;
+  }
+  #loggedOutLanding .gdr-photo-caption strong{
+    font-size:1.25rem!important;
+    line-height:1!important;
+  }
+
+  /* Trust row becomes a compact horizontal strip below the image. */
+  #loggedOutLanding .gdr-trust-row{
+    order:5!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    margin:14px 0 0!important;
+  }
+  #loggedOutLanding .gdr-trust-row span{
+    min-height:39px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    padding:8px 7px!important;
+    border-radius:12px!important;
+    background:rgba(255,255,255,.08)!important;
+    border:1px solid rgba(255,255,255,.13)!important;
+    color:#f3fbf8!important;
+    font-size:9px!important;
+    text-align:center!important;
+    line-height:1.2!important;
+  }
+  #loggedOutLanding .gdr-trust-row span:last-child{
+    grid-column:1 / -1!important;
+  }
+
+  /* Primary actions are last and full-width. */
+  #loggedOutLanding .gdr-home-actions{
+    order:6!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:10px!important;
+    margin:16px 0 0!important;
+  }
+  #loggedOutLanding .gdr-home-actions button{
+    width:100%!important;
+    min-height:54px!important;
+    border-radius:15px!important;
+    font-size:14px!important;
+    font-weight:900!important;
+    padding:0 18px!important;
+    box-shadow:0 8px 20px rgba(0,0,0,.12)!important;
+  }
+  #loggedOutLanding .gdr-home-actions .gd-hero-cta-renter{
+    background:#fffdf8!important;
+    color:#07584c!important;
+  }
+  #loggedOutLanding .gdr-home-actions .gd-hero-cta-owner{
+    background:#ffad70!important;
+    color:#123d37!important;
+  }
+
+  /* Following section starts cleanly and does not collide with fixed nav. */
+  #loggedOutLanding .gdr-role-panel{
+    margin-top:0!important;
+    padding:32px 18px 34px!important;
+    border-radius:0!important;
+  }
+  #loggedOutLanding .gdr-role-heading h3{
+    font-size:2rem!important;
+    line-height:.98!important;
+  }
+
+  /* Hide desktop-style duplicate editorial clutter on small screens. */
+  #loggedOutLanding .gdr-story-final .gdr-final-overlay{
+    padding:22px 18px!important;
   }
 }
 </style>
