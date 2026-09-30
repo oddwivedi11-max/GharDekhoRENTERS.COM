@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 250" role="img" aria-labelledby="t d">
+<title id="t">GharDekho Renters</title><desc id="d">GharDekho Renters brand mark and name.</desc>
+<defs>
+ <linearGradient id="gold" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f5d98c"/><stop offset=".5" stop-color="#b77a24"/><stop offset="1" stop-color="#f0cf78"/></linearGradient>
+ <radialGradient id="green"><stop stop-color="#4be59c"/><stop offset=".55" stop-color="#138a5b"/><stop offset="1" stop-color="#064d38"/></radialGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="160%"><feDropShadow dx="0" dy="7" stdDeviation="8" flood-opacity=".22"/></filter>
+</defs>
+<rect x="0" y="0" width="900" height="250" rx="34" fill="#111a19"/>
+<g transform="translate(24 15) scale(.43)">
+<path d="M82 232 256 66l174 166" fill="none" stroke="url(#gold)" stroke-width="28" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M111 218v215h290V218" fill="none" stroke="url(#gold)" stroke-width="25" stroke-linecap="round"/>
+<path d="M342 129V74h54v105" fill="none" stroke="url(#gold)" stroke-width="25" stroke-linejoin="round"/>
+<circle cx="257" cy="244" r="108" fill="#111b19" stroke="url(#gold)" stroke-width="23"/>
+<circle cx="257" cy="244" r="82" fill="url(#green)" stroke="#9be6c0" stroke-opacity=".55" stroke-width="4"/>
+<path d="M257 201c-21 0-38 17-38 38 0 12 5 22 13 29l-12 54h74l-12-54c8-7 13-17 13-29 0-21-17-38-38-38Z" fill="none" stroke="url(#gold)" stroke-width="12" stroke-linejoin="round"/>
+<path d="M327 314 423 410" fill="none" stroke="url(#gold)" stroke-width="31" stroke-linecap="round"/>
+<path d="M423 410l27-27" fill="none" stroke="url(#gold)" stroke-width="31" stroke-linecap="round"/>
+</g>
+<text x="250" y="100" font-family="Arial,Helvetica,sans-serif" font-size="55" font-weight="900" letter-spacing="2" fill="#35a876">GHAR DEKHO</text>
+<text x="250" y="150" font-family="Georgia,serif" font-size="38" letter-spacing="7" fill="#35a876">RENTAL</text>
+<line x1="250" y1="174" x2="780" y2="174" stroke="#b77a24" stroke-width="2"/>
+<text x="250" y="210" font-family="Georgia,serif" font-size="25" fill="#f1d38a">Simplifying Your Perfect Rental</text>
+</svg>
