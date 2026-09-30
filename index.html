@@ -5657,6 +5657,48 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   }
 }
 </style>
+<style id="gdr-search-explore-final-v7">
+#gdfounder-footer{}
+#gdr-founder-footer{}
+#gd-founder-footer .gdr-footer-tagline,
+#gdr-founder-footer .gdr-footer-tagline{
+  color:#f7e9cf!important;
+  letter-spacing:.035em!important;
+}
+#gd-founder-footer .gdr-footer-tagline strong,
+#gdr-founder-footer .gdr-footer-tagline strong{
+  color:#fff8ed!important;
+  font-family:Arial,Helvetica,sans-serif!important;
+  font-weight:950!important;
+}
+#gd-founder-footer .gdr-footer-tagline em,
+#gdr-founder-footer .gdr-footer-tagline em{
+  color:#f2ae78!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-style:italic!important;
+  font-weight:500!important;
+}
+#loggedOutLanding .gdr-story-link,
+#loggedOutLanding .gdr-final-overlay button,
+.gd-home-v6-actions button{
+  touch-action:manipulation!important;
+  -webkit-tap-highlight-color:transparent!important;
+}
+#loggedOutLanding .gdr-final-overlay button,
+.gd-home-v6-actions button{
+  transition:transform .12s ease,filter .12s ease!important;
+}
+#loggedOutLanding .gdr-final-overlay button:active,
+.gd-home-v6-actions button:active{
+  transform:scale(.98)!important;
+}
+@media(max-width:760px){
+  #gd-founder-footer .gdr-footer-tagline{
+    font-size:1.25rem!important;
+    line-height:1.05!important;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -5782,7 +5824,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
           <span class="gdr-story-kicker">DIRECT. CLEAR. HUMAN.</span>
           <h3 class="gdr-brokerage-title">NO BROKERAGE<br><em>COST BY GDR.</em></h3>
           <p>GharDekho is built to help renters discover properties and connect with owners without the usual brokerage-first experience.</p>
-          <button type="button" class="gdr-story-link" onclick="openLoginAs('renter')">Explore homes <span>↗</span></button>
+          <button type="button" class="gdr-story-link" onclick="gdExploreHomes(event)">Explore homes <span>↗</span></button>
         </div>
         <div class="gdr-story-stat"><strong>01</strong><span>direct discovery</span></div>
       </section>
@@ -5817,7 +5859,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
           <div class="gdr-final-overlay">
             <span>05, FIND YOUR PLACE</span>
             <strong>DESERVE DIFFERENT.<br><em>DISCOVER DIFFERENT PLACES.</em></strong>
-            <button type="button" onclick="scrollToSection('propertiesSection')">Explore Homes <span>→</span></button>
+            <button type="button" onclick="gdExploreHomes(event)">Explore Homes <span>→</span></button>
           </div>
         </div>
       </section>
@@ -5854,7 +5896,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
       <h2>Find a place<br><span>that feels like yours.</span></h2>
       <p>A better way to discover homes, PGs and hostels. Search by what matters, see what is nearby, and move from shortlist to visit without the usual rental chaos.</p>
       <div class="gd-home-v6-actions">
-        <button type="button" onclick="document.getElementById('locationInput').focus();document.querySelector('.gd-home-v6-search').scrollIntoView({behavior:'smooth',block:'center'});">Explore homes <span>→</span></button>
+        <button type="button" onclick="gdExploreHomes(event)">Explore homes <span>→</span></button>
         <button type="button" class="gd-home-v6-ghost" id="gdV6NearMe" onclick="document.getElementById('nearMeBtn').click();">📍 Homes near me</button>
       </div>
       <div class="gd-home-v6-proof"><span><b>CURATED</b> rental discovery</span><i></i><span><b>NEARBY</b> homes around you</span><i></i><span><b>SIMPLE</b> visit requests</span></div>
@@ -5894,7 +5936,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
     <div id="authStatus" class="auth-status">Not logged in</div>
     <div id="backendMessage" class="backend-message"></div>
     <div class="search-box gd-search-v6">
-      <label class="gd-v6-search-field gd-v6-location"><span>LOCATION</span><input type="text" id="locationInput" name="gd_search_location_x7k2" placeholder="City, area, PG or hostel" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
+      <label class="gd-v6-search-field gd-v6-location"><span>LOCATION</span><input type="text" id="locationInput" name="gd_search_location_x7k2" placeholder="Search city, area, BHK, PG, hostel, rent or property" autocomplete="off" autocapitalize="words" spellcheck="false" inputmode="text" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
       <label class="gd-v6-search-field"><span>PROPERTY STATUS</span><select id="propertyStatusSelect" aria-label="Property availability"><option value="">All Properties</option><option value="vacant">Vacant Properties</option></select></label>
       <label class="gd-v6-search-field"><span>STAY TYPE</span><select id="listingTypeSelect" aria-label="Listing type"><option value="">All stays</option><option value="home">🏠 Homes</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostels</option></select></label>
       <label class="gd-v6-search-field"><span>SIZE</span><select id="bhkSelect"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
@@ -6585,7 +6627,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
             const section = document.getElementById(sectionId);
             if (!section) return;
             requestAnimationFrame(function(){
-                section.scrollIntoView({behavior: window.matchMedia("(max-width:760px)").matches ? "auto" : "smooth", block:"start"});
+                section.scrollIntoView({behavior: "auto", block:"start"});
             });
         }
 
@@ -9256,6 +9298,32 @@ async function renderActiveDashboard() {
            SEARCH / FILTER
            ========================================================= */
 
+        function gdExploreHomes(event) {
+            if (event) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+
+            const searchSection = document.querySelector(".gd-home-v6-search") || document.getElementById("propertiesSection");
+            const input = document.getElementById("locationInput");
+
+            // Logged-out visitors should enter the renter discovery flow.
+            if (!currentUser) {
+                openLoginAs("renter");
+                return false;
+            }
+
+            // Renter/owner exploration stays on the existing search surface.
+            if (searchSection) {
+                searchSection.scrollIntoView({ behavior: "auto", block: "center" });
+            }
+            if (input) {
+                input.focus({ preventScroll: true });
+                input.select?.();
+            }
+            return false;
+        }
+
         function filterProperties() {
             const locationInput = document.getElementById("locationInput");
             const location = String(locationInput?.value || "")
@@ -9277,15 +9345,25 @@ async function renderActiveDashboard() {
                         property.location,
                         property.address,
                         property.area,
-                        property.name
+                        property.name,
+                        property.description,
+                        property.listing_type,
+                        property.room_type,
+                        property.gender_preference,
+                        property.furnishing,
+                        property.bhk,
+                        property.rent,
+                        property.status,
+                        property.verification_status
                     ]
-                        .filter(Boolean)
+                        .filter(value => value !== null && value !== undefined)
                         .join(" ")
                         .toLowerCase();
 
+                    const locationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
                     const locationMatch =
-                        !location ||
-                        searchableText.includes(location);
+                        !locationTerms.length ||
+                        locationTerms.every(term => searchableText.includes(term));
 
                     const propertyBhk = Number(property.bhk);
                     const listingTypeMatch =
@@ -14626,7 +14704,7 @@ body.gd-auth-page #gdAuthFormShell input{
 </style>
 
 <footer id="gd-founder-footer" aria-label="GharDekho Renters footer">
-  <div class="gdr-footer-tagline">DESERVE DIFFERENT. <em>DISCOVER DIFFERENT PLACES.</em></div>
+  <div class="gdr-footer-tagline"><strong>NO BROKERAGE</strong> <em>COST BY GDR.</em></div>
     <div class="gd-founder-credit">
         <strong>GharDekho Renters</strong>
         <span>Contact: <a href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a></span>
