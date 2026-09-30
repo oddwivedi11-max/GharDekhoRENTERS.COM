@@ -6230,6 +6230,465 @@ body.gd-public-explore-mode .gd-home-v6-search{
   }
 }
 </style>
+
+<style id="gdr-home-mobile-final-v1">
+/*
+  FINAL HOME PAGE CORRECTION
+  UI/layout only. No Supabase, auth, routing or property logic changes.
+  The previous mobile hero used absolute-positioned visual elements and
+  multiple cascading overrides. This layer restores a normal document flow.
+*/
+
+/* ---------- Mobile-first base ---------- */
+#loggedOutLanding {
+  width: 100%;
+  margin: 0;
+  padding: 0 0 calc(110px + env(safe-area-inset-bottom)) !important;
+  background: #fff8ed !important;
+  overflow: visible !important;
+}
+
+#loggedOutLanding .gdr-home-shell {
+  width: 100% !important;
+  max-width: 1240px !important;
+  margin: 0 auto !important;
+  background: #fff8ed !important;
+  overflow: visible !important;
+}
+
+#loggedOutLanding .gdr-home-brandbar {
+  display: none !important;
+}
+
+#loggedOutLanding .gdr-home-grid {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: stretch !important;
+  gap: 0 !important;
+  width: 100% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding:
+    calc(18px + env(safe-area-inset-top))
+    clamp(16px, 5vw, 24px)
+    28px !important;
+  background:
+    radial-gradient(circle at 88% 4%, rgba(232,184,109,.18), transparent 24%),
+    linear-gradient(160deg, #003f38 0%, #005b50 58%, #00675b 100%) !important;
+  overflow: visible !important;
+}
+
+#loggedOutLanding .gdr-home-copy,
+#loggedOutLanding .gdr-home-visual {
+  display: contents !important;
+}
+
+#loggedOutLanding .gdr-logo-plaque {
+  order: 0 !important;
+  position: relative !important;
+  top: auto !important;
+  right: auto !important;
+  bottom: auto !important;
+  left: auto !important;
+  transform: none !important;
+  z-index: 2 !important;
+  width: min(190px, 55vw) !important;
+  max-width: 100% !important;
+  margin: 0 auto 18px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#loggedOutLanding .gdr-logo-plaque img {
+  display: block !important;
+  width: 100% !important;
+  height: auto !important;
+  max-width: 100% !important;
+  object-fit: contain !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+#loggedOutLanding .gdr-eyebrow {
+  order: 1 !important;
+  margin: 0 2px 12px !important;
+  color: #cce9e1 !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: clamp(10px, 2.8vw, 12px) !important;
+  font-weight: 850 !important;
+  letter-spacing: .11em !important;
+  line-height: 1.4 !important;
+  text-align: center !important;
+}
+
+#loggedOutLanding .gdr-brand-headline {
+  order: 2 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  display: block !important;
+  color: #fff8ed !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: clamp(32px, 9vw, 48px) !important;
+  font-weight: 900 !important;
+  line-height: 1.02 !important;
+  letter-spacing: -.055em !important;
+  text-align: center !important;
+  overflow: visible !important;
+  text-shadow: none !important;
+}
+
+#loggedOutLanding .gdr-brand-headline strong,
+#loggedOutLanding .gdr-brand-headline em {
+  display: block !important;
+  position: static !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-size: inherit !important;
+  line-height: inherit !important;
+  letter-spacing: inherit !important;
+  white-space: normal !important;
+  word-break: normal !important;
+}
+
+#loggedOutLanding .gdr-brand-headline strong {
+  color: #fff8ed !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-weight: 950 !important;
+}
+
+#loggedOutLanding .gdr-brand-headline em {
+  margin-top: 3px !important;
+  color: #ffb47e !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-style: italic !important;
+  font-weight: 600 !important;
+}
+
+#loggedOutLanding .gdr-brand-headline:after {
+  display: none !important;
+  content: none !important;
+}
+
+#loggedOutLanding .gdr-india-rental-line {
+  order: 3 !important;
+  width: 100% !important;
+  max-width: 520px !important;
+  margin: 13px auto 0 !important;
+  padding: 0 !important;
+  color: rgba(255,255,255,.82) !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: clamp(15px, 4.1vw, 17px) !important;
+  font-weight: 500 !important;
+  font-style: normal !important;
+  line-height: 1.45 !important;
+  letter-spacing: 0 !important;
+  text-align: center !important;
+  text-shadow: none !important;
+  background: none !important;
+  border: 0 !important;
+  box-shadow: none !important;
+}
+
+#loggedOutLanding .gdr-home-actions {
+  order: 4 !important;
+  display: grid !important;
+  grid-template-columns: 1fr 1fr !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  margin: 20px auto 0 !important;
+}
+
+#loggedOutLanding .gdr-home-actions button {
+  width: 100% !important;
+  min-width: 0 !important;
+  min-height: 48px !important;
+  padding: 0 12px !important;
+  border-radius: 14px !important;
+  font-size: 14px !important;
+  line-height: 1.15 !important;
+  font-weight: 850 !important;
+  white-space: normal !important;
+  box-shadow: none !important;
+}
+
+#loggedOutLanding .gdr-home-actions button:first-child {
+  background: #fff8ed !important;
+  color: #003f38 !important;
+  border: 1px solid rgba(255,248,237,.9) !important;
+}
+
+#loggedOutLanding .gdr-home-actions button:last-child {
+  background: #ff9a62 !important;
+  color: #18332f !important;
+  border: 1px solid #ff9a62 !important;
+}
+
+#loggedOutLanding .gdr-home-visual {
+  min-height: 0 !important;
+  height: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+#loggedOutLanding .gdr-house-scene,
+#loggedOutLanding .gdr-float,
+#loggedOutLanding .gdr-price {
+  display: none !important;
+}
+
+#loggedOutLanding .gdr-trust-row {
+  order: 5 !important;
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+  width: 100% !important;
+  max-width: 560px !important;
+  margin: 20px auto 0 !important;
+  padding: 0 !important;
+}
+
+#loggedOutLanding .gdr-trust-row span {
+  min-width: 0 !important;
+  min-height: 122px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  padding: 16px !important;
+  border: 1px solid rgba(255,255,255,.14) !important;
+  border-radius: 16px !important;
+  background: rgba(255,255,255,.09) !important;
+  color: #fff8ed !important;
+  font-family: Arial, Helvetica, sans-serif !important;
+  font-size: 14px !important;
+  font-weight: 800 !important;
+  line-height: 1.25 !important;
+  text-align: left !important;
+  box-shadow: 0 8px 24px rgba(0,0,0,.10) !important;
+  backdrop-filter: blur(10px) !important;
+}
+
+#loggedOutLanding .gdr-trust-row span:first-child::before {
+  content: "✓" !important;
+}
+#loggedOutLanding .gdr-trust-row span:nth-child(2)::before {
+  content: "⌖" !important;
+}
+#loggedOutLanding .gdr-trust-row span:last-child {
+  grid-column: 1 / -1 !important;
+  min-height: 106px !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+#loggedOutLanding .gdr-trust-row span:last-child::before {
+  content: "↗" !important;
+}
+
+#loggedOutLanding .gdr-trust-row span::before {
+  display: grid !important;
+  place-items: center !important;
+  width: 30px !important;
+  height: 30px !important;
+  flex: 0 0 30px !important;
+  border-radius: 50% !important;
+  background: rgba(255,255,255,.13) !important;
+  color: #ffb47e !important;
+  font-size: 17px !important;
+  font-weight: 900 !important;
+}
+
+#loggedOutLanding .gdr-role-panel {
+  margin: 0 !important;
+  padding: 30px 18px 34px !important;
+  background: #fff8ed !important;
+  border-radius: 0 !important;
+}
+
+#loggedOutLanding .gdr-role-heading {
+  text-align: center !important;
+}
+
+#loggedOutLanding .gdr-role-heading h3 {
+  margin: 5px 0 7px !important;
+  color: #003f38 !important;
+  font-family: Georgia, "Times New Roman", serif !important;
+  font-size: clamp(28px, 8vw, 40px) !important;
+  line-height: 1 !important;
+}
+
+#loggedOutLanding .gdr-role-heading p {
+  margin: 0 !important;
+  color: #5f6b68 !important;
+  font-size: 14px !important;
+}
+
+#loggedOutLanding .gd-role-choice-grid {
+  display: grid !important;
+  grid-template-columns: 1fr !important;
+  gap: 10px !important;
+  margin-top: 18px !important;
+}
+
+#loggedOutLanding .gd-role-choice {
+  min-height: 64px !important;
+  border-radius: 15px !important;
+}
+
+#loggedOutLanding .gdr-story-stack {
+  padding: 12px !important;
+  gap: 12px !important;
+}
+
+#loggedOutLanding .gdr-story {
+  min-height: 0 !important;
+}
+
+#loggedOutLanding .gdr-story-final .gdr-final-overlay > strong {
+  font-size: 2rem !important;
+}
+
+/* ---------- Mobile bottom navigation ---------- */
+#gdMobileBottomNav {
+  left: 12px !important;
+  right: 12px !important;
+  width: calc(100% - 24px) !important;
+  bottom: calc(12px + env(safe-area-inset-bottom)) !important;
+  height: auto !important;
+  min-height: 64px !important;
+  padding: 6px !important;
+  border-radius: 26px !important;
+}
+
+@media (max-width: 430px) {
+  #loggedOutLanding .gdr-home-grid {
+    padding-left: 14px !important;
+    padding-right: 14px !important;
+  }
+
+  #loggedOutLanding .gdr-home-actions button {
+    min-height: 50px !important;
+    font-size: 13px !important;
+  }
+
+  #loggedOutLanding .gdr-trust-row {
+    gap: 8px !important;
+  }
+
+  #loggedOutLanding .gdr-trust-row span {
+    min-height: 116px !important;
+    padding: 13px !important;
+    font-size: 13px !important;
+  }
+}
+
+/* ---------- Tablet / desktop ---------- */
+@media (min-width: 761px) {
+  #loggedOutLanding {
+    padding-bottom: 48px !important;
+  }
+
+  #loggedOutLanding .gdr-home-brandbar {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    min-height: 76px !important;
+    padding: 14px 24px !important;
+    background: #fffdf8 !important;
+  }
+
+  #loggedOutLanding .gdr-home-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) minmax(360px, .72fr) !important;
+    align-items: center !important;
+    gap: 38px !important;
+    padding: 58px clamp(36px, 6vw, 72px) 52px !important;
+  }
+
+  #loggedOutLanding .gdr-home-copy,
+  #loggedOutLanding .gdr-home-visual {
+    display: block !important;
+  }
+
+  #loggedOutLanding .gdr-logo-plaque {
+    position: relative !important;
+    top: auto !important;
+    right: auto !important;
+    width: min(220px, 60%) !important;
+    margin: 0 0 24px !important;
+  }
+
+  #loggedOutLanding .gdr-eyebrow {
+    text-align: left !important;
+    margin-left: 0 !important;
+  }
+
+  #loggedOutLanding .gdr-brand-headline {
+    text-align: left !important;
+    font-size: clamp(42px, 5.2vw, 74px) !important;
+  }
+
+  #loggedOutLanding .gdr-india-rental-line {
+    margin-left: 0 !important;
+    text-align: left !important;
+  }
+
+  #loggedOutLanding .gdr-home-actions {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    max-width: 520px !important;
+  }
+
+  #loggedOutLanding .gdr-home-visual {
+    min-height: 0 !important;
+  }
+
+  #loggedOutLanding .gdr-trust-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    max-width: 100% !important;
+    margin-top: 28px !important;
+  }
+
+  #loggedOutLanding .gdr-trust-row span,
+  #loggedOutLanding .gdr-trust-row span:last-child {
+    grid-column: auto !important;
+    min-height: 120px !important;
+    align-items: flex-start !important;
+    text-align: left !important;
+  }
+}
+
+/* Prevent any home-page child from creating horizontal overflow. */
+#loggedOutLanding *,
+#loggedOutLanding *::before,
+#loggedOutLanding *::after {
+  max-width: 100%;
+}
+
+#loggedOutLanding button,
+#loggedOutLanding a {
+  touch-action: manipulation;
+}
+
+@media (max-width: 760px) {
+  /* Keep the final content clear of the fixed mobile navigation. */
+  #loggedOutLanding .gdr-feature-strip,
+  #loggedOutLanding .gdr-story-stack,
+  #loggedOutLanding .gdr-role-panel {
+    padding-bottom: 34px !important;
+  }
+}
+</style>
+
 </head>
 
 <body>
@@ -6302,18 +6761,18 @@ body.gd-public-explore-mode .gd-home-v6-search{
 
     <div class="gdr-home-grid">
       <div class="gdr-home-copy">
-        <span class="gdr-eyebrow">GHARDEKHO RENTERS • RENTALS MADE SIMPLE</span>
+        <span class="gdr-eyebrow">DIRECT FROM OWNERS • SIMPLER RENTALS</span>
         <h2 class="gdr-brand-headline">
-          <strong>NO BROKERAGE</strong>
-          <em>COST <span>BY GDR.</span></em>
+          <strong>Find a home.</strong>
+          <em>Skip the hassle.</em>
         </h2>
-        <p class="gdr-home-lead gdr-india-rental-line">Discover different places to rent in India.</p>
+        <p class="gdr-home-lead gdr-india-rental-line">Direct rentals from owners across India.</p>
         <div class="gdr-trust-row" aria-label="GharDekho benefits">
           <span>✓ Verified listings</span><span>⌖ Nearby homes</span><span>✓ Easy visit requests</span>
         </div>
         <div class="gd-hero-actions-v2 gdr-home-actions" aria-label="Choose how to continue">
-          <button type="button" class="gd-hero-cta gd-hero-cta-renter" data-gd-action="renter">Login as Renter <span>→</span></button>
-          <button type="button" class="gd-hero-cta gd-hero-cta-owner" data-gd-action="owner">Login as Owner <span>→</span></button>
+          <button type="button" class="gd-hero-cta" onclick="gdExploreHomes(event)">Explore Rentals <span>→</span></button>
+          <button type="button" class="gd-hero-cta" onclick="openLoginAs('owner')">List Your Property <span>→</span></button>
         </div>
       </div>
 
@@ -6389,7 +6848,7 @@ body.gd-public-explore-mode .gd-home-v6-search{
           <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&fm=jpg&q=88&w=1600" alt="Premium rental home exterior" loading="lazy">
           <div class="gdr-final-overlay">
             <span>05, FIND YOUR PLACE</span>
-            <strong>Discover different places to rent in India.</strong>
+            <strong>Find a home. Skip the hassle.</strong>
             <button type="button" onclick="gdExploreHomes(event)">Explore Homes <span>→</span></button>
           </div>
         </div>
@@ -6402,7 +6861,7 @@ body.gd-public-explore-mode .gd-home-v6-search{
         <section id="seoRentalGuide" class="gd-seo-rental-guide" aria-label="GharDekho rental guide">
   <div class="gd-seo-inner">
     <div class="gdr-section-kicker">GHARDEKHO RENTERS • GDR</div>
-    <h2>Discover different places to rent in India</h2>
+    <h2>Find rental homes across India</h2>
     <p class="gdr-section-intro">GharDekho Renters is a rental property platform for people looking for a house for rent, room for rent, PG, hostel, or other rental home in India. Search by city or area, monthly rent, BHK, furnishing and availability, then explore properties and connect with owners.</p>
     <div class="gd-seo-grid">
       <div><h3>Rental homes and houses for rent</h3><p>Explore rental homes based on your budget, preferred location, BHK and property type.</p></div>
