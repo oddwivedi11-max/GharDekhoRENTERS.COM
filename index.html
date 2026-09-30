@@ -5965,6 +5965,54 @@ body.gd-public-explore-mode .gd-home-v6-search{
   }
 }
 </style>
+<style id="gdr-final-home-visibility-v1">
+/* Final editorial home card: keep the house visible; use a compact caption instead of a giant text overlay. */
+#loggedOutLanding .gdr-story-final .gdr-editorial-image-final{
+  position:relative!important;
+  overflow:hidden!important;
+}
+#loggedOutLanding .gdr-story-final .gdr-final-overlay{
+  justify-content:flex-end!important;
+  padding:28px 34px!important;
+  background:linear-gradient(180deg,rgba(1,25,21,0) 58%,rgba(1,25,21,.70) 100%)!important;
+}
+#loggedOutLanding .gdr-story-final .gdr-final-overlay>span{
+  margin-bottom:7px!important;
+  color:#f4c77f!important;
+  font-size:9px!important;
+  letter-spacing:.18em!important;
+}
+#loggedOutLanding .gdr-story-final .gdr-final-overlay>strong{
+  max-width:560px!important;
+  margin:0 0 16px!important;
+  color:#fff9ed!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(1.65rem,3.2vw,3.15rem)!important;
+  font-weight:700!important;
+  line-height:1.02!important;
+  letter-spacing:-.045em!important;
+  text-shadow:0 3px 16px rgba(0,0,0,.35)!important;
+}
+#loggedOutLanding .gdr-story-final .gdr-final-overlay button{
+  min-height:46px!important;
+  padding:0 18px!important;
+}
+@media(max-width:760px){
+  #loggedOutLanding .gdr-story-final .gdr-editorial-image-final{
+    min-height:520px!important;
+  }
+  #loggedOutLanding .gdr-story-final .gdr-final-overlay{
+    padding:24px 20px!important;
+    background:linear-gradient(180deg,rgba(1,25,21,0) 55%,rgba(1,25,21,.78) 100%)!important;
+  }
+  #loggedOutLanding .gdr-story-final .gdr-final-overlay>strong{
+    max-width:calc(100% - 8px)!important;
+    font-size:2rem!important;
+    line-height:1.02!important;
+    margin-bottom:14px!important;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -6124,7 +6172,7 @@ body.gd-public-explore-mode .gd-home-v6-search{
           <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&fm=jpg&q=88&w=1600" alt="Premium rental home exterior" loading="lazy">
           <div class="gdr-final-overlay">
             <span>05, FIND YOUR PLACE</span>
-            <strong>DESERVE DIFFERENT.<br><em>DISCOVER DIFFERENT PLACES.</em></strong>
+            <strong>Discover different places to rent in India.</strong>
             <button type="button" onclick="gdExploreHomes(event)">Explore Homes <span>→</span></button>
           </div>
         </div>
