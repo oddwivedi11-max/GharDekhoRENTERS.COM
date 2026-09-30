@@ -6204,6 +6204,32 @@ body.gd-public-explore-mode .gd-home-v6-search{
   }
 }
 </style>
+<style id="gdr-mobile-logo-visibility-v1">
+@media(max-width:760px){
+  /* Keep the GharDekho plaque completely below the discovery message. */
+  #loggedOutLanding .gdr-home-visual{
+    position:relative!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-logo-plaque{
+    top:112px!important;
+    left:50%!important;
+    right:auto!important;
+    width:190px!important;
+    max-width:calc(100% - 70px)!important;
+    z-index:15!important;
+    opacity:1!important;
+    visibility:visible!important;
+    display:block!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-logo-plaque img{
+    display:block!important;
+    width:100%!important;
+    height:auto!important;
+    opacity:1!important;
+    visibility:visible!important;
+  }
+}
+</style>
 </head>
 
 <body>
