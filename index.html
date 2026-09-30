@@ -5341,6 +5341,135 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   #loggedOutLanding .gdr-home-shell{width:min(1240px,calc(100% - 48px))!important}
 }
 </style>
+<style id="gdr-final-visual-fixes-v4">
+/* FINAL VISUAL FIXES — no backend/auth/data changes */
+#loggedOutLanding .gdr-home-brandbar{
+  position:relative!important;
+  display:grid!important;
+  grid-template-columns:auto 1fr auto!important;
+  align-items:center!important;
+  column-gap:22px!important;
+}
+#loggedOutLanding .gdr-header-tagline{
+  justify-self:center!important;
+  text-align:center!important;
+  color:#0a6258!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(11px,1.35vw,16px)!important;
+  line-height:1.05!important;
+  letter-spacing:.025em!important;
+  font-weight:700!important;
+  white-space:nowrap!important;
+}
+#loggedOutLanding .gdr-header-tagline em{
+  color:#c98250!important;
+  font-weight:500!important;
+  font-style:italic!important;
+}
+#loggedOutLanding .gdr-brand-code{
+  position:relative!important;
+  z-index:3!important;
+  flex:none!important;
+}
+
+/* Keep the hero headline from colliding with the photo/cards. */
+#loggedOutLanding .gdr-brand-headline{
+  position:relative!important;
+  z-index:4!important;
+  max-width:650px!important;
+  font-size:clamp(3rem,6.25vw,5.65rem)!important;
+  line-height:.91!important;
+  overflow:visible!important;
+}
+#loggedOutLanding .gdr-brand-headline strong,
+#loggedOutLanding .gdr-brand-headline em{
+  display:block!important;
+  position:relative!important;
+}
+#loggedOutLanding .gdr-brand-headline em{
+  margin-top:9px!important;
+  max-width:100%!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:.98em!important;
+  line-height:.91!important;
+  white-space:normal!important;
+  word-break:normal!important;
+}
+#loggedOutLanding .gdr-brand-headline em span{
+  display:inline!important;
+}
+#loggedOutLanding .gdr-home-copy{
+  min-width:0!important;
+  position:relative!important;
+  z-index:5!important;
+}
+
+/* Exact wording requested */
+#loggedOutLanding .gdr-no-brokerage strong{
+  font-family:Arial,Helvetica,sans-serif!important;
+  color:#ffe0a8!important;
+  font-size:11px!important;
+  letter-spacing:.13em!important;
+  white-space:nowrap!important;
+}
+#loggedOutLanding .gdr-no-brokerage small{
+  color:rgba(255,255,255,.74)!important;
+}
+
+/* Auth logo: text must remain readable on the dark visual panel. */
+#gdAuthFormShell .gd-auth-brand-lock{
+  color:#fff!important;
+}
+#gdAuthFormShell .gd-auth-brand-lock span{
+  color:#fff!important;
+  text-shadow:0 1px 10px rgba(0,0,0,.18)!important;
+}
+#gdAuthFormShell .gd-auth-brand-lock strong{
+  color:#f7d28a!important;
+  font-size:21px!important;
+  font-weight:900!important;
+  letter-spacing:-.035em!important;
+}
+#gdAuthFormShell .gd-auth-brand-lock small{
+  color:#f1b77e!important;
+  font-weight:900!important;
+  letter-spacing:.18em!important;
+}
+
+/* Footer tagline stays on the old premium serif treatment. */
+.gdr-footer-tagline{
+  font-family:Georgia,"Times New Roman",serif!important;
+}
+
+/* Tablet/mobile: tagline moves cleanly under the logo row instead of squeezing it. */
+@media(max-width:760px){
+  #loggedOutLanding .gdr-home-brandbar{
+    grid-template-columns:auto auto!important;
+    justify-content:space-between!important;
+  }
+  #loggedOutLanding .gdr-header-tagline{
+    grid-column:1/-1!important;
+    grid-row:2!important;
+    justify-self:start!important;
+    text-align:left!important;
+    white-space:normal!important;
+    padding:0 2px 5px!important;
+    font-size:11px!important;
+  }
+  #loggedOutLanding .gdr-brand-headline{
+    font-size:clamp(2.85rem,13.6vw,4.15rem)!important;
+    line-height:.9!important;
+  }
+  #loggedOutLanding .gdr-brand-headline em{
+    font-size:.9em!important;
+    line-height:.9!important;
+  }
+  #loggedOutLanding .gdr-no-brokerage strong{
+    white-space:normal!important;
+    font-size:10px!important;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -5408,7 +5537,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
         <img src="/assets/gdr-mark.svg" alt="GDR logo">
         <span><strong>GharDekho</strong><small>RENTAL PLATFORM</small></span>
       </a>
-      <span class="gdr-brand-code">GDR</span>
+      <div class="gdr-header-tagline">DESERVE DIFFERENT. <em>DISCOVER DIFFERENT PLACES.</em></div><span class="gdr-brand-code">GDR</span>
     </div>
 
     <div class="gdr-home-grid">
@@ -5419,9 +5548,9 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
           <em>DISCOVER <span>DIFFERENT PLACES.</span></em>
         </h2>
         <p class="gdr-home-lead">Rental homes, rooms, PGs and hostels—discovered around your location, budget and way of living. Explore spaces that feel right, save what you love, and request a visit directly.</p>
-        <div class="gdr-no-brokerage" aria-label="No brokerage">
+        <div class="gdr-no-brokerage" aria-label="No brokerage cost by GDR">
           <span class="gdr-no-brokerage-icon">↗</span>
-          <span><strong>NO BROKERAGE</strong><small>Connect directly. Discover better.</small></span>
+          <span><strong>NO BROKERAGE COST BY GDR</strong><small>Connect directly. Discover better.</small></span>
         </div>
         <div class="gdr-trust-row" aria-label="GharDekho benefits">
           <span>✓ Verified listings</span><span>⌖ Nearby homes</span><span>✓ Easy visit requests</span>
@@ -5518,7 +5647,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   <div class="gd-seo-inner">
     <div class="gdr-section-kicker">GHARDEKHO RENTERS • GDR</div>
     <h2>Discover different places to rent in India</h2>
-    <p class="gdr-section-intro">GharDekho Renters is a rental property platform for people looking for a house for rent, room for rent, PG, hostel or other rental home in India. Search by city or area, monthly rent, BHK, furnishing and availability, then explore properties and connect with owners.</p>
+    <p class="gdr-section-intro">GharDekho Renters is a rental property platform for people looking for a house for rent, room for rent, PG, hostel, or other rental home in India. Search by city or area, monthly rent, BHK, furnishing and availability, then explore properties and connect with owners.</p>
     <div class="gd-seo-grid">
       <div><h3>Rental homes and houses for rent</h3><p>Explore rental homes based on your budget, preferred location, BHK and property type.</p></div>
       <div><h3>Rooms, PGs and hostels</h3><p>Students and working professionals can look for rooms, PGs and hostels near their preferred area.</p></div>
