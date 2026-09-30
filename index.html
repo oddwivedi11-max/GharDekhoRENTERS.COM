@@ -5699,6 +5699,27 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   }
 }
 </style>
+<style id="gdr-public-explore-mode-v1">
+/* Explore is a public discovery action. Protected actions still require auth. */
+body.gd-public-explore-mode #loggedOutLanding{
+  display:none!important;
+}
+body.gd-public-explore-mode #homeSection,
+body.gd-public-explore-mode #propertiesSection{
+  display:block!important;
+}
+body.gd-public-explore-mode #loginSection,
+body.gd-public-explore-mode #passwordResetSection{
+  display:none!important;
+}
+body.gd-public-explore-mode header #homeNavLink,
+body.gd-public-explore-mode header #propertiesNavLink{
+  display:inline-block!important;
+}
+body.gd-public-explore-mode .gd-home-v6-search{
+  scroll-margin-top:24px;
+}
+</style>
 </head>
 
 <body>
@@ -9307,9 +9328,32 @@ async function renderActiveDashboard() {
             const searchSection = document.querySelector(".gd-home-v6-search") || document.getElementById("propertiesSection");
             const input = document.getElementById("locationInput");
 
-            // Logged-out visitors should enter the renter discovery flow.
+            // Logged-out visitors can explore the public rental search immediately.
+            // Login remains required only for protected actions such as Save and Visit.
             if (!currentUser) {
-                openLoginAs("renter");
+                document.body.classList.add("gd-public-explore-mode");
+                document.body.classList.remove("gd-auth-page");
+                const landing = document.getElementById("loggedOutLanding");
+                const home = document.getElementById("homeSection");
+                const properties = document.getElementById("propertiesSection");
+                const login = document.getElementById("loginSection");
+                if (landing) landing.style.display = "none";
+                if (home) home.style.display = "block";
+                if (properties) properties.style.display = "block";
+                if (login) login.style.display = "none";
+
+                // Load public listings on demand so Explore responds immediately.
+                if (!Array.isArray(allProperties) || allProperties.length === 0) {
+                    loadProperties();
+                }
+
+                if (searchSection) {
+                    searchSection.scrollIntoView({ behavior: "auto", block: "center" });
+                }
+                if (input) {
+                    input.focus({ preventScroll: true });
+                    input.select?.();
+                }
                 return false;
             }
 
