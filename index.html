@@ -6697,6 +6697,93 @@ body.gd-public-explore-mode .gd-home-v6-search{
 }
 </style>
 
+<style id="gdr-home-final-interaction-v3">
+/*
+  FINAL MOBILE HOME INTERACTION FIX
+  - The duplicate decorative logo plaque must never sit over the hero text.
+  - The header logo is the single mobile brand mark.
+  - CTA buttons remain above all decorative layers.
+  - Login/Explore are real navigation actions, not visual-only controls.
+*/
+@media(max-width:760px){
+  #loggedOutLanding .gdr-logo-plaque{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+
+  #loggedOutLanding .gdr-home-grid{
+    position:relative!important;
+    isolation:isolate!important;
+    z-index:1!important;
+  }
+
+  #loggedOutLanding .gdr-home-copy{
+    position:relative!important;
+    z-index:5!important;
+  }
+
+  #loggedOutLanding .gdr-brand-headline,
+  #loggedOutLanding .gdr-home-lead,
+  #loggedOutLanding .gdr-home-actions,
+  #loggedOutLanding .gdr-trust-row{
+    position:relative!important;
+    z-index:6!important;
+  }
+
+  #loggedOutLanding .gdr-home-actions button{
+    position:relative!important;
+    z-index:7!important;
+    pointer-events:auto!important;
+  }
+
+  #loggedOutLanding .gdr-home-actions button span{
+    display:inline!important;
+    position:static!important;
+  }
+
+  #loggedOutLanding .gdr-trust-row span{
+    overflow:hidden!important;
+    overflow-wrap:anywhere!important;
+  }
+
+  #loggedOutLanding .gdr-trust-row span small{
+    display:block!important;
+    max-width:100%!important;
+    margin-top:4px!important;
+  }
+
+  body.gd-auth-page #gdMobileNav,
+  body.gd-auth-page #gdMobileBottomNav{
+    display:none!important;
+    pointer-events:none!important;
+  }
+}
+
+/* Public Explore results need enough space above the fixed phone nav. */
+@media(max-width:760px){
+  #propertiesSection{
+    scroll-margin-top:78px!important;
+    padding-bottom:110px!important;
+  }
+
+  #propertiesSection .property-grid{
+    padding-bottom:18px!important;
+  }
+}
+
+/* Login route: make the real auth shell the only visible content. */
+html.gd-login-route body.gd-auth-page #loggedOutLanding,
+html.gd-login-route body.gd-auth-page #homeSection,
+html.gd-login-route body.gd-auth-page #propertiesSection{
+  display:none!important;
+}
+
+html.gd-login-route body.gd-auth-page #loginSection{
+  display:grid!important;
+}
+</style>
+
 </head>
 
 <body>
@@ -13166,8 +13253,10 @@ function updateStayTypeFields() {
     nav.querySelector('[data-gd-nav="account"]').addEventListener("click",function(){
       if(typeof currentUser!=="undefined" && currentUser && typeof scrollToSection==="function"){
         scrollToSection("dashboardSection");
+      }else if(typeof openLoginAs==="function"){
+        openLoginAs("renter");
       }else if(typeof openLoginSection==="function"){
-        openLoginSection();
+        openLoginSection("renter");
       }
       gdSetMobileNavActive("account");
     });
@@ -15735,22 +15824,68 @@ body.gd-auth-page #gdAuthFormShell input{
     </div>
 </footer>
 
-<script id="gdr-auth-flow-final-v2">
+<script id="gdr-auth-flow-final-v3">
 (function(){
   const originalOpenLoginAs = window.openLoginAs;
+
+  /*
+   * Header/Account buttons are LOGIN actions.
+   * The previous v2 wrapper immediately switched to Signup after opening
+   * the auth shell, which made a tap on "Login / Signup" appear to open
+   * the wrong screen. Keep the Login tab active; Signup remains available
+   * through the visible Signup tab.
+   */
   window.openLoginAs = function(role){
     if(typeof originalOpenLoginAs === "function") originalOpenLoginAs(role);
     requestAnimationFrame(function(){
-      if(typeof window.showSignUpPage === "function") window.showSignUpPage();
+      if(typeof window.showSignInPage === "function") window.showSignInPage();
       const email=document.getElementById("userEmail");
       if(email) email.focus();
     });
   };
-  // Keep the mobile Explore interaction immediate instead of waiting for a smooth-scroll animation.
+
+  /*
+   * Explore is a public action. It must never require authentication.
+   * Keep the search surface and property inventory visible and land on the
+   * actual listings after the public inventory request starts.
+   */
   window.gdrFastScrollTo = function(id){
     const el=document.getElementById(id);
     if(!el) return;
     el.scrollIntoView({behavior:"auto",block:"start"});
+  };
+
+  window.gdrOpenPublicExplore = function(event){
+    if(event){
+      event.preventDefault();
+      event.stopPropagation();
+    }
+
+    try{
+      if(typeof window.gdExploreHomes === "function"){
+        const result=window.gdExploreHomes(event);
+        if(result===false) return false;
+      }
+    }catch(error){
+      console.error("GharDekho Explore action failed:",error);
+    }
+
+    const landing=document.getElementById("loggedOutLanding");
+    const home=document.getElementById("homeSection");
+    const properties=document.getElementById("propertiesSection");
+
+    if(landing) landing.style.display="none";
+    if(home) home.style.display="block";
+    if(properties) properties.style.display="block";
+
+    if(typeof window.loadProperties === "function"){
+      try{ window.loadProperties(); }catch(error){ console.error("Property loading failed:",error); }
+    }
+
+    requestAnimationFrame(function(){
+      if(properties) properties.scrollIntoView({behavior:"auto",block:"start"});
+    });
+    return false;
   };
 })();
 </script>
