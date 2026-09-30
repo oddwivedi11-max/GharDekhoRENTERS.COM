@@ -5927,6 +5927,44 @@ body.gd-public-explore-mode .gd-home-v6-search{
   }
 }
 </style>
+<style id="gdr-mobile-rental-line-visibility-v2">
+/* Mobile: keep the India rental discovery message visible with the visual instead of letting it disappear above the fold. */
+@media(max-width:760px){
+  #loggedOutLanding .gdr-home-copy .gdr-india-rental-line{
+    display:none!important;
+  }
+  #loggedOutLanding .gdr-home-visual{
+    position:relative!important;
+    padding-top:46px!important;
+  }
+  #loggedOutLanding .gdr-home-visual:before{
+    content:"Discover different places to rent in India."!important;
+    position:absolute!important;
+    top:8px!important;
+    left:50%!important;
+    transform:translateX(-50%)!important;
+    z-index:12!important;
+    width:calc(100% - 18px)!important;
+    box-sizing:border-box!important;
+    padding:9px 12px!important;
+    border:1px solid rgba(255,255,255,.22)!important;
+    border-radius:12px!important;
+    background:rgba(255,244,225,.96)!important;
+    color:#07584c!important;
+    font-family:Georgia,"Times New Roman",serif!important;
+    font-size:15px!important;
+    font-weight:800!important;
+    font-style:italic!important;
+    line-height:1.2!important;
+    text-align:center!important;
+    letter-spacing:.005em!important;
+    box-shadow:0 10px 24px rgba(0,0,0,.16)!important;
+  }
+  #loggedOutLanding .gdr-logo-plaque{
+    top:50px!important;
+  }
+}
+</style>
 </head>
 
 <body>
