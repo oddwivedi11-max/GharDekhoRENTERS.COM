@@ -4962,6 +4962,385 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   #gd-founder-footer .gd-founder-credit{display:grid;justify-items:center;text-align:center;gap:8px}
 }
 </style>
+<style id="gdr-premium-editorial-v3">
+/* GDR PREMIUM EDITORIAL SYSTEM — frontend only. No business/data logic. */
+:root{
+  --gdr-ink:#10211f;
+  --gdr-deep:#063f38;
+  --gdr-green:#0a6258;
+  --gdr-sage:#dfece8;
+  --gdr-paper:#f6f3ed;
+  --gdr-cream:#fbfaf6;
+  --gdr-accent:#e7a16f;
+  --gdr-gold:#d9b15f;
+  --gdr-line:rgba(16,33,31,.12);
+}
+#loggedOutLanding{
+  background:var(--gdr-paper)!important;
+  padding:12px 0 56px!important;
+  overflow:hidden!important;
+}
+#loggedOutLanding .gdr-home-shell{
+  width:min(1120px,calc(100% - 32px))!important;
+  margin:0 auto!important;
+  border-radius:0 0 38px 38px!important;
+  overflow:hidden!important;
+  background:var(--gdr-cream)!important;
+  box-shadow:0 24px 80px rgba(12,42,37,.10)!important;
+}
+#loggedOutLanding .gdr-home-brandbar{
+  min-height:76px!important;
+  padding:14px 26px!important;
+  background:rgba(255,255,255,.96)!important;
+  border-bottom:1px solid var(--gdr-line)!important;
+}
+#loggedOutLanding .gdr-home-logo img{width:48px!important;height:48px!important}
+#loggedOutLanding .gdr-home-logo strong{font-size:21px!important;letter-spacing:-.04em!important}
+#loggedOutLanding .gdr-home-logo small{font-size:8px!important;letter-spacing:.18em!important}
+#loggedOutLanding .gdr-brand-code{
+  background:var(--gdr-deep)!important;
+  color:#fff!important;
+  border:1px solid rgba(255,255,255,.15)!important;
+  letter-spacing:.18em!important;
+}
+#loggedOutLanding .gdr-home-grid{
+  grid-template-columns:minmax(0,.92fr) minmax(390px,1.08fr)!important;
+  gap:34px!important;
+  padding:62px 54px 48px!important;
+  background:
+    radial-gradient(circle at 84% 12%,rgba(217,177,95,.16),transparent 22%),
+    linear-gradient(135deg,#063f38 0%,#07594f 54%,#0a665b 100%)!important;
+}
+#loggedOutLanding .gdr-home-copy{max-width:590px!important;align-self:center!important}
+#loggedOutLanding .gdr-eyebrow{
+  color:#d8eee8!important;
+  font-size:10px!important;
+  font-weight:900!important;
+  letter-spacing:.22em!important;
+  margin-bottom:20px!important;
+}
+#loggedOutLanding .gdr-brand-headline{
+  margin:0!important;
+  display:grid!important;
+  gap:0!important;
+  color:#fff!important;
+  font-size:clamp(3.35rem,7vw,6.3rem)!important;
+  line-height:.88!important;
+  letter-spacing:-.075em!important;
+}
+#loggedOutLanding .gdr-brand-headline strong{
+  font-weight:950!important;
+  color:#fff!important;
+}
+#loggedOutLanding .gdr-brand-headline em{
+  display:block!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-style:italic!important;
+  font-weight:500!important;
+  letter-spacing:-.055em!important;
+  color:#ffd2ae!important;
+  margin-top:7px!important;
+}
+#loggedOutLanding .gdr-brand-headline em span{color:#f4b27e!important}
+#loggedOutLanding .gdr-home-lead{
+  max-width:590px!important;
+  margin:26px 0 22px!important;
+  color:rgba(255,255,255,.80)!important;
+  font-size:16px!important;
+  line-height:1.75!important;
+}
+#loggedOutLanding .gdr-no-brokerage{
+  width:max-content!important;
+  max-width:100%!important;
+  display:flex!important;
+  align-items:center!important;
+  gap:11px!important;
+  padding:11px 15px!important;
+  border:1px solid rgba(255,255,255,.20)!important;
+  border-radius:14px!important;
+  background:rgba(255,255,255,.065)!important;
+  color:#fff!important;
+  backdrop-filter:blur(12px)!important;
+}
+#loggedOutLanding .gdr-no-brokerage-icon{
+  width:30px!important;height:30px!important;border-radius:50%!important;
+  display:grid!important;place-items:center!important;
+  background:#f2c47c!important;color:#0b4039!important;font-weight:950!important;
+}
+#loggedOutLanding .gdr-no-brokerage span:last-child{display:grid!important;gap:2px!important}
+#loggedOutLanding .gdr-no-brokerage strong{font-size:11px!important;letter-spacing:.14em!important}
+#loggedOutLanding .gdr-no-brokerage small{font-size:10px!important;color:rgba(255,255,255,.65)!important}
+#loggedOutLanding .gdr-trust-row{margin-top:18px!important;gap:7px!important;flex-wrap:wrap!important}
+#loggedOutLanding .gdr-trust-row span{
+  border:1px solid rgba(255,255,255,.15)!important;
+  background:rgba(255,255,255,.06)!important;
+  color:#eaf6f2!important;
+  padding:8px 11px!important;
+  border-radius:999px!important;
+  font-size:10px!important;
+  font-weight:800!important;
+}
+#loggedOutLanding .gdr-home-actions{margin-top:24px!important}
+#loggedOutLanding .gdr-home-actions button{
+  min-height:50px!important;
+  border-radius:13px!important;
+  padding:0 20px!important;
+  font-weight:900!important;
+  transition:transform .2s ease,box-shadow .2s ease,background .2s ease!important;
+}
+#loggedOutLanding .gdr-home-actions button:hover{transform:translateY(-2px)!important}
+#loggedOutLanding .gdr-home-visual{min-height:530px!important}
+#loggedOutLanding .gdr-house-scene{
+  border-radius:30px!important;
+  overflow:hidden!important;
+  background:#183f39!important;
+  box-shadow:0 30px 70px rgba(0,0,0,.24)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+}
+#loggedOutLanding .gdr-hero-photo{
+  position:absolute!important;inset:0!important;width:100%!important;height:100%!important;
+  object-fit:cover!important;object-position:center!important;
+  opacity:1!important;filter:saturate(.84) contrast(1.04)!important;
+}
+#loggedOutLanding .gdr-house-scene:after{
+  background:linear-gradient(180deg,rgba(2,26,23,.05) 15%,rgba(2,26,23,.62) 100%)!important;
+  z-index:1!important;
+}
+#loggedOutLanding .gdr-house-scene>.gdr-sun,
+#loggedOutLanding .gdr-house-scene>.gdr-house-ground,
+#loggedOutLanding .gdr-house-scene>.gdr-house,
+#loggedOutLanding .gdr-house-scene>.gdr-tree,
+#loggedOutLanding .gdr-house-scene>.gdr-path{display:none!important}
+#loggedOutLanding .gdr-photo-caption{
+  position:absolute!important;left:24px!important;bottom:24px!important;z-index:5!important;
+  display:grid!important;gap:7px!important;color:#fff!important;
+  max-width:300px!important;
+}
+#loggedOutLanding .gdr-photo-caption span{
+  font-size:9px!important;font-weight:900!important;letter-spacing:.18em!important;color:#f4c98a!important;
+}
+#loggedOutLanding .gdr-photo-caption strong{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(1.5rem,3vw,2.2rem)!important;
+  line-height:1.03!important;font-weight:600!important;letter-spacing:-.035em!important;
+}
+#loggedOutLanding .gdr-logo-plaque{
+  top:20px!important;right:20px!important;z-index:8!important;
+  width:min(280px,72%)!important;
+  background:rgba(6,22,20,.84)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+  backdrop-filter:blur(14px)!important;
+  box-shadow:0 15px 35px rgba(0,0,0,.18)!important;
+}
+#loggedOutLanding .gdr-float{z-index:8!important;backdrop-filter:blur(14px)!important}
+#loggedOutLanding .gdr-price{z-index:8!important}
+#loggedOutLanding .gdr-role-panel{
+  margin:0!important;
+  padding:48px 54px 42px!important;
+  background:#fff!important;
+  border:0!important;
+  border-radius:0!important;
+}
+#loggedOutLanding .gdr-role-heading span,
+#loggedOutLanding .gdr-feature-strip article>span{
+  color:#0a7568!important;
+  letter-spacing:.18em!important;
+  font-weight:900!important;
+}
+#loggedOutLanding .gdr-role-heading h3{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(2.2rem,4vw,3.5rem)!important;
+  letter-spacing:-.055em!important;
+  color:var(--gdr-ink)!important;
+}
+#loggedOutLanding .gd-role-choice-grid{gap:14px!important}
+#loggedOutLanding .gd-role-choice{
+  min-height:92px!important;
+  border-radius:18px!important;
+  border:1px solid var(--gdr-line)!important;
+  box-shadow:none!important;
+  transition:transform .2s ease,box-shadow .2s ease,border-color .2s ease!important;
+}
+#loggedOutLanding .gd-role-choice:hover{
+  transform:translateY(-3px)!important;
+  box-shadow:0 15px 32px rgba(16,33,31,.10)!important;
+  border-color:rgba(10,98,88,.35)!important;
+}
+#loggedOutLanding .gdr-feature-strip{
+  background:#f2f6f3!important;
+  border-top:1px solid var(--gdr-line)!important;
+}
+#loggedOutLanding .gdr-feature-strip article{padding:28px 30px!important}
+#loggedOutLanding .gdr-feature-strip article strong{
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:23px!important;letter-spacing:-.03em!important;
+}
+#loggedOutLanding .gdr-story-stack{
+  background:var(--gdr-paper)!important;
+  padding:28px!important;
+  display:grid!important;
+  gap:18px!important;
+}
+#loggedOutLanding .gdr-story{
+  min-height:370px!important;
+  position:relative!important;
+  overflow:hidden!important;
+  border-radius:26px!important;
+  border:1px solid var(--gdr-line)!important;
+  background:#fff!important;
+}
+#loggedOutLanding .gdr-story-value{
+  display:grid!important;grid-template-columns:1fr auto!important;align-items:center!important;
+  padding:56px!important;
+  background:linear-gradient(125deg,#fff 0%,#f0f6f3 100%)!important;
+}
+#loggedOutLanding .gdr-story-number{
+  position:absolute!important;top:25px!important;left:28px!important;
+  font-size:9px!important;font-weight:900!important;letter-spacing:.18em!important;color:#0a7568!important;
+}
+#loggedOutLanding .gdr-story-copy{max-width:640px!important}
+#loggedOutLanding .gdr-story-kicker{
+  font-size:10px!important;font-weight:900!important;letter-spacing:.2em!important;color:#0a7568!important;
+}
+#loggedOutLanding .gdr-story-copy h3{
+  margin:11px 0 16px!important;
+  color:var(--gdr-ink)!important;
+  font-family:Georgia,"Times New Roman",serif!important;
+  font-size:clamp(2.4rem,5vw,4.8rem)!important;
+  line-height:.94!important;letter-spacing:-.065em!important;
+}
+#loggedOutLanding .gdr-story-copy h3 em{color:#c77f4e!important;font-weight:500!important}
+#loggedOutLanding .gdr-story-copy p{max-width:560px!important;color:#60706c!important;line-height:1.75!important}
+#loggedOutLanding .gdr-story-link{
+  margin-top:10px!important;padding:0!important;border:0!important;background:none!important;
+  color:var(--gdr-deep)!important;font-weight:900!important;
+  letter-spacing:.03em!important;cursor:pointer!important;
+}
+#loggedOutLanding .gdr-story-stat{
+  width:150px!important;height:150px!important;border-radius:50%!important;
+  background:var(--gdr-deep)!important;color:#fff!important;
+  display:grid!important;place-items:center!important;align-content:center!important;
+  box-shadow:0 20px 50px rgba(6,63,56,.18)!important;
+}
+#loggedOutLanding .gdr-story-stat strong{font-family:Georgia,serif!important;font-size:58px!important;line-height:.8!important}
+#loggedOutLanding .gdr-story-stat span{font-size:9px!important;letter-spacing:.12em!important;text-transform:uppercase!important;color:#bfe0d8!important}
+#loggedOutLanding .gdr-story-photo{
+  display:grid!important;grid-template-columns:1.2fr .8fr!important;min-height:480px!important;
+  background:#0a3e37!important;
+}
+#loggedOutLanding .gdr-editorial-image{position:relative!important;overflow:hidden!important;min-height:100%!important}
+#loggedOutLanding .gdr-editorial-image img{
+  width:100%!important;height:100%!important;object-fit:cover!important;display:block!important;
+  filter:saturate(.82) contrast(1.03)!important;transition:transform .7s cubic-bezier(.2,.7,.2,1)!important;
+}
+#loggedOutLanding .gdr-editorial-image:hover img{transform:scale(1.035)!important}
+#loggedOutLanding .gdr-editorial-image:after{
+  content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,0),rgba(0,25,21,.56))!important;pointer-events:none;
+}
+#loggedOutLanding .gdr-editorial-image>span{
+  position:absolute;left:24px;top:24px;z-index:2;color:#fff;
+  font-size:9px;font-weight:900;letter-spacing:.18em;
+}
+#loggedOutLanding .gdr-story-photo>.gdr-story-copy{
+  padding:56px 48px!important;align-self:center!important;
+}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy h3{color:#fff!important}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy p{color:rgba(255,255,255,.68)!important}
+#loggedOutLanding .gdr-story-trust{
+  display:grid!important;grid-template-columns:1fr 1fr!important;
+  background:#fff!important;
+}
+#loggedOutLanding .gdr-trust-quote{
+  padding:60px 54px!important;
+  background:#e8f1ee!important;
+  display:flex!important;flex-direction:column!important;justify-content:center!important;
+}
+#loggedOutLanding .gdr-trust-quote span{font-size:9px;font-weight:900;letter-spacing:.18em;color:#0a7568}
+#loggedOutLanding .gdr-trust-quote strong{
+  margin-top:14px;font-family:Georgia,serif;font-size:clamp(2.4rem,5vw,4.6rem);line-height:.94;letter-spacing:-.06em;color:var(--gdr-ink)
+}
+#loggedOutLanding .gdr-trust-quote em{color:#c77f4e;font-weight:500}
+#loggedOutLanding .gdr-trust-points{padding:46px 42px;display:grid;align-content:center;gap:10px}
+#loggedOutLanding .gdr-trust-points>div{
+  display:grid;grid-template-columns:38px 1fr;gap:2px 12px;padding:17px 0;border-bottom:1px solid var(--gdr-line)
+}
+#loggedOutLanding .gdr-trust-points b{grid-row:1/3;color:#0a7568;font-size:11px;letter-spacing:.1em}
+#loggedOutLanding .gdr-trust-points span{font-weight:900;color:var(--gdr-ink)}
+#loggedOutLanding .gdr-trust-points small{color:#72807d;line-height:1.45}
+#loggedOutLanding .gdr-story-final{min-height:540px!important;border:0!important;border-radius:28px!important}
+#loggedOutLanding .gdr-editorial-image-final{width:100%!important}
+#loggedOutLanding .gdr-final-overlay{
+  position:absolute!important;inset:0!important;z-index:3!important;
+  display:flex!important;flex-direction:column!important;justify-content:flex-end!important;
+  padding:52px!important;color:#fff!important;
+  background:linear-gradient(180deg,rgba(0,0,0,.02) 20%,rgba(1,25,21,.78) 100%)!important;
+}
+#loggedOutLanding .gdr-final-overlay>span{font-size:9px;font-weight:900;letter-spacing:.2em;color:#f3c47f}
+#loggedOutLanding .gdr-final-overlay>strong{
+  margin:12px 0 22px;font-family:Georgia,serif;font-size:clamp(2.8rem,6vw,6rem);line-height:.9;letter-spacing:-.065em;
+}
+#loggedOutLanding .gdr-final-overlay em{font-weight:500;color:#ffd0ab}
+#loggedOutLanding .gdr-final-overlay button{
+  width:max-content;min-height:50px;padding:0 20px;border:1px solid rgba(255,255,255,.25);
+  border-radius:12px;background:#fff;color:var(--gdr-deep);font-weight:900;cursor:pointer;
+}
+.gdr-footer-tagline{
+  width:min(1100px,100%);margin:0 auto 14px;
+  font-family:Georgia,"Times New Roman",serif;font-size:clamp(1.2rem,3vw,2rem);
+  letter-spacing:-.035em;color:#fff;
+}
+.gdr-footer-tagline em{color:#f3bd8e;font-weight:500}
+#gd-founder-footer{display:block!important;text-align:left!important}
+@media(max-width:760px){
+  #loggedOutLanding{padding:0 0 34px!important}
+  #loggedOutLanding .gdr-home-shell{width:100%!important;border-radius:0!important;box-shadow:none!important}
+  #loggedOutLanding .gdr-home-brandbar{min-height:68px!important;padding:10px 16px!important}
+  #loggedOutLanding .gdr-home-grid{
+    grid-template-columns:1fr!important;
+    gap:18px!important;padding:38px 18px 24px!important;
+  }
+  #loggedOutLanding .gdr-brand-headline{font-size:clamp(3rem,15vw,4.5rem)!important;line-height:.88!important}
+  #loggedOutLanding .gdr-home-lead{font-size:14px!important;line-height:1.65!important;margin-top:21px!important}
+  #loggedOutLanding .gdr-no-brokerage{width:100%!important}
+  #loggedOutLanding .gdr-home-actions{display:grid!important;grid-template-columns:1fr 1fr!important}
+  #loggedOutLanding .gdr-home-actions button{min-width:0!important;padding:0 12px!important;font-size:12px!important}
+  #loggedOutLanding .gdr-home-visual{min-height:390px!important;margin-top:4px!important}
+  #loggedOutLanding .gdr-house-scene{border-radius:22px!important}
+  #loggedOutLanding .gdr-logo-plaque{top:14px!important;right:14px!important;width:205px!important}
+  #loggedOutLanding .gdr-float{transform:scale(.82);transform-origin:top right}
+  #loggedOutLanding .gdr-float-two{left:-7px!important}
+  #loggedOutLanding .gdr-photo-caption{left:18px!important;bottom:18px!important}
+  #loggedOutLanding .gdr-photo-caption strong{font-size:1.45rem!important}
+  #loggedOutLanding .gdr-role-panel{padding:34px 18px!important}
+  #loggedOutLanding .gdr-role-heading h3{font-size:2.15rem!important}
+  #loggedOutLanding .gd-role-choice-grid{grid-template-columns:1fr!important}
+  #loggedOutLanding .gdr-feature-strip{grid-template-columns:1fr!important}
+  #loggedOutLanding .gdr-feature-strip article{padding:21px 18px!important}
+  #loggedOutLanding .gdr-story-stack{padding:12px!important;gap:12px!important}
+  #loggedOutLanding .gdr-story{border-radius:20px!important;min-height:auto!important}
+  #loggedOutLanding .gdr-story-value{display:block!important;padding:54px 22px 28px!important}
+  #loggedOutLanding .gdr-story-copy h3{font-size:2.55rem!important}
+  #loggedOutLanding .gdr-story-stat{width:92px!important;height:92px!important;margin-top:24px!important}
+  #loggedOutLanding .gdr-story-stat strong{font-size:38px!important}
+  #loggedOutLanding .gdr-story-photo{grid-template-columns:1fr!important}
+  #loggedOutLanding .gdr-editorial-image-one{min-height:310px!important}
+  #loggedOutLanding .gdr-story-photo>.gdr-story-copy{padding:32px 22px 36px!important}
+  #loggedOutLanding .gdr-story-trust{grid-template-columns:1fr!important}
+  #loggedOutLanding .gdr-trust-quote{padding:40px 22px!important}
+  #loggedOutLanding .gdr-trust-points{padding:20px 22px 28px!important}
+  #loggedOutLanding .gdr-story-final{min-height:430px!important}
+  #loggedOutLanding .gdr-final-overlay{padding:24px 20px!important}
+  #loggedOutLanding .gdr-final-overlay>strong{font-size:2.8rem!important}
+  .gdr-footer-tagline{font-size:1.15rem!important;line-height:1.05!important}
+}
+@media(min-width:761px) and (max-width:1180px){
+  #loggedOutLanding .gdr-home-grid{padding:48px 36px!important}
+  #loggedOutLanding .gdr-story-value{padding:44px!important}
+}
+@media(min-width:1400px){
+  #loggedOutLanding .gdr-home-shell{width:min(1240px,calc(100% - 48px))!important}
+}
+</style>
 </head>
 
 <body>
@@ -5035,12 +5414,17 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
     <div class="gdr-home-grid">
       <div class="gdr-home-copy">
         <span class="gdr-eyebrow">GHARDEKHO RENTERS • RENTALS MADE SIMPLE</span>
-        <h2>Find a home.<br><em>Feel at home.</em></h2>
-        <p class="gdr-home-lead">Discover rental homes, rooms, PGs and hostels without the usual rental confusion. Search by location, budget and stay type, then shortlist your favourites and request a visit.</p>
-        <div class="gdr-home-tagline">SIMPLIFYING YOUR PERFECT <em>RENTAL HOME.</em></div>
-        <div class="gdr-home-tag"># NO BROKERS <b>•</b> NO CHARGES <b>•</b> FIND YOUR HOME THE EASY WAY <b>•</b> BY GDR</div>
+        <h2 class="gdr-brand-headline">
+          <strong>DESERVE DIFFERENT.</strong>
+          <em>DISCOVER <span>DIFFERENT PLACES.</span></em>
+        </h2>
+        <p class="gdr-home-lead">Rental homes, rooms, PGs and hostels—discovered around your location, budget and way of living. Explore spaces that feel right, save what you love, and request a visit directly.</p>
+        <div class="gdr-no-brokerage" aria-label="No brokerage">
+          <span class="gdr-no-brokerage-icon">↗</span>
+          <span><strong>NO BROKERAGE</strong><small>Connect directly. Discover better.</small></span>
+        </div>
         <div class="gdr-trust-row" aria-label="GharDekho benefits">
-          <span>✓ Verified listings</span><span>✓ Nearby homes</span><span>✓ Easy visit requests</span>
+          <span>✓ Verified listings</span><span>⌖ Nearby homes</span><span>✓ Easy visit requests</span>
         </div>
         <div class="gd-hero-actions-v2 gdr-home-actions" aria-label="Choose how to continue">
           <button type="button" class="gd-hero-cta gd-hero-cta-renter" data-gd-action="renter">Login as Renter <span>→</span></button>
@@ -5051,6 +5435,8 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
       <div class="gdr-home-visual" aria-hidden="true">
         <div class="gdr-logo-plaque"><img src="/assets/gdr-logo.svg" alt=""></div>
         <div class="gdr-house-scene">
+          <img class="gdr-hero-photo" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=88" alt="Modern rental home" loading="eager" fetchpriority="high">
+          <div class="gdr-photo-caption"><span>GHARDEKHO / EDITION 01</span><strong>A place that feels<br>worth coming home to.</strong></div>
           <div class="gdr-sun"></div><div class="gdr-house-ground"></div>
           <div class="gdr-house"><div class="gdr-roof"></div><div class="gdr-house-body">
             <div class="gdr-window gdr-window-left"></div><div class="gdr-window gdr-window-right"></div><div class="gdr-door"></div>
@@ -5076,6 +5462,54 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
       <article><span>02</span><strong>Shortlist</strong><p>Save the homes you genuinely like.</p></article>
       <article><span>03</span><strong>Visit</strong><p>Request a visit without the back-and-forth.</p></article>
     </div>
+
+    <div class="gdr-story-stack" aria-label="The GharDekho experience">
+      <section class="gdr-story gdr-story-value">
+        <div class="gdr-story-number">02 / NO BROKERAGE</div>
+        <div class="gdr-story-copy">
+          <span class="gdr-story-kicker">DIRECT. CLEAR. HUMAN.</span>
+          <h3>Better discovery<br><em>starts with fewer layers.</em></h3>
+          <p>GharDekho is built to help renters discover properties and connect with owners without the usual brokerage-first experience.</p>
+          <button type="button" class="gdr-story-link" onclick="scrollToSection('propertiesSection')">Explore homes <span>↗</span></button>
+        </div>
+        <div class="gdr-story-stat"><strong>01</strong><span>direct discovery</span></div>
+      </section>
+
+      <section class="gdr-story gdr-story-photo">
+        <div class="gdr-editorial-image gdr-editorial-image-one">
+          <img src="https://images.unsplash.com/photo-1588046131613-53e55571186e?auto=format&fit=crop&fm=jpg&q=88&w=1400" alt="Contemporary rental interior" loading="lazy">
+          <span>03 / DISCOVER DIFFERENT</span>
+        </div>
+        <div class="gdr-story-copy">
+          <span class="gdr-story-kicker">YOUR NEXT SPACE</span>
+          <h3>Not just a listing.<br><em>A place to belong.</em></h3>
+          <p>Compare what matters—location, rent, BHK, furnishing and availability—then keep the places that genuinely fit your life.</p>
+        </div>
+      </section>
+
+      <section class="gdr-story gdr-story-trust">
+        <div class="gdr-trust-quote">
+          <span>04 / THE GHARDEKHO WAY</span>
+          <strong>Search less.<br><em>Choose with clarity.</em></strong>
+        </div>
+        <div class="gdr-trust-points">
+          <div><b>01</b><span>Nearby discovery</span><small>Find homes around the area you choose.</small></div>
+          <div><b>02</b><span>Save your shortlist</span><small>Keep the spaces worth another look.</small></div>
+          <div><b>03</b><span>Request a visit</span><small>Move from interest to a real visit.</small></div>
+        </div>
+      </section>
+
+      <section class="gdr-story gdr-story-final">
+        <div class="gdr-editorial-image gdr-editorial-image-final">
+          <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&fm=jpg&q=88&w=1600" alt="Premium rental home exterior" loading="lazy">
+          <div class="gdr-final-overlay">
+            <span>05 / FIND YOUR PLACE</span>
+            <strong>DESERVE DIFFERENT.<br><em>DISCOVER DIFFERENT PLACES.</em></strong>
+            <button type="button" onclick="scrollToSection('propertiesSection')">Explore Homes <span>→</span></button>
+          </div>
+        </div>
+      </section>
+    </div>
   </div>
 </section>
 
@@ -5083,7 +5517,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
         <section id="seoRentalGuide" class="gd-seo-rental-guide" aria-label="GharDekho rental guide">
   <div class="gd-seo-inner">
     <div class="gdr-section-kicker">GHARDEKHO RENTERS • GDR</div>
-    <h2>Find a ghar for rent in India</h2>
+    <h2>Discover different places to rent in India</h2>
     <p class="gdr-section-intro">GharDekho Renters is a rental property platform for people looking for a house for rent, room for rent, PG, hostel or other rental home in India. Search by city or area, monthly rent, BHK, furnishing and availability, then explore properties and connect with owners.</p>
     <div class="gd-seo-grid">
       <div><h3>Rental homes and houses for rent</h3><p>Explore rental homes based on your budget, preferred location, BHK and property type.</p></div>
@@ -5246,7 +5680,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
       <span class="gd-v4-eyebrow">RENT WITHOUT THE RUNAROUND</span>
       <h2>Find a place<br><em>that feels like home.</em></h2>
       <p>Search verified rental homes, save your favourites and book visits — all from one simple account.</p>
-      <div class="gd-auth-tagline">SIMPLIFYING YOUR PERFECT <em>RENTAL HOME.</em></div>
+      <div class="gd-auth-tagline">DESERVE DIFFERENT. <em>DISCOVER DIFFERENT PLACES.</em></div>
     </div>
     <div class="gd-v4-property-preview">
       <div class="gd-v4-preview-image">
@@ -13832,7 +14266,7 @@ body.gd-auth-page #gdAuthFormShell input{
 <section id="gd-about-section" class="gd-about-section" aria-label="About GharDekho Renters">
   <div class="gd-about-card">
     <p class="gd-about-kicker">ABOUT GHARDEKHO RENTERS</p>
-    <h2>A simpler way to discover rental homes</h2>
+    <h2>Deserve different. Discover different places.</h2>
     <p>GharDekho Renters is a rental property discovery platform designed to help tenants find homes, rooms, PGs and hostels and connect with property owners. Our goal is to make rental discovery simpler, clearer and more accessible while helping renters explore properties based on location, budget, BHK, furnishing and availability.</p>
     <p>GharDekho Renters is founded and created by <strong>OD Dwivedi</strong>.</p>
   </div>
@@ -13880,6 +14314,7 @@ body.gd-auth-page #gdAuthFormShell input{
 </style>
 
 <footer id="gd-founder-footer" aria-label="GharDekho Renters footer">
+  <div class="gdr-footer-tagline">DESERVE DIFFERENT. <em>DISCOVER DIFFERENT PLACES.</em></div>
     <div class="gd-founder-credit">
         <strong>GharDekho Renters</strong>
         <span>Founded &amp; Created by <strong>OD Dwivedi</strong></span>
