@@ -5470,6 +5470,54 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   }
 }
 </style>
+<style id="gdr-correction-v5">
+/* Final typography + navigation correction layer */
+#loggedOutLanding .gdr-brand-headline{
+  max-width:590px!important;
+  font-size:clamp(2.85rem,5.75vw,5.15rem)!important;
+  line-height:.96!important;
+  letter-spacing:-.06em!important;
+}
+#loggedOutLanding .gdr-brand-headline strong{line-height:.92!important}
+#loggedOutLanding .gdr-brand-headline em{
+  margin-top:11px!important;
+  line-height:.94!important;
+  letter-spacing:-.045em!important;
+}
+#loggedOutLanding .gdr-story-copy h3{
+  line-height:1.01!important;
+  letter-spacing:-.055em!important;
+  margin-top:12px!important;
+}
+#loggedOutLanding .gdr-story-copy h3 em{
+  display:inline-block!important;
+  line-height:1.01!important;
+  padding-bottom:2px!important;
+}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy h3{
+  max-width:420px!important;
+}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy h3 br{
+  display:none!important;
+}
+#loggedOutLanding .gdr-story-photo .gdr-story-copy h3 em{
+  display:block!important;
+  margin-top:3px!important;
+}
+@media(max-width:760px){
+  #loggedOutLanding .gdr-brand-headline{
+    font-size:clamp(2.65rem,12.6vw,3.9rem)!important;
+    line-height:.94!important;
+  }
+  #loggedOutLanding .gdr-brand-headline em{
+    line-height:.92!important;
+  }
+  #loggedOutLanding .gdr-story-copy h3{
+    font-size:2.35rem!important;
+    line-height:.99!important;
+  }
+}
+</style>
 </head>
 
 <body>
@@ -5548,10 +5596,6 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
           <em>DISCOVER <span>DIFFERENT PLACES.</span></em>
         </h2>
         <p class="gdr-home-lead">Rental homes, rooms, PGs and hostels—discovered around your location, budget and way of living. Explore spaces that feel right, save what you love, and request a visit directly.</p>
-        <div class="gdr-no-brokerage" aria-label="No brokerage cost by GDR">
-          <span class="gdr-no-brokerage-icon">↗</span>
-          <span><strong>NO BROKERAGE COST BY GDR</strong><small>Connect directly. Discover better.</small></span>
-        </div>
         <div class="gdr-trust-row" aria-label="GharDekho benefits">
           <span>✓ Verified listings</span><span>⌖ Nearby homes</span><span>✓ Easy visit requests</span>
         </div>
@@ -5565,7 +5609,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
         <div class="gdr-logo-plaque"><img src="/assets/gdr-logo.svg" alt=""></div>
         <div class="gdr-house-scene">
           <img class="gdr-hero-photo" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=88" alt="Modern rental home" loading="eager" fetchpriority="high">
-          <div class="gdr-photo-caption"><span>GHARDEKHO / EDITION 01</span><strong>A place that feels<br>worth coming home to.</strong></div>
+          <div class="gdr-photo-caption"><span>GHARDEKHO, EDITION 01</span><strong>A place that feels<br>worth coming home to.</strong></div>
           <div class="gdr-sun"></div><div class="gdr-house-ground"></div>
           <div class="gdr-house"><div class="gdr-roof"></div><div class="gdr-house-body">
             <div class="gdr-window gdr-window-left"></div><div class="gdr-window gdr-window-right"></div><div class="gdr-door"></div>
@@ -5594,12 +5638,12 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
 
     <div class="gdr-story-stack" aria-label="The GharDekho experience">
       <section class="gdr-story gdr-story-value">
-        <div class="gdr-story-number">02 / NO BROKERAGE</div>
+        <div class="gdr-story-number">02, NO BROKERAGE</div>
         <div class="gdr-story-copy">
           <span class="gdr-story-kicker">DIRECT. CLEAR. HUMAN.</span>
           <h3>Better discovery<br><em>starts with fewer layers.</em></h3>
           <p>GharDekho is built to help renters discover properties and connect with owners without the usual brokerage-first experience.</p>
-          <button type="button" class="gdr-story-link" onclick="scrollToSection('propertiesSection')">Explore homes <span>↗</span></button>
+          <button type="button" class="gdr-story-link" onclick="openLoginAs('renter')">Explore homes <span>↗</span></button>
         </div>
         <div class="gdr-story-stat"><strong>01</strong><span>direct discovery</span></div>
       </section>
@@ -5607,7 +5651,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
       <section class="gdr-story gdr-story-photo">
         <div class="gdr-editorial-image gdr-editorial-image-one">
           <img src="https://images.unsplash.com/photo-1588046131613-53e55571186e?auto=format&fit=crop&fm=jpg&q=88&w=1400" alt="Contemporary rental interior" loading="lazy">
-          <span>03 / DISCOVER DIFFERENT</span>
+          <span>03, DISCOVER DIFFERENT</span>
         </div>
         <div class="gdr-story-copy">
           <span class="gdr-story-kicker">YOUR NEXT SPACE</span>
@@ -5618,7 +5662,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
 
       <section class="gdr-story gdr-story-trust">
         <div class="gdr-trust-quote">
-          <span>04 / THE GHARDEKHO WAY</span>
+          <span>04, THE GHARDEKHO WAY</span>
           <strong>Search less.<br><em>Choose with clarity.</em></strong>
         </div>
         <div class="gdr-trust-points">
@@ -5632,7 +5676,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
         <div class="gdr-editorial-image gdr-editorial-image-final">
           <img src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&fm=jpg&q=88&w=1600" alt="Premium rental home exterior" loading="lazy">
           <div class="gdr-final-overlay">
-            <span>05 / FIND YOUR PLACE</span>
+            <span>05, FIND YOUR PLACE</span>
             <strong>DESERVE DIFFERENT.<br><em>DISCOVER DIFFERENT PLACES.</em></strong>
             <button type="button" onclick="scrollToSection('propertiesSection')">Explore Homes <span>→</span></button>
           </div>
@@ -5667,7 +5711,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   <div class="gd-home-v6-hero">
     <div class="gd-home-v6-grid"></div>
     <div class="gd-home-v6-copy">
-      <div class="gd-home-v6-kicker"><span class="gd-home-v6-kicker-dot"></span> GHAR DEKHO / RENTAL DISCOVERY</div>
+      <div class="gd-home-v6-kicker"><span class="gd-home-v6-kicker-dot"></span> GHAR DEKHO, RENTAL DISCOVERY</div>
       <h2>Find a place<br><span>that feels like yours.</span></h2>
       <p>A better way to discover homes, PGs and hostels. Search by what matters, see what is nearby, and move from shortlist to visit without the usual rental chaos.</p>
       <div class="gd-home-v6-actions">
@@ -5698,7 +5742,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
         <div class="gd-home-v6-image-bottom"><small>GHAR DEKHO / FEATURED</small><strong>A home should<br>feel like a choice.</strong></div>
       </div>
       <div class="gd-home-v6-card gd-home-v6-card-top"><span>📍</span><div><b>Nearby discovery</b><small>Homes within your radius</small></div></div>
-      <div class="gd-home-v6-card gd-home-v6-card-bottom"><span>✓</span><div><b>Ready to explore</b><small>Search • Save • Visit</small></div></div>
+      <div class="gd-home-v6-card gd-home-v6-card-bottom"><span>✓</span><div><b>Ready to explore</b><small>Search, Save, Visit</small></div></div>
       <div class="gd-home-v6-price"><small>START YOUR SEARCH</small><strong>01</strong><span>choose • shortlist • visit</span></div>
     </div>
   </div>
@@ -14446,7 +14490,6 @@ body.gd-auth-page #gdAuthFormShell input{
   <div class="gdr-footer-tagline">DESERVE DIFFERENT. <em>DISCOVER DIFFERENT PLACES.</em></div>
     <div class="gd-founder-credit">
         <strong>GharDekho Renters</strong>
-        <span>Founded &amp; Created by <strong>OD Dwivedi</strong></span>
         <span>Contact: <a href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a></span>
         <span>&copy; 2026 GharDekho Renters. All rights reserved.</span>
     </div>
