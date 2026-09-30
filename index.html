@@ -4844,6 +4844,89 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
 #gdMobileNav [data-gd-nav="properties"].active,#gdMobileBottomNav [data-gd-nav="properties"].active{color:#2f6fed!important}
 .gdr-feature-strip article:nth-child(2) span{color:#2f6fed!important}
 </style>
+<style id="gdr-premium-auth-and-tagline-v2">
+.gdr-home-copy h2{max-width:700px}
+.gdr-home-tagline{
+  display:inline-block;
+  margin:18px 0 2px;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:clamp(1.05rem,2.1vw,1.45rem);
+  line-height:1.2;
+  letter-spacing:.09em;
+  font-weight:800;
+  color:#f8d98e;
+  text-transform:uppercase;
+  text-shadow:0 5px 20px rgba(0,0,0,.18);
+}
+.gdr-home-tagline em{font-style:normal;color:#ffad76}
+.gdr-home-tag{font-size:11px!important;letter-spacing:.08em!important}
+
+.gd-v4-auth-shell{
+  overflow:hidden!important;
+  border-radius:30px!important;
+  border:1px solid #d7e4df!important;
+  box-shadow:0 30px 90px rgba(7,49,44,.15)!important;
+  background:#fff!important;
+}
+.gd-v4-auth-visual{
+  background:
+    radial-gradient(circle at 85% 12%,rgba(255,179,125,.18),transparent 26%),
+    linear-gradient(145deg,#062f2b,#075c50 62%,#0c7867)!important;
+}
+.gd-auth-brand-lock{display:flex;align-items:center;gap:11px}
+.gd-auth-brand-lock img{width:54px;height:54px;display:block;filter:drop-shadow(0 7px 14px rgba(0,0,0,.18))}
+.gd-auth-brand-lock span{display:flex;flex-direction:column;line-height:1}
+.gd-auth-brand-lock strong{font-size:20px;color:#fff;letter-spacing:-.04em}
+.gd-auth-brand-lock small{margin-top:4px;font-size:8px;letter-spacing:.18em;color:#f0cf78;font-weight:900}
+.gd-v4-live-dot{color:#b9f1df!important;font-weight:900!important;letter-spacing:.08em}
+.gd-auth-tagline{
+  margin-top:18px;
+  padding:12px 14px;
+  width:max-content;
+  max-width:100%;
+  border-left:3px solid #ffad76;
+  border-radius:0 12px 12px 0;
+  background:rgba(255,255,255,.07);
+  color:#f4d487;
+  font-family:Georgia,"Times New Roman",serif;
+  font-size:12px;
+  font-weight:800;
+  letter-spacing:.11em;
+}
+.gd-auth-tagline em{font-style:normal;color:#ffb17f}
+.gd-v4-form-head h2{letter-spacing:-.055em!important}
+.gd-v4-form-head .gd-v4-form-kicker{color:#0b8b7c!important}
+.gd-auth-mode-tabs{box-shadow:0 7px 18px rgba(7,54,48,.06)!important}
+.gd-auth-mode-tabs button{transition:background .12s ease,color .12s ease,transform .12s ease}
+.gd-auth-mode-tabs button:active{transform:scale(.98)}
+.gd-v4-actions{grid-template-columns:1fr!important}
+.gd-v4-actions #signupBtn{order:1!important}
+.gd-v4-actions #loginSubmitBtn{order:2!important}
+.gd-v4-actions #signupBtn{
+  background:linear-gradient(135deg,#ffad76,#f49a61)!important;
+  color:#18342f!important;
+  box-shadow:0 14px 28px rgba(244,154,97,.20)!important;
+}
+.gd-v4-actions #loginSubmitBtn{background:#083f38!important}
+.gd-v4-field input:focus{border-color:#168f80!important;box-shadow:0 0 0 4px rgba(22,143,128,.10)!important}
+.gd-forgot-btn{color:#176b63!important;font-weight:850!important}
+.gd-auth-message{min-height:22px!important;margin-top:10px!important;font-weight:750!important}
+.gd-about-section{margin-top:18px!important}
+.gd-contact-section{margin-top:18px!important}
+.gd-about-card,.gd-contact-card{box-shadow:0 18px 42px rgba(10,50,44,.08)!important}
+.gd-about-card h2,.gd-contact-card h2{font-family:Georgia,"Times New Roman",serif!important;font-weight:800!important;letter-spacing:-.045em!important}
+.gd-contact-email{cursor:pointer!important;transition:transform .12s ease,box-shadow .12s ease!important}
+.gd-contact-email:hover{transform:translateY(-1px);box-shadow:0 8px 20px rgba(10,80,70,.10)}
+@media(max-width:760px){
+  .gdr-home-tagline{font-size:1rem;letter-spacing:.07em}
+  .gd-v4-auth-shell{border-radius:22px!important}
+  .gd-v4-auth-visual{padding:22px 18px!important}
+  .gd-auth-brand-lock img{width:48px;height:48px}
+  .gd-auth-brand-lock strong{font-size:18px}
+  .gd-auth-tagline{font-size:10px;line-height:1.45}
+  .gd-v4-actions{gap:10px!important}
+}
+</style>
 </head>
 
 <body>
@@ -5119,11 +5202,15 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
 </div>
 <div class="gd-v4-auth-shell" id="gdAuthFormShell" style="display:none;">
   <div class="gd-v4-auth-visual">
-    <div class="gd-v4-visual-top"><span class="gd-v4-logo">GD</span><span>GHARDEKHO</span><span class="gd-v4-live-dot">● LIVE</span></div>
+    <div class="gd-v4-visual-top">
+  <div class="gd-auth-brand-lock"><img src="/assets/gdr-mark.svg" alt="GDR GharDekho logo"><span><strong>GharDekho</strong><small>RENTAL PLATFORM</small></span></div>
+  <span class="gd-v4-live-dot">● GDR</span>
+</div>
     <div class="gd-v4-visual-copy">
       <span class="gd-v4-eyebrow">RENT WITHOUT THE RUNAROUND</span>
       <h2>Find a place<br><em>that feels like home.</em></h2>
       <p>Search verified rental homes, save your favourites and book visits — all from one simple account.</p>
+      <div class="gd-auth-tagline">SIMPLIFYING YOUR PERFECT <em>RENTAL HOME.</em></div>
     </div>
     <div class="gd-v4-property-preview">
       <div class="gd-v4-preview-image">
@@ -5150,8 +5237,8 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
   <div class="gd-v4-auth-form">
     <button type="button" class="gd-auth-back" onclick="closeLoginPage()">← Back to GharDekho</button>
     <div class="gd-auth-mode-tabs" style="display:flex;gap:8px;margin:18px 0 10px;padding:5px;background:#eef5f3;border-radius:14px;">
-      <button type="button" id="authSignInTab" onclick="showSignInPage()" style="flex:1;border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer;background:#0b3430;color:#fff;">Login</button>
-      <button type="button" id="authSignUpTab" onclick="showSignUpPage()" style="flex:1;border:0;border-radius:10px;padding:11px 14px;font-weight:800;cursor:pointer;background:transparent;color:#0b3430;">Sign Up</button>
+      <button type="button" id="authSignUpTab" onclick="showSignUpPage()" style="flex:1;border:0;border-radius:10px;padding:11px 14px;font-weight:900;cursor:pointer;background:#0b3430;color:#fff;">Sign Up</button>
+      <button type="button" id="authSignInTab" onclick="showSignInPage()" style="flex:1;border:0;border-radius:10px;padding:11px 14px;font-weight:900;cursor:pointer;background:transparent;color:#0b3430;">Login</button>
     </div>
     <div class="gd-v4-form-head"><span class="gd-v4-form-kicker">WELCOME BACK</span><h2 id="premiumAuthTitle">Login / Create Account</h2><p id="premiumAuthIntro">Your next home is only a few clicks away.</p></div>
     <div class="gd-v4-field-grid">
@@ -5716,7 +5803,7 @@ header h1.gdr-header-brand{margin:0!important;padding:0!important;display:block!
             const section = document.getElementById(sectionId);
             if (!section) return;
             requestAnimationFrame(function(){
-                section.scrollIntoView({behavior:"smooth",block:"start"});
+                section.scrollIntoView({behavior: window.matchMedia("(max-width:760px)").matches ? "auto" : "smooth", block:"start"});
             });
         }
 
@@ -6742,6 +6829,19 @@ async function signupUser() {
 
         if (error) {
             console.error("Signup error:", error);
+            const signupErrorText = String(error?.message || "").toLowerCase();
+            if (signupErrorText.includes("already registered") || signupErrorText.includes("email address already exists") || signupErrorText.includes("email_exists")) {
+                showSignInPage();
+                authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
+                document.getElementById("userEmail").value = email;
+                document.getElementById("userPassword")?.focus();
+                return;
+            }
+            const loginErrorText = String(error?.message || "").toLowerCase();
+            if (loginErrorText.includes("invalid login credentials") || loginErrorText.includes("user not found")) {
+                authMessage.textContent = "No account found with these details, or the password is incorrect. If you are new to GharDekho, please Sign Up.";
+                return;
+            }
             authMessage.textContent = getFriendlyAuthError(error);
             return;
         }
@@ -6752,7 +6852,9 @@ async function signupUser() {
          * Never tell the user that a new account was created in that case.
          */
         if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-            authMessage.textContent = "This email is already registered. Please use Login, or use Forgot password if you do not remember the password.";
+            showSignInPage();
+            authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
+            document.getElementById("userEmail").value = email;
             document.getElementById("userPassword")?.focus();
             return;
         }
@@ -13750,6 +13852,25 @@ body.gd-auth-page #gdAuthFormShell input{
     </div>
 </footer>
 
+<script id="gdr-auth-flow-final-v2">
+(function(){
+  const originalOpenLoginAs = window.openLoginAs;
+  window.openLoginAs = function(role){
+    if(typeof originalOpenLoginAs === "function") originalOpenLoginAs(role);
+    requestAnimationFrame(function(){
+      if(typeof window.showSignUpPage === "function") window.showSignUpPage();
+      const email=document.getElementById("userEmail");
+      if(email) email.focus();
+    });
+  };
+  // Keep the mobile Explore interaction immediate instead of waiting for a smooth-scroll animation.
+  window.gdrFastScrollTo = function(id){
+    const el=document.getElementById(id);
+    if(!el) return;
+    el.scrollIntoView({behavior:"auto",block:"start"});
+  };
+})();
+</script>
 </body>
 
 </html>
