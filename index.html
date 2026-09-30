@@ -6494,6 +6494,14 @@ body.gd-public-explore-mode .gd-home-v6-search{
   content: "↗" !important;
 }
 
+#loggedOutLanding .gdr-trust-row span small {
+  display:block !important;
+  margin:0 !important;
+  color:rgba(255,255,255,.68) !important;
+  font-size:12px !important;
+  font-weight:500 !important;
+  line-height:1.35 !important;
+}
 #loggedOutLanding .gdr-trust-row span::before {
   display: grid !important;
   place-items: center !important;
@@ -6768,7 +6776,9 @@ body.gd-public-explore-mode .gd-home-v6-search{
         </h2>
         <p class="gdr-home-lead gdr-india-rental-line">Direct rentals from owners across India.</p>
         <div class="gdr-trust-row" aria-label="GharDekho benefits">
-          <span>✓ Verified listings</span><span>⌖ Nearby homes</span><span>✓ Easy visit requests</span>
+          <span>Verified listings<small>Search with confidence</small></span>
+          <span>Nearby homes<small>Find rentals around you</small></span>
+          <span>Easy Visit Requests<small>Connect without unnecessary hassle</small></span>
         </div>
         <div class="gd-hero-actions-v2 gdr-home-actions" aria-label="Choose how to continue">
           <button type="button" class="gd-hero-cta" onclick="gdExploreHomes(event)">Explore Rentals <span>→</span></button>
@@ -6776,7 +6786,7 @@ body.gd-public-explore-mode .gd-home-v6-search{
         </div>
       </div>
 
-      <div class="gdr-home-visual" aria-hidden="true">
+      <div class="gdr-home-visual">
         <div class="gdr-logo-plaque"><img src="/assets/gdr-logo.svg" alt=""></div>
         <div class="gdr-house-scene">
           <img class="gdr-hero-photo" src="https://images.unsplash.com/photo-1600585154340-be6161a56a0c?auto=format&fit=crop&w=1400&q=88" alt="Modern rental home" loading="eager" fetchpriority="high">
