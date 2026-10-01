@@ -6796,6 +6796,8 @@ html.gd-login-route body.gd-auth-page #loginSection{
 }
 </style>
 
+    <link rel="stylesheet" href="/assets/gdr-hunter-home.css">
+    <script defer src="/assets/gdr-hunter-home.js"></script>
 </head>
 
 <body>
@@ -6845,6 +6847,9 @@ html.gd-login-route body.gd-auth-page #loginSection{
         <button id="loginBtn" type="button" onclick="openLoginAs('renter')">
             Login / Signup
         </button>
+        <a href="/gdr-hunter.html" class="gdr-hunter-header-entry" data-gdr-hunter aria-label="Enter GDR Hunter">
+            <span class="hunter-mark">⌂</span><span><strong>GDR HUNTER</strong><small>Hunt a home • Help someone</small></span>
+        </a>
 
         <button id="logoutBtn" type="button" style="display:none;" onclick="logoutUser()">
             Logout
@@ -6883,6 +6888,27 @@ html.gd-login-route body.gd-auth-page #loginSection{
           <button type="button" class="gd-hero-cta" onclick="gdrOpenPublicExplore(event)">Explore Rentals <span>→</span></button>
           <button type="button" class="gd-hero-cta" onclick="openLoginAs('owner')">List Your Property <span>→</span></button>
         </div>
+        <div class="gdr-hunter-home-section" aria-label="GDR Hunter">
+          <div class="gdr-hunter-home-inner">
+            <div class="gdr-hunter-home-copy">
+              <div class="gdr-hunter-home-kicker">HUNTER BY GDR • HOUSE-HUNTING MISSION</div>
+              <h3 class="gdr-hunter-home-title">Found a home that's not on GDR?<br><em>Help someone discover it.</em></h3>
+              <p>Found a rental property while exploring your city? Share it with GDR and help another renter discover their next home.</p>
+              <div class="gdr-hunter-home-actions">
+                <a class="gdr-hunter-enter" href="/gdr-hunter.html" data-gdr-hunter>🏠 HUNT A HOME →</a>
+                <a class="gdr-hunter-secondary" href="/gdr-hunter.html#details">Enter details first</a>
+              </div>
+              <div class="gdr-hunter-home-promise">Discover • Share • Help someone find home</div>
+            </div>
+            <div class="gdr-hunter-mini-scene" aria-hidden="true">
+              <div class="gdr-hunter-mini-grid"></div>
+              <div class="gdr-hunter-mini-card"><strong>✓ Ready to share</strong><small>Property mission active</small></div>
+              <div class="gdr-hunter-mini-pin">⌖ Location</div>
+              <div class="gdr-hunter-mini-house"><div class="gdr-hunter-mini-roof"></div><div class="gdr-hunter-mini-body"><div class="gdr-hunter-mini-door"></div></div></div>
+            </div>
+          </div>
+        </div>
+
       </div>
 
       <div class="gdr-home-visual">
@@ -6912,6 +6938,13 @@ html.gd-login-route body.gd-auth-page #loginSection{
       </div>
     </div>
 
+
+    <section class="gdr-hunter-home-section" aria-label="Hunter by GDR feature">
+      <div class="gdr-hunter-home-inner">
+        <div class="gdr-hunter-home-copy"><div class="gdr-hunter-home-kicker">HUNTER BY GDR</div><h3 class="gdr-hunter-home-title">You found a home.<br><em>Someone else might be looking for it.</em></h3><p>Share useful rental properties you discover around your city and help GDR build a better supply of homes for renters.</p><div class="gdr-hunter-home-actions"><a class="gdr-hunter-enter" href="/gdr-hunter.html" data-gdr-hunter>ENTER GDR HUNTER →</a></div></div>
+        <div class="gdr-hunter-mini-scene" aria-hidden="true"><div class="gdr-hunter-mini-grid"></div><div class="gdr-hunter-mini-card"><strong>📍 Property lead</strong><small>Send details to GDR</small></div><div class="gdr-hunter-mini-pin">₹ Rent</div><div class="gdr-hunter-mini-house"><div class="gdr-hunter-mini-roof"></div><div class="gdr-hunter-mini-body"><div class="gdr-hunter-mini-door"></div></div></div></div>
+      </div>
+    </section>
     <div class="gdr-feature-strip">
       <article><span>01</span><strong>Discover</strong><p>Search by area, budget, BHK and stay type.</p></article>
       <article><span>02</span><strong>Shortlist</strong><p>Save the homes you genuinely like.</p></article>
