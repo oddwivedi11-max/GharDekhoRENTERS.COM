@@ -15918,29 +15918,18 @@ body.gd-auth-page #gdAuthFormShell input{
       event.stopPropagation();
     }
 
+    // "Explore Rentals" is the renter entry point.
+    // Always open the real Renter sign-in form instead of the public
+    // search surface, so the CTA cannot land on the wrong page.
     try{
-      if(typeof window.gdExploreHomes === "function"){
-        const result=window.gdExploreHomes(event);
-        if(result===false) return false;
+      if(typeof window.openLoginAs === "function"){
+        window.openLoginAs("renter");
+      }else if(typeof window.openLoginSection === "function"){
+        window.openLoginSection("renter");
       }
     }catch(error){
-      console.error("GharDekho Explore action failed:",error);
+      console.error("GharDekho renter login action failed:",error);
     }
-
-    const landing=document.getElementById("loggedOutLanding");
-    const home=document.getElementById("homeSection");
-    const properties=document.getElementById("propertiesSection");
-
-    if(landing) landing.style.display="none";
-    if(home) home.style.display="block";
-    if(properties) properties.style.display="block";
-
-    const container=document.getElementById("propertiesContainer");
-    const pagination=document.getElementById("propertyPagination");
-    if(container) containe    requestAnimationFrame(function(){
-      const search=document.querySelector(".gd-home-v6-search")||properties;
-      if(search) search.scrollIntoView({behavior:"auto",block:"center"});
-    });
     return false;
   };
 })();
