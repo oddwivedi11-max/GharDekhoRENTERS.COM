@@ -16362,3 +16362,93 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
   background:#176b63!important;
   color:#fff!important;
   font-weight:900!important;
+<style id="ghardekho-auth-visibility-v5">
+/* Auth page visibility polish: stronger logo contrast + premium typography */
+.gd-v4-auth-visual{
+  background:
+    radial-gradient(circle at 82% 12%,rgba(255,196,120,.22),transparent 27%),
+    linear-gradient(145deg,#073b36 0%,#087064 58%,#0b8b79 100%) !important;
+}
+
+/* The supplied GDR logo contains dark lettering, so give the complete mark
+   a warm light plaque instead of placing it directly on the dark hero. */
+.gd-auth-brand-lock{
+  display:flex !important;
+  align-items:center !important;
+  gap:11px !important;
+  width:max-content !important;
+  max-width:100% !important;
+  padding:10px 15px 10px 10px !important;
+  border-radius:16px !important;
+  background:linear-gradient(135deg,#fff8ea 0%,#ffe9c8 100%) !important;
+  border:1px solid rgba(255,208,137,.78) !important;
+  box-shadow:0 10px 26px rgba(0,0,0,.16) !important;
+}
+.gd-auth-brand-lock img{
+  width:54px !important;
+  height:54px !important;
+  object-fit:contain !important;
+  filter:drop-shadow(0 4px 8px rgba(0,0,0,.16)) !important;
+}
+.gd-auth-brand-lock span{
+  display:flex !important;
+  flex-direction:column !important;
+  line-height:1 !important;
+}
+.gd-auth-brand-lock strong{
+  color:#123f39 !important;
+  font-family:"Trebuchet MS","Segoe UI",sans-serif !important;
+  font-size:20px !important;
+  font-weight:900 !important;
+  letter-spacing:-.035em !important;
+}
+.gd-auth-brand-lock small{
+  margin-top:5px !important;
+  color:#9a6428 !important;
+  font-family:"Trebuchet MS","Segoe UI",sans-serif !important;
+  font-size:8px !important;
+  letter-spacing:.18em !important;
+  font-weight:900 !important;
+}
+
+/* Make the main hero copy visually distinct from the existing Inter/system UI. */
+.gd-v4-visual-copy h2{
+  font-family:Georgia,"Times New Roman",serif !important;
+  font-weight:800 !important;
+  letter-spacing:-.055em !important;
+  line-height:.94 !important;
+  color:#fff !important;
+  text-shadow:0 5px 24px rgba(0,0,0,.14) !important;
+}
+.gd-v4-visual-copy h2 em{
+  color:#9ff0dc !important;
+  font-style:italic !important;
+}
+.gd-v4-eyebrow{
+  color:#ffd19b !important;
+  font-family:"Trebuchet MS","Segoe UI",sans-serif !important;
+}
+.gd-v4-visual-copy p{
+  color:rgba(255,255,255,.88) !important;
+}
+
+/* Stronger contrast for the small orange badge under the copy. */
+.gd-auth-tagline{
+  background:rgba(255,244,224,.12) !important;
+  border-left-color:#ffc36f !important;
+  color:#ffe0a8 !important;
+}
+.gd-auth-tagline em{color:#ffd08a !important;}
+
+@media(max-width:760px){
+  .gd-auth-brand-lock{
+    padding:8px 12px 8px 8px !important;
+    border-radius:14px !important;
+  }
+  .gd-auth-brand-lock img{width:46px !important;height:46px !important;}
+  .gd-auth-brand-lock strong{font-size:17px !important;}
+  .gd-v4-visual-copy h2{
+    font-size:clamp(2.5rem,11vw,4rem) !important;
+  }
+}
+</style>
