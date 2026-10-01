@@ -1,0 +1,72 @@
+/* GharDekho Renters — final UI polish layer
+   UI-only: no JS, database, auth, search, booking or routing changes. */
+:root{--gdr-ink:#102c29;--gdr-teal:#176b63;--gdr-teal-dark:#0d4f49;--gdr-mint:#e9f5f2;--gdr-gold:#c99245}
+html,body{max-width:100%;overflow-x:hidden}
+img{max-width:100%}
+button,input,select,textarea{max-width:100%}
+header h1:before{content:""!important;width:40px!important;height:40px!important;background:var(--gdr-teal-dark) url("/assets/gdr-mark.svg") center/26px 26px no-repeat!important;border:1px solid rgba(255,255,255,.16)}
+header h1:after{color:var(--gdr-ink)!important}
+.gd-landing-hero{isolation:isolate}
+.gd-landing-copy h2{text-wrap:balance}
+.gd-landing-copy>p{max-width:58ch!important}
+.gd-landing-trust{display:flex;flex-wrap:wrap;gap:8px}
+.gd-login-prompt{background:rgba(255,255,255,.96)!important}
+.gd-role-choice{min-width:0}
+.gd-role-choice strong,.gd-role-choice small{overflow-wrap:anywhere}
+.search-box{border-color:rgba(16,44,41,.11)!important;box-shadow:0 18px 45px rgba(16,44,41,.09)!important}
+.search-box input,.search-box select{min-width:0}
+.search-box input::placeholder{overflow:hidden;text-overflow:ellipsis}
+.property-grid{align-items:stretch}
+.property-card{display:flex;flex-direction:column;min-width:0}
+.property-card-body{display:flex;flex-direction:column;flex:1;min-width:0}
+.property-card-body p{overflow-wrap:anywhere}
+.property-actions{margin-top:auto!important;padding-top:12px}
+.property-actions button{min-width:0}
+.favorite-property-btn{min-width:0!important}
+.property-status-wrap{display:flex;flex-wrap:wrap;gap:6px}
+.property-status-button{white-space:nowrap}
+.property-detail-body,.detail-actions,.renter-owner-details-card,.owner-panel,.dashboard-card{min-width:0}
+.detail-meta-item,.renter-owner-details-grid>div{min-width:0}
+.detail-meta-value{overflow-wrap:anywhere}
+.gd-mobile-nav{padding-bottom:max(7px,env(safe-area-inset-bottom))}
+.auth-card,.auth-grid,#addPropertyForm,.owner-form-grid{min-width:0}
+.auth-card input,.auth-card select,.auth-card textarea,#addPropertyForm input,#addPropertyForm select,#addPropertyForm textarea{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#addPropertyForm textarea{overflow:auto;text-overflow:clip}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(201,146,69,.34)!important;outline-offset:2px}
+button:not(:disabled):active{transform:translateY(1px)!important}
+@media(max-width:680px){
+ header{padding-left:12px!important;padding-right:12px!important}
+ header h1{flex:1 1 auto;min-width:0;max-width:none!important}
+ header h1:after{font-size:16px!important}
+ header #loginBtn,header #logoutBtn{flex:0 0 auto}
+ main{width:calc(100% - 24px)!important;margin-inline:auto!important}
+ .gd-logged-out-landing{width:100%!important;padding-inline:0!important}
+ .gd-landing-hero{width:100%;padding:26px 18px!important;border-radius:24px!important}
+ .gd-landing-copy h2{font-size:clamp(2.45rem,12.8vw,3.5rem)!important;line-height:.96!important;max-width:11ch!important}
+ .gd-landing-copy>p{font-size:.98rem!important;line-height:1.6!important}
+ .gd-landing-visual{min-height:270px!important}
+ .gd-house-card{width:min(92%,390px)!important}
+ .gd-home-role-strip .gd-role-choice-grid{width:100%}
+ .search-box{width:100%;box-shadow:0 12px 30px rgba(16,44,41,.08)!important}
+ .property-card-image{height:200px!important}
+ .property-card-body{padding:15px!important}
+ .detail-meta{grid-template-columns:1fr 1fr!important}
+ .detail-actions{grid-template-columns:1fr!important}
+ .detail-actions #detailsVisitBtn,.detail-actions .call-button{grid-column:auto!important}
+ .dashboard-stats-grid{grid-template-columns:1fr 1fr!important}
+}
+@media(max-width:390px){
+ main{width:calc(100% - 18px)!important}
+ header h1:before{width:34px!important;height:34px!important;background-size:23px 23px!important}
+ header h1:after{font-size:14px!important}
+ header #loginBtn,header #logoutBtn{padding-inline:10px!important;font-size:.76rem!important}
+ .gd-landing-hero{padding:22px 15px!important}
+ .gd-landing-copy h2{font-size:2.3rem!important}
+ .search-box{padding:8px!important}
+ .property-card-image{height:190px!important}
+ .dashboard-stats-grid{grid-template-columns:1fr!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .property-card,.gd-landing-features article,.gd-role-choice{transition:none!important}
+ .loading-text{animation:none!important}
+}

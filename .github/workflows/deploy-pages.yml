@@ -29,6 +29,18 @@ jobs:
         with:
           enablement: true
 
+      - name: Inject final UI polish stylesheet
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path("index.html")
+          s = p.read_text(encoding="utf-8")
+          tag = '<link rel="stylesheet" href="/assets/ghardekho-polish.css">'
+          if tag not in s:
+              s = s.replace("</head>", f"    {tag}\n</head>", 1)
+          p.write_text(s, encoding="utf-8")
+          PY
+
       - name: Upload site artifact
         uses: actions/upload-pages-artifact@v3
         with:
