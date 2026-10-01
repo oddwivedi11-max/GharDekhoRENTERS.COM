@@ -10058,7 +10058,7 @@ async function renderActiveDashboard() {
         let currentPropertyPage = 1;
         const PROPERTIES_PER_PAGE = 10;
 
-        async function loadProperties() {
+        async function loadProperties(renderResults = true) {
             const container = document.getElementById("propertiesContainer");
             const pagination = document.getElementById("propertyPagination");
             if (!container) return;
@@ -10096,7 +10096,7 @@ async function renderActiveDashboard() {
                 }));
 
                 currentPropertyPage = 1;
-                renderProperties(allProperties);
+                if (renderResults) renderProperties(allProperties);
             } catch (error) {
                 console.error("Property loading error:", error);
                 const message = getSafeErrorMessage(error, "We could not load properties right now.");
@@ -10495,7 +10495,7 @@ async function renderActiveDashboard() {
 
             // Public inventory is fetched only after an explicit search.
             if (!Array.isArray(allProperties) || allProperties.length === 0) {
-                await loadProperties();
+                await loadProperties(false);
             }
 
             const filtered = allProperties.filter(function(property) {
