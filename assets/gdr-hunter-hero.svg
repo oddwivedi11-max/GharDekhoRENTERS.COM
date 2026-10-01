@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 760" role="img" aria-label="GDR Hunter illustration showing a phone capturing a to-let board">
+<defs>
+ <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#eef8f4"/><stop offset="1" stop-color="#f9f1df"/></linearGradient>
+ <linearGradient id="phone" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#162d2a"/><stop offset="1" stop-color="#071916"/></linearGradient>
+ <linearGradient id="screen" x1="0" y="0" x2="0" y2="1"><stop stop-color="#dff0e9"/><stop offset="1" stop-color="#a8c9bd"/></linearGradient>
+ <linearGradient id="board" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f3c36f"/><stop offset="1" stop-color="#e8a945"/></linearGradient>
+ <filter id="shadow" x="-30%" y="-30%" width="160%" height="170%"><feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#153b35" flood-opacity=".20"/></filter>
+ <filter id="soft"><feGaussianBlur stdDeviation="18"/></filter>
+</defs>
+<rect width="900" height="760" rx="42" fill="url(#bg)"/>
+<circle cx="690" cy="150" r="150" fill="#fff" opacity=".55"/>
+<ellipse cx="520" cy="650" rx="290" ry="55" fill="#0a5c50" opacity=".11" filter="url(#soft)"/>
+<path d="M80 600 C220 540 330 580 450 610 S700 700 830 620" fill="none" stroke="#0b6b5f" stroke-opacity=".12" stroke-width="3" stroke-dasharray="9 13"/>
+<g filter="url(#shadow)" transform="rotate(-9 455 395)">
+ <rect x="300" y="80" width="330" height="590" rx="44" fill="url(#phone)"/>
+ <rect x="319" y="125" width="292" height="490" rx="28" fill="url(#screen)"/>
+ <rect x="413" y="96" width="105" height="18" rx="9" fill="#061714"/>
+ <circle cx="465" cy="640" r="23" fill="#102724" stroke="#fff" stroke-opacity=".22" stroke-width="3"/>
+ <rect x="343" y="155" width="244" height="30" rx="15" fill="#fff" opacity=".72"/>
+ <circle cx="363" cy="170" r="8" fill="#e7b86d"/><rect x="381" y="163" width="110" height="13" rx="6.5" fill="#0a5c50" opacity=".42"/>
+ <rect x="350" y="205" width="230" height="300" rx="14" fill="#c7ded4"/>
+ <path d="M350 430 L580 300 L580 505 L350 505Z" fill="#7ea69a" opacity=".48"/>
+ <g transform="translate(375 285) rotate(5)">
+   <rect width="180" height="145" rx="8" fill="#fff" stroke="#e4aa4e" stroke-width="7"/>
+   <rect x="13" y="13" width="154" height="50" rx="5" fill="#e6463b"/>
+   <text x="90" y="48" text-anchor="middle" font-family="Arial,sans-serif" font-size="28" font-weight="900" fill="#fff">TO-LET</text>
+   <rect x="13" y="75" width="154" height="11" rx="5.5" fill="#183f38" opacity=".85"/>
+   <rect x="13" y="97" width="120" height="9" rx="4.5" fill="#183f38" opacity=".5"/>
+   <rect x="13" y="116" width="92" height="12" rx="6" fill="#0b6b5f"/>
+ </g>
+</g>
+<g filter="url(#shadow)">
+ <rect x="78" y="118" width="260" height="116" rx="24" fill="#0b3f38"/>
+ <circle cx="120" cy="160" r="25" fill="#e7b86d"/>
+ <path d="M109 157h22v18h-22z M114 151h12v7h-12z" fill="#fff"/>
+ <text x="159" y="159" font-family="Arial,sans-serif" font-size="19" font-weight="800" fill="#fff">Found a home?</text>
+ <text x="159" y="188" font-family="Arial,sans-serif" font-size="15" fill="#cfe2dd">Let's share it with GDR</text>
+ <circle cx="304" cy="204" r="16" fill="#23c777"/><path d="m297 204 5 5 9-11" fill="none" stroke="#fff" stroke-width="3"/>
+</g>
+<g filter="url(#shadow)">
+ <rect x="635" y="475" width="210" height="110" rx="24" fill="#fff"/>
+ <text x="662" y="511" font-family="Arial,sans-serif" font-size="13" font-weight="900" fill="#72817c" letter-spacing="2">HUNTER SIGNAL</text>
+ <text x="662" y="548" font-family="Arial,sans-serif" font-size="28" font-weight="900" fill="#082f2a">1 PHOTO</text>
+ <text x="662" y="570" font-family="Arial,sans-serif" font-size="12" fill="#71817c">+ optional location</text>
+</g>
+<g>
+ <circle cx="735" cy="250" r="48" fill="#fff" opacity=".92"/><circle cx="735" cy="250" r="34" fill="#dff3ed"/><path d="M735 226c-13 0-23 10-23 23 0 17 23 37 23 37s23-20 23-37c0-13-10-23-23-23zm0 31a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" fill="#0b6b5f"/>
+</g>
+<path d="M565 455 C625 430 650 390 685 330" fill="none" stroke="#e7b86d" stroke-width="5" stroke-linecap="round" stroke-dasharray="9 11"/>
+<circle cx="565" cy="455" r="9" fill="#e7b86d"/>
+</svg>
