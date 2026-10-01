@@ -7041,14 +7041,29 @@ html.gd-login-route body.gd-auth-page #loginSection{
       <label class="gd-v6-search-field"><span>PROPERTY STATUS</span><select id="propertyStatusSelect" aria-label="Property availability"><option value="">All Properties</option><option value="vacant">Vacant Properties</option></select></label>
       <label class="gd-v6-search-field"><span>STAY TYPE</span><select id="listingTypeSelect" aria-label="Listing type"><option value="">All stays</option><option value="home">🏠 Homes</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostels</option></select></label>
       <label class="gd-v6-search-field"><span>SIZE</span><select id="bhkSelect"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
-      <label class="gd-v6-search-field"><span>BUDGET</span><select id="budgetSelect"><option value="">Any Budget</option><option value="5000">Up to ₹5,000</option><option value="10000">Up to ₹10,000</option><option value="15000">Up to ₹15,000</option><option value="20000">Up to ₹20,000</option><option value="30000">Up to ₹30,000</option></select></label>
+      <div class="gd-v6-search-field gd-budget-field">
+        <span>BUDGET</span>
+        <div class="gd-budget-custom-row">
+          <input id="minBudget" type="number" min="0" step="500" inputmode="numeric" placeholder="Min ₹" aria-label="Minimum monthly rent budget">
+          <span class="gd-budget-to">to</span>
+          <input id="maxBudget" type="number" min="0" step="500" inputmode="numeric" placeholder="Max ₹" aria-label="Maximum monthly rent budget">
+        </div>
+        <select id="budgetSelect" aria-label="Quick maximum budget">
+          <option value="">Quick budget (optional)</option>
+          <option value="5000">Up to ₹5,000</option>
+          <option value="10000">Up to ₹10,000</option>
+          <option value="15000">Up to ₹15,000</option>
+          <option value="20000">Up to ₹20,000</option>
+          <option value="30000">Up to ₹30,000</option>
+        </select>
+      </div>
       <label class="gd-v6-search-field"><span>FURNISHING</span><select id="furnishedSelect"><option value="">Any Furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-Furnished</option><option value="Unfurnished">Unfurnished</option></select></label>
       <button id="searchBtn" type="button" aria-label="Search rental properties">Find homes <span>→</span></button>
       <button id="nearMeBtn" type="button" aria-label="Find rental properties near your current location">📍 Find Near Me</button>
       <select id="radiusSelect" aria-label="Nearby search radius"><option value="3" selected>3 km</option><option value="5">5 km</option><option value="10">10 km</option><option value="15">15 km</option><option value="20">20 km</option></select>
       <button id="liveNearbyBtn" type="button" aria-label="Start live nearby property tracking">🛰️ Live Nearby</button>
     </div>
-    <p id="locationStatus"></p>
+    <p id="locationStatus">You can type any city, district, area or PIN code yourself. Suggestions are optional.</p>
   </div>
 
   <div class="gd-home-v6-bottom">
@@ -10422,16 +10437,14 @@ async function renderActiveDashboard() {
                 if (properties) properties.style.display = "block";
                 if (login) login.style.display = "none";
 
-                // Public Explore always refreshes the public inventory.
-                // The CTA must land on real rental cards, not an empty hero.
-                if (typeof loadProperties === "function") {
-                    loadProperties();
-                }
-
-                if (properties) {
-                    properties.scrollIntoView({ behavior: "auto", block: "start" });
-                } else if (searchSection) {
-                    searchSection.scrollIntoView({ behavior: "auto", block: "start" });
+                // Public Explore opens the search surface only.
+                // Properties appear only after the renter explicitly searches.
+                const container = document.getElementById("propertiesContainer");
+                const pagination = document.getElementById("propertyPagination");
+                if (container) container.innerHTML = '<div class="search-first-state"><strong>Search to see available properties</strong><span>Enter a location, budget or any filter, then tap Find homes.</span></div>';
+                if (pagination) pagination.innerHTML = "";
+                if (searchSection) {
+                    searchSection.scrollIntoView({ behavior: "auto", block: "center" });
                 }
 
                 if (input) {
@@ -10451,85 +10464,71 @@ async function renderActiveDashboard() {
             return false;
         }
 
-        function filterProperties() {
-            const locationInput = document.getElementById("locationInput");
-            const location = String(locationInput?.value || "")
-                .trim()
-                .toLowerCase();
-
-            const listingType =
-                document.getElementById("listingTypeSelect")?.value || "";
-
+        async function filterProperties() {
+            const location = String(document.getElementById("locationInput")?.value || "").trim().toLowerCase();
+            const listingType = document.getElementById("listingTypeSelect")?.value || "";
             const bhk = document.getElementById("bhkSelect")?.value || "";
             const budget = document.getElementById("budgetSelect")?.value || "";
+            const minBudgetRaw = String(document.getElementById("minBudget")?.value || "").trim();
+            const maxBudgetRaw = String(document.getElementById("maxBudget")?.value || "").trim();
+            const minBudget = minBudgetRaw === "" ? null : Number(minBudgetRaw);
+            const maxBudget = maxBudgetRaw === "" ? null : Number(maxBudgetRaw);
             const furnishing = document.getElementById("furnishedSelect")?.value || "";
             const propertyStatus = document.getElementById("propertyStatusSelect")?.value || "";
 
-            const filtered =
-                allProperties.filter(function (property) {
-                    const searchableText = [
-                        property.title,
-                        property.location,
-                        property.address,
-                        property.area,
-                        property.name,
-                        property.description,
-                        property.listing_type,
-                        property.room_type,
-                        property.gender_preference,
-                        property.furnishing,
-                        property.bhk,
-                        property.rent,
-                        property.status,
-                        property.verification_status
-                    ]
-                        .filter(value => value !== null && value !== undefined)
-                        .join(" ")
-                        .toLowerCase();
+            const hasCustomBudget = Number.isFinite(minBudget) || Number.isFinite(maxBudget);
+            const hasSearchCriteria = Boolean(location || listingType || bhk || budget || hasCustomBudget || furnishing || propertyStatus);
 
-                    const locationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
-                    const locationMatch =
-                        !locationTerms.length ||
-                        locationTerms.every(term => searchableText.includes(term));
+            if (!hasSearchCriteria) {
+                showMessage("backendMessage", "Please enter a location, budget or choose at least one filter before searching.", "info");
+                document.getElementById("locationInput")?.focus();
+                return;
+            }
+            if (Number.isFinite(minBudget) && minBudget < 0 || Number.isFinite(maxBudget) && maxBudget < 0) {
+                showMessage("backendMessage", "Budget cannot be negative.", "error");
+                return;
+            }
+            if (Number.isFinite(minBudget) && Number.isFinite(maxBudget) && minBudget > maxBudget) {
+                showMessage("backendMessage", "Minimum budget cannot be greater than maximum budget.", "error");
+                return;
+            }
 
-                    const propertyBhk = Number(property.bhk);
-                    const listingTypeMatch =
-                        !listingType || (property.listing_type || "home") === listingType;
+            // Public inventory is fetched only after an explicit search.
+            if (!Array.isArray(allProperties) || allProperties.length === 0) {
+                await loadProperties();
+            }
 
-                    const bhkMatch =
-                        !bhk ||
-                        (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk));
+            const filtered = allProperties.filter(function(property) {
+                const searchableText = [
+                    property.title, property.location, property.address, property.area,
+                    property.name, property.description, property.listing_type,
+                    property.room_type, property.gender_preference, property.furnishing,
+                    property.bhk, property.rent, property.status, property.verification_status
+                ].filter(value => value !== null && value !== undefined).join(" ").toLowerCase();
 
-                    const budgetMatch =
-                        !budget ||
-                        Number(property.rent) <= Number(budget);
+                // Suggestions are optional. Any free-typed city, area, district or PIN
+                // is accepted and matched against the property's searchable fields.
+                const locationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
+                const locationMatch = !locationTerms.length || locationTerms.every(term => searchableText.includes(term));
 
-                    const furnishingMatch =
-                        !furnishing ||
-                        property.furnishing === furnishing;
+                const propertyBhk = Number(property.bhk);
+                const listingTypeMatch = !listingType || (property.listing_type || "home") === listingType;
+                const bhkMatch = !bhk || (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk));
 
-                    // "Vacant Properties" means a verified listing with no current occupancy.
-                    // The database uses "verified" for vacant/available listings and
-                    // "occupied" for currently occupied listings.
-                    const propertyStatusMatch =
-                        !propertyStatus ||
-                        (propertyStatus === "vacant"
-                            ? property.status === "verified"
-                            : true);
+                const rent = Number(property.rent);
+                const quickBudgetMatch = !budget || rent <= Number(budget);
+                const minBudgetMatch = !Number.isFinite(minBudget) || rent >= minBudget;
+                const maxBudgetMatch = !Number.isFinite(maxBudget) || rent <= maxBudget;
+                const budgetMatch = quickBudgetMatch && minBudgetMatch && maxBudgetMatch;
 
-                    return (
-                        locationMatch &&
-                        listingTypeMatch &&
-                        bhkMatch &&
-                        budgetMatch &&
-                        furnishingMatch &&
-                        propertyStatusMatch
-                    );
-                });
+                const furnishingMatch = !furnishing || property.furnishing === furnishing;
+                const propertyStatusMatch = !propertyStatus || (propertyStatus === "vacant" ? property.status === "verified" : true);
+
+                return locationMatch && listingTypeMatch && bhkMatch && budgetMatch && furnishingMatch && propertyStatusMatch;
+            });
 
             currentPropertyPage = 1;
             renderProperties(filtered);
-
             scrollToSection("propertiesSection");
         }
 
@@ -13157,11 +13156,12 @@ function updateStayTypeFields() {
             // URL has already been cleaned by Supabase. In that case the event
             // handler has already opened the form; do not replace it with home UI.
             if (window.__gdPasswordRecovery === true || recoveryInUrl) {
-                await Promise.allSettled([loadProperties()]);
+                await Promise.allSettled([handledRecovery ? Promise.resolve() : loadCurrentUser()]);
             } else {
+                // Do not preload the public property inventory. Renters see
+                // results only after they explicitly submit a search.
                 await Promise.allSettled([
-                    handledRecovery ? Promise.resolve() : loadCurrentUser(),
-                    loadProperties()
+                    handledRecovery ? Promise.resolve() : loadCurrentUser()
                 ]);
             }
 
@@ -15968,17 +15968,32 @@ body.gd-auth-page #gdAuthFormShell input{
     if(home) home.style.display="block";
     if(properties) properties.style.display="block";
 
-    if(typeof window.loadProperties === "function"){
-      try{ window.loadProperties(); }catch(error){ console.error("Property loading failed:",error); }
-    }
-
-    requestAnimationFrame(function(){
-      if(properties) properties.scrollIntoView({behavior:"auto",block:"start"});
+    const container=document.getElementById("propertiesContainer");
+    const pagination=document.getElementById("propertyPagination");
+    if(container) containe    requestAnimationFrame(function(){
+      const search=document.querySelector(".gd-home-v6-search")||properties;
+      if(search) search.scrollIntoView({behavior:"auto",block:"center"});
     });
     return false;
   };
 })();
 </script>
+<style id="ghardekho-search-flexibility-v1">
+.gd-budget-field{min-width:0}
+.gd-budget-custom-row{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:7px;margin-bottom:7px}
+.gd-budget-custom-row input{min-width:0!important;min-height:48px!important;padding:0 11px!important}
+.gd-budget-to{color:#687773;font-weight:800;font-size:.82rem}
+.gd-budget-field select{min-height:44px!important}
+.search-first-state{display:grid;gap:5px;padding:30px 20px;margin-top:18px;background:#fff;border:1px dashed #cbd6d2;border-radius:18px;color:#52635f;text-align:center}
+.search-first-state strong{color:#174a47;font-size:1.05rem}
+.search-first-state span{font-size:.9rem}
+@media(max-width:680px){
+  .gd-budget-custom-row{grid-template-columns:minmax(0,1fr) auto minmax(0,1fr)}
+  .gd-budget-custom-row input{font-size:15px}
+  .gd-v6-search-field.gd-v6-location input{min-height:58px}
+  #locationStatus{padding:0 4px;font-size:12px;line-height:1.4}
+}
+</style>
 </body>
 
 </html>
