@@ -8816,6 +8816,8 @@ body.gd-authenticated #dashboardSection #loginBtn{display:none!important}
 .renter-nearby-properties-card{margin-top:16px}
 .renter-nearby-refresh{border:1px solid #bfe2dc;background:#eef9f6;color:#0b625a;cursor:pointer}
 .renter-nearby-refresh:disabled{opacity:.65;cursor:wait}
+body:not(.gd-renter-explore-mode) #renterDashboard~#homeSection,
+body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:none!important}
 </style>
 </head>
 
@@ -9312,7 +9314,7 @@ body.gd-authenticated #dashboardSection #loginBtn{display:none!important}
                         </div>
                         <button type="button" class="dashboard-mini-badge renter-nearby-refresh" id="renterExploreNearbyBtn">📍 Explore Nearby</button>
                     </div>
-                    <div id="renterNearbyContainer"><p class="dashboard-empty">Tap <strong>Explore Nearby</strong> to load nearby properties.</p></div>
+                    <div id="renterNearbyContainer"><p class="dashboard-empty">Tap <strong>Explore Nearby</strong> to load nearby properties.</p></div><div id="renterNearbyPagination" class="pagination"></div>
                 </div>
 
                 <div class="dashboard-two-column">
@@ -12230,9 +12232,9 @@ async function renderActiveDashboard() {
             }
         }
 
-        function renderProperties(properties) {
-            const container = document.getElementById("propertiesContainer");
-            const pagination = document.getElementById("propertyPagination");
+        function renderProperties(properties, targetContainerId = "propertiesContainer", targetPaginationId = "propertyPagination", showPagination = true) {
+            const container = document.getElementById(targetContainerId);
+            const pagination = document.getElementById(targetPaginationId);
             if (!container) return;
 
             if (!properties || !properties.length) {
@@ -12241,10 +12243,10 @@ async function renderActiveDashboard() {
                 return;
             }
 
-            const totalPages = Math.ceil(properties.length / PROPERTIES_PER_PAGE);
-            if (currentPropertyPage > totalPages) currentPropertyPage = totalPages;
-            const start = (currentPropertyPage - 1) * PROPERTIES_PER_PAGE;
-            const visible = properties.slice(start, start + PROPERTIES_PER_PAGE);
+            const totalPages = showPagination ? Math.ceil(properties.length / PROPERTIES_PER_PAGE) : 1;
+            if (showPagination && currentPropertyPage > totalPages) currentPropertyPage = totalPages;
+            const start = showPagination ? (currentPropertyPage - 1) * PROPERTIES_PER_PAGE : 0;
+            const visible = showPagination ? properties.slice(start, start + PROPERTIES_PER_PAGE) : properties;
 
             container.innerHTML = visible.map(function(property) {
                 const image = property.image_url || getDefaultPropertyImage();
@@ -12280,7 +12282,7 @@ async function renderActiveDashboard() {
             container.querySelectorAll(".view-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyDetails(btn.dataset.id)));
             container.querySelectorAll(".favorite-property-btn").forEach(btn => btn.addEventListener("click", () => saveProperty(btn.dataset.id)));
 
-            if (totalPages <= 1) {
+            if (!showPagination || totalPages <= 1) {
                 if (pagination) pagination.innerHTML = "";
                 return;
             }
@@ -14663,31 +14665,50 @@ async function loadRenterNearbyHomes() {
     const container = document.getElementById("renterNearbyContainer");
     const button = document.getElementById("renterExploreNearbyBtn");
     if (!container) return;
+
     if (button) { button.disabled = true; button.textContent = "📍 Loading…"; }
     container.innerHTML = '<div class="loading-text">Finding nearby homes…</div>';
+
     try {
-        // Reuse the existing nearby/geolocation flow so radius and distance
-        // calculations stay identical to the public discovery system.
-        document.body.classList.add("gd-renter-explore-mode");
-        const homeSection = document.getElementById("homeSection");
-        const propertiesSection = document.getElementById("propertiesSection");
-        if (homeSection) homeSection.style.display = "block";
-        if (propertiesSection) propertiesSection.style.display = "block";
-        await findPropertiesNearMe();
-        // findPropertiesNearMe updates allProperties with distanceKm and
-        // renders the public property cards. Mirror those cards into the
-        // dashboard's dedicated Nearby Homes section.
-        const source = document.getElementById("propertiesContainer");
-        if (!source || !source.innerHTML.trim()) {
-            container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">📍</div><strong>No nearby properties found</strong><p>Try expanding the nearby search radius.</p></div>';
-        } else {
-            container.innerHTML = source.innerHTML;
-            container.querySelectorAll(".view-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyDetails(btn.dataset.id)));
-            container.querySelectorAll(".favorite-property-btn").forEach(btn => btn.addEventListener("click", () => saveProperty(btn.dataset.id)));
-            await Promise.allSettled(
-                Array.from(container.querySelectorAll(".favorite-property-btn")).map(btn => refreshSaveButtons(btn.dataset.id))
-            );
+        // Ensure the same verified public inventory used by Explore is available.
+        await loadProperties(false);
+
+        const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";
+
+        if (!navigator.geolocation) {
+            throw new Error("Location is not supported by this browser.");
         }
+
+        const position = await new Promise((resolve, reject) => {
+            navigator.geolocation.getCurrentPosition(resolve, reject, {
+                enableHighAccuracy:false,
+                timeout:7000,
+                maximumAge:120000
+            });
+        });
+
+        userLatitude = Number(position.coords.latitude);
+        userLongitude = Number(position.coords.longitude);
+
+        const nearby = allProperties
+            .map(property => {
+                const lat = Number(property.latitude);
+                const lon = Number(property.longitude);
+                if (listingType && (property.listing_type || "home") !== listingType) return null;
+                if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                return distanceKm <= radiusKm ? {...property,distanceKm} : null;
+            })
+            .filter(Boolean)
+            .sort((a,b) => a.distanceKm - b.distanceKm);
+
+        renderProperties(nearby, "renterNearbyContainer", "renterNearbyPagination", false);
+
+        if (!nearby.length) {
+            container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">📍</div><strong>No nearby properties found</strong><p>Try expanding the radius and search again.</p></div>';
+        }
+
         document.getElementById("renterNearbyPropertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
     } catch (error) {
         console.error("Renter nearby load error:", error);
@@ -14696,6 +14717,7 @@ async function loadRenterNearbyHomes() {
         if (button) { button.disabled = false; button.textContent = "📍 Explore Nearby"; }
     }
 }
+
 
 function bindRenterSavedPropertiesShortcut() {
     const btn=document.getElementById("renterSavedPropertiesBtn");
