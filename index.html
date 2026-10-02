@@ -13315,15 +13315,30 @@ async function saveProperty(propertyId) {
             return;
         }
 
-        const isSavedNow = Array.isArray(toggleData)
-            ? Boolean(toggleData[0]?.saved)
-            : Boolean(toggleData?.saved);
+        // Normalize every possible Supabase RPC response shape.
+        // PostgreSQL may return { saved: false }, [{ saved: false }],
+        // or a primitive/string value depending on the deployed function version.
+        const rawSaved = Array.isArray(toggleData)
+            ? toggleData[0]?.saved
+            : (toggleData && typeof toggleData === "object" ? toggleData.saved : toggleData);
+
+        const isSavedNow = rawSaved === true ||
+            rawSaved === 1 ||
+            String(rawSaved).toLowerCase() === "true";
 
         showMessage(
             "backendMessage",
             isSavedNow ? "Home saved successfully." : "Removed from saved homes.",
             "success"
         );
+
+        // Immediately remove the card from Saved Properties after a
+        // confirmed unsave, then refresh the server-backed list.
+        if (!isSavedNow) {
+            document.querySelectorAll(
+                `.saved-property-card[data-saved-property-id="${CSS.escape(String(propertyId))}"]`
+            ).forEach(card => card.remove());
+        }
 
         await refreshSaveButtons(propertyId);
         await loadSavedProperties();
@@ -14760,7 +14775,7 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
                                 <strong class="saved-property-rent">${formatRent(property.rent)}</strong>
                                 <div class="saved-property-actions">
                                     <button type="button" class="saved-details-btn" data-id="${escapeHtml(row.property_id)}">View Details →</button>
-                                    <button type="button" class="saved-unsave-btn" data-id="${escapeHtml(row.property_id)}">♡ Unsave</button>
+                                    <button type="button" class="saved-unsave-btn" data-id="${escapeHtml(row.property_id)}" aria-label="Remove this property from saved homes">♡ Unsave</button>
                                 </div>
                             </div>
                         </div>
