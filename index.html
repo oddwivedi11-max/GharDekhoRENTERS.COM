@@ -8593,7 +8593,73 @@ body.gd-auth-page #gdAuthFormShell .gd-auth-back:active{
   body.gd-auth-page #gdAuthFormShell .gd-auth-back,
   body.gd-auth-page #gdAuthFormShell .gd-auth-back:before{transition:none!important}
 }
-</style></head>
+</style><style id="gd-dashboard-logout-ui">
+/* Authenticated dashboard logout: visible for both Renter and Owner. */
+#dashboardLogoutBtn.dashboard-logout-btn{
+  min-height:48px;
+  min-width:118px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  gap:8px;
+  padding:0 16px;
+  border:1px solid #b9d9d4;
+  border-radius:15px;
+  background:linear-gradient(180deg,#ffffff 0%,#edf8f6 100%);
+  color:#0f4f4a;
+  font-weight:850;
+  box-shadow:
+    0 5px 0 #b8d8d3,
+    0 12px 24px rgba(15,79,74,.10),
+    inset 0 1px 0 rgba(255,255,255,.95);
+  cursor:pointer;
+  transition:transform .16s ease,box-shadow .16s ease,background .16s ease;
+}
+#dashboardLogoutBtn.dashboard-logout-btn span:first-child{
+  font-size:19px;
+  line-height:1;
+}
+#dashboardLogoutBtn.dashboard-logout-btn:hover{
+  transform:translateY(-2px);
+  background:linear-gradient(180deg,#f9fffe 0%,#e3f5f1 100%);
+  box-shadow:
+    0 7px 0 #a9cec8,
+    0 15px 28px rgba(15,79,74,.13),
+    inset 0 1px 0 rgba(255,255,255,.98);
+}
+#dashboardLogoutBtn.dashboard-logout-btn:active{
+  transform:translateY(2px);
+  box-shadow:
+    0 3px 0 #b8d8d3,
+    0 7px 14px rgba(15,79,74,.09),
+    inset 0 1px 0 rgba(255,255,255,.95);
+}
+@media(max-width:760px){
+  .dashboard-heading-actions{
+    width:100%;
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto;
+    align-items:center;
+    gap:10px;
+  }
+  #dashboardLogoutBtn.dashboard-logout-btn{
+    min-width:108px;
+    min-height:48px;
+    padding:0 14px;
+    border-radius:14px;
+    font-size:14px;
+  }
+}
+@media(max-width:430px){
+  .dashboard-heading-actions{
+    grid-template-columns:1fr;
+  }
+  #dashboardLogoutBtn.dashboard-logout-btn{
+    width:100%;
+  }
+}
+</style>
+</head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
@@ -9056,6 +9122,10 @@ body.gd-auth-page #gdAuthFormShell .gd-auth-back:active{
                         <span class="dashboard-user-dot" aria-hidden="true"></span>
                         <span id="dashboardIdentity">Login to access your account.</span>
                     </div>
+                    <button type="button" id="dashboardLogoutBtn" class="dashboard-logout-btn" onclick="logoutUser()" aria-label="Log out of your GharDekho account">
+                        <span aria-hidden="true">↪</span>
+                        <span>Log out</span>
+                    </button>
                 </div>
             </div>
 
