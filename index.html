@@ -2103,7 +2103,15 @@ body.gd-owner-mode:not(.gd-owner-explore-mode) #propertiesNavLink { display:none
 
 body.gd-renter-mode #ownerNavLink { display:none !important; }
 body.gd-renter-mode #ownerDashboard { display:none !important; }
+body.gd-renter-mode #homeSection,
+body.gd-renter-mode #propertiesSection,
+body.gd-renter-mode #propertyDetails,
+body.gd-renter-mode #visitSection,
+body.gd-renter-mode #homeNavLink,
+body.gd-renter-mode #propertiesNavLink { display:none !important; }
 body.gd-owner-mode #renterDashboard { display:none !important; }
+body.gd-authenticated #loginBtn { display:none !important; }
+body.gd-authenticated #loggedOutLanding { display:none !important; }
 </style>
 
 
@@ -2306,10 +2314,12 @@ header nav{gap:24px!important}
 header nav a{font-size:13px!important;font-weight:800!important;color:#5d6b68!important;transition:.2s ease}
 header nav a:hover{color:var(--gd-teal)!important}
 header #loginBtn,header #logoutBtn{
- min-height:44px!important;padding:0 20px!important;border-radius:13px!important;
+ min-height:44px!important;padding:0 20px!important;border-radius:999px!important;
  font-weight:900!important;letter-spacing:-.01em;
- box-shadow:0 10px 24px rgba(23,107,99,.18)!important;
+ box-shadow:0 4px 0 #022421,0 10px 24px rgba(4,50,46,.20),inset 0 1px 0 rgba(255,255,255,.28)!important;
 }
+body.gd-authenticated header #loginBtn{display:none!important}
+body.gd-authenticated header #logoutBtn{display:inline-flex!important;align-items:center;justify-content:center!important;background:radial-gradient(circle at 28% 18%,rgba(255,255,255,.20),transparent 32%),linear-gradient(180deg,#124f4a 0%,#073b37 48%,#062f2d 100%)!important;color:#fff!important;border:1px solid rgba(255,255,255,.42)!important;}
 header #loginBtn{background:var(--gd-ink)!important}
 header #loginBtn:hover{background:var(--gd-teal)!important;transform:translateY(-1px)}
 body:not(.gd-authenticated) #homeNavLink,body:not(.gd-authenticated) #propertiesNavLink{display:none!important}
@@ -9057,11 +9067,6 @@ body.gd-auth-page #gdAuthFormShell .gd-auth-back:active{
       <label class="gd-v6-search-field"><span>SIZE</span><select id="bhkSelect"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
       <div class="gd-v6-search-field gd-budget-field">
         <span>BUDGET</span>
-        <div class="gd-budget-custom-row">
-          <input id="minBudget" type="number" min="0" step="500" inputmode="numeric" placeholder="Min ₹" aria-label="Minimum monthly rent budget">
-          <span class="gd-budget-to">to</span>
-          <input id="maxBudget" type="number" min="0" step="500" inputmode="numeric" placeholder="Max ₹" aria-label="Maximum monthly rent budget">
-        </div>
         <select id="budgetSelect" aria-label="Quick maximum budget">
           <option value="">Quick budget (optional)</option>
           <option value="5000">Up to ₹5,000</option>
@@ -10460,7 +10465,7 @@ function setRoleSpecificUI(role) {
     const isOwner = role === "owner";
     const isRenter = role === "renter";
     const isAdmin = role === "admin";
-    const canExploreHomes = isRenter || (isOwner && ownerExploreMode);
+    const canExploreHomes = isOwner && ownerExploreMode;
 
     document.body.classList.add("gd-authenticated");
     document.body.classList.toggle("gd-owner-mode", isOwner);
