@@ -10816,6 +10816,20 @@ async function updateAuthUI() {
     }
 
     dashboard.style.display = "block";
+
+    // Final authenticated renter route: do not allow the public landing page
+    // to remain visible after a successful login/profile restore.
+    if (activeRole === "renter") {
+        const landing = document.getElementById("loggedOutLanding");
+        const home = document.getElementById("homeSection");
+        const properties = document.getElementById("propertiesSection");
+        if (landing) landing.style.display = "none";
+        if (home) home.style.display = "none";
+        if (properties) properties.style.display = "none";
+        document.body.classList.add("gd-authenticated", "gd-renter-mode");
+        document.body.classList.remove("gd-renter-explore-mode");
+    }
+
     await renderActiveDashboard();
 }
 
@@ -11759,6 +11773,30 @@ async function renderActiveDashboard() {
     dashboard.style.display = "block";
 
     if (isRenter) {
+        /*
+         * FINAL RENTER LANDING GUARD:
+         * Once a renter is authenticated, the public landing page must never
+         * be visible as the first screen. The dashboard is the authenticated
+         * home screen. Search/property pages are opened only by renter actions.
+         */
+        document.body.classList.add("gd-authenticated", "gd-renter-mode");
+        document.body.classList.remove("gd-renter-explore-mode", "gd-renter-find-page-open");
+
+        const publicLanding = document.getElementById("loggedOutLanding");
+        const loginPage = document.getElementById("loginSection");
+        const publicHome = document.getElementById("homeSection");
+        const publicProperties = document.getElementById("propertiesSection");
+        const renterFindPage = document.getElementById("renterFindHomeSection");
+
+        if (publicLanding) publicLanding.style.display = "none";
+        if (loginPage) loginPage.style.display = "none";
+        if (publicHome) publicHome.style.display = "none";
+        if (publicProperties) publicProperties.style.display = "none";
+        if (renterFindPage) {
+            renterFindPage.hidden = true;
+            renterFindPage.classList.remove("gd-force-visible");
+        }
+
         renter.classList.add("active");
         renter.style.display = "block";
         if (title) title.textContent = "Renter Dashboard";
