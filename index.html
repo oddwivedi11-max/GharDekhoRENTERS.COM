@@ -243,19 +243,54 @@ header nav a:hover::after {
 
 #loginBtn,
 #logoutBtn {
+  position: relative;
   width: auto;
   min-width: 132px;
-  padding: 0 18px;
-  border: 1px solid var(--gd-brand);
-  background: var(--gd-brand);
+  min-height: 50px;
+  padding: 0 19px;
+  border: 1px solid rgba(255,255,255,.42);
+  border-radius: 999px;
+  background: radial-gradient(circle at 28% 18%,rgba(255,255,255,.20),transparent 32%),linear-gradient(180deg,#124f4a 0%,#073b37 48%,#062f2d 100%);
   color: #fff;
-  box-shadow: 0 5px 16px rgba(31,95,91,.16);
+  font-weight: 900;
+  letter-spacing: .01em;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.28), inset 0 -3px 0 rgba(0,0,0,.16), 0 4px 0 #022421, 0 9px 18px rgba(4,50,46,.24), 0 18px 32px rgba(4,50,46,.10);
+  overflow: hidden;
+  transform: translateY(0);
+  transition: transform .16s ease, box-shadow .16s ease, filter .16s ease;
 }
-
-#loginBtn:hover,
+#logoutBtn::before {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 10%;
+  top: 5px;
+  height: 42%;
+  border-radius: 999px;
+  background: linear-gradient(180deg,rgba(255,255,255,.24),rgba(255,255,255,0));
+  pointer-events: none;
+}
 #logoutBtn:hover {
-  background: var(--gd-brand-dark);
+  background: radial-gradient(circle at 28% 18%,rgba(255,255,255,.22),transparent 32%),linear-gradient(180deg,#165c56 0%,#073f3b 48%,#062f2d 100%);
+  transform: translateY(-3px);
+  filter: brightness(1.06);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.32), inset 0 -3px 0 rgba(0,0,0,.16), 0 7px 0 #022421, 0 14px 25px rgba(4,50,46,.28), 0 22px 38px rgba(4,50,46,.12);
 }
+#logoutBtn:active {
+  transform: translateY(2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.20), inset 0 -2px 0 rgba(0,0,0,.18), 0 2px 0 #022421, 0 6px 12px rgba(4,50,46,.18);
+}
+#logoutBtn::after {
+  content: "";
+  position: absolute;
+  inset: 2px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.10);
+  pointer-events: none;
+}
+#logoutBtn { z-index: 1; }
+
+#loginBtn:hover { background: var(--gd-brand-dark); }
 
 /* ---------- Main layout ---------- */
 
@@ -9786,6 +9821,7 @@ function clearAuthFormFields(){
 
 function openLoginSection(role){
     const e=document.getElementById("loginSection");if(!e)return false;
+    window.__gdRoleAccessDenied = false;
     // A plain Login button always starts in Renter mode. Owner mode is entered
     // only when the user explicitly clicks "Login as Owner" / selects Owner.
     const requestedRole = role === "owner" ? "owner" : "renter";
@@ -10445,6 +10481,18 @@ async function updateAuthUI() {
     const loginSection = document.getElementById("loginSection");
 
     if (!currentUser) {
+        if (window.__gdRoleAccessDenied === true && loginSectionAtStart) {
+            currentProfile = null;
+            activeRole = pendingLoginRole === "owner" ? "owner" : "renter";
+            loginBtn.style.display = "none";
+            logoutBtn.style.display = "none";
+            dashboard.style.display = "none";
+            dashboard.setAttribute("aria-hidden", "true");
+            loginSectionAtStart.style.display = "grid";
+            document.body.classList.add("gd-auth-page");
+            applyLoginRolePresentation(activeRole);
+            return;
+        }
         currentProfile = null;
         activeRole = "renter";
         authStatus.textContent = "Not logged in";
@@ -10967,7 +11015,32 @@ async function loginUser() {
             }
 
             if (!getAccountRoles(currentProfile).includes("owner")) {
-                authMessage.textContent = "This account is not registered as an Owner. Use Renter login or create an Owner account.";
+                // Authentication succeeded, but this account has no Owner access.
+                // Never fall through to the Renter dashboard. Sign the session out
+                // and keep the user on the Owner login screen with a clear action.
+                window.__gdRoleAccessDenied = true;
+                activeRole = "owner";
+                pendingLoginRole = "owner";
+                sessionStorage.setItem("gd_pending_login_role", "owner");
+                sessionStorage.setItem("gd_active_role", "owner");
+                sessionStorage.removeItem("gd_login_destination");
+                authMessage.textContent = "Owner account not found. Kindly create your account first as Owner.";
+                try {
+                    await supabaseClient.auth.signOut();
+                } catch (signOutError) {
+                    console.warn("Owner access sign-out failed:", signOutError);
+                }
+                currentUser = null;
+                currentProfile = null;
+                setRoleSpecificUI("owner");
+                const ownerLoginSection = document.getElementById("loginSection");
+                const ownerDashboard = document.getElementById("dashboardSection");
+                const ownerLanding = document.getElementById("loggedOutLanding");
+                if (ownerLanding) ownerLanding.style.display = "none";
+                if (ownerDashboard) ownerDashboard.style.display = "none";
+                if (ownerLoginSection) ownerLoginSection.style.display = "grid";
+                document.body.classList.add("gd-auth-page");
+                applyLoginRolePresentation("owner");
                 return;
             }
 
