@@ -8445,6 +8445,45 @@ body.gd-auth-page #gdAuthFormShell .gd-v4-bottom .text-button{
 @media(prefers-reduced-motion:reduce){
   body.gd-auth-page #gdAuthFormShell *{transition:none!important}
 }
+</style><style id="gdr-auth-robotic-font-v6">
+/* Robotic typography — scoped ONLY to the authentication/form panel. */
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@500;600;700;800;900&display=swap');
+
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form{
+  --gdr-robotic:"Orbitron","Rajdhani","Share Tech Mono","Arial",sans-serif;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-form-kicker,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-form-head h2,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-field>span:first-child,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-role-switch label b,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form #authSignUpTab,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form #authSignInTab,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form #signupBtn,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form #loginSubmitBtn{
+  font-family:var(--gdr-robotic)!important;
+  font-weight:700!important;
+  letter-spacing:.015em!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-form-head h2{
+  letter-spacing:-.035em!important;
+  line-height:.96!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-form-head p,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-field input,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-phone-prefix,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-password-toggle,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-role-switch label small,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form #loginRoleHint{
+  font-family:"Rajdhani","Segoe UI",Arial,sans-serif!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-field input{
+  font-weight:600!important;
+}
+@media(max-width:760px){
+  body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form .gd-v4-form-head h2{
+    font-size:clamp(29px,8.7vw,42px)!important;
+  }
+}
 </style></head>
 
 <body>
