@@ -18265,6 +18265,111 @@ body.gd-auth-page #gdAuthFormShell input{
 }
 @media(max-width:390px){.renter-form-actions{grid-template-columns:1fr}.renter-form-cancel{order:2}}
 </style>
+<style id="ghardekho-renter-action-fix-v2">
+/* Reliable renter action navigation: the dashboard buttons always open a
+   real screen, even when another legacy listener is not initialized. */
+#renterFindHomeSection.gd-force-visible{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative!important;
+  z-index:20!important;
+}
+#renterFindHomeSection.gd-force-visible .renter-preference-form{
+  display:grid!important;
+}
+body.gd-renter-find-page-open #dashboardSection{
+  display:none!important;
+}
+body.gd-renter-find-page-open #renterFindHomeSection{
+  display:block!important;
+}
+@media(max-width:680px){
+  #renterFindHomeSection.gd-force-visible{
+    width:100%!important;
+    margin:0!important;
+    padding:16px!important;
+    box-sizing:border-box!important;
+  }
+  #renterFindHomeSection.gd-force-visible input,
+  #renterFindHomeSection.gd-force-visible select{
+    min-height:50px!important;
+    font-size:16px!important;
+  }
+  #renterFindHomeSection.gd-force-visible button{
+    min-height:52px!important;
+  }
+}
+</style>
+<script id="ghardekho-renter-action-fix-v2">
+(function(){
+  function byId(id){return document.getElementById(id);}
+  function openFindHome(){
+    const dash=byId("dashboardSection");
+    const find=byId("renterFindHomeSection");
+    if(!find) return;
+    if(typeof window.openRenterFindHomePage==="function"){
+      window.openRenterFindHomePage();
+    }else{
+      if(dash) dash.style.display="none";
+      find.hidden=false;
+      find.classList.add("gd-force-visible");
+      document.body.classList.add("gd-renter-find-page-open");
+      window.scrollTo({top:0,behavior:"smooth"});
+    }
+    find.hidden=false;
+    find.classList.add("gd-force-visible");
+    document.body.classList.add("gd-renter-find-page-open");
+    setTimeout(function(){
+      byId("renterSearchLocation")?.focus();
+    },180);
+  }
+
+  async function openSaved(){
+    const section=byId("renterSavedPropertiesSection");
+    if(!section) return;
+    document.body.classList.remove("gd-renter-find-page-open");
+    section.hidden=false;
+    section.dataset.gdAutoReveal="1";
+    section.scrollIntoView({behavior:"smooth",block:"start"});
+    if(typeof window.loadSavedProperties==="function"){
+      await window.loadSavedProperties();
+    }
+  }
+
+  async function openNearby(){
+    const section=byId("renterNearbyPropertiesSection");
+    if(section) section.hidden=false;
+    document.body.classList.remove("gd-renter-find-page-open");
+    if(typeof window.loadRenterNearbyHomes==="function"){
+      await window.loadRenterNearbyHomes();
+    }
+    section?.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  document.addEventListener("click",function(event){
+    const button=event.target.closest(
+      "#renterFindHomeBtn,#renterExploreNearbyBtn,#renterSavedPropertiesBtn"
+    );
+    if(!button) return;
+    if(!document.body.classList.contains("gd-renter-mode")) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+
+    if(button.id==="renterFindHomeBtn") openFindHome();
+    else if(button.id==="renterExploreNearbyBtn") openNearby();
+    else openSaved();
+  },true);
+
+  window.addEventListener("load",function(){
+    // Remove stale hidden state left by previous dashboard navigation.
+    const find=byId("renterFindHomeSection");
+    if(find && !document.body.classList.contains("gd-renter-find-page-open")){
+      find.classList.remove("gd-force-visible");
+    }
+  });
+})();
+</script>
 <script id="ghardekho-renter-find-home-v1-js">
 (function(){
   function $(id){return document.getElementById(id);}
