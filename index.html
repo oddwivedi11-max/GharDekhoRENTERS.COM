@@ -9249,6 +9249,58 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
             <p id="visitMessageStatus"></p>
         </section>
 
+        <!-- RENTER FIND-HOME REQUIREMENTS PAGE -->
+        <section id="renterFindHomeSection" class="renter-find-home-page" aria-label="Find a home" hidden>
+            <div class="renter-find-home-header">
+                <button type="button" class="renter-page-back-btn" id="renterFindHomeBackBtn">← Back to dashboard</button>
+                <span class="dashboard-section-kicker">FIND YOUR HOME</span>
+                <h2>Tell us what you're looking for.</h2>
+                <p>Fill only what matters to you. You can leave optional fields as “Any”.</p>
+            </div>
+
+            <form id="renterFindHomeForm" class="renter-preference-form" novalidate>
+                <div class="renter-form-section">
+                    <div class="renter-form-section-title"><span>01</span><div><strong>Where?</strong><small>City, district, area or PIN code</small></div></div>
+                    <label class="renter-preference-field renter-preference-wide">
+                        <span>Preferred location <b>*</b></span>
+                        <input id="renterSearchLocation" type="text" placeholder="e.g. Patel Nagar, Bhopal" autocomplete="off" inputmode="text" required>
+                    </label>
+                </div>
+
+                <div class="renter-form-section">
+                    <div class="renter-form-section-title"><span>02</span><div><strong>Budget & property</strong><small>Set the kind of place you want</small></div></div>
+                    <div class="renter-preference-grid">
+                        <label class="renter-preference-field"><span>Minimum rent <small>(optional)</small></span><input id="renterMinBudget" type="number" min="0" step="500" placeholder="₹ 0" inputmode="numeric"></label>
+                        <label class="renter-preference-field"><span>Maximum rent <small>(optional)</small></span><input id="renterMaxBudget" type="number" min="0" step="500" placeholder="₹ 10,000" inputmode="numeric"></label>
+                        <label class="renter-preference-field"><span>Stay type</span><select id="renterStayType"><option value="">Any</option><option value="home">🏠 Home</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label>
+                        <label class="renter-preference-field" id="renterBhkField"><span>BHK</span><select id="renterSearchBhk"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
+                        <label class="renter-preference-field"><span>Furnishing</span><select id="renterSearchFurnishing"><option value="">Any furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-Furnished</option><option value="Unfurnished">Unfurnished</option></select></label>
+                        <label class="renter-preference-field"><span>Availability</span><select id="renterSearchStatus"><option value="">All properties</option><option value="vacant">Vacant only</option></select></label>
+                    </div>
+                </div>
+
+                <div class="renter-form-section renter-shared-stay-section" id="renterSharedStaySection" hidden>
+                    <div class="renter-form-section-title"><span>03</span><div><strong>PG / Hostel preferences</strong><small>Shown only when you choose PG or Hostel</small></div></div>
+                    <div class="renter-preference-grid">
+                        <label class="renter-preference-field"><span>Room type</span><select id="renterRoomType"><option value="">Any room type</option><option value="Single">Single</option><option value="Double Sharing">Double Sharing</option><option value="Triple Sharing">Triple Sharing</option><option value="Dormitory">Dormitory</option></select></label>
+                        <label class="renter-preference-field"><span>Gender preference</span><select id="renterGenderPreference"><option value="">Any</option><option value="Any">Any</option><option value="Male">Male</option><option value="Female">Female</option></select></label>
+                        <label class="renter-preference-field"><span>Meals</span><select id="renterFoodPreference"><option value="">Any</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label>
+                    </div>
+                </div>
+
+                <div class="renter-form-section">
+                    <div class="renter-form-section-title"><span>03</span><div><strong>Nearby radius</strong><small>Used for nearby discovery</small></div></div>
+                    <label class="renter-preference-field renter-preference-wide"><span>Search radius</span><select id="renterSearchRadius"><option value="3">Within 3 km</option><option value="5">Within 5 km</option><option value="10">Within 10 km</option><option value="15">Within 15 km</option><option value="20">Within 20 km</option></select></label>
+                </div>
+
+                <p id="renterFindHomeMessage" class="renter-find-home-message" aria-live="polite"></p>
+                <div class="renter-form-actions">
+                    <button type="button" class="renter-form-cancel" id="renterFindHomeCancelBtn">Cancel</button>
+                    <button type="submit" class="renter-form-submit">Show Matching Homes <span>→</span></button>
+                </div>
+            </form>
+        </section>
+
         <!-- ACCOUNT / ROLE-SPECIFIC DASHBOARD -->
         <section id="dashboardSection" class="role-dashboard-shell" style="display:none;" aria-hidden="true">
             <div class="dashboard-heading">
@@ -9273,101 +9325,58 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
                 </div>
             </div>
 
-            <!-- RENTER DASHBOARD: renter information only -->
+            <!-- RENTER DASHBOARD: intentionally minimal, action-first mobile experience -->
             <section id="renterDashboard" class="dashboard-section renter-dashboard" aria-label="Renter dashboard">
-                <div class="dashboard-stats-grid renter-stats-grid">
-                    <article class="dashboard-stat-card">
-                        <span class="dashboard-stat-icon">📅</span>
-                        <div>
-                            <span class="dashboard-stat-label">My Visits</span>
-                            <strong id="renterVisitCount">0</strong>
-                        </div>
-                    </article>
-                    <article class="dashboard-stat-card">
-                        <span class="dashboard-stat-icon">✓</span>
-                        <div>
-                            <span class="dashboard-stat-label">Approved</span>
-                            <strong id="renterApprovedCount">0</strong>
-                        </div>
-                    </article>
-                    <article class="dashboard-stat-card">
-                        <span class="dashboard-stat-icon">♡</span>
-                        <div>
-                            <span class="dashboard-stat-label">Saved Homes</span>
-                            <strong id="renterSavedCount">0</strong>
-                        </div>
-                    </article>
+                <div class="renter-welcome-card">
+                    <div class="renter-welcome-copy">
+                        <span class="dashboard-section-kicker">WELCOME BACK</span>
+                        <h3>Find a home that fits you.</h3>
+                        <p>Tell us your location, budget and preferences. We’ll show matching rental homes, PGs and hostels.</p>
+                    </div>
+                    <button type="button" class="secondary-button renter-edit-profile-compact" id="renterEditProfileBtn">✏️ Edit profile</button>
                 </div>
 
-                <div class="dashboard-action-row">
-                    <button type="button" class="dashboard-primary-action" id="renterFindHomeBtn">🔎 Find a Home</button>
-                    <button type="button" class="dashboard-secondary-action" id="renterTopPropertiesBtn">🏠 View Properties</button>
-                    <button type="button" class="dashboard-secondary-action" id="renterSavedPropertiesBtn">❤️ Saved Properties</button>
+                <div class="renter-dashboard-actions">
+                    <button type="button" class="renter-dashboard-action renter-dashboard-action-primary" id="renterFindHomeBtn">
+                        <span class="renter-action-icon">⌕</span>
+                        <span><strong>Find a Home</strong><small>Fill your requirements</small></span>
+                        <span class="renter-action-arrow">→</span>
+                    </button>
+                    <button type="button" class="renter-dashboard-action" id="renterExploreNearbyBtn">
+                        <span class="renter-action-icon">📍</span>
+                        <span><strong>Explore Nearby</strong><small>See homes around you</small></span>
+                        <span class="renter-action-arrow">→</span>
+                    </button>
+                    <button type="button" class="renter-dashboard-action" id="renterSavedPropertiesBtn">
+                        <span class="renter-action-icon">♡</span>
+                        <span><strong>Saved Properties</strong><small id="renterSavedActionCount">View your saved homes</small></span>
+                        <span class="renter-action-arrow">→</span>
+                    </button>
                 </div>
 
-                <div class="dashboard-card renter-nearby-properties-card" id="renterNearbyPropertiesSection">
+                <div class="dashboard-card renter-nearby-properties-card renter-dashboard-panel" id="renterNearbyPropertiesSection" hidden>
                     <div class="dashboard-card-heading">
                         <div>
                             <span class="dashboard-section-kicker">NEARBY HOMES</span>
                             <h3>Homes Near You</h3>
-                            <p class="dashboard-muted">Tap Explore Nearby to discover available rental properties around your location.</p>
+                            <p class="dashboard-muted">Available rental properties within your selected nearby radius.</p>
                         </div>
-                        <button type="button" class="dashboard-mini-badge renter-nearby-refresh" id="renterExploreNearbyBtn">📍 Explore Nearby</button>
+                        <button type="button" class="dashboard-mini-badge renter-nearby-refresh" id="renterExploreNearbyRefreshBtn">↻ Refresh</button>
                     </div>
-                    <div id="renterNearbyContainer"><p class="dashboard-empty">Tap <strong>Explore Nearby</strong> to load nearby properties.</p></div><div id="renterNearbyPagination" class="pagination"></div>
+                    <div id="renterNearbyContainer"><p class="dashboard-empty">Tap Explore Nearby to load properties.</p></div>
+                    <div id="renterNearbyPagination" class="pagination"></div>
                 </div>
 
-                <div class="dashboard-two-column">
-                    <div class="dashboard-card dashboard-card-featured">
-                        <div class="dashboard-card-heading">
-                            <div>
-                                <span class="dashboard-section-kicker">RENTER ACTIVITY</span>
-                                <h3>My Visits</h3>
-                            </div>
-                            <span class="dashboard-mini-badge">Your requests</span>
-                        </div>
-                        <div id="tenantVisitsContainer"><p class="dashboard-empty">No visit requests yet.</p></div>
-                    </div>
-
-                </div>
-
-                <div class="dashboard-card renter-saved-properties-card" id="renterSavedPropertiesSection">
+                <div class="dashboard-card renter-saved-properties-card renter-dashboard-panel" id="renterSavedPropertiesSection" hidden>
                     <div class="dashboard-card-heading">
                         <div>
                             <span class="dashboard-section-kicker">FAVOURITES</span>
                             <h3>Saved Properties</h3>
-                            <p class="dashboard-muted">Homes you saved while browsing. They stay private to your renter account.</p>
+                            <p class="dashboard-muted">Your saved homes are private to your renter account.</p>
                         </div>
                         <span class="dashboard-mini-badge" id="renterSavedSectionCount">0 saved</span>
                     </div>
-                    <div id="renterSavedContainer"><p class="dashboard-empty">No saved properties yet.</p></div>
-                </div>
-
-                <div class="dashboard-card renter-current-rental-card">
-                    <div class="dashboard-card-heading">
-                        <div>
-                            <span class="dashboard-section-kicker">MY CURRENT STAY</span>
-                            <h3>My Rental / PG / Hostel</h3>
-                        </div>
-                        <span class="dashboard-mini-badge">Private</span>
-                    </div>
-                    <div id="renterCurrentRentalContainer"><p class="dashboard-empty">No confirmed rental yet.</p></div>
-                </div>
-
-                <div class="dashboard-card renter-account-card">
-                    <div class="dashboard-card-heading">
-                        <div>
-                            <span class="dashboard-section-kicker">ACCOUNT</span>
-                            <h3>My Renter Profile</h3>
-                        </div>
-                        <button type="button" class="secondary-button" id="renterEditProfileBtn">✏️ Edit details</button>
-                    </div>
-                    <div class="renter-profile-grid">
-                        <div><span>Name</span><strong id="renterProfileName">—</strong></div>
-                        <div><span>Email</span><strong id="renterProfileEmail">—</strong></div>
-                        <div><span>Phone</span><strong id="renterProfilePhone">—</strong></div>
-                        <div><span>Account type</span><strong>Renter</strong></div>
-                    </div>
+                    <div id="renterSavedContainer"><p class="dashboard-empty">No property saved yet.</p></div>
                 </div>
             </section>
 
@@ -12590,12 +12599,15 @@ async function renderActiveDashboard() {
             const listingType = document.getElementById("listingTypeSelect")?.value || "";
             const bhk = document.getElementById("bhkSelect")?.value || "";
             const budget = document.getElementById("budgetSelect")?.value || "";
-            const minBudgetRaw = String(document.getElementById("minBudget")?.value || "").trim();
-            const maxBudgetRaw = String(document.getElementById("maxBudget")?.value || "").trim();
+            const minBudgetRaw = String(document.getElementById("minBudget")?.value || document.getElementById("renterMinBudget")?.value || "").trim();
+            const maxBudgetRaw = String(document.getElementById("maxBudget")?.value || document.getElementById("renterMaxBudget")?.value || "").trim();
             const minBudget = minBudgetRaw === "" ? null : Number(minBudgetRaw);
             const maxBudget = maxBudgetRaw === "" ? null : Number(maxBudgetRaw);
             const furnishing = document.getElementById("furnishedSelect")?.value || "";
             const propertyStatus = document.getElementById("propertyStatusSelect")?.value || "";
+            const renterRoomType = document.getElementById("renterRoomType")?.value || "";
+            const renterGenderPreference = document.getElementById("renterGenderPreference")?.value || "";
+            const renterFoodPreference = document.getElementById("renterFoodPreference")?.value || "";
 
             const hasCustomBudget = Number.isFinite(minBudget) || Number.isFinite(maxBudget);
             const hasSearchCriteria = Boolean(location || listingType || bhk || budget || hasCustomBudget || furnishing || propertyStatus);
@@ -12644,8 +12656,13 @@ async function renderActiveDashboard() {
 
                 const furnishingMatch = !furnishing || property.furnishing === furnishing;
                 const propertyStatusMatch = !propertyStatus || (propertyStatus === "vacant" ? property.status === "verified" : true);
+                const roomTypeMatch = !renterRoomType || String(property.room_type || "").toLowerCase() === renterRoomType.toLowerCase();
+                const genderValue = String(property.gender_preference || "").toLowerCase();
+                const genderMatch = !renterGenderPreference || renterGenderPreference === "Any" || genderValue === renterGenderPreference.toLowerCase() || genderValue === "any";
+                const propertyFood = String(property.food_included ?? "").toLowerCase();
+                const foodMatch = !renterFoodPreference || propertyFood === renterFoodPreference.toLowerCase() || (renterFoodPreference === "yes" && propertyFood === "true") || (renterFoodPreference === "no" && propertyFood === "false");
 
-                return locationMatch && listingTypeMatch && bhkMatch && budgetMatch && furnishingMatch && propertyStatusMatch;
+                return locationMatch && listingTypeMatch && bhkMatch && budgetMatch && furnishingMatch && propertyStatusMatch && roomTypeMatch && genderMatch && foodMatch;
             });
 
             currentPropertyPage = 1;
@@ -15026,26 +15043,7 @@ function updateStayTypeFields() {
             if (choosePropertyImageBtn && propertyImageFile) choosePropertyImageBtn.addEventListener("click", () => propertyImageFile.click());
             if (propertyImageFile) propertyImageFile.addEventListener("change", handlePropertyImageSelection);
             if (removePropertyImageBtn) removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
-            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", () => {
-                // Public search/properties stay hidden while the renter is on the dashboard.
-                // Reveal the discovery surface only when the renter explicitly asks for it.
-                document.body.classList.add("gd-renter-explore-mode");
-                const homeSection = document.getElementById("homeSection");
-                const propertiesSection = document.getElementById("propertiesSection");
-                if (homeSection) homeSection.style.display = "block";
-                if (propertiesSection) propertiesSection.style.display = "block";
-                scrollToSection("homeSection");
-            });
-            if (renterTopPropertiesBtn) renterTopPropertiesBtn.addEventListener("click", () => {
-                const nearbyBtn = document.getElementById("renterExploreNearbyBtn");
-                if (nearbyBtn) { nearbyBtn.click(); return; }
-                document.body.classList.add("gd-renter-explore-mode");
-                const homeSection = document.getElementById("homeSection");
-                const propertiesSection = document.getElementById("propertiesSection");
-                if (homeSection) homeSection.style.display = "block";
-                if (propertiesSection) propertiesSection.style.display = "block";
-                scrollToSection("propertiesSection");
-            });
+            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", openRenterFindHomePage);
             if (ownerExploreNearbyBtn) ownerExploreNearbyBtn.addEventListener("click", openOwnerNearbyHomes);
             if (ownerAddPropertyBtn) ownerAddPropertyBtn.addEventListener("click", (event) => {
                 event.preventDefault();
@@ -18171,6 +18169,160 @@ body.gd-auth-page #gdAuthFormShell input{
 .gd-phone-fixed-prefix{font-variant-numeric:tabular-nums}
 </style>
 
+<style id="ghardekho-renter-find-home-v1">
+.renter-find-home-page{width:min(900px,calc(100% - 28px));margin:28px auto 80px;padding:0}
+.renter-find-home-header{padding:22px 2px 20px}
+.renter-page-back-btn{min-height:42px;padding:0 14px;margin-bottom:22px;border:1px solid #cfe1dc;border-radius:999px;background:#fff;color:#174a47;font-weight:800}
+.renter-find-home-header h2{margin:7px 0 7px;font-size:clamp(2rem,7vw,3.25rem);line-height:1.02;letter-spacing:-.05em;color:#102d2a}
+.renter-find-home-header p{margin:0;color:#64716e;max-width:650px}
+.renter-preference-form{display:grid;gap:14px}
+.renter-form-section{padding:20px;border:1px solid #dce8e4;border-radius:20px;background:#fff;box-shadow:0 10px 28px rgba(23,74,71,.055)}
+.renter-form-section-title{display:flex;align-items:center;gap:12px;margin-bottom:17px}
+.renter-form-section-title>span{width:34px;height:34px;display:grid;place-items:center;border-radius:11px;background:#e8f3f1;color:#176b63;font-size:12px;font-weight:900}
+.renter-form-section-title strong{display:block;color:#173b36;font-size:17px}
+.renter-form-section-title small{display:block;margin-top:2px;color:#7a8582;font-size:12px}
+.renter-preference-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.renter-preference-field{display:grid;gap:7px;min-width:0}
+.renter-preference-field>span{font-size:12px;font-weight:850;color:#3f504c}
+.renter-preference-field>span b{color:#c54848}
+.renter-preference-field input,.renter-preference-field select{width:100%;min-height:52px;padding:0 14px;border:1px solid #cbd9d5;border-radius:13px;background:#fbfdfc;color:#172d29;outline:none}
+.renter-preference-field input:focus,.renter-preference-field select:focus{border-color:#1f5f5b;box-shadow:0 0 0 3px rgba(31,95,91,.08)}
+.renter-preference-wide{grid-column:1/-1}
+.renter-find-home-message{min-height:0;margin:0;padding:0 4px;color:#a33b3b;font-size:13px;font-weight:700}
+.renter-form-actions{display:grid;grid-template-columns:auto 1fr;gap:10px;position:sticky;bottom:8px;padding:10px;border:1px solid rgba(31,95,91,.12);border-radius:18px;background:rgba(255,255,255,.94);box-shadow:0 12px 30px rgba(8,35,31,.12);backdrop-filter:blur(12px)}
+.renter-form-cancel,.renter-form-submit{min-height:54px;border-radius:14px;font-weight:900}
+.renter-form-cancel{padding:0 18px;border:1px solid #cbd9d5;background:#fff;color:#31514c}
+.renter-form-submit{border:0;background:#176b63;color:#fff;box-shadow:0 8px 18px rgba(23,107,99,.2)}
+.renter-welcome-card{display:flex;align-items:center;justify-content:space-between;gap:18px;padding:20px;border:1px solid #dce8e4;border-radius:20px;background:linear-gradient(135deg,#f9fdfc,#eef8f5);box-shadow:0 10px 28px rgba(23,74,71,.055)}
+.renter-welcome-copy h3{margin:5px 0 5px;font-size:clamp(1.55rem,5vw,2.2rem);line-height:1.05;letter-spacing:-.04em;color:#102d2a}
+.renter-welcome-copy p{margin:0;color:#64716e;max-width:600px}
+.renter-edit-profile-compact{flex:0 0 auto;min-height:44px}
+.renter-dashboard-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.renter-dashboard-action{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;min-height:82px;padding:14px 16px;text-align:left;border:1px solid #d6e4df;border-radius:18px;background:#fff;color:#173b36;box-shadow:0 8px 24px rgba(23,74,71,.055);cursor:pointer}
+.renter-dashboard-action:hover{border-color:#a9cbc3;box-shadow:0 12px 28px rgba(23,74,71,.09)}
+.renter-dashboard-action-primary{background:#176b63;border-color:#176b63;color:#fff;box-shadow:0 10px 24px rgba(23,107,99,.2)}
+.renter-action-icon{width:40px;height:40px;display:grid;place-items:center;border-radius:12px;background:#e9f4f1;font-size:20px}
+.renter-dashboard-action-primary .renter-action-icon{background:rgba(255,255,255,.14)}
+.renter-dashboard-action strong{display:block;font-size:14px;line-height:1.2}
+.renter-dashboard-action small{display:block;margin-top:3px;font-size:11px;line-height:1.3;opacity:.72}
+.renter-action-arrow{font-size:21px;font-weight:900}
+.renter-dashboard-panel{margin-top:14px}
+.renter-dashboard-panel[hidden],#renterFindHomeSection[hidden]{display:none!important}
+@media(max-width:760px){
+  .renter-find-home-page{width:min(100% - 20px,680px);margin-top:10px}
+  .renter-find-home-header{padding:14px 2px 16px}
+  .renter-form-section{padding:16px;border-radius:17px}
+  .renter-preference-grid{grid-template-columns:1fr}
+  .renter-preference-wide{grid-column:auto}
+  .renter-dashboard-actions{grid-template-columns:1fr;gap:10px}
+  .renter-dashboard-action{min-height:72px}
+  .renter-welcome-card{align-items:flex-start;flex-direction:column}
+  .renter-edit-profile-compact{width:100%}
+  .renter-form-actions{grid-template-columns:1fr 1.6fr}
+}
+@media(max-width:390px){.renter-form-actions{grid-template-columns:1fr}.renter-form-cancel{order:2}}
+</style>
+<script id="ghardekho-renter-find-home-v1-js">
+(function(){
+  function $(id){return document.getElementById(id);}
+  function showRenterDashboard(){
+    const dash=$("dashboardSection"), find=$("renterFindHomeSection");
+    if(find) find.hidden=true;
+    if(dash){dash.style.display="block";dash.setAttribute("aria-hidden","false");}
+    $("renterDashboard")?.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+  window.openRenterFindHomePage=function(){
+    const dash=$("dashboardSection"), find=$("renterFindHomeSection");
+    if(!find) return;
+    if(dash) dash.style.display="none";
+    find.hidden=false;
+    document.body.classList.add("gd-renter-find-page-open");
+    const p=JSON.parse(localStorage.getItem("gdrRenterSearchPreferences")||"null");
+    if(p){
+      $("renterSearchLocation").value=p.location||"";
+      $("renterMinBudget").value=p.minBudget??"";
+      $("renterMaxBudget").value=p.maxBudget??"";
+      $("renterStayType").value=p.stayType||"";
+      $("renterSearchBhk").value=p.bhk||"";
+      $("renterSearchFurnishing").value=p.furnishing||"";
+      $("renterSearchStatus").value=p.status||"";
+      $("renterRoomType").value=p.roomType||"";
+      $("renterGenderPreference").value=p.gender||"";
+      $("renterFoodPreference").value=p.food||"";
+      $("renterSearchRadius").value=p.radius||"3";
+      updateRenterSharedFields();
+    }
+    window.scrollTo({top:0,behavior:"smooth"});
+  };
+  function closePage(){
+    document.body.classList.remove("gd-renter-find-page-open");
+    showRenterDashboard();
+  }
+  function updateRenterSharedFields(){
+    const type=$("renterStayType")?.value||"";
+    const shared=type==="pg"||type==="hostel";
+    const section=$("renterSharedStaySection"), bhk=$("renterBhkField");
+    if(section) section.hidden=!shared;
+    if(bhk) bhk.hidden=shared;
+    $("renterSearchBhk").disabled=shared;
+    if(!shared){
+      $("renterRoomType").value="";
+      $("renterGenderPreference").value="";
+      $("renterFoodPreference").value="";
+    }else{
+      $("renterSearchBhk").value="";
+    }
+  }
+  async function submitPreferences(e){
+    e.preventDefault();
+    const msg=$("renterFindHomeMessage");
+    const location=String($("renterSearchLocation")?.value||"").trim();
+    const minRaw=String($("renterMinBudget")?.value||"").trim();
+    const maxRaw=String($("renterMaxBudget")?.value||"").trim();
+    const min=minRaw===""?null:Number(minRaw), max=maxRaw===""?null:Number(maxRaw);
+    if(!location){msg.textContent="Please enter the city, area, district or PIN code."; $("renterSearchLocation")?.focus(); return;}
+    if((min!==null && (!Number.isFinite(min)||min<0)) || (max!==null && (!Number.isFinite(max)||max<0))){msg.textContent="Please enter a valid non-negative rent.";return;}
+    if(min!==null&&max!==null&&min>max){msg.textContent="Maximum rent must be greater than or equal to minimum rent.";return;}
+    msg.textContent="Finding matching homes…";
+    const prefs={location,minBudget:minRaw,maxBudget:maxRaw,stayType:$("renterStayType").value,bhk:$("renterSearchBhk").value,furnishing:$("renterSearchFurnishing").value,status:$("renterSearchStatus").value,roomType:$("renterRoomType").value,gender:$("renterGenderPreference").value,food:$("renterFoodPreference").value,radius:$("renterSearchRadius").value};
+    localStorage.setItem("gdrRenterSearchPreferences",JSON.stringify(prefs));
+    $("locationInput").value=location;
+    $("listingTypeSelect").value=prefs.stayType;
+    $("bhkSelect").value=prefs.bhk;
+    $("furnishedSelect").value=prefs.furnishing;
+    $("propertyStatusSelect").value=prefs.status;
+    $("radiusSelect").value=prefs.radius||"3";
+    await filterProperties();
+    const find=$("renterFindHomeSection"), dash=$("dashboardSection");
+    if(find) find.hidden=true;
+    if(dash) dash.style.display="none";
+    document.body.classList.add("gd-renter-explore-mode");
+    $("propertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+    msg.textContent="";
+  }
+  function bind(){
+    $("renterFindHomeForm")?.addEventListener("submit",submitPreferences);
+    $("renterFindHomeBackBtn")?.addEventListener("click",closePage);
+    $("renterFindHomeCancelBtn")?.addEventListener("click",closePage);
+    $("renterStayType")?.addEventListener("change",updateRenterSharedFields);
+    $("renterEditProfileBtn")?.addEventListener("click",function(){if(typeof openRenterProfileEditor==="function")openRenterProfileEditor();});
+    $("renterSavedPropertiesBtn")?.addEventListener("click",function(){
+      const section=$("renterSavedPropertiesSection"); if(!section)return;
+      section.hidden=false; section.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+    $("renterExploreNearbyBtn")?.addEventListener("click",function(){
+      const section=$("renterNearbyPropertiesSection"); if(section)section.hidden=false;
+      if(typeof loadRenterNearbyHomes==="function")loadRenterNearbyHomes();
+      section?.scrollIntoView({behavior:"smooth",block:"start"});
+    });
+    $("renterExploreNearbyRefreshBtn")?.addEventListener("click",function(){if(typeof loadRenterNearbyHomes==="function")loadRenterNearbyHomes();});
+    updateRenterSharedFields();
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 </html>
 
 <style id="ghardekho-dual-role-v1">
