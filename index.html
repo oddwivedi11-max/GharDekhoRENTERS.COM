@@ -14680,7 +14680,7 @@ new MutationObserver(bindRenterBecomeOwnerShortcut).observe(document.body,{child
 
 async function loadRenterNearbyHomes() {
     const container = document.getElementById("renterNearbyContainer");
-    const button = document.getElementById("renterExploreNearbyBtn");
+    const button = document.getElementById("renterExploreNearbyRefreshBtn");
     if (!container) return;
 
     if (button) { button.disabled = true; button.textContent = "📍 Loading…"; }
