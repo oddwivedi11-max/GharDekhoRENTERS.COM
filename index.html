@@ -2103,6 +2103,14 @@ body.gd-owner-mode:not(.gd-owner-explore-mode) #propertiesNavLink { display:none
 
 body.gd-renter-mode #ownerNavLink { display:none !important; }
 body.gd-renter-mode #ownerDashboard { display:none !important; }
+body.gd-renter-mode:not(.gd-renter-explore-mode) #loggedOutLanding,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #homeSection,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #propertiesSection,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #propertyDetails,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #visitSection,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #renterFindHomeSection { display:none !important; }
+body.gd-renter-mode:not(.gd-renter-explore-mode) #dashboardSection { display:block !important; }
+body.gd-renter-mode.gd-renter-explore-mode #loggedOutLanding { display:none !important; }
 body.gd-renter-mode:not(.gd-renter-explore-mode) #homeSection,
 body.gd-renter-mode:not(.gd-renter-explore-mode) #propertiesSection,
 body.gd-renter-mode:not(.gd-renter-explore-mode) #propertyDetails,
@@ -12675,12 +12683,17 @@ async function renderActiveDashboard() {
            ========================================================= */
 
         async function openPropertyDetails(propertyId) {
-            /* Owner dashboard details are a controlled transition out of the
-               owner-only dashboard surface. The role guard intentionally hides
-               #propertyDetails unless owner-explore mode is active. */
+            /* Property details are an intentional discovery surface. Owners use
+               owner-explore mode; renters use renter-explore mode. */
             if (activeRole === "owner" && currentUser) {
                 ownerExploreMode = true;
                 setRoleSpecificUI("owner");
+            } else if (activeRole === "renter" && currentUser) {
+                document.body.classList.add("gd-renter-explore-mode");
+                const homeSection = document.getElementById("homeSection");
+                const propertiesSection = document.getElementById("propertiesSection");
+                if (homeSection) homeSection.style.display = "block";
+                if (propertiesSection) propertiesSection.style.display = "block";
             }
 
             /* Owner dashboard properties come from the owner inventory query.
@@ -13168,6 +13181,23 @@ async function saveProperty(propertyId) {
 
         await refreshSaveButtons(propertyId);
         await loadSavedProperties();
+
+        // Keep the renter dashboard Saved Properties panel synchronized
+        // immediately after every save/unsave operation.
+        if (activeRole === "renter") {
+            const savedSection = document.getElementById("renterSavedPropertiesSection");
+            const savedCount = document.getElementById("renterSavedSectionCount");
+            const savedRows = await supabaseClient.rpc("get_my_saved_properties");
+            if (!savedRows.error) {
+                const total = Array.isArray(savedRows.data) ? savedRows.data.length : 0;
+                if (savedCount) savedCount.textContent = total + " saved";
+                const actionCount = document.getElementById("renterSavedActionCount");
+                if (actionCount) actionCount.textContent = total ? total + " saved homes" : "No saved homes yet";
+            }
+            if (savedSection && savedSection.dataset.gdAutoReveal === "1") {
+                savedSection.hidden = false;
+            }
+        }
     } finally {
         buttons.forEach(btn => { btn.disabled = false; });
     }
@@ -14741,7 +14771,12 @@ function bindRenterSavedPropertiesShortcut() {
     const section=document.getElementById("renterSavedPropertiesSection");
     if(!btn||!section||btn.dataset.gdSavedBound==="1") return;
     btn.dataset.gdSavedBound="1";
-    btn.addEventListener("click",function(){section.scrollIntoView({behavior:"smooth",block:"start"});});
+    btn.addEventListener("click",async function(){
+        section.hidden=false;
+        section.dataset.gdAutoReveal="1";
+        section.scrollIntoView({behavior:"smooth",block:"start"});
+        if(typeof loadSavedProperties==="function") await loadSavedProperties();
+    });
 }
 bindRenterSavedPropertiesShortcut();
 new MutationObserver(bindRenterSavedPropertiesShortcut).observe(document.body,{childList:true,subtree:true});
@@ -14750,7 +14785,12 @@ function bindRenterExploreNearbyShortcut() {
     const btn=document.getElementById("renterExploreNearbyBtn");
     if(!btn || btn.dataset.gdNearbyBound==="1") return;
     btn.dataset.gdNearbyBound="1";
-    btn.addEventListener("click", loadRenterNearbyHomes);
+    btn.addEventListener("click", function(){
+        const section=document.getElementById("renterNearbyPropertiesSection");
+        if(section) section.hidden=false;
+        loadRenterNearbyHomes();
+        section?.scrollIntoView({behavior:"smooth",block:"start"});
+    });
 }
 bindRenterExploreNearbyShortcut();
 new MutationObserver(bindRenterExploreNearbyShortcut).observe(document.body,{childList:true,subtree:true});
@@ -15378,14 +15418,17 @@ function updateStayTypeFields() {
                     if (loginSection) loginSection.style.display = "none";
                     if (dashboardSection) dashboardSection.style.display = "block";
 
-                    // Never expose the renter discovery surface after an Owner login.
-                    // Owners can open it only through "Explore Near Property by Me".
-                    if (homeSection) homeSection.style.display = destinationRole === "renter" ? "block" : "none";
-                    if (propertiesSection) propertiesSection.style.display = destinationRole === "renter" ? "block" : "none";
+                    // IMPORTANT: a renter must land directly on the Renter Dashboard.
+                    // The public landing/search pages are NOT part of the authenticated
+                    // renter home screen. They are opened only through Find a Home /
+                    // Explore Nearby after the renter explicitly asks for discovery.
+                    if (homeSection) homeSection.style.display = "none";
+                    if (propertiesSection) propertiesSection.style.display = "none";
+                    document.body.classList.remove("gd-renter-explore-mode");
 
                     await renderActiveDashboard();
-                    if (destinationRole === "renter" && homeSection) {
-                        homeSection.scrollIntoView({ behavior: "smooth", block: "start" });
+                    if (destinationRole === "renter") {
+                        document.getElementById("dashboardSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }
                 } else {
                     openLoginAs(pendingLoginRole);
@@ -18292,12 +18335,19 @@ body.gd-auth-page #gdAuthFormShell input{
     $("furnishedSelect").value=prefs.furnishing;
     $("propertyStatusSelect").value=prefs.status;
     $("radiusSelect").value=prefs.radius||"3";
+
+    // Enter renter discovery mode only after the renter submits requirements.
+    document.body.classList.add("gd-renter-explore-mode");
+    const home=$("homeSection"), properties=$("propertiesSection");
+    if(home) home.style.display="block";
+    if(properties) properties.style.display="block";
+
     await filterProperties();
+
     const find=$("renterFindHomeSection"), dash=$("dashboardSection");
     if(find) find.hidden=true;
     if(dash) dash.style.display="none";
-    document.body.classList.add("gd-renter-explore-mode");
-    $("propertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+    properties?.scrollIntoView({behavior:"smooth",block:"start"});
     msg.textContent="";
   }
   function bind(){
@@ -18306,13 +18356,23 @@ body.gd-auth-page #gdAuthFormShell input{
     $("renterFindHomeCancelBtn")?.addEventListener("click",closePage);
     $("renterStayType")?.addEventListener("change",updateRenterSharedFields);
     $("renterEditProfileBtn")?.addEventListener("click",function(){if(typeof openRenterProfileEditor==="function")openRenterProfileEditor();});
-    $("renterSavedPropertiesBtn")?.addEventListener("click",function(){
+    $("renterSavedPropertiesBtn")?.addEventListener("click",async function(){
       const section=$("renterSavedPropertiesSection"); if(!section)return;
-      section.hidden=false; section.scrollIntoView({behavior:"smooth",block:"start"});
+      section.dataset.gdAutoReveal="1";
+      section.hidden=false;
+      section.scrollIntoView({behavior:"smooth",block:"start"});
+      if(typeof loadSavedProperties==="function"){
+        await loadSavedProperties();
+      }
     });
     $("renterExploreNearbyBtn")?.addEventListener("click",function(){
-      const section=$("renterNearbyPropertiesSection"); if(section)section.hidden=false;
-      if(typeof loadRenterNearbyHomes==="function")loadRenterNearbyHomes();
+      const section=$("renterNearbyPropertiesSection");
+      if(section) section.hidden=false;
+      const stored=JSON.parse(localStorage.getItem("gdrRenterSearchPreferences")||"null");
+      const radius=stored?.radius || "3";
+      const radiusSelect=document.getElementById("radiusSelect");
+      if(radiusSelect) radiusSelect.value=radius;
+      if(typeof loadRenterNearbyHomes==="function") loadRenterNearbyHomes();
       section?.scrollIntoView({behavior:"smooth",block:"start"});
     });
     $("renterExploreNearbyRefreshBtn")?.addEventListener("click",function(){if(typeof loadRenterNearbyHomes==="function")loadRenterNearbyHomes();});
@@ -18545,17 +18605,30 @@ body.gd-auth-page #gdAuthFormShell input{
         }
 
         if(action==="home"){
-          if(role==="owner") document.getElementById("dashboardSection")?.scrollIntoView({behavior:"smooth",block:"start"});
-          else document.getElementById("homeSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+          document.body.classList.remove("gd-renter-explore-mode");
+          if(role==="owner") {
+            document.getElementById("dashboardSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+          } else {
+            const find=document.getElementById("renterFindHomeSection");
+            if(find) find.hidden=true;
+            const dash=document.getElementById("dashboardSection");
+            if(dash) dash.style.display="block";
+            document.getElementById("dashboardSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+          }
         }else if(action==="explore"){
           if(role==="owner") run(function(){openOwnerNearbyHomes();});
-          else document.getElementById("propertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+          else if(typeof openRenterFindHomePage==="function") openRenterFindHomePage();
         }else if(action==="saved"){
           const id=role==="owner" ? "ownerSavedPropertiesBtn" : "renterSavedPropertiesBtn";
           const target=document.getElementById(id);
           if(target) target.click();
           else document.getElementById(role==="owner" ? "ownerSavedPropertiesSection" : "renterSavedPropertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
         }else if(action==="account"){
+          document.body.classList.remove("gd-renter-explore-mode");
+          const find=document.getElementById("renterFindHomeSection");
+          if(find) find.hidden=true;
+          const dash=document.getElementById("dashboardSection");
+          if(dash) dash.style.display="block";
           document.getElementById("dashboardSection")?.scrollIntoView({behavior:"smooth",block:"start"});
         }
       });
