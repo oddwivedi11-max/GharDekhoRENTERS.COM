@@ -9729,9 +9729,13 @@ function clearAuthFormFields(){
      * back to "Welcome back, Renter". Keep Admin presentation authoritative
      * until the admin login attempt finishes.
      */
+    const adminRoute =
+        window.location.pathname.replace(/\\/+$/, "") === "/admin" ||
+        new URLSearchParams(window.location.search).get("admin") === "1";
     const adminMode =
-        window.__gdAdminLoginRequested === true ||
-        sessionStorage.getItem("gd_login_destination") === "admin";
+        adminRoute &&
+        (window.__gdAdminLoginRequested === true ||
+         sessionStorage.getItem("gd_login_destination") === "admin");
 
     if (adminMode) {
         const title=document.getElementById("premiumAuthTitle");
@@ -9793,6 +9797,24 @@ function openLoginSection(role){
 }
 function openLoginAs(role){
     const selectedRole = role === "owner" ? "owner" : "renter";
+
+    // Renter/Owner entry must ALWAYS exit Admin mode. Admin is reachable
+    // only through the explicit /admin or ?admin=1 URL entry point.
+    window.__gdAdminLoginRequested = false;
+    sessionStorage.removeItem("gd_login_destination");
+    sessionStorage.removeItem("gd_pending_login_role");
+    sessionStorage.removeItem("gd_active_role");
+
+    // If the user reached this screen through /admin/?admin=1, move the
+    // normal Renter/Owner login back to the public root before rendering it.
+    try {
+        const path = window.location.pathname.replace(/\\/+$/, "") || "/";
+        const query = new URLSearchParams(window.location.search);
+        if (path === "/admin" || query.get("admin") === "1") {
+            window.history.replaceState({gdAuth:true}, document.title, window.location.origin + "/#login");
+        }
+    } catch (err) {}
+
     pendingLoginRole = selectedRole;
     activeRole = selectedRole;
     sessionStorage.setItem("gd_pending_login_role", selectedRole);
@@ -10298,7 +10320,8 @@ function setRoleSpecificUI(role) {
     if (homeNavLink) homeNavLink.style.display = canExploreHomes ? "inline-block" : "none";
     if (propertiesNavLink) propertiesNavLink.style.display = canExploreHomes ? "inline-block" : "none";
     if (ownerNavLink) ownerNavLink.style.display = isOwner ? "inline-block" : "none";
-    if (adminNavLink) adminNavLink.style.display = isAdmin ? "inline-block" : "none";
+    // Admin is a private URL entry point, never a normal navigation item.
+    if (adminNavLink) adminNavLink.style.display = "none";
     if (adminDashboard) {
         adminDashboard.classList.toggle("active", isAdmin);
         adminDashboard.style.display = isAdmin ? "block" : "none";
@@ -10511,8 +10534,12 @@ async function updateAuthUI() {
      * If the user explicitly entered Admin mode, or an existing admin session
      * was restored after a refresh, keep the admin destination authoritative.
      */
+    const adminRoute =
+        window.location.pathname.replace(/\\/+$/, "") === "/admin" ||
+        new URLSearchParams(window.location.search).get("admin") === "1";
     const adminDestination =
         isAdminAccount() &&
+        adminRoute &&
         (window.__gdAdminLoginRequested === true ||
          sessionStorage.getItem("gd_login_destination") === "admin" ||
          activeRole === "admin");
@@ -11475,8 +11502,15 @@ async function renderActiveDashboard() {
     const subtitle = document.getElementById("dashboardSubtitle");
     const roleBadge = document.getElementById("dashboardRoleBadge");
     const dashboardIdentity = document.getElementById("dashboardIdentity");
+    const dashboardLogoutBtn = document.getElementById("dashboardLogoutBtn");
 
     if (!renter || !owner || !dashboard) return;
+
+    // Authenticated Renter/Owner dashboards must always expose logout.
+    if (dashboardLogoutBtn) {
+        dashboardLogoutBtn.style.display = "inline-flex";
+        dashboardLogoutBtn.disabled = false;
+    }
 
     resetDashboardStats();
 
@@ -14974,6 +15008,16 @@ function updateStayTypeFields() {
                 openAdminLogin();
                 console.log("GharDekho Admin route ready.");
                 return;
+            }
+
+            // A normal public login route can never inherit a stale Admin mode.
+            window.__gdAdminLoginRequested = false;
+            sessionStorage.removeItem("gd_login_destination");
+            if (sessionStorage.getItem("gd_pending_login_role") === "admin") {
+                sessionStorage.removeItem("gd_pending_login_role");
+            }
+            if (sessionStorage.getItem("gd_active_role") === "admin") {
+                sessionStorage.removeItem("gd_active_role");
             }
 
             const tokenHashRecovery = await handlePasswordRecoveryTokenHash();
