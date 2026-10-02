@@ -8809,6 +8809,13 @@ body.gd-auth-page #gdAuthFormShell .gd-auth-back:active{
 @media(prefers-reduced-motion:reduce){
   #logoutBtn::after{animation:none!important}
 }
+/* AUTHENTICATED USERS: dashboard uses Logout only. */
+body.gd-authenticated #loginBtn{display:none!important}
+body.gd-authenticated #logoutBtn{display:inline-flex!important}
+body.gd-authenticated #dashboardSection #loginBtn{display:none!important}
+.renter-nearby-properties-card{margin-top:16px}
+.renter-nearby-refresh{border:1px solid #bfe2dc;background:#eef9f6;color:#0b625a;cursor:pointer}
+.renter-nearby-refresh:disabled{opacity:.65;cursor:wait}
 </style>
 </head>
 
@@ -9065,17 +9072,6 @@ body.gd-auth-page #gdAuthFormShell .gd-auth-back:active{
       <label class="gd-v6-search-field"><span>PROPERTY STATUS</span><select id="propertyStatusSelect" aria-label="Property availability"><option value="">All Properties</option><option value="vacant">Vacant Properties</option></select></label>
       <label class="gd-v6-search-field"><span>STAY TYPE</span><select id="listingTypeSelect" aria-label="Listing type"><option value="">All stays</option><option value="home">🏠 Homes</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostels</option></select></label>
       <label class="gd-v6-search-field"><span>SIZE</span><select id="bhkSelect"><option value="">Any BHK</option><option value="1">1 BHK</option><option value="2">2 BHK</option><option value="3">3 BHK</option><option value="4">4 BHK</option><option value="5">5+ BHK</option></select></label>
-      <div class="gd-v6-search-field gd-budget-field">
-        <span>BUDGET</span>
-        <select id="budgetSelect" aria-label="Quick maximum budget">
-          <option value="">Quick budget (optional)</option>
-          <option value="5000">Up to ₹5,000</option>
-          <option value="10000">Up to ₹10,000</option>
-          <option value="15000">Up to ₹15,000</option>
-          <option value="20000">Up to ₹20,000</option>
-          <option value="30000">Up to ₹30,000</option>
-        </select>
-      </div>
       <label class="gd-v6-search-field"><span>FURNISHING</span><select id="furnishedSelect"><option value="">Any Furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-Furnished</option><option value="Unfurnished">Unfurnished</option></select></label>
       <button id="searchBtn" type="button" aria-label="Search rental properties">Find homes <span>→</span></button>
       <button id="nearMeBtn" type="button" aria-label="Find rental properties near your current location">📍 Find Near Me</button>
@@ -9305,6 +9301,18 @@ body.gd-auth-page #gdAuthFormShell .gd-auth-back:active{
                     <button type="button" class="dashboard-primary-action" id="renterFindHomeBtn">🔎 Find a Home</button>
                     <button type="button" class="dashboard-secondary-action" id="renterTopPropertiesBtn">🏠 View Properties</button>
                     <button type="button" class="dashboard-secondary-action" id="renterSavedPropertiesBtn">❤️ Saved Properties</button>
+                </div>
+
+                <div class="dashboard-card renter-nearby-properties-card" id="renterNearbyPropertiesSection">
+                    <div class="dashboard-card-heading">
+                        <div>
+                            <span class="dashboard-section-kicker">NEARBY HOMES</span>
+                            <h3>Homes Near You</h3>
+                            <p class="dashboard-muted">Tap Explore Nearby to discover available rental properties around your location.</p>
+                        </div>
+                        <button type="button" class="dashboard-mini-badge renter-nearby-refresh" id="renterExploreNearbyBtn">📍 Explore Nearby</button>
+                    </div>
+                    <div id="renterNearbyContainer"><p class="dashboard-empty">Tap <strong>Explore Nearby</strong> to load nearby properties.</p></div>
                 </div>
 
                 <div class="dashboard-two-column">
@@ -10554,7 +10562,7 @@ function resetRoleSpecificUI() {
 
     // Clear old renter search values so a fresh logout never shows the
     // previous user's search/filter state.
-    ["locationInput","listingTypeSelect","bhkSelect","budgetSelect","furnishedSelect"].forEach(id => {
+    ["locationInput","listingTypeSelect","bhkSelect","furnishedSelect"].forEach(id => {
         const el = document.getElementById(id);
         if (el) el.value = "";
     });
@@ -11089,16 +11097,17 @@ async function loginUser() {
             const dashboardSection = document.getElementById("dashboardSection");
             if (landing) landing.style.display = "none";
             if (loginSection) loginSection.style.display = "none";
-            if (homeSection) homeSection.style.display = "block";
-            if (propertiesSection) propertiesSection.style.display = "block";
+            // After Renter login, show ONLY the renter dashboard first.
+            // Discovery/search opens only when the renter taps Find a Home or Explore Nearby.
+            if (homeSection) homeSection.style.display = "none";
+            if (propertiesSection) propertiesSection.style.display = "none";
             if (dashboardSection) dashboardSection.style.display = "block";
+            document.body.classList.remove("gd-renter-explore-mode");
 
             await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
                 console.warn("Renter dashboard loading timed out:", error);
             });
-            if (homeSection) {
-                homeSection.scrollIntoView({ behavior: "smooth", block: "start" });
-            }
+            scrollToSection("dashboardSection");
         } else {
             // Owner login must persist Owner access before updateAuthUI/rendering.
             // Otherwise an account whose users.roles still contains only renter
@@ -14650,6 +14659,44 @@ function bindRenterBecomeOwnerShortcut() {
 bindRenterBecomeOwnerShortcut();
 new MutationObserver(bindRenterBecomeOwnerShortcut).observe(document.body,{childList:true,subtree:true});
 
+async function loadRenterNearbyHomes() {
+    const container = document.getElementById("renterNearbyContainer");
+    const button = document.getElementById("renterExploreNearbyBtn");
+    if (!container) return;
+    if (button) { button.disabled = true; button.textContent = "📍 Loading…"; }
+    container.innerHTML = '<div class="loading-text">Finding nearby homes…</div>';
+    try {
+        // Reuse the existing nearby/geolocation flow so radius and distance
+        // calculations stay identical to the public discovery system.
+        document.body.classList.add("gd-renter-explore-mode");
+        const homeSection = document.getElementById("homeSection");
+        const propertiesSection = document.getElementById("propertiesSection");
+        if (homeSection) homeSection.style.display = "block";
+        if (propertiesSection) propertiesSection.style.display = "block";
+        await findPropertiesNearMe();
+        // findPropertiesNearMe updates allProperties with distanceKm and
+        // renders the public property cards. Mirror those cards into the
+        // dashboard's dedicated Nearby Homes section.
+        const source = document.getElementById("propertiesContainer");
+        if (!source || !source.innerHTML.trim()) {
+            container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">📍</div><strong>No nearby properties found</strong><p>Try expanding the nearby search radius.</p></div>';
+        } else {
+            container.innerHTML = source.innerHTML;
+            container.querySelectorAll(".view-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyDetails(btn.dataset.id)));
+            container.querySelectorAll(".favorite-property-btn").forEach(btn => btn.addEventListener("click", () => saveProperty(btn.dataset.id)));
+            await Promise.allSettled(
+                Array.from(container.querySelectorAll(".favorite-property-btn")).map(btn => refreshSaveButtons(btn.dataset.id))
+            );
+        }
+        document.getElementById("renterNearbyPropertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
+    } catch (error) {
+        console.error("Renter nearby load error:", error);
+        container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">📍</div><strong>Nearby homes could not be loaded</strong><p>Please allow location access and try again.</p></div>';
+    } finally {
+        if (button) { button.disabled = false; button.textContent = "📍 Explore Nearby"; }
+    }
+}
+
 function bindRenterSavedPropertiesShortcut() {
     const btn=document.getElementById("renterSavedPropertiesBtn");
     const section=document.getElementById("renterSavedPropertiesSection");
@@ -14659,6 +14706,15 @@ function bindRenterSavedPropertiesShortcut() {
 }
 bindRenterSavedPropertiesShortcut();
 new MutationObserver(bindRenterSavedPropertiesShortcut).observe(document.body,{childList:true,subtree:true});
+
+function bindRenterExploreNearbyShortcut() {
+    const btn=document.getElementById("renterExploreNearbyBtn");
+    if(!btn || btn.dataset.gdNearbyBound==="1") return;
+    btn.dataset.gdNearbyBound="1";
+    btn.addEventListener("click", loadRenterNearbyHomes);
+}
+bindRenterExploreNearbyShortcut();
+new MutationObserver(bindRenterExploreNearbyShortcut).observe(document.body,{childList:true,subtree:true});
 
 function updateStayTypeFields() {
             const type = document.getElementById("propertyListingType")?.value || "home";
@@ -14959,6 +15015,8 @@ function updateStayTypeFields() {
                 scrollToSection("homeSection");
             });
             if (renterTopPropertiesBtn) renterTopPropertiesBtn.addEventListener("click", () => {
+                const nearbyBtn = document.getElementById("renterExploreNearbyBtn");
+                if (nearbyBtn) { nearbyBtn.click(); return; }
                 document.body.classList.add("gd-renter-explore-mode");
                 const homeSection = document.getElementById("homeSection");
                 const propertiesSection = document.getElementById("propertiesSection");
