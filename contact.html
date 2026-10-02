@@ -1,29 +1,82 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Contact GharDekho Renters | Support & Enquiries</title>
 <meta name="description" content="Contact GharDekho Renters for support, property listing questions, account issues, feedback, business enquiries and privacy requests.">
 <link rel="canonical" href="https://ghardekhorenters.com/contact.html">
 <style>
-*{box-sizing:border-box}body{margin:0;background:#f7f8f6;color:#18201f;font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.65}header{background:#fff;border-bottom:1px solid #dfe6e3;padding:18px max(20px,calc((100% - 900px)/2));display:flex;justify-content:space-between;align-items:center;gap:15px}.logo{font-weight:900;color:#174a47;text-decoration:none}.back{color:#1f5f5b;font-weight:800;text-decoration:none}main{width:min(900px,calc(100% - 28px));margin:30px auto 60px}.card{background:#fff;border:1px solid #dfe6e3;border-radius:20px;padding:28px;box-shadow:0 8px 28px rgba(24,32,31,.06)}.kicker{color:#1f5f5b;font-size:.8rem;font-weight:850;letter-spacing:.08em}h1{margin:5px 0 12px;font-size:clamp(2rem,5vw,3rem);line-height:1.1}p{color:#5f6b68}.email{display:inline-flex;min-height:50px;align-items:center;padding:0 17px;background:#e8f3f1;border-radius:12px;color:#174a47;font-weight:900;text-decoration:none;overflow-wrap:anywhere}.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px;margin-top:22px}.item{border:1px solid #dfe6e3;border-radius:15px;padding:18px}.item h2{font-size:1.05rem;margin:0 0 5px;color:#174a47}.item p{margin:0;font-size:.94rem}footer{margin-top:25px;padding-top:20px;border-top:1px solid #dfe6e3;color:#7b8582;font-size:.9rem}@media(max-width:600px){.card{padding:19px;border-radius:17px}.grid{grid-template-columns:1fr}header{padding:14px 12px}.back{font-size:.9rem}}
+*{box-sizing:border-box}
+:root{--ink:#092f2a;--green:#006c5d;--mint:#dffbef;--lime:#bfff45;--gold:#f3ad45;--line:#cfe8df}
+html{scroll-behavior:smooth}
+body{margin:0;background:linear-gradient(145deg,#effcf7,#fffdf8 55%,#eefaf5);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif;line-height:1.55}
+a{text-decoration:none;color:inherit}
+header{position:sticky;top:0;z-index:20;background:rgba(255,255,255,.88);backdrop-filter:blur(18px);border-bottom:1px solid rgba(8,78,68,.10);padding:12px max(18px,calc((100% - 980px)/2));display:flex;justify-content:space-between;align-items:center;gap:12px;box-shadow:0 8px 28px rgba(9,70,60,.07)}
+.logo{font-weight:1000;color:#073f37;letter-spacing:-.04em;font-size:1.05rem}.back{background:#063f37;color:#fff;padding:10px 15px;border-radius:999px;font-weight:900;font-size:.82rem;box-shadow:0 5px 0 #022c27}
+main{width:min(980px,calc(100% - 24px));margin:18px auto 45px}
+.card{position:relative;overflow:hidden;background:rgba(255,255,255,.88);border:1px solid rgba(8,93,78,.13);border-radius:30px;padding:clamp(22px,5vw,48px);box-shadow:0 25px 70px rgba(10,77,66,.12)}
+.card:before{content:"";position:absolute;width:330px;height:330px;border-radius:50%;right:-160px;top:-150px;background:radial-gradient(circle,#c9ff65 0,rgba(201,255,101,.16) 42%,transparent 70%);pointer-events:none}
+.hero{position:relative;display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
+.kicker{display:inline-flex;padding:7px 12px;border-radius:999px;background:#dcfaec;color:#075e51;font-size:.73rem;font-weight:1000;letter-spacing:.12em;box-shadow:inset 0 1px 0 #fff}
+h1{margin:15px 0 12px;font-size:clamp(2.6rem,7vw,5.2rem);line-height:.9;letter-spacing:-.065em;font-weight:1000}
+h1 span:nth-child(1){color:#082f2a}h1 span:nth-child(2){color:#008a72}h1 span:nth-child(3){color:#c17b17}
+.lead{font-size:clamp(1rem,2vw,1.18rem);color:#4f6762;max-width:650px}
+.hero-art{min-height:260px;border-radius:28px;background:linear-gradient(145deg,#cffff0,#d9ff9b 48%,#ffe0a0);position:relative;display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 1px 0 #fff,0 20px 45px rgba(19,112,91,.12)}
+.hero-art:before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;background:rgba(0,189,139,.22);filter:blur(8px)}
+.envelope{position:relative;width:180px;height:125px;background:linear-gradient(145deg,#087d6a,#004e43);border-radius:18px;transform:rotate(-4deg);box-shadow:0 25px 35px rgba(0,62,54,.25),0 0 25px rgba(113,255,184,.35)}
+.envelope:before{content:"@";position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:70px;height:70px;border-radius:17px;background:#fff;display:grid;place-items:center;color:#d18a20;font-size:42px;font-weight:1000;box-shadow:0 10px 20px rgba(0,0,0,.16)}
+.house{position:absolute;right:17px;top:18px;width:54px;height:44px;background:#fff4cf;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,.13)}.house:before{content:"";position:absolute;left:4px;top:-22px;border-left:23px solid transparent;border-right:23px solid transparent;border-bottom:24px solid #d58c24}.house:after{content:"";position:absolute;left:21px;bottom:0;width:12px;height:23px;background:#075b50;border-radius:4px}
+.email{position:relative;margin-top:25px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 20px;border-radius:19px;background:linear-gradient(135deg,#005f51,#007d69);color:#fff;font-size:clamp(.95rem,3vw,1.2rem);font-weight:1000;box-shadow:0 8px 0 #043d35,0 18px 34px rgba(0,102,85,.22);border:1px solid rgba(255,255,255,.35)}
+.email small{display:block;font-size:.65rem;opacity:.72;letter-spacing:.1em}.copy{font-size:1.35rem}
+.notice{margin-top:18px;padding:17px 18px;border-radius:19px;background:linear-gradient(135deg,#e9fff5,#f7ffe8);border:1px solid #cceadf;color:#49635d;font-size:.9rem}
+.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px}
+.item{min-height:132px;padding:20px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.8);box-shadow:0 10px 25px rgba(19,74,65,.06);transition:transform .18s ease,box-shadow .18s ease}
+.item:hover{transform:translateY(-4px);box-shadow:0 17px 35px rgba(19,74,65,.11)}
+.icon{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;font-size:21px;background:linear-gradient(145deg,#baff54,#54edaf);box-shadow:0 7px 14px rgba(24,151,116,.15);margin-bottom:11px}
+.item:nth-child(2) .icon{background:linear-gradient(145deg,#ffd65e,#ff9e28)}.item:nth-child(3) .icon{background:linear-gradient(145deg,#8ce5ff,#4c8fff)}.item:nth-child(4) .icon{background:linear-gradient(145deg,#d5b4ff,#8f70ed)}
+.item h2{font-size:1.02rem;margin:0 0 5px;color:#073f37;font-weight:1000}.item p{margin:0;color:#687a76;font-size:.84rem}
+.quick{display:grid;gap:11px;margin-top:22px}.quick a{min-height:58px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;border-radius:17px;background:#fff;border:1px solid #d5e8e2;color:#07594e;font-weight:1000;box-shadow:0 7px 18px rgba(16,75,65,.06);transition:.18s}.quick a:hover{transform:translateY(-2px);box-shadow:0 13px 25px rgba(16,75,65,.1)}.arrow{font-size:1.5rem}
+footer{margin-top:28px;border-radius:26px;padding:30px 25px;background:linear-gradient(145deg,#003d34,#006c5c 65%,#07564b);color:#fff;position:relative;overflow:hidden;box-shadow:0 22px 50px rgba(0,70,59,.22)}
+footer:before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;right:-120px;top:-130px;border:1px solid rgba(255,216,108,.38);box-shadow:0 0 0 35px rgba(255,216,108,.06),0 0 0 70px rgba(255,216,108,.04)}
+.no-broker{font-size:clamp(1.5rem,5vw,2.5rem);font-weight:1000;letter-spacing:-.04em}.no-broker em{color:#ffc76a;font-family:Georgia,serif}
+.footer-brand{margin-top:22px;font-size:1.25rem;font-weight:1000}.footer-sub{color:rgba(255,255,255,.7);font-size:.9rem}.founder{margin-top:22px;display:inline-flex;flex-direction:column;padding:13px 20px;border-radius:18px;background:linear-gradient(135deg,#073d35,#0b705f);border:1px solid rgba(197,255,99,.75);box-shadow:0 7px 0 #012c26,0 0 28px rgba(191,255,69,.18)}.founder small{color:#d5f4e9;font-weight:800;letter-spacing:.1em}.founder strong{font-size:1.4rem;color:#c8ff57;letter-spacing:.02em}.footer-bottom{margin-top:18px;color:rgba(255,255,255,.68);font-size:.78rem}
+@media(max-width:700px){header{padding:10px 12px}.back{padding:9px 12px}.hero{grid-template-columns:1fr;gap:16px}.hero-art{min-height:205px}.grid{grid-template-columns:1fr 1fr}.item{min-height:120px;padding:16px}.item:nth-child(3){grid-column:1/-1}.card{border-radius:24px;padding:20px}.email{font-size:.9rem}.copy{font-size:1.1rem}}
+@media(max-width:430px){h1{font-size:clamp(2.65rem,14vw,4rem)}.grid{grid-template-columns:1fr}.item:nth-child(3){grid-column:auto}.item{min-height:auto}.hero-art{min-height:185px}.envelope{transform:scale(.86) rotate(-4deg)}footer{padding:25px 19px}}
+@media(prefers-reduced-motion:reduce){*{scroll-behavior:auto!important;transition:none!important}}
 </style>
 </head>
 <body>
 <header><a class="logo" href="/">GharDekho Renters</a><a class="back" href="/">Back to website</a></header>
 <main><article class="card">
-<div class="kicker">CONTACT GHARDEKHO RENTERS</div>
-<h1>We're here to help</h1>
-<p>For support, property listing questions, account issues, feedback, business enquiries or privacy and legal requests, contact the GharDekho Renters team by email.</p>
-<a class="email" href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a>
-<div class="grid">
-<div class="item"><h2>Support</h2><p>Tell us about account, login, search or website issues.</p></div>
-<div class="item"><h2>Property enquiries</h2><p>Include the property or listing details relevant to your question.</p></div>
-<div class="item"><h2>Business enquiries</h2><p>Use the same email for partnership, business or platform enquiries.</p></div>
-<div class="item"><h2>Privacy &amp; legal</h2><p>Send privacy, data or Terms-related requests to the same official contact email.</p></div>
+<section class="hero">
+<div>
+<span class="kicker">✦ SUPPORT • GHARDEKHO RENTERS</span>
+<h1><span>Need help</span><br><span>or want to get</span><br><span>in touch?</span></h1>
+<p class="lead">For support, property-listing questions, account issues, feedback, business enquiries or legal and privacy requests, please contact GharDekho Renters by email.</p>
+<a class="email" href="mailto:ghardekhorenters@gmail.com"><span><small>CONTACT US AT</small>ghardekhorenters@gmail.com</span><b class="copy">↗</b></a>
 </div>
-<p><strong>Safety:</strong> Never email passwords, OTPs, Aadhaar numbers, bank credentials or other sensitive authentication information.</p>
-<footer>© 2026 GharDekho Renters. All rights reserved. Founded &amp; Created by OD Dwivedi.</footer>
+<div class="hero-art" aria-hidden="true"><div class="envelope"><div class="house"></div></div></div>
+</section>
+<div class="notice">🛡️ <strong>For faster assistance:</strong> include your registered email and relevant property or account details. Please do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</div>
+<div class="grid">
+<div class="item"><div class="icon">💬</div><h2>Support</h2><p>Account, login, search or website issues.</p></div>
+<div class="item"><div class="icon">🏠</div><h2>Property enquiries</h2><p>Include relevant property or listing details.</p></div>
+<div class="item"><div class="icon">🤝</div><h2>Business enquiries</h2><p>Partnership, business or platform enquiries.</p></div>
+<div class="item"><div class="icon">🔐</div><h2>Privacy &amp; legal</h2><p>Privacy, data or Terms-related requests.</p></div>
+</div>
+<nav class="quick" aria-label="Quick links">
+<a href="/contact.html"><span>Contact</span><span class="arrow">›</span></a>
+<a href="/privacy.html"><span>Privacy Policy</span><span class="arrow">›</span></a>
+<a href="/terms.html"><span>Terms of Use</span><span class="arrow">›</span></a>
+</nav>
+<footer>
+<div class="no-broker">NO BROKERAGE <em>COST BY GDR.</em></div>
+<div class="footer-brand">GharDekho Renters</div>
+<div class="footer-sub">Connecting People. Building Better Rentals.</div>
+<div class="founder"><small>FOUNDER &amp; DEVELOPER</small><strong>OD DWIVEDI</strong></div>
+<div class="footer-bottom">© 2026 GharDekho Renters. All rights reserved.</div>
+</footer>
 </article></main>
 </body>
 </html>
