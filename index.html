@@ -7208,7 +7208,44 @@ html.gd-login-route body.gd-auth-page #loginSection{
  #loggedOutLanding>.gdr-hunter-home-section{display:none!important}
 }
 @media(prefers-reduced-motion:reduce){.gdr-monster-hunter-cta:after{animation:none}}
-</style></head>
+</style><style id="gdr-monster-hunter-mobile-final-v5">
+/* FINAL MOBILE HOME CLEANUP — keep the Monster Hunter CTA in real document flow. */
+@media(max-width:760px){
+  #loggedOutLanding .gdr-monster-hunter-cta-wrap{
+    order:4!important;
+    position:relative!important;
+    z-index:12!important;
+    width:100%!important;
+    max-width:430px!important;
+    margin:18px auto 0!important;
+    padding:0!important;
+  }
+  #loggedOutLanding .gdr-monster-hunter-cta{
+    position:relative!important;
+    z-index:13!important;
+    width:100%!important;
+  }
+
+  /* The header only needs the login entry on the home screen. */
+  body>header #logoutBtn{
+    display:none!important;
+    visibility:hidden!important;
+    pointer-events:none!important;
+  }
+
+  /* Remove the old secondary/SEO-looking blocks from the mobile home flow. */
+  #loggedOutLanding>.gdr-feature-strip,
+  #loggedOutLanding>.gdr-story-stack{
+    display:none!important;
+  }
+
+  /* Give the final home content enough breathing room above the fixed nav. */
+  #loggedOutLanding{
+    padding-bottom:112px!important;
+  }
+}
+</style>
+</head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
@@ -7302,26 +7339,7 @@ html.gd-login-route body.gd-auth-page #loginSection{
             <span class="mh-arrow">↗</span>
           </a>
         </div>
-        <div class="gdr-hunter-home-section" aria-label="GDR Hunter">
-          <div class="gdr-hunter-home-inner">
-            <div class="gdr-hunter-home-copy">
-              <div class="gdr-hunter-home-kicker">HUNTER BY GDR • HOUSE-HUNTING MISSION</div>
-              <h3 class="gdr-hunter-home-title">Found a home that's not on GDR?<br><em>Help someone discover it.</em></h3>
-              <p>Found a rental property while exploring your city? Share it with GDR and help another renter discover their next home.</p>
-              <div class="gdr-hunter-home-actions">
-                <a class="gdr-hunter-enter" href="/gdr-hunter.html" data-gdr-hunter>🏠 HUNT A HOME →</a>
-                <a class="gdr-hunter-secondary" href="/gdr-hunter.html#details">Enter details first</a>
-              </div>
-              <div class="gdr-hunter-home-promise">Discover • Share • Help someone find home</div>
-            </div>
-            <div class="gdr-hunter-mini-scene" aria-hidden="true">
-              <div class="gdr-hunter-mini-grid"></div>
-              <div class="gdr-hunter-mini-card"><strong>✓ Ready to share</strong><small>Property mission active</small></div>
-              <div class="gdr-hunter-mini-pin">⌖ Location</div>
-              <div class="gdr-hunter-mini-house"><div class="gdr-hunter-mini-roof"></div><div class="gdr-hunter-mini-body"><div class="gdr-hunter-mini-door"></div></div></div>
-            </div>
-          </div>
-        </div>
+
 
       </div>
 
@@ -7353,12 +7371,6 @@ html.gd-login-route body.gd-auth-page #loginSection{
     </div>
 
 
-    <section class="gdr-hunter-home-section" aria-label="Hunter by GDR feature">
-      <div class="gdr-hunter-home-inner">
-        <div class="gdr-hunter-home-copy"><div class="gdr-hunter-home-kicker">HUNTER BY GDR</div><h3 class="gdr-hunter-home-title">You found a home.<br><em>Someone else might be looking for it.</em></h3><p>Share useful rental properties you discover around your city and help GDR build a better supply of homes for renters.</p><div class="gdr-hunter-home-actions"><a class="gdr-hunter-enter" href="/gdr-hunter.html" data-gdr-hunter>ENTER GDR HUNTER →</a></div></div>
-        <div class="gdr-hunter-mini-scene" aria-hidden="true"><div class="gdr-hunter-mini-grid"></div><div class="gdr-hunter-mini-card"><strong>📍 Property lead</strong><small>Send details to GDR</small></div><div class="gdr-hunter-mini-pin">₹ Rent</div><div class="gdr-hunter-mini-house"><div class="gdr-hunter-mini-roof"></div><div class="gdr-hunter-mini-body"><div class="gdr-hunter-mini-door"></div></div></div></div>
-      </div>
-    </section>
     <div class="gdr-feature-strip">
       <article><span>01</span><strong>Discover</strong><p>Search by area, budget, BHK and stay type.</p></article>
       <article><span>02</span><strong>Shortlist</strong><p>Save the homes you genuinely like.</p></article>
