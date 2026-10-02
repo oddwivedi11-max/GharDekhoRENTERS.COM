@@ -9963,7 +9963,7 @@ async function openLoginAs(role){
     }
 
     try {
-        const path = window.location.pathname.replace(/\\/+$/, "") || "/";
+        const path = window.location.pathname.replace(/\/+$/, "") || "/";
         const query = new URLSearchParams(window.location.search);
         if (path === "/admin" || query.get("admin") === "1") {
             const publicLoginUrl = window.location.origin + "/#login";
