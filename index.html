@@ -7790,7 +7790,34 @@ body.gd-auth-page #gdAuthFormShell .gd-v4-bottom .text-button{
   }
 }
 </style>
-</head>
+<style id="gdr-contact-admin-premium-v2">
+/* Contact + footer visual upgrade. Homepage hero/other content remains untouched. */
+#gd-contact-section{width:min(900px,calc(100% - 28px))!important;margin:38px auto 24px!important;padding:0!important}
+.gdr-contact-premium{position:relative!important;overflow:hidden!important;padding:clamp(22px,5vw,46px)!important;background:rgba(255,255,255,.92)!important;border:1px solid rgba(8,93,78,.13)!important;border-radius:30px!important;box-shadow:0 25px 70px rgba(10,77,66,.12)!important}
+.gdr-contact-grid{display:grid;grid-template-columns:1.2fr .8fr;gap:28px;align-items:center}
+.gdr-contact-badge{display:inline-flex;padding:7px 12px;border-radius:999px;background:#dcfaec;color:#075e51;font-size:.73rem;font-weight:1000;letter-spacing:.12em}
+.gdr-contact-copy h2{margin:15px 0 12px;font-size:clamp(2.6rem,7vw,5rem);line-height:.9;letter-spacing:-.065em;font-weight:1000}
+.gdr-contact-copy h2 span:nth-child(1){color:#082f2a}.gdr-contact-copy h2 span:nth-child(3){color:#008a72}.gdr-contact-copy h2 span:nth-child(5){color:#c17b17}
+.gdr-contact-lead{font-size:1.02rem;color:#4f6762!important;max-width:650px}
+.gdr-gmail-cta{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;margin-top:22px!important;padding:16px 19px!important;min-height:72px!important;border-radius:19px!important;background:linear-gradient(135deg,#005f51,#007d69)!important;color:#fff!important;border:1px solid rgba(255,255,255,.35)!important;box-shadow:0 8px 0 #043d35,0 18px 34px rgba(0,102,85,.22)!important}
+.gdr-gmail-cta small,.gdr-gmail-cta em{display:block;font-style:normal}.gdr-gmail-cta small{font-size:.62rem;letter-spacing:.12em;opacity:.78}.gdr-gmail-cta strong{display:block;font-size:clamp(.9rem,2.6vw,1.15rem)}.gdr-gmail-cta em{font-size:.68rem;opacity:.72;margin-top:2px}.gdr-gmail-cta>b{font-size:1.7rem}
+.gdr-contact-art{min-height:245px;border-radius:28px;background:linear-gradient(145deg,#cffff0,#d9ff9b 48%,#ffe0a0);position:relative;display:grid;place-items:center;overflow:hidden;box-shadow:inset 0 1px 0 #fff,0 20px 45px rgba(19,112,91,.12)}
+.gdr-contact-art:before{content:"";position:absolute;width:210px;height:210px;border-radius:50%;background:rgba(0,189,139,.22);filter:blur(8px)}
+.gdr-mail-orb{position:relative;width:165px;height:118px;border-radius:18px;background:linear-gradient(145deg,#087d6a,#004e43);transform:rotate(-4deg);box-shadow:0 25px 35px rgba(0,62,54,.25),0 0 25px rgba(113,255,184,.35);display:grid;place-items:center}
+.gdr-mail-orb span{width:68px;height:68px;border-radius:17px;background:#fff;display:grid;place-items:center;color:#d18a20;font-size:39px;font-weight:1000;box-shadow:0 10px 20px rgba(0,0,0,.16)}
+.gdr-mini-house{position:absolute;right:17px;top:17px;width:54px;height:48px;border-radius:12px;background:#fff4cf;color:#075b50;font-size:34px;display:grid;place-items:center;box-shadow:0 10px 20px rgba(0,0,0,.13)}
+.gdr-paper-plane{position:absolute;right:20px;bottom:25px;color:#eaa33a;font-size:38px;transform:rotate(-25deg);filter:drop-shadow(0 8px 10px rgba(0,0,0,.12))}
+.gdr-contact-notice{margin-top:18px;padding:17px 18px;border-radius:19px;background:linear-gradient(135deg,#e9fff5,#f7ffe8);border:1px solid #cceadf;color:#49635d;font-size:.9rem}
+.gdr-legal-premium{display:grid!important;gap:11px!important;margin-top:20px!important}
+.gdr-legal-premium a{min-height:62px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;padding:0 19px!important;border-radius:17px!important;background:#fff!important;border:1px solid #d5e8e2!important;color:#07594e!important;box-shadow:0 7px 18px rgba(16,75,65,.06)!important}
+.gdr-legal-premium a span{width:40px;height:40px;border-radius:13px;display:grid;place-items:center;background:linear-gradient(145deg,#baff54,#54edaf);font-size:19px}.gdr-legal-premium a:nth-child(2) span{background:linear-gradient(145deg,#ffd65e,#ff9e28)}.gdr-legal-premium a:nth-child(3) span{background:linear-gradient(145deg,#8ce5ff,#4c8fff)}
+.gdr-legal-premium a strong{flex:1;margin-left:13px;font-weight:1000}.gdr-legal-premium a b{font-size:1.5rem}
+#gd-founder-footer{position:relative;overflow:hidden;width:min(1180px,calc(100% - 40px));margin:25px auto 40px!important;padding:30px 25px!important;border:0!important;border-radius:26px!important;background:linear-gradient(145deg,#003d34,#006c5c 65%,#07564b)!important;color:#fff!important;box-shadow:0 22px 50px rgba(0,70,59,.22)!important}
+#gd-founder-footer:before{content:"";position:absolute;width:280px;height:280px;border-radius:50%;right:-120px;top:-130px;border:1px solid rgba(255,216,108,.38);box-shadow:0 0 0 35px rgba(255,216,108,.06),0 0 0 70px rgba(255,216,108,.04);pointer-events:none}
+.gdr-footer-tagline{font-size:clamp(1.5rem,5vw,2.5rem);font-weight:1000;letter-spacing:-.04em}.gdr-footer-tagline em{color:#ffc76a;font-family:Georgia,serif}.gdr-footer-brand{margin-top:20px;font-size:1.3rem;font-weight:1000}.gdr-footer-sub{color:rgba(255,255,255,.72);margin-top:3px}.gdr-footer-email{display:inline-block;margin-top:18px;color:#fff!important}.gdr-footer-email strong{color:#d5ff62}.gdr-founder-badge{display:inline-flex;flex-direction:column;margin-top:18px;padding:13px 20px;border-radius:18px;background:linear-gradient(135deg,#073d35,#0b705f);border:1px solid rgba(197,255,99,.75);box-shadow:0 7px 0 #012c26,0 0 28px rgba(191,255,69,.18)}.gdr-founder-badge small{color:#d5f4e9;font-weight:800;letter-spacing:.1em}.gdr-founder-badge strong{font-size:1.4rem;color:#c8ff57;letter-spacing:.02em}.gdr-founder-badge span{font-size:.8rem;color:#fff;margin-top:2px}.gdr-footer-copy{margin-top:17px;color:rgba(255,255,255,.68);font-size:.78rem}
+@media(max-width:700px){#gd-contact-section{width:calc(100% - 20px)!important}.gdr-contact-grid{grid-template-columns:1fr;gap:16px}.gdr-contact-copy h2{font-size:clamp(2.65rem,14vw,4rem)}.gdr-contact-art{min-height:185px}.gdr-mail-orb{transform:scale(.86) rotate(-4deg)}#gd-founder-footer{width:calc(100% - 20px);padding:25px 19px!important}}
+@media(prefers-reduced-motion:reduce){.gdr-gmail-cta,.gdr-legal-premium a{transition:none!important}}
+</style></head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
@@ -16836,16 +16863,25 @@ body.gd-auth-page #gdAuthFormShell input{
 </section>
 
 <section id="gd-contact-section" class="gd-contact-section" aria-label="Contact GharDekho Renters">
-  <div class="gd-contact-card">
-    <p class="gd-contact-kicker">CONTACT GHARDEKHO RENTERS</p>
-    <h2>Need help or want to get in touch?</h2>
-    <p>For support, property-listing questions, account issues, feedback, business enquiries or legal and privacy requests, please contact GharDekho Renters by email.</p>
-    <a class="gd-contact-email" href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a>
-    <p class="gd-contact-note">For faster assistance, please include your registered email and relevant property or account details. Please do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</p>
-    <nav class="gd-legal-links" aria-label="Legal links">
-      <a href="/contact.html">Contact</a>
-      <a href="/privacy.html">Privacy Policy</a>
-      <a href="/terms.html">Terms of Use</a>
+  <div class="gd-contact-card gdr-contact-premium">
+    <div class="gdr-contact-grid">
+      <div class="gdr-contact-copy">
+        <span class="gdr-contact-badge">✦ SUPPORT • GHARDEKHO RENTERS</span>
+        <h2><span>Need help</span><br><span>or want to get</span><br><span>in touch?</span></h2>
+        <p class="gdr-contact-lead">For support, property-listing questions, account issues, feedback, business enquiries or legal and privacy requests, please contact GharDekho Renters by email.</p>
+        <a class="gd-contact-email gdr-gmail-cta" href="https://mail.google.com/mail/?view=cm&fs=1&to=ghardekhorenters@gmail.com" target="_blank" rel="noopener" aria-label="Open Gmail to contact GharDekho Renters">
+          <span><small>CONTACT US AT</small><strong>ghardekhorenters@gmail.com</strong><em>Open Gmail to send message</em></span><b>↗</b>
+        </a>
+      </div>
+      <div class="gdr-contact-art" aria-hidden="true">
+        <div class="gdr-mail-orb"><span>@</span></div><div class="gdr-mini-house">⌂</div><div class="gdr-paper-plane">➤</div>
+      </div>
+    </div>
+    <div class="gdr-contact-notice">🛡️ <strong>For faster assistance:</strong> include your registered email and relevant property or account details. Please do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</div>
+    <nav class="gd-legal-links gdr-legal-premium" aria-label="Legal links">
+      <a href="/contact.html"><span>💬</span><strong>Contact</strong><b>›</b></a>
+      <a href="/privacy.html"><span>🔐</span><strong>Privacy Policy</strong><b>›</b></a>
+      <a href="/terms.html"><span>📄</span><strong>Terms of Use</strong><b>›</b></a>
     </nav>
   </div>
 </section>
@@ -16878,11 +16914,11 @@ body.gd-auth-page #gdAuthFormShell input{
 
 <footer id="gd-founder-footer" aria-label="GharDekho Renters footer">
   <div class="gdr-footer-tagline"><strong>NO BROKERAGE</strong> <em>COST BY GDR.</em></div>
-    <div class="gd-founder-credit">
-        <strong>GharDekho Renters</strong>
-        <span>Contact: <a href="mailto:ghardekhorenters@gmail.com">ghardekhorenters@gmail.com</a></span>
-        <span>&copy; 2026 GharDekho Renters. All rights reserved.</span>
-    </div>
+  <div class="gdr-footer-brand">GharDekho Renters</div>
+  <div class="gdr-footer-sub">Connecting People. Building Better Rentals.</div>
+  <a class="gdr-footer-email" href="https://mail.google.com/mail/?view=cm&fs=1&to=ghardekhorenters@gmail.com" target="_blank" rel="noopener">✉️ Contact: <strong>ghardekhorenters@gmail.com</strong></a>
+  <div class="gdr-founder-badge"><small>FOUNDER &amp; DEVELOPER</small><strong>OD DWIVEDI</strong><span>&lt;/&gt;</span></div>
+  <div class="gdr-footer-copy">&copy; 2026 GharDekho Renters. All rights reserved.</div>
 </footer>
 
 <script id="gdr-auth-flow-final-v3">
