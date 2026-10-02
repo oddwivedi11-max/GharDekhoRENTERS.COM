@@ -14807,16 +14807,90 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
                 btn.addEventListener("click", async function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
+
                     const propertyId = this.getAttribute("data-id");
-                    if (!propertyId) return;
+                    if (!propertyId || this.dataset.removing === "1") return;
+
+                    this.dataset.removing = "1";
                     this.disabled = true;
                     this.textContent = "Removing…";
+
                     try {
-                        await saveProperty(propertyId);
+                        if (!currentUser) {
+                            throw new Error("Please login again before removing this saved home.");
+                        }
+
+                        /*
+                         * IMPORTANT:
+                         * Do NOT call saveProperty() here.
+                         * saveProperty() is a generic save/toggle entry point and
+                         * this button is already specifically an UNSAVE action.
+                         * Calling the generic toggle from multiple UI paths can
+                         * toggle the same row twice and make it appear saved again.
+                         */
+                        const { data: toggleData, error: toggleError } = await supabaseClient
+                            .rpc("toggle_saved_property", { p_property_id: propertyId });
+
+                        if (toggleError) throw toggleError;
+
+                        const rawSaved = Array.isArray(toggleData)
+                            ? toggleData[0]?.saved
+                            : (toggleData && typeof toggleData === "object" ? toggleData.saved : toggleData);
+
+                        const savedAfterToggle =
+                            rawSaved === true ||
+                            rawSaved === 1 ||
+                            String(rawSaved).toLowerCase() === "true";
+
+                        if (savedAfterToggle) {
+                            throw new Error("The property was not removed. Please try Unsave once more.");
+                        }
+
+                        // Remove the card immediately — no stale visual state.
+                        const card = this.closest(".saved-property-card");
+                        if (card) card.remove();
+
+                        // Re-read the user's saved homes from Supabase.
+                        const { data: freshRows, error: freshError } =
+                            await supabaseClient.rpc("get_my_saved_properties");
+
+                        if (freshError) throw freshError;
+
+                        const remaining = Array.isArray(freshRows) ? freshRows : [];
+                        const count = remaining.length;
+
+                        const countEl = document.getElementById("renterSavedCount");
+                        const sectionCountEl = document.getElementById("renterSavedSectionCount");
+                        const actionCount = document.getElementById("renterSavedActionCount");
+
+                        if (countEl) countEl.textContent = String(count);
+                        if (sectionCountEl) sectionCountEl.textContent = count + " saved";
+                        if (actionCount) actionCount.textContent = count ? count + " saved homes" : "No saved homes yet";
+
+                        if (count === 0) {
+                            container.innerHTML = `
+                                <div class="saved-empty-state">
+                                    <div class="saved-empty-icon">♡</div>
+                                    <strong>No saved properties yet</strong>
+                                    <p>No property saved yet. Explore homes and tap <b>♡ Save</b> on any property you like.</p>
+                                </div>
+                            `;
+                        } else {
+                            // Keep the server state authoritative after removal.
+                            await loadSavedProperties();
+                        }
+
+                        showMessage("backendMessage", "Property removed from saved homes.", "success");
                     } catch (error) {
                         console.error("Saved property remove error:", error);
-                        showMessage("backendMessage", "Could not remove this property right now.", "error");
+                        showMessage(
+                            "backendMessage",
+                            getSafeErrorMessage(error, "Could not remove this property right now."),
+                            "error"
+                        );
                         this.disabled = false;
+                        this.dataset.removing = "0";
                         this.textContent = "♡ Unsave";
                     }
                 });
