@@ -2103,7 +2103,8 @@ body.gd-owner-mode:not(.gd-owner-explore-mode) #propertiesNavLink { display:none
 
 body.gd-renter-mode #ownerNavLink { display:none !important; }
 body.gd-renter-mode #ownerDashboard { display:none !important; }
-body.gd-renter-mode:not(.gd-renter-explore-mode) #loggedOutLanding,
+/* Authenticated renter: the public landing page is NEVER part of the dashboard. */
+body.gd-renter-mode #loggedOutLanding { display:none !important; }
 body.gd-renter-mode:not(.gd-renter-explore-mode) #homeSection,
 body.gd-renter-mode:not(.gd-renter-explore-mode) #propertiesSection,
 body.gd-renter-mode:not(.gd-renter-explore-mode) #propertyDetails,
@@ -15466,6 +15467,14 @@ function updateStayTypeFields() {
 
                     await renderActiveDashboard();
                     if (destinationRole === "renter") {
+                        document.body.classList.add("gd-authenticated","gd-renter-mode");
+                        document.body.classList.remove("gd-renter-explore-mode","gd-renter-find-page-open");
+                        const renterLanding=document.getElementById("loggedOutLanding");
+                        const renterHome=document.getElementById("homeSection");
+                        const renterProperties=document.getElementById("propertiesSection");
+                        if(renterLanding) renterLanding.style.display="none";
+                        if(renterHome) renterHome.style.display="none";
+                        if(renterProperties) renterProperties.style.display="none";
                         document.getElementById("dashboardSection")?.scrollIntoView({ behavior: "smooth", block: "start" });
                     }
                 } else {
@@ -15512,7 +15521,16 @@ function updateStayTypeFields() {
     document.body.appendChild(nav);
 
     nav.querySelector('[data-gd-nav="home"]').addEventListener("click",function(){
-      if(typeof scrollToSection==="function") scrollToSection("homeSection");
+      if(document.body.classList.contains("gd-renter-mode")){
+        document.body.classList.remove("gd-renter-explore-mode","gd-renter-find-page-open");
+        const find=document.getElementById("renterFindHomeSection");
+        if(find){find.hidden=true;find.classList.remove("gd-force-visible");}
+        const dashboard=document.getElementById("dashboardSection");
+        if(dashboard) dashboard.style.display="block";
+        dashboard?.scrollIntoView({behavior:"smooth",block:"start"});
+      }else if(typeof scrollToSection==="function"){
+        scrollToSection("homeSection");
+      }
       gdSetMobileNavActive("home");
     });
     nav.querySelector('[data-gd-nav="properties"]').addEventListener("click",function(){
