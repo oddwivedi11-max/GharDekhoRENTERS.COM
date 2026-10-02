@@ -8155,6 +8155,296 @@ body.gd-auth-page #gdAuthFormShell .gd-v4-preview-meta strong{
   body.gd-auth-page #gdAuthFormShell .gd-v4-preview-image{height:150px!important}
   body.gd-auth-page #gdAuthFormShell .gd-v4-house{transform:translateX(-50%) scale(.74)!important;transform-origin:bottom!important}
 }
+</style><style id="gdr-auth-ice-blue-premium-v5">
+/* GDR AUTH — ICE BLUE PREMIUM FORM ONLY
+   Intentionally scoped to #gdAuthFormShell.
+   Does NOT modify page/body background, hero, navigation, routing,
+   Supabase/auth handlers, form IDs, or existing functionality. */
+body.gd-auth-page #gdAuthFormShell{
+  --ice:#eef9ff;
+  --ice2:#e4f5fc;
+  --ice3:#d5eef8;
+  --cyan:#18a9bd;
+  --cyan2:#0b7f95;
+  --teal:#164b55;
+  --ink:#102f36;
+  --muted:#647d84;
+  --line:#c8e0e8;
+  --orange:#f5b56e;
+  background:linear-gradient(145deg,#ffffff 0%,#f7fcff 54%,#eef8fc 100%)!important;
+  border:1px solid #c9e1e9!important;
+  border-radius:30px!important;
+  box-shadow:
+    0 28px 70px rgba(31,91,108,.14),
+    0 8px 22px rgba(31,91,108,.08),
+    inset 0 1px 0 rgba(255,255,255,.95)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form{
+  position:relative!important;
+  overflow:hidden!important;
+  background:
+    radial-gradient(circle at 92% 4%,rgba(102,214,235,.14),transparent 22%),
+    radial-gradient(circle at 3% 88%,rgba(154,224,244,.12),transparent 24%),
+    linear-gradient(180deg,#f9fdff 0%,#ffffff 48%,#f5fbfe 100%)!important;
+  color:var(--ink)!important;
+  border-left:1px solid rgba(113,181,199,.12)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form:before,
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form:after{
+  content:""!important;
+  position:absolute!important;
+  pointer-events:none!important;
+  z-index:0!important;
+  border-radius:50%!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form:before{
+  width:150px;height:150px;right:-78px;top:86px;
+  border:1px solid rgba(24,169,189,.14);
+  box-shadow:0 0 0 22px rgba(24,169,189,.035),0 0 0 44px rgba(24,169,189,.02);
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form:after{
+  width:90px;height:90px;left:-48px;bottom:80px;
+  background:linear-gradient(145deg,rgba(177,235,248,.22),rgba(255,255,255,.04));
+  border:1px solid rgba(24,169,189,.10);
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form > *{position:relative;z-index:1}
+body.gd-auth-page #gdAuthFormShell .gd-auth-back{
+  color:#147b8d!important;
+  font-weight:950!important;
+  text-decoration:none!important;
+  min-height:48px!important;
+  display:inline-flex!important;
+  align-items:center!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-auth-mode-tabs{
+  display:grid!important;
+  grid-template-columns:1fr 1fr!important;
+  gap:7px!important;
+  padding:6px!important;
+  background:linear-gradient(145deg,#e6f5fb,#dff1f7)!important;
+  border:1px solid #c2dfe8!important;
+  border-radius:20px!important;
+  box-shadow:
+    inset 0 2px 5px rgba(46,105,119,.08),
+    0 9px 24px rgba(41,107,123,.08)!important;
+}
+body.gd-auth-page #gdAuthFormShell #authSignUpTab,
+body.gd-auth-page #gdAuthFormShell #authSignInTab{
+  min-height:50px!important;
+  border-radius:15px!important;
+  border:1px solid transparent!important;
+  background:transparent!important;
+  color:#38626b!important;
+  font-weight:900!important;
+  box-shadow:none!important;
+  text-shadow:none!important;
+  transition:all .18s ease!important;
+}
+body.gd-auth-page #gdAuthFormShell #authSignUpTab:hover,
+body.gd-auth-page #gdAuthFormShell #authSignInTab:hover{
+  color:#0b7184!important;
+  background:rgba(255,255,255,.56)!important;
+  transform:translateY(-1px)!important;
+}
+body.gd-auth-page #gdAuthFormShell #authSignUpTab[style*="background"],
+body.gd-auth-page #gdAuthFormShell #authSignInTab[style*="background"]{
+  background:linear-gradient(145deg,#ffffff,#eefaff)!important;
+  color:#0b6172!important;
+  border-color:#b9dce6!important;
+  box-shadow:
+    0 4px 0 #c7e5ed,
+    0 8px 18px rgba(42,116,133,.10),
+    inset 0 1px 0 #fff!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-form-kicker{
+  color:#138399!important;
+  -webkit-text-fill-color:#138399!important;
+  font-weight:1000!important;
+  letter-spacing:.18em!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-form-head h2{
+  color:#102f36!important;
+  -webkit-text-fill-color:#102f36!important;
+  font-weight:950!important;
+  letter-spacing:-.055em!important;
+  text-shadow:0 4px 14px rgba(34,84,96,.07)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-form-head p{
+  color:#627a81!important;
+  -webkit-text-fill-color:#627a81!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-field>span:first-child{
+  color:#234a53!important;
+  -webkit-text-fill-color:#234a53!important;
+  font-weight:900!important;
+  letter-spacing:.075em!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-field input{
+  width:100%!important;
+  min-height:56px!important;
+  border-radius:17px!important;
+  border:1px solid #c7dfe7!important;
+  background:linear-gradient(180deg,#ffffff,#f6fbfd)!important;
+  color:#163942!important;
+  font-size:16px!important;
+  box-shadow:
+    inset 0 2px 4px rgba(33,90,104,.045),
+    0 7px 18px rgba(35,100,116,.055)!important;
+  transition:border-color .18s ease,box-shadow .18s ease,transform .18s ease!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-field input::placeholder{
+  color:#789098!important;
+  opacity:1!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-field input:focus{
+  outline:none!important;
+  border-color:#48b8ca!important;
+  box-shadow:
+    0 0 0 4px rgba(72,184,202,.13),
+    0 10px 24px rgba(44,126,143,.09),
+    inset 0 1px 0 #fff!important;
+  transform:translateY(-1px)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-phone-wrap{
+  min-height:56px!important;
+  border-radius:17px!important;
+  border:1px solid #c7dfe7!important;
+  background:#fff!important;
+  box-shadow:0 7px 18px rgba(35,100,116,.055)!important;
+  overflow:hidden!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-phone-wrap input{
+  min-height:54px!important;
+  border:0!important;
+  box-shadow:none!important;
+  background:transparent!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-phone-prefix{
+  min-height:54px!important;
+  background:linear-gradient(180deg,#eaf8fd,#e0f3f9)!important;
+  color:#255761!important;
+  border-right:1px solid #c7e0e8!important;
+  font-weight:950!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-password-toggle{
+  min-width:72px!important;
+  min-height:44px!important;
+  border-radius:12px!important;
+  background:linear-gradient(145deg,#edf9fd,#dff3f8)!important;
+  border:1px solid #c2e0e8!important;
+  color:#23616d!important;
+  font-weight:900!important;
+  box-shadow:0 4px 10px rgba(35,100,116,.07)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-role-switch{
+  gap:10px!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-role-switch label{
+  min-height:74px!important;
+  border-radius:18px!important;
+  border:1px solid #c9e0e7!important;
+  background:linear-gradient(145deg,#ffffff,#f3faff)!important;
+  color:#173d45!important;
+  box-shadow:
+    0 8px 20px rgba(35,100,116,.055),
+    inset 0 1px 0 #fff!important;
+  transition:all .18s ease!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-role-switch label:has(input:checked){
+  border-color:#7acbd9!important;
+  background:linear-gradient(145deg,#effbff,#e2f6fb)!important;
+  box-shadow:
+    0 0 0 3px rgba(74,188,207,.09),
+    0 11px 25px rgba(35,119,136,.10),
+    inset 0 1px 0 #fff!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-role-switch label b{
+  color:#173d45!important;
+  font-weight:1000!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-role-switch label small,
+body.gd-auth-page #gdAuthFormShell #loginRoleHint{
+  color:#71858b!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions #signupBtn,
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions #loginSubmitBtn{
+  min-height:56px!important;
+  border-radius:17px!important;
+  border:1px solid #efc38f!important;
+  background:linear-gradient(145deg,#ffe9d0,#ffd09e)!important;
+  color:#6b4528!important;
+  font-weight:1000!important;
+  box-shadow:
+    0 6px 0 #e8b77d,
+    0 14px 28px rgba(194,132,65,.13),
+    inset 0 1px 0 rgba(255,255,255,.85)!important;
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions #signupBtn:hover,
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions #loginSubmitBtn:hover{
+  transform:translateY(-2px)!important;
+  filter:brightness(1.02)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions #signupBtn:active,
+body.gd-auth-page #gdAuthFormShell .gd-v4-actions #loginSubmitBtn:active{
+  transform:translateY(3px)!important;
+  box-shadow:0 2px 0 #e8b77d,0 7px 15px rgba(194,132,65,.10)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-secondary .google-login-button{
+  min-height:52px!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  border:1px solid #cfe2e8!important;
+  color:#315761!important;
+  box-shadow:0 7px 17px rgba(35,100,116,.05)!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-bottom,
+body.gd-auth-page #gdAuthFormShell .gd-v4-bottom .text-button{
+  color:#627980!important;
+}
+body.gd-auth-page #gdAuthFormShell .gd-v4-bottom .text-button{
+  color:#168096!important;
+  font-weight:900!important;
+}
+@media(max-width:760px){
+  body.gd-auth-page #gdAuthFormShell{
+    border-radius:25px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form{
+    padding:18px 14px 26px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-auth-mode-tabs{
+    margin:5px 0 16px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell #authSignUpTab,
+  body.gd-auth-page #gdAuthFormShell #authSignInTab{
+    min-height:50px!important;
+    font-size:15px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-form-head h2{
+    font-size:clamp(31px,9.2vw,43px)!important;
+    line-height:.95!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-form-head p{
+    font-size:14px!important;
+    line-height:1.45!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-field input,
+  body.gd-auth-page #gdAuthFormShell .gd-phone-wrap{
+    min-height:56px!important;
+  }
+  body.gd-auth-page #gdAuthFormShell .gd-v4-actions{
+    grid-template-columns:1fr!important;
+  }
+}
+@media(min-width:761px){
+  body.gd-auth-page #gdAuthFormShell .gd-v4-auth-form{
+    min-height:100%!important;
+  }
+}
+@media(prefers-reduced-motion:reduce){
+  body.gd-auth-page #gdAuthFormShell *{transition:none!important}
+}
 </style></head>
 
 <body>
