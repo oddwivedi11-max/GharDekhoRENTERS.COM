@@ -18313,6 +18313,24 @@ body.gd-auth-page #gdAuthFormShell input{
   position:relative!important;
   z-index:20!important;
 }
+/* Higher-specificity override for the final renter role guard.
+   This is what makes the existing requirements form actually appear
+   after tapping Find a Home on mobile. */
+body.gd-renter-mode.gd-renter-find-page-open #renterFindHomeSection,
+body.gd-renter-mode.gd-renter-find-page-open #renterFindHomeSection.gd-force-visible{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+}
+body.gd-renter-mode.gd-renter-find-page-open #dashboardSection{
+  display:none!important;
+}
+body.gd-renter-mode.gd-renter-find-page-open #renterFindHomeSection[hidden]{
+  display:block!important;
+}
 #renterFindHomeSection.gd-force-visible .renter-preference-form{
   display:grid!important;
 }
@@ -18346,6 +18364,12 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     const dash=byId("dashboardSection");
     const find=byId("renterFindHomeSection");
     if(!find) return;
+
+    // Set the route class FIRST. The requirements form is intentionally
+    // hidden on the dashboard and becomes visible only in this state.
+    document.body.classList.add("gd-renter-mode","gd-renter-find-page-open");
+    if(dash) dash.style.display="none";
+
     if(typeof window.openRenterFindHomePage==="function"){
       window.openRenterFindHomePage();
     }else{
