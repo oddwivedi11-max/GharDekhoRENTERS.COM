@@ -2086,6 +2086,20 @@ footer {
 </style>
 
 
+<script id="ghardekho-renter-public-content-kill">
+(function(){
+  function enforce(){
+    if(!document.body.classList.contains("gd-renter-mode")) return;
+    ["loggedOutLanding","seoRentalGuide"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.style.display="none";
+    });
+  }
+  document.addEventListener("DOMContentLoaded",enforce);
+  window.addEventListener("load",enforce);
+  setInterval(enforce,1000);
+})();
+</script>
 <style id="ghardekho-final-role-guard">
 /* FINAL ROLE ISOLATION GUARD */
 #renterDashboard,
@@ -2121,6 +2135,10 @@ body.gd-renter-mode:not(.gd-renter-explore-mode) #propertiesNavLink { display:no
 body.gd-owner-mode #renterDashboard { display:none !important; }
 body.gd-authenticated #loginBtn { display:none !important; }
 body.gd-authenticated #loggedOutLanding { display:none !important; }
+body.gd-authenticated #seoRentalGuide,
+body.gd-authenticated .gd-seo-rental-guide { display:none !important; }
+body.gd-renter-mode #seoRentalGuide,
+body.gd-renter-mode .gd-seo-rental-guide { display:none !important; }
 </style>
 
 
@@ -10489,6 +10507,7 @@ function setRoleSpecificUI(role) {
     const ownerNavLink = document.getElementById("ownerNavLink");
     const adminNavLink = document.getElementById("adminNavLink");
     const adminDashboard = document.getElementById("adminDashboard");
+    const seoRentalGuide = document.getElementById("seoRentalGuide");
 
     const isOwner = role === "owner";
     const isRenter = role === "renter";
@@ -10501,6 +10520,7 @@ function setRoleSpecificUI(role) {
     document.body.classList.toggle("gd-renter-mode", isRenter);
 
     if (landing) landing.style.display = "none";
+    if (seoRentalGuide) seoRentalGuide.style.display = "none";
     if (loginSection) loginSection.style.display = "none";
     if (passwordResetSection) passwordResetSection.style.display = "none";
 
@@ -10825,6 +10845,8 @@ async function updateAuthUI() {
         const home = document.getElementById("homeSection");
         const properties = document.getElementById("propertiesSection");
         if (landing) landing.style.display = "none";
+        const seoRentalGuide = document.getElementById("seoRentalGuide");
+        if (seoRentalGuide) seoRentalGuide.style.display = "none";
         if (home) home.style.display = "none";
         if (properties) properties.style.display = "none";
         document.body.classList.add("gd-authenticated", "gd-renter-mode");
