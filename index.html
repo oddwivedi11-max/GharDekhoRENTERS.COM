@@ -7180,7 +7180,35 @@ html.gd-login-route body.gd-auth-page #loginSection{
   }
 }
 </style>
-</head>
+<style id="gdr-monster-hunter-home-v1">
+.gdr-monster-hunter-cta-wrap{width:100%;max-width:620px;margin:24px auto 0;perspective:900px}
+.gdr-monster-hunter-cta{position:relative;isolation:isolate;display:flex;align-items:center;gap:13px;min-height:82px;padding:10px 14px 10px 12px;border-radius:22px;text-decoration:none;color:#06251f;background:linear-gradient(135deg,#c8ff47 0%,#6df0ad 46%,#e8b45d 100%);border:2px solid rgba(255,255,255,.58);box-shadow:0 8px 0 #084d40,0 18px 34px rgba(0,0,0,.28),0 0 42px rgba(112,255,169,.23);transform:translateY(0) rotateX(0);transition:transform .18s ease,box-shadow .18s ease;overflow:hidden}
+.gdr-monster-hunter-cta:before{content:"";position:absolute;inset:2px;border-radius:19px;border:1px solid rgba(255,255,255,.45);pointer-events:none}
+.gdr-monster-hunter-cta:after{content:"";position:absolute;top:-80%;left:-35%;width:28%;height:260%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.8),transparent);transform:rotate(22deg);animation:mhSweep 3.2s ease-in-out infinite;pointer-events:none}
+.gdr-monster-hunter-cta:hover{transform:translateY(-4px) rotateX(3deg);box-shadow:0 12px 0 #084d40,0 24px 44px rgba(0,0,0,.3),0 0 55px rgba(112,255,169,.3)}
+.gdr-monster-hunter-cta:active{transform:translateY(4px);box-shadow:0 4px 0 #084d40,0 10px 22px rgba(0,0,0,.24)}
+.mh-glow{position:absolute;width:130px;height:130px;right:-35px;top:-45px;border-radius:50%;background:rgba(255,255,255,.24);filter:blur(4px);z-index:-1}
+.mh-icon{width:54px;height:54px;flex:0 0 54px;display:grid;place-items:center;border-radius:17px;background:linear-gradient(145deg,#06251f,#0b6b57);color:#d9ff68;font-size:28px;font-weight:950;box-shadow:inset 0 2px 0 rgba(255,255,255,.18),0 9px 18px rgba(0,0,0,.22);transform:translateZ(25px)}
+.mh-copy{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1}
+.mh-copy small{font-size:8px;letter-spacing:.2em;font-weight:950;color:#285a4d;margin-bottom:5px}
+.mh-copy strong{font-size:clamp(20px,5.5vw,29px);letter-spacing:-.045em;font-weight:1000;color:#06251f}
+.mh-copy em{margin-top:6px;font-size:9px;font-style:normal;font-weight:850;color:#315d52;letter-spacing:.03em}
+.mh-arrow{margin-left:auto;width:43px;height:43px;flex:0 0 43px;display:grid;place-items:center;border-radius:14px;background:#06251f;color:#d9ff68;font-size:22px;font-weight:950;box-shadow:0 7px 15px rgba(0,0,0,.2)}
+@keyframes mhSweep{0%,35%{left:-35%}65%,100%{left:125%}}
+@media(max-width:760px){
+ .gdr-monster-hunter-cta-wrap{max-width:430px;margin:20px auto 0;padding:0}
+ .gdr-monster-hunter-cta{min-height:78px;border-radius:20px;padding:9px 10px 9px 9px;gap:10px;box-shadow:0 7px 0 #084d40,0 15px 28px rgba(0,0,0,.25),0 0 35px rgba(112,255,169,.22)}
+ .mh-icon{width:49px;height:49px;flex-basis:49px;border-radius:15px;font-size:25px}
+ .mh-copy strong{font-size:21px}
+ .mh-copy small{font-size:7px}
+ .mh-copy em{font-size:8px}
+ .mh-arrow{width:39px;height:39px;flex-basis:39px;font-size:20px}
+ /* One clear Hunter action on the mobile homepage. */
+ #loggedOutLanding .gdr-home-copy>.gdr-hunter-home-section,
+ #loggedOutLanding>.gdr-hunter-home-section{display:none!important}
+}
+@media(prefers-reduced-motion:reduce){.gdr-monster-hunter-cta:after{animation:none}}
+</style></head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
@@ -7266,9 +7294,13 @@ html.gd-login-route body.gd-auth-page #loginSection{
           <span>Nearby homes<small>Find rentals around you</small></span>
           <span>Easy Visit Requests<small>Connect without unnecessary hassle</small></span>
         </div>
-        <div class="gd-hero-actions-v2 gdr-home-actions" aria-label="Choose how to continue">
-          <button type="button" class="gd-hero-cta" onclick="gdrOpenPublicExplore(event)">Explore Rentals <span>→</span></button>
-          <button type="button" class="gd-hero-cta" onclick="openLoginAs('owner')">List Your Property <span>→</span></button>
+        <div class="gdr-monster-hunter-cta-wrap" aria-label="GDR Monster Hunter">
+          <a class="gdr-monster-hunter-cta" href="/gdr-hunter.html" data-gdr-hunter>
+            <span class="mh-glow"></span>
+            <span class="mh-icon">⌂</span>
+            <span class="mh-copy"><small>ENTER THE HUNT</small><strong>MONSTER HUNTER</strong><em>Find • Spot • Share a Home</em></span>
+            <span class="mh-arrow">↗</span>
+          </a>
         </div>
         <div class="gdr-hunter-home-section" aria-label="GDR Hunter">
           <div class="gdr-hunter-home-inner">
