@@ -9403,10 +9403,19 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
                         <span><strong>Find a Home</strong><small>Fill your requirements</small></span>
                         <span class="renter-action-arrow">→</span>
                     </button>
-                    <button type="button" class="renter-dashboard-action" id="renterExploreNearbyBtn">
-                        <span class="renter-action-icon">📍</span>
-                        <span><strong>Explore Nearby</strong><small>See homes around you</small></span>
-                        <span class="renter-action-arrow">→</span>
+                    <button type="button" class="renter-dashboard-action renter-live-nearby-action" id="renterLiveNearbyBtn" aria-controls="renterLiveNearbyPanel" aria-expanded="false">
+                        <span class="renter-live-radar-icon" aria-hidden="true">
+                            <span class="renter-radar-ring renter-radar-ring-1"></span>
+                            <span class="renter-radar-ring renter-radar-ring-2"></span>
+                            <span class="renter-radar-core">⌖</span>
+                        </span>
+                        <span class="renter-live-action-copy">
+                            <strong>Live Nearby</strong>
+                            <small>Find homes around your moving location</small>
+                            <em>Refreshes every 500 m</em>
+                        </span>
+                        <span class="renter-live-status-dot" aria-hidden="true"></span>
+                        <span class="renter-action-arrow">↗</span>
                     </button>
                     <button type="button" class="renter-dashboard-action" id="renterSavedPropertiesBtn">
                         <span class="renter-action-icon">♡</span>
@@ -9415,18 +9424,64 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
                     </button>
                 </div>
 
-                <div class="dashboard-card renter-nearby-properties-card renter-dashboard-panel" id="renterNearbyPropertiesSection" hidden>
-                    <div class="dashboard-card-heading">
-                        <div>
-                            <span class="dashboard-section-kicker">NEARBY HOMES</span>
-                            <h3>Homes Near You</h3>
-                            <p class="dashboard-muted">Available rental properties within your selected nearby radius.</p>
+                <section class="renter-live-nearby-shell renter-dashboard-panel" id="renterLiveNearbyPanel" hidden aria-live="polite">
+                    <div class="renter-live-nearby-card">
+                        <div class="renter-live-nearby-top">
+                            <div class="renter-live-radar-stage" aria-hidden="true">
+                                <div class="renter-radar-grid"></div>
+                                <div class="renter-radar-sweep"></div>
+                                <div class="renter-radar-pulse"></div>
+                                <div class="renter-radar-center">⌖</div>
+                                <span class="renter-radar-blip renter-radar-blip-a"></span>
+                                <span class="renter-radar-blip renter-radar-blip-b"></span>
+                                <span class="renter-radar-blip renter-radar-blip-c"></span>
+                            </div>
+                            <div class="renter-live-nearby-copy">
+                                <div class="renter-live-label-row">
+                                    <span class="renter-live-pill"><span class="renter-live-pill-dot"></span> LIVE DISCOVERY</span>
+                                    <span class="renter-live-distance-chip" id="renterLiveNearbyDistance">Waiting for location</span>
+                                </div>
+                                <h3>Homes around you, <span>as you move.</span></h3>
+                                <p id="renterLiveNearbyStatus">Tap <strong>Start Live Nearby</strong> and allow location access. GDR will keep the nearby inventory centered on your current position.</p>
+                                <div class="renter-live-metrics">
+                                    <div><strong id="renterLiveNearbyCount">—</strong><span>nearby homes</span></div>
+                                    <div><strong>500 m</strong><span>movement refresh</span></div>
+                                    <div><strong id="renterLiveNearbyUpdated">—</strong><span>last update</span></div>
+                                </div>
+                            </div>
                         </div>
-                        <button type="button" class="dashboard-mini-badge renter-nearby-refresh" id="renterExploreNearbyRefreshBtn">↻ Refresh</button>
+
+                        <div class="renter-live-nearby-controls">
+                            <button type="button" class="renter-live-start-btn" id="renterLiveNearbyStartBtn">
+                                <span class="renter-live-btn-icon">⌖</span>
+                                <span>Start Live Nearby</span>
+                                <span class="renter-live-btn-arrow">→</span>
+                            </button>
+                            <button type="button" class="renter-live-stop-btn" id="renterLiveNearbyStopBtn" hidden>
+                                Stop Live Nearby
+                            </button>
+                        </div>
+
+                        <div class="renter-live-location-note">
+                            <span>🔒</span>
+                            <span>Your location is used only to calculate nearby rental distance in this session.</span>
+                        </div>
                     </div>
-                    <div id="renterNearbyContainer"><p class="dashboard-empty">Tap Explore Nearby to load properties.</p></div>
-                    <div id="renterNearbyPagination" class="pagination"></div>
-                </div>
+
+                    <div class="renter-live-results-card">
+                        <div class="dashboard-card-heading">
+                            <div>
+                                <span class="dashboard-section-kicker">LIVE PROPERTY CONDITIONS</span>
+                                <h3>Nearby inventory</h3>
+                                <p class="dashboard-muted">Availability and verification status refresh from the live property inventory whenever your 500 m movement threshold is crossed.</p>
+                            </div>
+                        </div>
+                        <div id="renterLiveNearbyContainer">
+                            <div class="renter-live-empty-state"><span>⌖</span><strong>Live Nearby is ready.</strong><p>Start the live search to see rental homes around your current location.</p></div>
+                        </div>
+                        <div id="renterLiveNearbyPagination" class="pagination"></div>
+                    </div>
+                </section>
 
                 <div class="dashboard-card renter-saved-properties-card renter-dashboard-panel" id="renterSavedPropertiesSection">
                     <div class="dashboard-card-heading">
@@ -19260,3 +19315,448 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
   }
 }
 </style>
+
+<style id="gdr-live-nearby-dashboard-v1">
+/* =========================================================
+   GDR LIVE NEARBY — signature renter dashboard experience
+   Premium 3D / mobile-first / 500 m movement refresh
+   ========================================================= */
+.renter-live-nearby-action{
+  position:relative!important;
+  overflow:hidden!important;
+  grid-template-columns:auto minmax(0,1fr) auto auto!important;
+  min-height:96px!important;
+  padding:13px 15px!important;
+  border:1px solid rgba(93,235,215,.42)!important;
+  color:#fff!important;
+  background:
+    radial-gradient(circle at 14% 18%,rgba(125,255,229,.22),transparent 32%),
+    radial-gradient(circle at 88% 85%,rgba(255,184,105,.18),transparent 34%),
+    linear-gradient(145deg,#073f3a 0%,#0a7066 52%,#07534e 100%)!important;
+  box-shadow:
+    0 8px 0 #043b37,
+    0 18px 34px rgba(5,61,55,.22),
+    inset 0 1px 0 rgba(255,255,255,.24)!important;
+  transform:translateY(0)!important;
+}
+.renter-live-nearby-action::before{
+  content:"";
+  position:absolute;
+  width:180px;height:180px;
+  right:-72px;top:-105px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:50%;
+  box-shadow:0 0 0 24px rgba(255,255,255,.025),0 0 0 52px rgba(255,255,255,.018);
+  pointer-events:none;
+}
+.renter-live-nearby-action::after{
+  content:"LIVE";
+  position:absolute;
+  right:13px;top:9px;
+  padding:4px 7px;
+  border:1px solid rgba(169,255,235,.30);
+  border-radius:999px;
+  background:rgba(0,0,0,.14);
+  color:#baffed;
+  font-size:7px;
+  font-weight:1000;
+  letter-spacing:.15em;
+}
+.renter-live-nearby-action:hover{
+  transform:translateY(-3px)!important;
+  border-color:rgba(142,255,232,.66)!important;
+  box-shadow:
+    0 11px 0 #043b37,
+    0 24px 42px rgba(5,61,55,.27),
+    0 0 34px rgba(83,255,224,.10),
+    inset 0 1px 0 rgba(255,255,255,.30)!important;
+}
+.renter-live-nearby-action:active{
+  transform:translateY(6px)!important;
+  box-shadow:0 2px 0 #043b37,0 10px 18px rgba(5,61,55,.18)!important;
+}
+.renter-live-radar-icon{
+  position:relative;
+  width:54px;height:54px;
+  display:grid;place-items:center;
+  flex:0 0 54px;
+  border-radius:17px;
+  background:linear-gradient(145deg,rgba(188,255,242,.22),rgba(46,176,157,.12));
+  border:1px solid rgba(181,255,241,.28);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.24),0 10px 22px rgba(0,0,0,.14);
+}
+.renter-radar-ring{
+  position:absolute;
+  border:1px solid rgba(175,255,241,.45);
+  border-radius:50%;
+}
+.renter-radar-ring-1{inset:10px}
+.renter-radar-ring-2{inset:16px;opacity:.65}
+.renter-radar-core{
+  position:relative;z-index:3;
+  width:24px;height:24px;display:grid;place-items:center;
+  border-radius:50%;
+  color:#073f3a;
+  background:#c9fff0;
+  font-size:15px;font-weight:1000;
+  box-shadow:0 0 0 5px rgba(201,255,240,.10),0 5px 14px rgba(0,0,0,.16);
+}
+.renter-live-action-copy{min-width:0;position:relative;z-index:2}
+.renter-live-action-copy strong{display:block;color:#fff!important;font-size:15px;line-height:1.15}
+.renter-live-action-copy small{display:block;margin-top:4px;color:rgba(255,255,255,.72)!important;font-size:10px;line-height:1.35}
+.renter-live-action-copy em{display:inline-block;margin-top:7px;padding:4px 7px;border-radius:999px;background:rgba(255,255,255,.10);color:#c9fff0!important;font-size:8px;font-style:normal;font-weight:900;letter-spacing:.05em}
+.renter-live-status-dot{
+  width:9px;height:9px;border-radius:50%;
+  background:#a7bdb8;
+  box-shadow:0 0 0 4px rgba(255,255,255,.05);
+  transition:.2s ease;
+}
+.renter-live-nearby-action.live-ready .renter-live-status-dot,
+.renter-live-nearby-action.live-active .renter-live-status-dot{
+  background:#a8ff70;
+  box-shadow:0 0 0 4px rgba(168,255,112,.12),0 0 16px rgba(168,255,112,.70);
+}
+.renter-live-nearby-action.live-active .renter-live-radar-ring-1,
+.renter-live-nearby-action.live-active .renter-live-radar-ring-2{animation:gdrRenterRadarPulse 2s ease-out infinite}
+@keyframes gdrRenterRadarPulse{
+  0%{transform:scale(.78);opacity:.25}
+  55%{transform:scale(1.08);opacity:.78}
+  100%{transform:scale(1.28);opacity:0}
+}
+.renter-live-nearby-shell{
+  margin-top:14px!important;
+  display:grid;
+  gap:12px;
+}
+.renter-live-nearby-shell[hidden]{display:none!important}
+.renter-live-nearby-card{
+  position:relative;
+  overflow:hidden;
+  padding:18px;
+  border:1px solid rgba(100,211,194,.30);
+  border-radius:24px;
+  background:
+    radial-gradient(circle at 86% 8%,rgba(240,185,112,.13),transparent 12rem),
+    linear-gradient(145deg,#062f2b 0%,#075c52 54%,#0a7568 100%);
+  color:#fff;
+  box-shadow:0 20px 55px rgba(5,50,45,.18),0 5px 0 rgba(3,50,46,.80);
+}
+.renter-live-nearby-top{display:grid;grid-template-columns:180px 1fr;gap:20px;align-items:center}
+.renter-live-radar-stage{
+  position:relative;
+  width:170px;height:170px;
+  margin:auto;
+  border-radius:50%;
+  overflow:hidden;
+  border:1px solid rgba(180,255,241,.28);
+  background:
+    radial-gradient(circle,#0f8276 0 2%,transparent 2.5%),
+    radial-gradient(circle at center,rgba(115,255,226,.10),transparent 48%),
+    linear-gradient(145deg,rgba(255,255,255,.08),rgba(255,255,255,.01));
+  box-shadow:inset 0 0 0 10px rgba(255,255,255,.025),inset 0 0 45px rgba(0,0,0,.18),0 18px 35px rgba(0,0,0,.18);
+}
+.renter-radar-grid{
+  position:absolute;inset:16px;border:1px solid rgba(175,255,241,.20);border-radius:50%;
+  background:
+    linear-gradient(rgba(175,255,241,.08) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(175,255,241,.08) 1px,transparent 1px);
+  background-size:34px 34px;
+}
+.renter-radar-grid::after,.renter-radar-grid::before{
+  content:"";position:absolute;background:rgba(175,255,241,.15);
+}
+.renter-radar-grid::before{left:50%;top:0;bottom:0;width:1px}
+.renter-radar-grid::after{top:50%;left:0;right:0;height:1px}
+.renter-radar-sweep{
+  position:absolute;left:50%;top:50%;width:50%;height:50%;
+  transform-origin:0 0;
+  background:conic-gradient(from 0deg,rgba(146,255,229,.0),rgba(146,255,229,.34),rgba(146,255,229,0));
+  clip-path:polygon(0 0,100% 0,0 100%);
+  animation:gdrRenterSweep 2.8s linear infinite;
+  opacity:.85;
+}
+@keyframes gdrRenterSweep{to{transform:rotate(360deg)}}
+.renter-radar-pulse{
+  position:absolute;left:50%;top:50%;width:34px;height:34px;margin:-17px;border-radius:50%;
+  border:1px solid rgba(190,255,243,.75);
+  box-shadow:0 0 0 7px rgba(190,255,243,.08),0 0 28px rgba(120,255,228,.30);
+  animation:gdrRenterCorePulse 1.8s ease-out infinite;
+}
+@keyframes gdrRenterCorePulse{
+  0%{transform:scale(.65);opacity:.9}
+  100%{transform:scale(2.5);opacity:0}
+}
+.renter-radar-center{
+  position:absolute;left:50%;top:50%;z-index:4;
+  width:34px;height:34px;margin:-17px;
+  display:grid;place-items:center;border-radius:50%;
+  background:linear-gradient(145deg,#d9fff4,#8cebd5);
+  color:#063f38;font-size:18px;font-weight:1000;
+  box-shadow:0 7px 18px rgba(0,0,0,.20),0 0 0 5px rgba(217,255,244,.08);
+}
+.renter-radar-blip{
+  position:absolute;width:8px;height:8px;border-radius:50%;
+  background:#ffd18e;box-shadow:0 0 0 4px rgba(255,209,142,.10),0 0 18px rgba(255,209,142,.65);
+  animation:gdrRenterBlip 2.2s ease-in-out infinite;
+}
+.renter-radar-blip-a{left:28%;top:34%}.renter-radar-blip-b{right:24%;top:26%;animation-delay:.7s}.renter-radar-blip-c{right:31%;bottom:27%;animation-delay:1.3s}
+@keyframes gdrRenterBlip{0%,100%{transform:scale(.8);opacity:.55}50%{transform:scale(1.35);opacity:1}}
+.renter-live-nearby-copy{min-width:0}
+.renter-live-label-row{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap}
+.renter-live-pill{display:inline-flex;align-items:center;gap:6px;padding:6px 9px;border:1px solid rgba(173,255,239,.22);border-radius:999px;background:rgba(255,255,255,.07);font-size:8px;font-weight:1000;letter-spacing:.15em;color:#b9f9e9}
+.renter-live-pill-dot{width:6px;height:6px;border-radius:50%;background:#91ff6c;box-shadow:0 0 10px rgba(145,255,108,.7)}
+.renter-live-distance-chip{padding:6px 9px;border-radius:999px;background:rgba(255,255,255,.08);color:rgba(255,255,255,.72);font-size:8px;font-weight:800}
+.renter-live-nearby-copy h3{margin:13px 0 8px;color:#fff;font-size:clamp(1.8rem,4vw,3rem);line-height:.98;letter-spacing:-.055em}
+.renter-live-nearby-copy h3 span{color:#ffd09a}
+.renter-live-nearby-copy p{margin:0;color:rgba(255,255,255,.72);font-size:12px;line-height:1.6}
+.renter-live-nearby-copy p strong{color:#fff}
+.renter-live-metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:17px}
+.renter-live-metrics>div{padding:10px 8px;border:1px solid rgba(255,255,255,.10);border-radius:13px;background:rgba(255,255,255,.055)}
+.renter-live-metrics strong{display:block;color:#fff;font-size:14px}
+.renter-live-metrics span{display:block;margin-top:2px;color:rgba(255,255,255,.48);font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.renter-live-nearby-controls{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:17px}
+.renter-live-start-btn{
+  min-height:54px;border:1px solid rgba(255,255,255,.24);border-radius:15px;
+  background:linear-gradient(145deg,#d8fff3,#83ead2);color:#063f38;
+  font-weight:1000;box-shadow:0 7px 0 #043f38,0 13px 24px rgba(0,0,0,.18),inset 0 1px 0 #fff;
+  display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:9px;padding:0 15px;text-align:left;
+}
+.renter-live-start-btn:hover{transform:translateY(-2px);box-shadow:0 9px 0 #043f38,0 18px 28px rgba(0,0,0,.22)}
+.renter-live-start-btn:active{transform:translateY(5px);box-shadow:0 2px 0 #043f38,0 7px 14px rgba(0,0,0,.16)}
+.renter-live-btn-icon{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;background:rgba(6,63,56,.10);font-size:15px}
+.renter-live-btn-arrow{font-size:20px}
+.renter-live-stop-btn{
+  min-height:54px;padding:0 14px;border:1px solid rgba(255,255,255,.18);border-radius:15px;
+  background:rgba(255,255,255,.08);color:#fff;font-size:11px;font-weight:900;
+}
+.renter-live-location-note{display:flex;align-items:center;gap:8px;margin-top:12px;color:rgba(255,255,255,.52);font-size:9px;line-height:1.4}
+.renter-live-results-card{
+  padding:16px;border:1px solid #d9e7e2;border-radius:21px;background:linear-gradient(145deg,#fff,#f6fbf9);
+  box-shadow:0 12px 32px rgba(23,74,71,.07);
+}
+.renter-live-empty-state{
+  display:grid;place-items:center;text-align:center;padding:34px 18px;
+  border:1px dashed #c9ddd8;border-radius:16px;background:#fbfdfc;color:#5e716c;
+}
+.renter-live-empty-state>span{width:48px;height:48px;display:grid;place-items:center;border-radius:15px;background:#e4f5f1;color:#0c6b61;font-size:22px;margin-bottom:9px}
+.renter-live-empty-state strong{color:#173d37}
+.renter-live-empty-state p{margin:4px 0 0;font-size:11px}
+.renter-live-nearby-card.live-error{background:linear-gradient(145deg,#4a2020,#6b2b27);border-color:rgba(255,194,180,.24)}
+@media(max-width:760px){
+  .renter-live-nearby-action{grid-template-columns:auto minmax(0,1fr) auto!important;min-height:92px!important}
+  .renter-live-status-dot{display:none}
+  .renter-live-nearby-top{grid-template-columns:1fr;gap:13px}
+  .renter-live-radar-stage{width:146px;height:146px}
+  .renter-live-nearby-copy h3{font-size:2rem}
+  .renter-live-metrics{gap:6px}
+  .renter-live-metrics>div{padding:9px 6px}
+  .renter-live-metrics strong{font-size:13px}
+  .renter-live-metrics span{font-size:6.5px}
+  .renter-live-nearby-controls{grid-template-columns:1fr}
+  .renter-live-stop-btn{width:100%}
+}
+@media(max-width:390px){
+  .renter-live-nearby-card{padding:14px}
+  .renter-live-radar-stage{width:132px;height:132px}
+  .renter-live-nearby-copy h3{font-size:1.78rem}
+  .renter-live-nearby-copy p{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+  .renter-live-nearby-action *,
+  .renter-live-nearby-card *{animation:none!important}
+}
+</style>
+
+<script id="gdr-renter-live-nearby-v1-js">
+(function(){
+  const MOVE_THRESHOLD_KM = 0.5;
+  let watchId = null;
+  let lastLat = null;
+  let lastLng = null;
+  let refreshBusy = false;
+
+  function byId(id){ return document.getElementById(id); }
+
+  function setLiveUi(active, ready){
+    const action = byId("renterLiveNearbyBtn");
+    const start = byId("renterLiveNearbyStartBtn");
+    const stop = byId("renterLiveNearbyStopBtn");
+    if(action){
+      action.classList.toggle("live-active", active);
+      action.classList.toggle("live-ready", ready || active);
+      action.setAttribute("aria-expanded", active ? "true" : "false");
+    }
+    if(start) start.hidden = active;
+    if(stop) stop.hidden = !active;
+  }
+
+  function updateLiveText(message){
+    const status = byId("renterLiveNearbyStatus");
+    if(status) status.innerHTML = message;
+  }
+
+  function updateLiveMetrics(count, distanceKm){
+    const countEl = byId("renterLiveNearbyCount");
+    const distanceEl = byId("renterLiveNearbyDistance");
+    const updatedEl = byId("renterLiveNearbyUpdated");
+    if(countEl) countEl.textContent = Number.isFinite(count) ? String(count) : "—";
+    if(distanceEl){
+      distanceEl.textContent = Number.isFinite(distanceKm)
+        ? `Center radius ${distanceKm.toFixed(1).replace(/\.0$/,"")} km`
+        : "Waiting for location";
+    }
+    if(updatedEl){
+      updatedEl.textContent = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    }
+  }
+
+  function showPanel(){
+    const panel = byId("renterLiveNearbyPanel");
+    if(panel) panel.hidden = false;
+    panel?.scrollIntoView({behavior:"smooth",block:"start"});
+  }
+
+  function stopLiveNearby(){
+    if(watchId !== null && navigator.geolocation?.clearWatch){
+      navigator.geolocation.clearWatch(watchId);
+    }
+    watchId = null;
+    lastLat = null;
+    lastLng = null;
+    refreshBusy = false;
+    setLiveUi(false,false);
+    updateLiveText("Live Nearby is paused. Tap <strong>Start Live Nearby</strong> whenever you want to search around your current position.");
+    const distanceEl = byId("renterLiveNearbyDistance");
+    if(distanceEl) distanceEl.textContent = "Tracking paused";
+  }
+
+  async function refreshAtLocation(latitude, longitude, force){
+    if(refreshBusy) return;
+    if(!force && lastLat !== null && lastLng !== null){
+      const moved = calculateDistanceKm(lastLat,lastLng,latitude,longitude);
+      if(moved < MOVE_THRESHOLD_KM) return;
+    }
+
+    refreshBusy = true;
+    lastLat = latitude;
+    lastLng = longitude;
+    userLatitude = latitude;
+    userLongitude = longitude;
+
+    try{
+      updateLiveText("Refreshing live property conditions around your current location…");
+      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,3);
+      const nearby = result.rows.map(row => ({
+        ...row,
+        listing_type: row.listing_type || "home",
+        distanceKm: Number(row.distance_km)
+      })).filter(row => Number.isFinite(row.distanceKm))
+        .sort((a,b) => a.distanceKm - b.distanceKm);
+
+      renderProperties(nearby,"renterLiveNearbyContainer","renterLiveNearbyPagination",false);
+      updateLiveMetrics(nearby.length,Number(result.radiusKm));
+
+      if(!nearby.length){
+        const container = byId("renterLiveNearbyContainer");
+        if(container){
+          container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>No rental homes found in this live area.</strong><p>Move to another area or continue walking. GDR will refresh after 500 m.</p></div>';
+        }
+      }
+
+      updateLiveText(`<strong>${nearby.length}</strong> registered properties found around you. The live search will refresh again after you move <strong>500 m</strong> from this position.`);
+      const distanceEl = byId("renterLiveNearbyDistance");
+      if(distanceEl) distanceEl.textContent = `${nearby.length} homes in range`;
+      const card = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
+      card?.classList.remove("live-error");
+    }catch(error){
+      console.error("Renter Live Nearby refresh error:",error);
+      updateLiveText("We could not refresh the nearby inventory right now. Keep Live Nearby on and try again when your connection is available.");
+      const card = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
+      card?.classList.add("live-error");
+    }finally{
+      refreshBusy = false;
+    }
+  }
+
+  function startLiveNearby(){
+    showPanel();
+
+    if(!navigator.geolocation){
+      updateLiveText("Live location is not supported by this browser.");
+      return;
+    }
+
+    if(watchId !== null){
+      stopLiveNearby();
+      return;
+    }
+
+    setLiveUi(true,true);
+    updateLiveText("Requesting your location permission… <strong>Allow location access</strong> when your browser asks.");
+    const container = byId("renterLiveNearbyContainer");
+    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Locating you…</strong><p>Allow location access to discover homes around you.</p></div>';
+
+    watchId = navigator.geolocation.watchPosition(
+      position => {
+        const latitude = Number(position.coords.latitude);
+        const longitude = Number(position.coords.longitude);
+        if(!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
+
+        const firstFix = lastLat === null || lastLng === null;
+        refreshAtLocation(latitude,longitude,firstFix);
+      },
+      error => {
+        console.error("Renter Live Nearby geolocation error:",error);
+        setLiveUi(false,false);
+        if(error && error.code === 1){
+          updateLiveText("Location permission was denied. Enable location permission for GharDekho in your browser settings, then tap <strong>Start Live Nearby</strong> again.");
+        }else{
+          updateLiveText("Your location could not be read right now. Please try again.");
+        }
+        const container = byId("renterLiveNearbyContainer");
+        if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>!</span><strong>Location unavailable</strong><p>Please allow location access and start Live Nearby again.</p></div>';
+        stopLiveNearby();
+      },
+      {
+        enableHighAccuracy:true,
+        timeout:12000,
+        maximumAge:10000
+      }
+    );
+  }
+
+  function bind(){
+    const action = byId("renterLiveNearbyBtn");
+    const start = byId("renterLiveNearbyStartBtn");
+    const stop = byId("renterLiveNearbyStopBtn");
+    if(action && action.dataset.gdrLiveBound!=="1"){
+      action.dataset.gdrLiveBound="1";
+      action.addEventListener("click",function(e){
+        e.preventDefault();
+        showPanel();
+        if(watchId === null) startLiveNearby();
+        else stopLiveNearby();
+      });
+    }
+    if(start && start.dataset.gdrLiveBound!=="1"){
+      start.dataset.gdrLiveBound="1";
+      start.addEventListener("click",function(e){
+        e.preventDefault();
+        startLiveNearby();
+      });
+    }
+    if(stop && stop.dataset.gdrLiveBound!=="1"){
+      stop.dataset.gdrLiveBound="1";
+      stop.addEventListener("click",function(e){
+        e.preventDefault();
+        stopLiveNearby();
+      });
+    }
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind);
+  else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
