@@ -9730,7 +9730,7 @@ function clearAuthFormFields(){
      * until the admin login attempt finishes.
      */
     const adminRoute =
-        window.location.pathname.replace(/\\/+$/, "") === "/admin" ||
+        window.location.pathname.replace(/\/+$/, "") === "/admin" ||
         new URLSearchParams(window.location.search).get("admin") === "1";
     const adminMode =
         adminRoute &&
@@ -9808,7 +9808,7 @@ function openLoginAs(role){
     // If the user reached this screen through /admin/?admin=1, move the
     // normal Renter/Owner login back to the public root before rendering it.
     try {
-        const path = window.location.pathname.replace(/\\/+$/, "") || "/";
+        const path = window.location.pathname.replace(/\/+$/, "") || "/";
         const query = new URLSearchParams(window.location.search);
         if (path === "/admin" || query.get("admin") === "1") {
             window.history.replaceState({gdAuth:true}, document.title, window.location.origin + "/#login");
@@ -10535,7 +10535,7 @@ async function updateAuthUI() {
      * was restored after a refresh, keep the admin destination authoritative.
      */
     const adminRoute =
-        window.location.pathname.replace(/\\/+$/, "") === "/admin" ||
+        window.location.pathname.replace(/\/+$/, "") === "/admin" ||
         new URLSearchParams(window.location.search).get("admin") === "1";
     const adminDestination =
         isAdminAccount() &&
