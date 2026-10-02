@@ -2103,12 +2103,12 @@ body.gd-owner-mode:not(.gd-owner-explore-mode) #propertiesNavLink { display:none
 
 body.gd-renter-mode #ownerNavLink { display:none !important; }
 body.gd-renter-mode #ownerDashboard { display:none !important; }
-body.gd-renter-mode #homeSection,
-body.gd-renter-mode #propertiesSection,
-body.gd-renter-mode #propertyDetails,
-body.gd-renter-mode #visitSection,
-body.gd-renter-mode #homeNavLink,
-body.gd-renter-mode #propertiesNavLink { display:none !important; }
+body.gd-renter-mode:not(.gd-renter-explore-mode) #homeSection,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #propertiesSection,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #propertyDetails,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #visitSection,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #homeNavLink,
+body.gd-renter-mode:not(.gd-renter-explore-mode) #propertiesNavLink { display:none !important; }
 body.gd-owner-mode #renterDashboard { display:none !important; }
 body.gd-authenticated #loginBtn { display:none !important; }
 body.gd-authenticated #loggedOutLanding { display:none !important; }
@@ -14948,8 +14948,24 @@ function updateStayTypeFields() {
             if (choosePropertyImageBtn && propertyImageFile) choosePropertyImageBtn.addEventListener("click", () => propertyImageFile.click());
             if (propertyImageFile) propertyImageFile.addEventListener("change", handlePropertyImageSelection);
             if (removePropertyImageBtn) removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
-            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", () => scrollToSection("homeSection"));
-            if (renterTopPropertiesBtn) renterTopPropertiesBtn.addEventListener("click", () => scrollToSection("propertiesSection"));
+            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", () => {
+                // Public search/properties stay hidden while the renter is on the dashboard.
+                // Reveal the discovery surface only when the renter explicitly asks for it.
+                document.body.classList.add("gd-renter-explore-mode");
+                const homeSection = document.getElementById("homeSection");
+                const propertiesSection = document.getElementById("propertiesSection");
+                if (homeSection) homeSection.style.display = "block";
+                if (propertiesSection) propertiesSection.style.display = "block";
+                scrollToSection("homeSection");
+            });
+            if (renterTopPropertiesBtn) renterTopPropertiesBtn.addEventListener("click", () => {
+                document.body.classList.add("gd-renter-explore-mode");
+                const homeSection = document.getElementById("homeSection");
+                const propertiesSection = document.getElementById("propertiesSection");
+                if (homeSection) homeSection.style.display = "block";
+                if (propertiesSection) propertiesSection.style.display = "block";
+                scrollToSection("propertiesSection");
+            });
             if (ownerExploreNearbyBtn) ownerExploreNearbyBtn.addEventListener("click", openOwnerNearbyHomes);
             if (ownerAddPropertyBtn) ownerAddPropertyBtn.addEventListener("click", (event) => {
                 event.preventDefault();
