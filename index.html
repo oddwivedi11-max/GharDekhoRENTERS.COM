@@ -9805,15 +9805,22 @@ function openLoginAs(role){
     sessionStorage.removeItem("gd_pending_login_role");
     sessionStorage.removeItem("gd_active_role");
 
-    // If the user reached this screen through /admin/?admin=1, move the
-    // normal Renter/Owner login back to the public root before rendering it.
+    // If the user reached this screen through the private Admin URL,
+    // leave the Admin route completely before opening normal Renter/Owner login.
     try {
         const path = window.location.pathname.replace(/\/+$/, "") || "/";
         const query = new URLSearchParams(window.location.search);
         if (path === "/admin" || query.get("admin") === "1") {
-            window.history.replaceState({gdAuth:true}, document.title, window.location.origin + "/#login");
+            const publicLoginUrl = window.location.origin + "/#login";
+            if (window.top && window.top !== window && window.top.location) {
+                window.top.location.href = publicLoginUrl;
+                return;
+            }
+            window.history.replaceState({gdAuth:true}, document.title, publicLoginUrl);
         }
-    } catch (err) {}
+    } catch (err) {
+        // Fall back to the current frame if top-level navigation is unavailable.
+    }
 
     pendingLoginRole = selectedRole;
     activeRole = selectedRole;
