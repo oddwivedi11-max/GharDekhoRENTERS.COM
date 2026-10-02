@@ -9349,11 +9349,6 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
                     </div>
                 </div>
 
-                <div class="renter-form-section">
-                    <div class="renter-form-section-title"><span>04</span><div><strong>Nearby radius</strong><small>Used for nearby discovery</small></div></div>
-                    <label class="renter-preference-field renter-preference-wide"><span>Search radius</span><select id="renterSearchRadius"><option value="3">Within 3 km</option><option value="5">Within 5 km</option><option value="10">Within 10 km</option><option value="15">Within 15 km</option><option value="20">Within 20 km</option></select></label>
-                </div>
-
                 <p id="renterFindHomeMessage" class="renter-find-home-message" aria-live="polite"></p>
                 <div class="renter-form-actions">
                     <button type="button" class="renter-form-cancel" id="renterFindHomeCancelBtn">Cancel</button>
@@ -18761,7 +18756,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
       $("renterRoomType").value=p.roomType||"";
       $("renterGenderPreference").value=p.gender||"";
       $("renterFoodPreference").value=p.food||"";
-      $("renterSearchRadius").value=p.radius||"3";
+      /* Nearby radius is now controlled exclusively by Live Nearby on the renter dashboard. */
       updateRenterSharedFields();
     }
     window.scrollTo({top:0,behavior:"smooth"});
@@ -18796,7 +18791,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     if((min!==null && (!Number.isFinite(min)||min<0)) || (max!==null && (!Number.isFinite(max)||max<0))){msg.textContent="Please enter a valid non-negative rent.";return;}
     if(min!==null&&max!==null&&min>max){msg.textContent="Maximum rent must be greater than or equal to minimum rent.";return;}
     msg.textContent="Finding matching homes…";
-    const prefs={location,minBudget:minRaw,maxBudget:maxRaw,stayType:$("renterStayType").value,bhk:$("renterSearchBhk").value,furnishing:$("renterSearchFurnishing").value,status:$("renterSearchStatus").value,roomType:$("renterRoomType").value,gender:$("renterGenderPreference").value,food:$("renterFoodPreference").value,radius:$("renterSearchRadius").value};
+    const prefs={location,minBudget:minRaw,maxBudget:maxRaw,stayType:$("renterStayType").value,bhk:$("renterSearchBhk").value,furnishing:$("renterSearchFurnishing").value,status:$("renterSearchStatus").value,roomType:$("renterRoomType").value,gender:$("renterGenderPreference").value,food:$("renterFoodPreference").value,radius:(typeof $("renterSearchRadius")!=="undefined" && $("renterSearchRadius")) ? $("renterSearchRadius").value : "3"};
     localStorage.setItem("gdrRenterSearchPreferences",JSON.stringify(prefs));
     $("locationInput").value=location;
     $("listingTypeSelect").value=prefs.stayType;
