@@ -6798,6 +6798,388 @@ html.gd-login-route body.gd-auth-page #loginSection{
 
     <link rel="stylesheet" href="/assets/gdr-hunter-home.css">
     <script defer src="/assets/gdr-hunter-home.js"></script>
+<style id="gdr-mobile-home-structured-v4">
+/* =========================================================
+   GDR MOBILE HOME — STRUCTURED V4
+   Flow: header → hero → actions → visual → roles → Hunter → content
+   ========================================================= */
+@media (max-width:760px){
+  html,body{
+    width:100%!important;
+    max-width:100%!important;
+    overflow-x:hidden!important;
+  }
+
+  body{
+    padding-bottom:0!important;
+  }
+
+  body>header{
+    position:sticky!important;
+    top:0!important;
+    z-index:70000!important;
+    min-height:64px!important;
+    height:64px!important;
+    padding:8px 14px!important;
+    display:flex!important;
+    align-items:center!important;
+    justify-content:space-between!important;
+    gap:10px!important;
+    background:rgba(255,255,255,.97)!important;
+    backdrop-filter:blur(18px)!important;
+  }
+
+  body>header .gdr-header-brand{
+    margin:0!important;
+    min-width:0!important;
+    flex:1 1 auto!important;
+  }
+  body>header .gdr-header-brand a{
+    display:flex!important;
+    align-items:center!important;
+    gap:8px!important;
+    min-width:0!important;
+    text-decoration:none!important;
+  }
+  body>header .gdr-header-brand img{
+    width:38px!important;
+    height:38px!important;
+    flex:0 0 38px!important;
+  }
+  body>header .gdr-header-brand strong{
+    display:block!important;
+    font-size:15px!important;
+    line-height:1.05!important;
+    white-space:nowrap!important;
+  }
+  body>header .gdr-header-brand small{
+    display:block!important;
+    margin-top:2px!important;
+    font-size:7px!important;
+    letter-spacing:.12em!important;
+    white-space:nowrap!important;
+  }
+  body>header nav,
+  body>header .gdr-hunter-header-entry{
+    display:none!important;
+  }
+  body>header #loginBtn,
+  body>header #logoutBtn{
+    display:flex!important;
+    align-items:center!important;
+    justify-content:center!important;
+    min-width:92px!important;
+    width:auto!important;
+    min-height:42px!important;
+    height:42px!important;
+    padding:0 13px!important;
+    margin:0!important;
+    border-radius:13px!important;
+    font-size:11px!important;
+  }
+
+  main{
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+    padding:0 0 calc(96px + env(safe-area-inset-bottom))!important;
+  }
+
+  #loggedOutLanding{
+    width:100%!important;
+    margin:0!important;
+    padding:0 0 30px!important;
+    background:#fff8ed!important;
+    overflow:visible!important;
+  }
+
+  #loggedOutLanding .gdr-home-shell{
+    width:100%!important;
+    max-width:none!important;
+    margin:0!important;
+    background:#fff8ed!important;
+    overflow:visible!important;
+  }
+
+  /* The old mobile display:contents rule caused the Hunter card to
+     escape its intended place. Restore a real document-flow layout. */
+  #loggedOutLanding .gdr-home-grid{
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    min-height:0!important;
+    height:auto!important;
+    padding:0!important;
+    gap:0!important;
+    background:linear-gradient(160deg,#003f38 0%,#005b50 58%,#00675b 100%)!important;
+    overflow:visible!important;
+  }
+
+  #loggedOutLanding .gdr-home-copy{
+    display:flex!important;
+    flex-direction:column!important;
+    width:100%!important;
+    min-width:0!important;
+    padding:28px 16px 0!important;
+    position:relative!important;
+    z-index:5!important;
+  }
+
+  #loggedOutLanding .gdr-home-copy>.gdr-hunter-home-section{
+    display:none!important;
+  }
+
+  #loggedOutLanding .gdr-home-brandbar{
+    display:none!important;
+  }
+
+  #loggedOutLanding .gdr-eyebrow{
+    order:1!important;
+    margin:0 0 10px!important;
+    text-align:center!important;
+    font-size:9px!important;
+    line-height:1.4!important;
+    letter-spacing:.11em!important;
+    color:#cce9e1!important;
+  }
+
+  #loggedOutLanding .gdr-brand-headline{
+    order:2!important;
+    width:100%!important;
+    max-width:100%!important;
+    margin:0!important;
+    text-align:center!important;
+    font-size:clamp(38px,10.5vw,50px)!important;
+    line-height:.98!important;
+    letter-spacing:-.055em!important;
+  }
+  #loggedOutLanding .gdr-brand-headline strong,
+  #loggedOutLanding .gdr-brand-headline em{
+    display:block!important;
+    position:static!important;
+    width:auto!important;
+    margin:0!important;
+  }
+  #loggedOutLanding .gdr-brand-headline strong{color:#fff8ed!important}
+  #loggedOutLanding .gdr-brand-headline em{
+    margin-top:4px!important;
+    color:#ffb47e!important;
+  }
+
+  #loggedOutLanding .gdr-home-lead{
+    order:3!important;
+    width:100%!important;
+    max-width:330px!important;
+    margin:14px auto 0!important;
+    text-align:center!important;
+    font-size:14px!important;
+    line-height:1.45!important;
+    color:rgba(255,255,255,.82)!important;
+  }
+
+  #loggedOutLanding .gdr-home-actions{
+    order:4!important;
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:9px!important;
+    width:100%!important;
+    max-width:430px!important;
+    margin:20px auto 0!important;
+  }
+  #loggedOutLanding .gdr-home-actions button{
+    width:100%!important;
+    min-height:54px!important;
+    margin:0!important;
+    border-radius:16px!important;
+    font-size:14px!important;
+    font-weight:900!important;
+  }
+  #loggedOutLanding .gdr-home-actions button:first-child{
+    background:#fff8ed!important;
+    color:#07584e!important;
+  }
+  #loggedOutLanding .gdr-home-actions button:last-child{
+    background:#ff9857!important;
+    color:#17342f!important;
+  }
+
+  /* Keep the visual as a deliberate section, not an absolute overlay. */
+  #loggedOutLanding .gdr-home-visual{
+    display:block!important;
+    order:5!important;
+    position:relative!important;
+    width:calc(100% - 32px)!important;
+    height:255px!important;
+    margin:18px auto 0!important;
+    overflow:hidden!important;
+    border-radius:24px!important;
+    z-index:2!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-house-scene{
+    position:absolute!important;
+    inset:0!important;
+    width:100%!important;
+    height:100%!important;
+    border-radius:24px!important;
+    overflow:hidden!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-hero-photo{
+    width:100%!important;
+    height:100%!important;
+    object-fit:cover!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-photo-caption{
+    left:16px!important;
+    right:16px!important;
+    bottom:14px!important;
+    max-width:260px!important;
+    z-index:8!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-float{
+    z-index:10!important;
+    transform:scale(.86)!important;
+    transform-origin:center!important;
+  }
+  #loggedOutLanding .gdr-home-visual .gdr-float-one{left:8px!important;top:12px!important}
+  #loggedOutLanding .gdr-home-visual .gdr-float-two{right:8px!important;top:70px!important}
+  #loggedOutLanding .gdr-home-visual .gdr-price{
+    display:none!important;
+  }
+
+  #loggedOutLanding .gdr-trust-row{
+    order:6!important;
+    display:grid!important;
+    grid-template-columns:1fr 1fr!important;
+    gap:8px!important;
+    width:100%!important;
+    margin:14px auto 0!important;
+    padding:0!important;
+  }
+  #loggedOutLanding .gdr-trust-row span{
+    min-width:0!important;
+    min-height:68px!important;
+    padding:11px 9px!important;
+    border-radius:14px!important;
+    background:rgba(255,255,255,.08)!important;
+    border:1px solid rgba(255,255,255,.12)!important;
+    color:#fff!important;
+    text-align:center!important;
+    font-size:11px!important;
+    line-height:1.2!important;
+  }
+  #loggedOutLanding .gdr-trust-row span small{
+    display:block!important;
+    margin-top:5px!important;
+    color:#b8ddd4!important;
+    font-size:8px!important;
+    line-height:1.25!important;
+  }
+
+  /* Role section becomes the next intentional block. */
+  #loggedOutLanding .gdr-role-panel{
+    width:calc(100% - 32px)!important;
+    margin:18px auto 0!important;
+    padding:20px 15px!important;
+    border-radius:22px!important;
+    background:#fff!important;
+    box-shadow:0 10px 30px rgba(20,55,47,.08)!important;
+    box-sizing:border-box!important;
+  }
+  #loggedOutLanding .gdr-role-heading{
+    text-align:center!important;
+  }
+  #loggedOutLanding .gdr-role-heading h3{
+    margin:5px 0 3px!important;
+    font-size:22px!important;
+    line-height:1.1!important;
+  }
+  #loggedOutLanding .gdr-role-heading p{
+    margin:0!important;
+    font-size:11px!important;
+  }
+  #loggedOutLanding .gd-role-choice-grid{
+    display:grid!important;
+    grid-template-columns:1fr!important;
+    gap:8px!important;
+    margin-top:13px!important;
+  }
+  #loggedOutLanding .gd-role-choice{
+    width:100%!important;
+    min-height:58px!important;
+    border-radius:15px!important;
+    padding:9px 11px!important;
+  }
+
+  /* Keep ONE Hunter section: the dedicated one below the role panel. */
+  #loggedOutLanding>.gdr-hunter-home-section{
+    display:block!important;
+    width:calc(100% - 32px)!important;
+    margin:18px auto 0!important;
+    padding:21px 16px!important;
+    border-radius:22px!important;
+  }
+  #loggedOutLanding>.gdr-hunter-home-section .gdr-hunter-home-inner{
+    display:flex!important;
+    flex-direction:column!important;
+    gap:14px!important;
+  }
+  #loggedOutLanding>.gdr-hunter-home-section .gdr-hunter-home-title{
+    font-size:28px!important;
+    line-height:1!important;
+  }
+  #loggedOutLanding>.gdr-hunter-home-section .gdr-hunter-home-copy p{
+    font-size:12px!important;
+    line-height:1.5!important;
+  }
+  #loggedOutLanding>.gdr-hunter-home-section .gdr-hunter-mini-scene{
+    order:2!important;
+    width:100%!important;
+    height:165px!important;
+  }
+
+  /* Any following homepage sections must remain in normal flow. */
+  #loggedOutLanding>.gdr-feature-strip,
+  #loggedOutLanding>.gdr-story-stack{
+    position:relative!important;
+    z-index:2!important;
+    width:calc(100% - 32px)!important;
+    margin-left:auto!important;
+    margin-right:auto!important;
+  }
+
+  /* Never let a fixed nav cover the last content. */
+  #loggedOutLanding{
+    padding-bottom:105px!important;
+  }
+
+  #gdMobileBottomNav,
+  .gd-mobile-nav{
+    z-index:80000!important;
+    bottom:calc(8px + env(safe-area-inset-bottom))!important;
+  }
+}
+
+@media(max-width:390px){
+  #loggedOutLanding .gdr-home-copy{
+    padding-left:13px!important;
+    padding-right:13px!important;
+  }
+  #loggedOutLanding .gdr-brand-headline{
+    font-size:35px!important;
+  }
+  #loggedOutLanding .gdr-home-visual{
+    width:calc(100% - 26px)!important;
+    height:235px!important;
+  }
+  #loggedOutLanding .gdr-trust-row{
+    grid-template-columns:1fr!important;
+  }
+  #loggedOutLanding .gdr-role-panel,
+  #loggedOutLanding>.gdr-hunter-home-section{
+    width:calc(100% - 26px)!important;
+  }
+}
+</style>
 </head>
 
 <body>
