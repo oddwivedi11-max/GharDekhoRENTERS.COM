@@ -136,7 +136,7 @@ $("photoNext").onclick=()=>{if(!photos.length){toast("Photo is required before c
 $("back2").onclick=()=>step(1);
 $("next2").onclick=()=>step(3);
 $("back3").onclick=()=>step(2);
-$("formSend").onclick=send;
+$("formSend").onclick=()=>{if(!photos.length){toast("Photo is required. Please add at least 1 property photo.");openForm();step(1);return}window.location.href=wa();};
 updateSendState();
 $("back").onclick=() => location.href="/";$("home").onclick=()=>location.href="/";$("again").onclick=()=>{$("success").classList.remove("show");window.scrollTo({top:0,behavior:"smooth"})};$("info").onclick=()=>toast("Spot a home, share it and help someone find theirs.");
 const stage=$("stage"),house=$("house");let raf=0;function move(e){const r=stage.getBoundingClientRect(),x=(e.clientX-r.left)/r.width-.5,y=(e.clientY-r.top)/r.height-.5;cancelAnimationFrame(raf);raf=requestAnimationFrame(()=>house.style.transform=`translate3d(${x*7}px,${y*5}px,0) rotateY(${x*-5}deg) rotateX(${y*3}deg)`)}function reset(){house.style.transform=""}if(matchMedia("(pointer:fine)").matches){stage.addEventListener("pointermove",move);stage.addEventListener("pointerleave",reset)}stage.addEventListener("touchmove",e=>{const t=e.touches[0],r=stage.getBoundingClientRect(),x=(t.clientX-r.left)/r.width-.5,y=(t.clientY-r.top)/r.height-.5;house.style.transform=`translate3d(${x*5}px,${y*3}px,0) rotateY(${x*-4}deg) rotateX(${y*2}deg)`},{passive:true});
