@@ -10162,6 +10162,9 @@ function openPrivateAdminAccess(){
 }
 
 function openAdminLogin(){
+    document.documentElement.classList.add('gd-admin-route');
+    document.body.classList.add('gd-auth-page');
+    document.body.classList.remove('gd-owner-mode','gd-renter-mode');
     /*
      * Admin is a separate destination. Never fall back to the Renter
      * dashboard or the Renter login presentation when Admin is selected.
@@ -16119,6 +16122,12 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
      */
     const auth=document.body.classList.contains('gd-auth-page');
     const loggedIn=document.body.classList.contains('gd-authenticated');
+
+    // HARD ADMIN ROUTE: /admin must never repaint the public homepage.
+    const adminRoute =
+      window.location.pathname.replace(/\\/+$/,'') === '/admin' ||
+      new URLSearchParams(window.location.search).get('admin') === '1';
+
     const loginRoute=String(window.location.hash||'').toLowerCase()==='#login'
       || window.__gdAuthRequested===true;
     const hasCurrentUser=(typeof currentUser!=='undefined' && !!currentUser);
@@ -16130,6 +16139,55 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
     const dashboard=document.getElementById('dashboardSection');
 
     const logoutVisible=!!document.getElementById('logoutBtn') && document.getElementById('logoutBtn').style.display!=='none';
+
+    if(adminRoute){
+      document.documentElement.classList.add('gd-admin-route');
+      document.body.classList.add('gd-auth-page');
+      document.body.classList.remove('gd-authenticated','gd-owner-mode','gd-renter-mode');
+
+      ['loggedOutLanding','homeSection','propertiesSection','dashboardSection','visitSection','propertyDetails','passwordResetSection','seoRentalGuide'].forEach(function(id){
+        const el=document.getElementById(id);
+        if(el) el.style.setProperty('display','none','important');
+      });
+
+      const login=document.getElementById('loginSection');
+      const gateway=document.getElementById('gdAuthGateway');
+      const form=document.getElementById('gdAuthFormShell');
+      if(login) login.style.setProperty('display','grid','important');
+      if(gateway) gateway.style.setProperty('display','none','important');
+      if(form) form.style.setProperty('display','grid','important');
+
+      const title=document.getElementById('premiumAuthTitle');
+      const intro=document.getElementById('premiumAuthIntro');
+      const brand=document.getElementById('gdAuthBrandText');
+      const hint=document.getElementById('loginRoleHint');
+      const signup=document.getElementById('signupBtn');
+      const google=document.getElementById('googleLoginBtn');
+      const roles=document.querySelector('.gd-v4-role-switch');
+      const tabs=document.querySelector('.gd-auth-mode-tabs');
+
+      if(title) title.textContent='Admin Login';
+      if(intro) intro.textContent='Secure administrator access. Email and password only.';
+      if(brand) brand.textContent='Restricted GharDekho administration workspace.';
+      if(hint) hint.textContent='Only the authorized admin account can enter the Admin Control Center.';
+      if(signup) signup.style.setProperty('display','none','important');
+      if(google) google.style.setProperty('display','none','important');
+      if(roles) roles.style.setProperty('display','none','important');
+      if(tabs) tabs.style.setProperty('display','none','important');
+
+      try{
+        window.__gdAdminLoginRequested=true;
+        activeRole='admin';
+        pendingLoginRole='admin';
+        sessionStorage.setItem('gd_login_destination','admin');
+        sessionStorage.setItem('gd_active_role','admin');
+        sessionStorage.setItem('gd_pending_login_role','admin');
+      }catch(e){}
+
+      bindGharDekhoControls();
+      return;
+    }
+
     if(loggedIn || hasCurrentUser || logoutVisible){
       if(landing)landing.style.display='none';
       if(login)login.style.display='none';
