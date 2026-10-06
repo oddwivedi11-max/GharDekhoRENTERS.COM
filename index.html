@@ -10276,14 +10276,18 @@ function openPrivateAdminAccess(){
     // The URL is only an entry point; Supabase admin authorization remains required.
     const params = new URLSearchParams(window.location.search);
     const adminQuery = params.get("admin") === "1";
-    // GitHub Pages/Cloudflare may serve the route as /admin/ with a trailing slash.
+    // Keep the admin route authoritative for the entire page lifecycle.
+    // Do NOT strip ?admin=1: other route guards use this flag to prevent
+    // the public homepage from repainting after the admin login redirect.
     const normalizedPath = window.location.pathname.replace(/\/+$/, "") || "/";
-    if (normalizedPath !== "/admin" && !adminQuery) return;
+    if (normalizedPath !== "/admin" && !adminQuery && window.__gdAdminHardRoute !== true) return;
+    window.__gdAdminHardRoute = true;
+    document.documentElement.classList.add("gd-admin-hard-route");
     try {
         const cleanUrl = normalizedPath === "/admin"
             ? window.location.origin + "/admin"
-            : window.location.origin + normalizedPath;
-        window.history.replaceState({}, document.title, cleanUrl);
+            : window.location.origin + "/?admin=1";
+        window.history.replaceState({gdAdmin:true}, document.title, cleanUrl);
     } catch (err) {}
     openAdminLogin();
 }
@@ -15809,6 +15813,7 @@ function updateStayTypeFields() {
             // DIRECT ADMIN ROUTE: handle /admin and /admin/ before the normal
             // renter/owner route can render. This keeps Admin Login authoritative.
             const directAdminRoute =
+                window.__gdAdminHardRoute === true ||
                 window.location.pathname.replace(/\/+$/, "") === "/admin" ||
                 new URLSearchParams(window.location.search).get("admin") === "1";
 
@@ -16252,6 +16257,7 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
 
     // HARD ADMIN ROUTE: /admin must never repaint the public homepage.
     const adminRoute =
+      window.__gdAdminHardRoute === true ||
       window.location.pathname.replace(/\\/+$/,'') === '/admin' ||
       new URLSearchParams(window.location.search).get('admin') === '1';
 
