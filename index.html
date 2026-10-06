@@ -16280,6 +16280,32 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
       const login=document.getElementById('loginSection');
       const gateway=document.getElementById('gdAuthGateway');
       const form=document.getElementById('gdAuthFormShell');
+
+      // If Supabase has already restored the authorized admin session, the
+      // admin route must show the Admin Control Center instead of repainting
+      // the login/public shell. This is especially important after the
+      // standalone /admin/ login page redirects back to /?admin=1.
+      if(typeof currentUser !== 'undefined' && currentUser && typeof isAdminAccount === 'function' && isAdminAccount()){
+        try{
+          window.__gdAdminLoginRequested=false;
+          activeRole='admin';
+          pendingLoginRole='admin';
+          sessionStorage.setItem('gd_login_destination','admin');
+          sessionStorage.setItem('gd_active_role','admin');
+          sessionStorage.setItem('gd_pending_login_role','admin');
+        }catch(e){}
+        document.body.classList.add('gd-authenticated','gd-admin-mode');
+        if(login) login.style.setProperty('display','none','important');
+        if(gateway) gateway.style.setProperty('display','none','important');
+        if(form) form.style.setProperty('display','none','important');
+        const dashboard=document.getElementById('dashboardSection');
+        if(dashboard) dashboard.style.setProperty('display','block','important');
+        if(typeof setRoleSpecificUI==='function') setRoleSpecificUI('admin');
+        if(typeof renderActiveDashboard==='function') Promise.resolve(renderActiveDashboard()).catch(console.error);
+        if(typeof openAdminArea==='function') openAdminArea();
+        return;
+      }
+
       if(login) login.style.setProperty('display','grid','important');
       if(gateway) gateway.style.setProperty('display','none','important');
       if(form) form.style.setProperty('display','grid','important');
