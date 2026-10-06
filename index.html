@@ -18629,6 +18629,123 @@ body.gd-auth-page #gdAuthFormShell input{
   #locationStatus{padding:0 4px;font-size:12px;line-height:1.4}
 }
 </style>
+<style id="ghardekho-admin-route-final-css">
+/* =========================================================
+   ADMIN URL = ADMIN LOGIN ONLY
+   /admin and /admin/ must never expose the public FAQ/home
+   or the Renter/Owner role selector.
+   ========================================================= */
+html.gd-admin-route body.gd-auth-page #loggedOutLanding,
+html.gd-admin-route body.gd-auth-page #homeSection,
+html.gd-admin-route body.gd-auth-page #propertiesSection,
+html.gd-admin-route body.gd-auth-page #dashboardSection,
+html.gd-admin-route body.gd-auth-page #visitSection,
+html.gd-admin-route body.gd-auth-page #propertyDetails,
+html.gd-admin-route body.gd-auth-page #passwordResetSection,
+html.gd-admin-route body.gd-auth-page header,
+html.gd-admin-route body.gd-auth-page footer,
+html.gd-admin-route body.gd-auth-page [id*="faq" i],
+html.gd-admin-route body.gd-auth-page [class*="faq" i]{
+  display:none!important;
+}
+html.gd-admin-route body.gd-auth-page #loginSection{
+  display:grid!important;
+  min-height:100vh!important;
+  margin:0!important;
+}
+html.gd-admin-route body.gd-auth-page #gdAuthGateway{
+  display:none!important;
+}
+html.gd-admin-route body.gd-auth-page #gdAuthFormShell{
+  display:grid!important;
+  min-height:100vh!important;
+}
+html.gd-admin-route body.gd-auth-page .gd-auth-mode-tabs{
+  display:none!important;
+}
+html.gd-admin-route body.gd-auth-page .gd-v4-role-switch{
+  display:none!important;
+}
+html.gd-admin-route body.gd-auth-page #signupBtn,
+html.gd-admin-route body.gd-auth-page #googleLoginBtn,
+html.gd-admin-route body.gd-auth-page #adminLoginModeBtn{
+  display:none!important;
+}
+html.gd-admin-route body.gd-auth-page .gd-auth-back{
+  visibility:hidden!important;
+}
+html.gd-admin-route body.gd-auth-page .gd-v4-auth-form{
+  justify-content:center!important;
+}
+html.gd-admin-route body.gd-auth-page #premiumAuthTitle{
+  font-size:clamp(36px,5vw,62px)!important;
+}
+</style>
+<script id="ghardekho-admin-route-final-v1">
+(function(){
+  function isAdminRoute(){
+    const path=window.location.pathname.replace(/\/+$/,"") || "/";
+    return path==="/admin" || new URLSearchParams(window.location.search).get("admin")==="1";
+  }
+
+  function enforceAdminLogin(){
+    if(!isAdminRoute()) return;
+    document.documentElement.classList.add("gd-admin-route");
+    document.body.classList.add("gd-auth-page");
+
+    // Do not let the public page remain visible behind Admin Login.
+    [
+      "loggedOutLanding","homeSection","propertiesSection","dashboardSection",
+      "visitSection","propertyDetails","passwordResetSection"
+    ].forEach(function(id){
+      const el=document.getElementById(id);
+      if(el) el.style.setProperty("display","none","important");
+    });
+
+    const login=document.getElementById("loginSection");
+    const gateway=document.getElementById("gdAuthGateway");
+    const form=document.getElementById("gdAuthFormShell");
+    if(login) login.style.setProperty("display","grid","important");
+    if(gateway) gateway.style.setProperty("display","none","important");
+    if(form) form.style.setProperty("display","grid","important");
+
+    // Admin authentication is email + password only.
+    const title=document.getElementById("premiumAuthTitle");
+    const intro=document.getElementById("premiumAuthIntro");
+    const brand=document.getElementById("gdAuthBrandText");
+    const hint=document.getElementById("loginRoleHint");
+    const signup=document.getElementById("signupBtn");
+    const google=document.getElementById("googleLoginBtn");
+    const roles=document.querySelector(".gd-v4-role-switch");
+    const tabs=document.querySelector(".gd-auth-mode-tabs");
+
+    if(title) title.textContent="Admin Login";
+    if(intro) intro.textContent="Secure administrator access. Email and password only.";
+    if(brand) brand.textContent="Restricted GharDekho administration workspace.";
+    if(hint) hint.textContent="Only the authorized admin account can enter the Admin Control Center.";
+    if(signup) signup.style.setProperty("display","none","important");
+    if(google) google.style.setProperty("display","none","important");
+    if(roles) roles.style.setProperty("display","none","important");
+    if(tabs) tabs.style.setProperty("display","none","important");
+
+    // Make sure Admin mode cannot be overwritten by stale renter/owner state.
+    try{
+      window.__gdAdminLoginRequested=true;
+      activeRole="admin";
+      pendingLoginRole="admin";
+      sessionStorage.setItem("gd_login_destination","admin");
+      sessionStorage.setItem("gd_active_role","admin");
+      sessionStorage.setItem("gd_pending_login_role","admin");
+    }catch(e){}
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",enforceAdminLogin);
+  else enforceAdminLogin();
+  window.addEventListener("load",enforceAdminLogin);
+  window.addEventListener("pageshow",enforceAdminLogin);
+  new MutationObserver(enforceAdminLogin).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
 </body>
 
 </html>
