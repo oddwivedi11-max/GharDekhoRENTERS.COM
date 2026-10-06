@@ -2,34 +2,64 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>GharDekho Admin</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>GharDekho Admin Login</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    html,body{margin:0;width:100%;height:100%;background:#f7f8f6}
-    body{display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#064f46}
-    .loading{font-weight:700;letter-spacing:.04em}
+    *{box-sizing:border-box}html,body{margin:0;min-height:100%;font-family:Inter,system-ui,-apple-system,Segoe UI,sans-serif}
+    body{min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 15% 10%,rgba(255,173,118,.18),transparent 28%),radial-gradient(circle at 85% 90%,rgba(14,120,103,.18),transparent 30%),linear-gradient(135deg,#eef4f1,#f9faf8)}
+    .shell{width:min(960px,100%);display:grid;grid-template-columns:1.05fr .95fr;overflow:hidden;border-radius:30px;background:#fff;border:1px solid #dce7e2;box-shadow:0 30px 90px rgba(7,49,44,.16)}
+    .brand{padding:52px;color:#fff;background:linear-gradient(145deg,#062f2b,#075c50 62%,#0c7867);position:relative;overflow:hidden}
+    .brand:after{content:"";position:absolute;width:330px;height:330px;border:1px solid rgba(255,255,255,.13);border-radius:50%;right:-150px;top:-100px;box-shadow:0 0 0 55px rgba(255,255,255,.025),0 0 0 110px rgba(255,255,255,.02)}
+    .logo{display:flex;align-items:center;gap:12px;position:relative;z-index:1}.logo img{width:52px;height:52px}.logo strong{display:block;font-size:21px}.logo small{display:block;letter-spacing:.16em;font-size:9px;color:#bfe0d9}
+    .brand h1{position:relative;z-index:1;margin:90px 0 16px;font-size:clamp(2.5rem,5vw,4.5rem);line-height:.92;letter-spacing:-.06em}.brand h1 em{font-family:Georgia,serif;color:#ffad76}
+    .brand p{position:relative;z-index:1;max-width:430px;line-height:1.7;color:rgba(255,255,255,.76)}
+    .card{padding:48px 42px;display:flex;flex-direction:column;justify-content:center}.kicker{font-size:11px;font-weight:900;letter-spacing:.16em;color:#0b675b}.card h2{margin:10px 0 8px;font-size:32px;color:#102d29}.card .sub{margin:0 0 28px;color:#6a7975}
+    label{display:block;margin:16px 0 8px;font-size:12px;font-weight:900;color:#35514b}.input{width:100%;height:52px;border:1px solid #cfded9;border-radius:14px;padding:0 15px;font-size:15px;outline:none}.input:focus{border-color:#0b675b;box-shadow:0 0 0 4px rgba(11,103,91,.1)}
+    button{width:100%;height:54px;margin-top:22px;border:0;border-radius:15px;background:#073f39;color:#fff;font-weight:900;font-size:15px;cursor:pointer;box-shadow:0 12px 25px rgba(7,63,57,.2)}button:disabled{opacity:.65;cursor:wait}
+    #msg{min-height:22px;margin:16px 0 0;font-size:13px;font-weight:700;color:#b13c2c}.secure{margin-top:26px;padding-top:18px;border-top:1px solid #e7eeeb;font-size:11px;color:#7b8985;line-height:1.6}
+    @media(max-width:760px){.shell{grid-template-columns:1fr}.brand{padding:30px}.brand h1{margin:48px 0 12px;font-size:3rem}.card{padding:34px 24px}}
   </style>
 </head>
 <body>
-  <div class="loading">Opening GharDekho Admin…</div>
+  <main class="shell">
+    <section class="brand">
+      <div class="logo"><img src="/assets/gdr-mark.svg" alt="GharDekho"><span><strong>GharDekho</strong><small>RENTAL PLATFORM</small></span></div>
+      <h1>Admin<br><em>Control.</em></h1>
+      <p>Restricted administration workspace for managing owners, renters, properties and visit requests.</p>
+    </section>
+    <section class="card">
+      <span class="kicker">RESTRICTED ACCESS</span>
+      <h2>Admin Login</h2>
+      <p class="sub">Use the authorized administrator email and password.</p>
+      <form id="form">
+        <label for="email">ADMIN EMAIL</label>
+        <input class="input" id="email" type="email" autocomplete="username" placeholder="admin email" required>
+        <label for="password">PASSWORD</label>
+        <input class="input" id="password" type="password" autocomplete="current-password" placeholder="Enter password" required>
+        <button id="btn" type="submit">Enter Admin Control Center →</button>
+        <div id="msg"></div>
+      </form>
+      <div class="secure">Only the authorized GharDekho admin account can enter this workspace. Renter/Owner accounts are rejected.</div>
+    </section>
+  </main>
   <script>
-    /*
-     * /admin/ is a real static directory on Cloudflare Pages. The previous
-     * iframe wrapper loaded /?admin=1 inside a frame, which could be blocked
-     * or remain blank. Load the main application as the top-level document
-     * instead. The main app already has a dedicated ?admin=1 route guard.
-     *
-     * After the app boots, it replaces the visible URL with /admin while
-     * preserving the admin-route state.
-     */
-    (function(){
-      var target="/?admin=1";
-      try{
-        window.location.replace(target);
-      }catch(e){
-        window.location.href=target;
-      }
-    })();
+    const ADMIN_EMAIL="dwivedijiod@gmail.com";
+    const supabaseClient=window.supabase.createClient("https://gktmaiwqvtusnegevdle.supabase.co","sb_publishable_b1ExSH1OMLq9HiVQZ-8ewg_4wjK8AED",{auth:{persistSession:true,autoRefreshToken:true,detectSessionInUrl:true}});
+    const form=document.getElementById("form"),btn=document.getElementById("btn"),msg=document.getElementById("msg");
+    form.addEventListener("submit",async e=>{
+      e.preventDefault();
+      const email=document.getElementById("email").value.trim().toLowerCase(),password=document.getElementById("password").value;
+      msg.textContent="";
+      if(email!==ADMIN_EMAIL){msg.textContent="This account is not authorized for Admin access.";return}
+      btn.disabled=true;btn.textContent="Authenticating…";
+      const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
+      if(error||!data.user){msg.textContent=error?.message||"Login failed.";btn.disabled=false;btn.textContent="Enter Admin Control Center →";return}
+      sessionStorage.setItem("gd_login_destination","admin");
+      sessionStorage.setItem("gd_pending_login_role","admin");
+      sessionStorage.setItem("gd_active_role","admin");
+      window.location.replace("/?admin=1");
+    });
   </script>
 </body>
 </html>
