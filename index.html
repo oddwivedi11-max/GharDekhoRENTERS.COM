@@ -18282,6 +18282,71 @@ body.gd-auth-page #gdAuthFormShell{
   }
 }
 </style>
+<script id="ghardekho-owner-renter-login-fix-v1">
+(function(){
+  function forceSelectedRole(role){
+    const selected = role === "owner" ? "owner" : "renter";
+    try{
+      pendingLoginRole=selected;
+      activeRole=selected;
+      sessionStorage.setItem("gd_pending_login_role",selected);
+      sessionStorage.setItem("gd_active_role",selected);
+      localStorage.setItem("gd_preferred_role",selected);
+    }catch(err){}
+
+    const owner=document.getElementById("roleOwner");
+    const renter=document.getElementById("roleRenter");
+    if(owner) owner.checked=selected==="owner";
+    if(renter) renter.checked=selected==="renter";
+
+    // Owner/Renter role cards are LOGIN selectors, never Sign Up selectors.
+    if(typeof setAuthLoginMode==="function") setAuthLoginMode(true);
+    if(typeof applyLoginRolePresentation==="function") applyLoginRolePresentation(selected);
+
+    const title=document.getElementById("premiumAuthTitle");
+    const intro=document.getElementById("premiumAuthIntro");
+    if(title) title.textContent=selected==="owner" ? "Welcome back, Owner" : "Welcome back, Renter";
+    if(intro) intro.textContent=selected==="owner"
+      ? "Sign in to manage properties, listings and renter visits."
+      : "Sign in to discover homes, save properties and manage visits.";
+  }
+
+  function bind(){
+    const owner=document.getElementById("roleOwner");
+    const renter=document.getElementById("roleRenter");
+
+    [owner,renter].forEach(function(input){
+      if(!input || input.dataset.gdRoleFix==="1") return;
+      input.dataset.gdRoleFix="1";
+      input.addEventListener("click",function(e){
+        e.stopPropagation();
+        forceSelectedRole(input.value);
+      },true);
+      input.addEventListener("change",function(){
+        forceSelectedRole(input.value);
+      },true);
+    });
+
+    document.querySelectorAll(".gd-v4-role-switch label").forEach(function(label){
+      if(label.dataset.gdRoleLabelFix==="1") return;
+      label.dataset.gdRoleLabelFix="1";
+      label.addEventListener("click",function(e){
+        const input=label.querySelector('input[name="accountRole"]');
+        if(!input) return;
+        e.preventDefault();
+        e.stopPropagation();
+        input.checked=true;
+        forceSelectedRole(input.value);
+      },true);
+    });
+  }
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind);
+  else bind();
+  window.addEventListener("load",bind);
+  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
 <script id="ghardekho-auth-delegated-final-v25">
 (function(){
   function closestFromTarget(target, selector){
