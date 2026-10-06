@@ -2,6 +2,133 @@
 <html lang="en">
 
 <head>
+<!-- GDR ADMIN ROUTE HARD ISOLATION: /admin must never boot the public SPA UI. -->
+<script id="gdr-admin-route-hard-isolation">
+(function(){
+  var path=String(window.location.pathname||"").replace(/\\/+$/,"")||"/";
+  var isAdmin=path==="/admin" || new URLSearchParams(window.location.search).get("admin")==="1";
+  if(!isAdmin) return;
+
+  window.__gdAdminHardRoute=true;
+  document.documentElement.classList.add("gd-admin-hard-route");
+
+  /* The page accumulated many DOM MutationObservers. On /admin they are not
+     needed and were causing a feedback/render storm (~500 MB and 'Page
+     Unresponsive'). Keep the public SPA observers disabled on this route. */
+  try{
+    window.MutationObserver=class GDRAdminNoopMutationObserver{
+      constructor(){}
+      observe(){}
+      disconnect(){}
+      takeRecords(){return [];}
+    };
+  }catch(e){}
+
+  function enforce(){
+    document.documentElement.classList.add("gd-admin-hard-route");
+    if(!document.body) return;
+
+    document.body.classList.add("gd-auth-page");
+    document.body.classList.remove("gd-renter-mode","gd-owner-mode");
+
+    [
+      "loggedOutLanding","homeSection","propertiesSection","visitSection",
+      "propertyDetails","passwordResetSection","seoRentalGuide"
+    ].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.style.setProperty("display","none","important");
+    });
+
+    var header=document.querySelector("header");
+    if(header) header.style.setProperty("display","none","important");
+
+    var footer=document.querySelector("footer");
+    if(footer) footer.style.setProperty("display","none","important");
+
+    var gateway=document.getElementById("gdAuthGateway");
+    if(gateway) gateway.style.setProperty("display","none","important");
+
+    var form=document.getElementById("gdAuthFormShell");
+    if(form) form.style.setProperty("display","grid","important");
+
+    var login=document.getElementById("loginSection");
+    var adminMode=document.body.classList.contains("gd-admin-mode");
+    var authenticated=document.body.classList.contains("gd-authenticated");
+
+    if(login && !adminMode && !authenticated){
+      login.style.setProperty("display","grid","important");
+      login.style.setProperty("visibility","visible","important");
+      login.style.setProperty("opacity","1","important");
+    }
+
+    var title=document.getElementById("premiumAuthTitle");
+    var intro=document.getElementById("premiumAuthIntro");
+    var brand=document.getElementById("gdAuthBrandText");
+    var hint=document.getElementById("loginRoleHint");
+    if(title && !adminMode) title.textContent="Admin Login";
+    if(intro && !adminMode) intro.textContent="Secure administrator access. Email and password only.";
+    if(brand && !adminMode) brand.textContent="Restricted GharDekho administration workspace.";
+    if(hint && !adminMode) hint.textContent="Only the authorized admin account can enter the Admin Control Center.";
+
+    ["signupBtn","googleLoginBtn","adminLoginModeBtn"].forEach(function(id){
+      var el=document.getElementById(id);
+      if(el) el.style.setProperty("display","none","important");
+    });
+    document.querySelectorAll(".gd-v4-role-switch,.gd-auth-mode-tabs,.role-switch").forEach(function(el){
+      el.style.setProperty("display","none","important");
+    });
+
+    try{
+      window.__gdAdminLoginRequested=true;
+      sessionStorage.setItem("gd_login_destination","admin");
+      sessionStorage.setItem("gd_pending_login_role","admin");
+      sessionStorage.setItem("gd_active_role","admin");
+    }catch(e){}
+  }
+
+  if(document.readyState==="loading"){
+    document.addEventListener("DOMContentLoaded",enforce,{once:true});
+  }else{
+    enforce();
+  }
+  window.addEventListener("load",enforce,{once:true});
+  window.addEventListener("pageshow",enforce);
+  setTimeout(enforce,50);
+  setTimeout(enforce,300);
+  setTimeout(enforce,1000);
+})();
+</script>
+<style id="gdr-admin-route-hard-isolation-css">
+html.gd-admin-hard-route body > header,
+html.gd-admin-hard-route body > footer,
+html.gd-admin-hard-route #loggedOutLanding,
+html.gd-admin-hard-route #homeSection,
+html.gd-admin-hard-route #propertiesSection,
+html.gd-admin-hard-route #visitSection,
+html.gd-admin-hard-route #propertyDetails,
+html.gd-admin-hard-route #passwordResetSection,
+html.gd-admin-hard-route #seoRentalGuide,
+html.gd-admin-hard-route #gdAuthGateway{
+  display:none!important;
+}
+html.gd-admin-hard-route body:not(.gd-admin-mode):not(.gd-authenticated) #loginSection{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+html.gd-admin-hard-route body:not(.gd-admin-mode):not(.gd-authenticated) #gdAuthFormShell{
+  display:grid!important;
+}
+html.gd-admin-hard-route body.gd-admin-mode #dashboardSection,
+html.gd-admin-hard-route body.gd-authenticated.gd-admin-mode #dashboardSection{
+  display:block!important;
+}
+html.gd-admin-hard-route body:not(.gd-admin-mode) .gd-v4-role-switch,
+html.gd-admin-hard-route body:not(.gd-admin-mode) .gd-auth-mode-tabs,
+html.gd-admin-hard-route body:not(.gd-admin-mode) .role-switch{
+  display:none!important;
+}
+</style>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="referrer" content="strict-origin-when-cross-origin">
