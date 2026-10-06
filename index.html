@@ -20417,3 +20417,108 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
   new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
+<!-- GDR FINAL ADMIN ROUTE LOCK V2 -->
+<script>
+(function(){
+  const ADMIN_EMAIL="dwivedijiod@gmail.com";
+  let dashboardOpened=false;
+  let loadingSession=false;
+
+  function adminRoute(){
+    const path=window.location.pathname.replace(/\/+$/,"") || "/";
+    return path==="/admin" || new URLSearchParams(window.location.search).get("admin")==="1" || window.__gdAdminHardRoute===true;
+  }
+
+  function authorized(){
+    try{
+      const email=(window.currentUser?.email||window.currentProfile?.email||"").toLowerCase();
+      return email===ADMIN_EMAIL;
+    }catch(e){ return false; }
+  }
+
+  function hidePublic(){
+    ["loggedOutLanding","homeSection","propertiesSection","visitSection","propertyDetails","passwordResetSection","seoRentalGuide","gdAuthGateway"].forEach(function(id){
+      const el=document.getElementById(id);
+      if(el) el.style.setProperty("display","none","important");
+    });
+    document.querySelectorAll("body > header, body > footer").forEach(function(el){
+      el.style.setProperty("display","none","important");
+    });
+  }
+
+  function showAdminLogin(){
+    const login=document.getElementById("loginSection");
+    const form=document.getElementById("gdAuthFormShell");
+    const dashboard=document.getElementById("dashboardSection");
+    if(login) login.style.setProperty("display","grid","important");
+    if(form) form.style.setProperty("display","grid","important");
+    if(dashboard) dashboard.style.setProperty("display","none","important");
+    const title=document.getElementById("premiumAuthTitle");
+    const intro=document.getElementById("premiumAuthIntro");
+    const brand=document.getElementById("gdAuthBrandText");
+    const hint=document.getElementById("loginRoleHint");
+    if(title) title.textContent="Admin Login";
+    if(intro) intro.textContent="Secure administrator access. Email and password only.";
+    if(brand) brand.textContent="Restricted GharDekho administration workspace.";
+    if(hint) hint.textContent="Only the authorized admin account can enter the Admin Control Center.";
+    ["signupBtn","googleLoginBtn","adminLoginModeBtn"].forEach(function(id){
+      const el=document.getElementById(id); if(el) el.style.setProperty("display","none","important");
+    });
+    document.querySelectorAll(".gd-v4-role-switch,.gd-auth-mode-tabs,.role-switch").forEach(function(el){
+      el.style.setProperty("display","none","important");
+    });
+  }
+
+  async function showAdminDashboard(){
+    document.body.classList.add("gd-authenticated","gd-admin-mode");
+    document.body.classList.remove("gd-owner-mode","gd-renter-mode","gd-auth-page");
+    try{
+      window.__gdAdminLoginRequested=false;
+      window.__gdAdminHardRoute=true;
+      activeRole="admin";
+      pendingLoginRole="admin";
+      sessionStorage.setItem("gd_login_destination","admin");
+      sessionStorage.setItem("gd_active_role","admin");
+      sessionStorage.setItem("gd_pending_login_role","admin");
+    }catch(e){}
+    const login=document.getElementById("loginSection");
+    const dashboard=document.getElementById("dashboardSection");
+    if(login) login.style.setProperty("display","none","important");
+    if(dashboard) dashboard.style.setProperty("display","block","important");
+    if(typeof setRoleSpecificUI==="function") setRoleSpecificUI("admin");
+    if(!dashboardOpened){
+      dashboardOpened=true;
+      try{ if(typeof renderActiveDashboard==="function") await renderActiveDashboard(); }catch(e){ console.error("Admin dashboard render failed",e); }
+      try{ if(typeof openAdminArea==="function") openAdminArea(); }catch(e){}
+    }
+  }
+
+  async function enforce(){
+    if(!adminRoute()) return;
+    document.documentElement.classList.add("gd-admin-hard-route","gd-admin-route");
+    hidePublic();
+    if(authorized()){
+      await showAdminDashboard();
+      return;
+    }
+    showAdminLogin();
+    if(!loadingSession && typeof loadCurrentUser==="function"){
+      loadingSession=true;
+      try{
+        await loadCurrentUser();
+        if(authorized()) await showAdminDashboard();
+      }catch(e){} finally { loadingSession=false; }
+    }
+  }
+
+  function run(){ enforce().catch(function(e){console.error("Admin route lock",e);}); }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",run,{once:true}); else run();
+  window.addEventListener("load",run);
+  window.addEventListener("pageshow",run);
+  setTimeout(run,100);
+  setTimeout(run,500);
+  setTimeout(run,1500);
+  setInterval(run,2000);
+})();
+</script>
