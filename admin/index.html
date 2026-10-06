@@ -3,13 +3,33 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Ghar Dekho Admin</title>
+  <title>GharDekho Admin</title>
   <style>
-    html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#f7f8f6}
-    iframe{display:block;width:100%;height:100%;border:0}
+    html,body{margin:0;width:100%;height:100%;background:#f7f8f6}
+    body{display:flex;align-items:center;justify-content:center;font-family:Arial,sans-serif;color:#064f46}
+    .loading{font-weight:700;letter-spacing:.04em}
   </style>
 </head>
 <body>
-  <iframe src="/?admin=1" title="Ghar Dekho Admin"></iframe>
+  <div class="loading">Opening GharDekho Admin…</div>
+  <script>
+    /*
+     * /admin/ is a real static directory on Cloudflare Pages. The previous
+     * iframe wrapper loaded /?admin=1 inside a frame, which could be blocked
+     * or remain blank. Load the main application as the top-level document
+     * instead. The main app already has a dedicated ?admin=1 route guard.
+     *
+     * After the app boots, it replaces the visible URL with /admin while
+     * preserving the admin-route state.
+     */
+    (function(){
+      var target="/?admin=1";
+      try{
+        window.location.replace(target);
+      }catch(e){
+        window.location.href=target;
+      }
+    })();
+  </script>
 </body>
 </html>
