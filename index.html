@@ -12002,13 +12002,15 @@ async function renderActiveDashboard() {
                 admin.style.display="block";
                 admin.classList.add("active");
                 admin.setAttribute("aria-hidden","false");
+                bindAdminControls();
                 admin.scrollIntoView({behavior:"smooth",block:"start"});
             }
             loadAdminDashboard();
         }
         async function loadAdminDashboard() {
             if(!currentUser || !isAdminAccount()) return showAdminDenied();
-            const body=document.getElementById("adminPropertiesBody"), count=document.getElementById("adminPropertyCount"), msg=document.getElementById("adminPropertiesMessage");
+            const body=document.getElementById("adminPropertiesBody"), count=document.getElementById("adminPropertyCount"), msg=document.getElementById("adminDataMessage");
+            bindAdminControls();
             if(!body)return;
             body.innerHTML='<tr><td colspan="5">Loading properties and owner details...</td></tr>';
             if(msg)msg.textContent="";
@@ -12123,6 +12125,12 @@ async function renderActiveDashboard() {
                 owner_profile_id:o.id,
                 property_count:Number(o.property_count||0)
             }));
+
+            const ownerCount=document.getElementById("adminOwnerCount");
+            const renterCount=document.getElementById("adminRenterCount");
+            const visitCount=document.getElementById("adminVisitCount");
+            if(ownerCount) ownerCount.textContent=owners.length;
+            if(renterCount) renterCount.textContent=renters.length;
             window.__ghAdminOwnerUsers=new Map();
             owners.forEach(o=>{
                 window.__ghAdminOwnerUsers.set(String(o.id),o);
@@ -12142,6 +12150,7 @@ async function renderActiveDashboard() {
 
             const visitsResult=await supabaseClient.from("visit_requests").select("id,property_id,owner_id,tenant_id,name,phone,visit_date,visit_time,status,created_at").order("created_at",{ascending:false});
             const visits=visitsResult.error ? [] : (visitsResult.data||[]);
+            if(visitCount) visitCount.textContent=visits.length;
             const savedResult=await supabaseClient.from("saved_properties").select("user_id,property_id,created_at").order("created_at",{ascending:false});
             const saved=savedResult.error ? [] : (savedResult.data||[]);
             const propertyMap=new Map((window.__ghAdminProperties||[]).map(p=>[String(p.id),p]));
@@ -15196,8 +15205,98 @@ function updateStayTypeFields() {
             loadAdminDashboard();
         }
 
+        /*
+         * ADMIN CONTROLS
+         * Bind these after the admin dashboard is actually visible. The admin
+         * route can be opened after the main listener setup has already run,
+         * so binding only during initial startup can leave the tabs/refresh
+         * button without handlers.
+         */
+        function bindAdminControls() {
+            const dashboard = document.getElementById("adminDashboard");
+            const refreshBtn = document.getElementById("adminRefreshBtn");
+
+            if (refreshBtn && refreshBtn.dataset.adminBound !== "1") {
+                refreshBtn.dataset.adminBound = "1";
+                refreshBtn.addEventListener("click", async function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    if (!isAdminAccount()) return showAdminDenied();
+
+                    const message = document.getElementById("adminDataMessage");
+                    const originalText = refreshBtn.textContent;
+
+                    refreshBtn.disabled = true;
+                    refreshBtn.textContent = "↻ Refreshing...";
+                    if (message) {
+                        message.textContent = "Refreshing properties, owners, renters and visits...";
+                        message.className = "small-text";
+                    }
+
+                    try {
+                        await loadAdminDashboard();
+                        if (message) {
+                            message.textContent = "All admin data refreshed successfully ✓";
+                            message.className = "small-text";
+                        }
+                    } catch (error) {
+                        console.error("Admin refresh error:", error);
+                        if (message) {
+                            message.textContent = getSafeErrorMessage(error, "Unable to refresh admin data.");
+                            message.className = "small-text";
+                        }
+                    } finally {
+                        refreshBtn.disabled = false;
+                        refreshBtn.textContent = originalText;
+                    }
+                });
+            }
+
+            if (dashboard && dashboard.dataset.adminTabsBound !== "1") {
+                dashboard.dataset.adminTabsBound = "1";
+                dashboard.addEventListener("click", async function(event) {
+                    const tab = event.target.closest(".gd-admin-tab");
+                    if (!tab || !dashboard.contains(tab)) return;
+
+                    event.preventDefault();
+                    event.stopPropagation();
+
+                    dashboard.querySelectorAll(".gd-admin-tab").forEach(button => {
+                        button.classList.remove("active");
+                    });
+                    dashboard.querySelectorAll(".gd-admin-panel").forEach(panel => {
+                        panel.classList.remove("active");
+                    });
+
+                    tab.classList.add("active");
+
+                    const panelId =
+                        "adminPanel" +
+                        String(tab.dataset.adminTab || "")
+                            .charAt(0).toUpperCase() +
+                        String(tab.dataset.adminTab || "").slice(1);
+
+                    const panel = document.getElementById(panelId);
+                    if (panel) panel.classList.add("active");
+
+                    try {
+                        if (isAdminAccount()) await loadAdminPeopleAndConnections();
+                    } catch (error) {
+                        console.error("Admin tab refresh error:", error);
+                    }
+                });
+            }
+        }
+
+        async function refreshAdminData() {
+            const btn = document.getElementById("adminRefreshBtn");
+            if (btn) btn.click();
+            else await loadAdminDashboard();
+        }
+
         function setupEventListeners() {
-            document.getElementById("adminRefreshBtn")?.addEventListener("click", loadAdminDashboard);
+            bindAdminControls();
             document.getElementById("adminOwnerForm")?.addEventListener("submit", saveAdminOwner);
         document.getElementById("renterProfileForm")?.addEventListener("submit", saveRenterProfile);
         document.getElementById("renterEditProfileBtn")?.addEventListener("click", openRenterProfileEditor);
@@ -15253,7 +15352,8 @@ function updateStayTypeFields() {
                 }
             }, true);
             document.getElementById("adminDashboard")?.addEventListener("click",function(e){const btn=e.target.closest("[data-admin-action]");if(!btn)return;const id=btn.dataset.id,action=btn.dataset.adminAction;if(action==="edit-property")openAdminPropertyEditor(id);else if(action==="edit-owner")openAdminOwnerEditor(id);else if(action==="verify-property")verifyAdminProperty(id);else if(action==="verify-owner")verifyAdminOwner(id);else if(action==="reject-owner")rejectAdminOwner(id);else if(action==="revoke-owner")revokeAdminOwner(id);else if(action==="release-occupancy")releaseAdminOccupancy(id);else if(action==="delete-property")deleteAdminProperty(id);});
-            document.querySelectorAll(".gd-admin-tab").forEach(btn=>btn.addEventListener("click",()=>{document.querySelectorAll(".gd-admin-tab").forEach(x=>x.classList.remove("active"));document.querySelectorAll(".gd-admin-panel").forEach(x=>x.classList.remove("active"));btn.classList.add("active");document.getElementById("adminPanel"+btn.dataset.adminTab.charAt(0).toUpperCase()+btn.dataset.adminTab.slice(1))?.classList.add("active");if(isAdminAccount())loadAdminPeopleAndConnections();}));["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch","adminConnectionSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
+            // Tab switching is handled by bindAdminControls() using event delegation,
+            // so it still works when the Admin dashboard is opened after startup.["adminPropertySearch","adminOwnerSearch","adminRenterSearch","adminVisitSearch","adminConnectionSearch"].forEach(id=>document.getElementById(id)?.addEventListener("input",adminRender));
             const signupBtn = document.getElementById("signupBtn");
             const loginSubmitBtn = document.getElementById("loginSubmitBtn");
             const forgotPasswordBtn = document.getElementById("forgotPasswordBtn");
