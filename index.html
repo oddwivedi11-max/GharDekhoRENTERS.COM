@@ -1,4 +1,13 @@
 <!DOCTYPE html>
+<script id="gdr-admin-entrypoint">
+(function(){
+  try{
+    if(new URLSearchParams(location.search).get("admin")==="1" && location.pathname!=="/admin" && sessionStorage.getItem("gd_admin_authenticated_redirect")!=="1"){
+      location.replace("/admin/");
+    }
+  }catch(e){}
+})();
+</script>
 <html lang="en">
 
 <head>
