@@ -1,0 +1,4 @@
+# GharDekho admin route
+# Keep /admin/ on the standalone admin login instead of the public SPA fallback.
+/admin /admin/index.html 200
+/admin/ /admin/index.html 200
