@@ -111,6 +111,28 @@ html.gd-admin-hard-route #seoRentalGuide,
 html.gd-admin-hard-route #gdAuthGateway{
   display:none!important;
 }
+html.gd-admin-hard-route body > header,
+html.gd-admin-hard-route body > footer{
+  display:none!important;
+}
+html.gd-admin-hard-route main > section{
+  display:none!important;
+}
+html.gd-admin-hard-route main > #loginSection{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+}
+html.gd-admin-hard-route main > #dashboardSection{
+  display:none!important;
+}
+html.gd-admin-hard-route body.gd-admin-mode main > #loginSection{
+  display:none!important;
+}
+html.gd-admin-hard-route body.gd-admin-mode main > #dashboardSection,
+html.gd-admin-hard-route body.gd-authenticated.gd-admin-mode main > #dashboardSection{
+  display:block!important;
+}
 html.gd-admin-hard-route body:not(.gd-admin-mode):not(.gd-authenticated) #loginSection{
   display:grid!important;
   visibility:visible!important;
@@ -10318,9 +10340,31 @@ function openAdminLogin(){
     }
 
     window.__gdAdminLoginRequested = true;
-    openLoginSection("renter");
 
-    // Keep the Admin destination authoritative after openLoginSection()
+    // IMPORTANT: Admin login must never pass through the public renter
+    // login helper. That helper intentionally restores the public #login
+    // route and can allow the landing page to repaint. Build the admin
+    // presentation directly instead.
+    const adminLoginSection = document.getElementById("loginSection");
+    const adminAuthForm = document.getElementById("gdAuthFormShell");
+    const adminGateway = document.getElementById("gdAuthGateway");
+    const adminHome = document.getElementById("homeSection");
+    const adminLanding = document.getElementById("loggedOutLanding");
+    const adminProps = document.getElementById("propertiesSection");
+    const adminVisit = document.getElementById("visitSection");
+    const adminDetails = document.getElementById("propertyDetails");
+    const adminDashboard = document.getElementById("dashboardSection");
+    if(adminHome) adminHome.style.setProperty("display","none","important");
+    if(adminLanding) adminLanding.style.setProperty("display","none","important");
+    if(adminProps) adminProps.style.setProperty("display","none","important");
+    if(adminVisit) adminVisit.style.setProperty("display","none","important");
+    if(adminDetails) adminDetails.style.setProperty("display","none","important");
+    if(adminGateway) adminGateway.style.setProperty("display","none","important");
+    if(adminDashboard) adminDashboard.style.setProperty("display","none","important");
+    if(adminLoginSection) adminLoginSection.style.setProperty("display","grid","important");
+    if(adminAuthForm) adminAuthForm.style.setProperty("display","grid","important");
+
+    // Keep the Admin destination authoritative after the direct presentation
     // changes the temporary auth hash to #login.
     activeRole = "admin";
     pendingLoginRole = "admin";
@@ -20432,7 +20476,9 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
   function authorized(){
     try{
-      const email=(window.currentUser?.email||window.currentProfile?.email||"").toLowerCase();
+      let email="";
+      try{ email=String(currentUser?.email || currentProfile?.email || "").trim().toLowerCase(); }
+      catch(e){ email=""; }
       return email===ADMIN_EMAIL;
     }catch(e){ return false; }
   }
