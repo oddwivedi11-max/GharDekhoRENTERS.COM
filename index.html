@@ -10257,19 +10257,8 @@ async function openLoginAs(role){
         resetRoleSpecificUI();
     }
 
-    try {
-        const path = window.location.pathname.replace(/\/+$/, "") || "/";
-        const query = new URLSearchParams(window.location.search);
-        if (path === "/admin" || query.get("admin") === "1") {
-            const publicLoginUrl = window.location.origin + "/#login";
-            if (window.top && window.top !== window && window.top.location) {
-                window.top.location.href = publicLoginUrl;
-                return;
-            }
-            window.history.replaceState({gdAuth:true}, document.title, publicLoginUrl);
-        }
-    } catch (err) {}
-
+    // Admin routes are handled by the dedicated admin flow above.
+    // Never convert /admin or ?admin=1 into the public #login route.
     pendingLoginRole = selectedRole;
     activeRole = selectedRole;
     sessionStorage.setItem("gd_pending_login_role", selectedRole);
