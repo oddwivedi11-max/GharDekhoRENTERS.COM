@@ -10308,9 +10308,9 @@ function openPrivateAdminAccess(){
     window.__gdAdminHardRoute = true;
     document.documentElement.classList.add("gd-admin-hard-route");
     try {
-        const cleanUrl = normalizedPath === "/admin"
-            ? window.location.origin + "/admin"
-            : window.location.origin + "/?admin=1";
+        const cleanUrl = normalizedPath === "/admin/control"
+            ? window.location.origin + "/admin/control"
+            : window.location.origin + "/admin/control";
         window.history.replaceState({gdAdmin:true}, document.title, cleanUrl);
     } catch (err) {}
     openAdminLogin();
@@ -10374,7 +10374,7 @@ function openAdminLogin(){
     sessionStorage.setItem("gd_pending_login_role", "admin");
     sessionStorage.setItem("gd_login_destination", "admin");
     try {
-        window.history.replaceState({gdAdmin:true}, document.title, window.location.origin + "/admin");
+        window.history.replaceState({gdAdmin:true}, document.title, window.location.origin + "/admin/control");
     } catch (err) {}
 
     const gateway=document.getElementById("gdAuthGateway");
