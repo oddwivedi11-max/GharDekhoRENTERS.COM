@@ -61,6 +61,21 @@
       sessionStorage.setItem("gd_pending_login_role","admin");
       sessionStorage.setItem("gd_active_role","admin");
       sessionStorage.setItem("gd_admin_authenticated_redirect","1");
+      localStorage.setItem("gd_login_destination","admin");
+      localStorage.setItem("gd_active_role","admin");
+
+      // Make sure Supabase has persisted the authenticated session before
+      // navigating into the main Admin Control Center.
+      const { data: persistedSession } = await supabaseClient.auth.getSession();
+      if (!persistedSession?.session) {
+        msg.textContent="Admin session could not be persisted. Please try again.";
+        btn.disabled=false;
+        btn.textContent="Enter Admin Control Center →";
+        return;
+      }
+
+      // Give the auth storage write a moment to finish before the full app loads.
+      await new Promise(resolve => setTimeout(resolve, 250));
       window.location.replace("/?admin=1&auth=1");
     });
   </script>
