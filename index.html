@@ -2,7 +2,10 @@
 <script id="gdr-admin-entrypoint">
 (function(){
   try{
-    if(new URLSearchParams(location.search).get("admin")==="1" && location.pathname!=="/admin" && sessionStorage.getItem("gd_admin_authenticated_redirect")!=="1"){
+    var q=new URLSearchParams(location.search);
+    var admin=q.get("admin")==="1";
+    var auth=q.get("auth")==="1";
+    if(admin && !auth && location.pathname!=="/admin" && location.pathname!=="/admin/"){
       location.replace("/admin/");
     }
   }catch(e){}
