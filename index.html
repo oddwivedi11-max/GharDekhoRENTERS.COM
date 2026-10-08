@@ -9929,8 +9929,8 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
 </section>
 <div id="adminAccessDenied" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Admin access only</h3><p>This area is restricted to the configured administrator account.</p><button type="button" class="dashboard-primary-action" onclick="closeAdminDenied()">OK</button></div></div>
 <div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required autocomplete="off"></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="adminOwnerPhone" name="gd_adminOwnerPhone_mobile" maxlength="10" inputmode="numeric" autocomplete="off"></span></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
-<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" name="gd_ownerProfileEditPhone_mobile" maxlength="10" inputmode="numeric" autocomplete="off"></span></label><p class="gd-admin-muted">These details update your GharDekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
-<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" inputmode="numeric" autocomplete="off"></span></label><p class="gd-admin-muted">These details update your GharDekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" name="gd_ownerProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
         
 
 <div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><div class="gd-editor-full gd-editor-photo-box">
@@ -10469,7 +10469,19 @@ function openAdminLogin(){
         let passwordResetEmail = "";
         let passwordResetVerified = false;
 
-        function normalizePhone(value) {
+        function isValidGharDekhoPhone(phone) {
+    const normalized = normalizePhone(phone);
+    const digits = normalized.replace(/^\+91/, "");
+    return /^\+91[6-9]\d{9}$/.test(normalized) && !/^([0-9])\1{9}$/.test(digits);
+}
+function gharDekhoPhoneError(phone) {
+    const normalized = normalizePhone(phone);
+    const digits = normalized.replace(/^\+91/, "");
+    if (!/^\+91[6-9]\d{9}$/.test(normalized)) return "Enter a valid 10-digit Indian mobile number starting with 6, 7, 8 or 9.";
+    if (/^([0-9])\1{9}$/.test(digits)) return "Repeated or dummy phone numbers are not allowed.";
+    return "";
+}
+function normalizePhone(value) {
             let digits = String(value || "").replace(/\D/g, "");
             // GharDekho uses Indian mobile numbers everywhere: the UI owns +91
             // and the user supplies exactly 10 local digits.
@@ -10883,6 +10895,29 @@ function resetRoleSpecificUI() {
     });
 }
 
+async function requireMandatoryPhoneProfile(){
+    if(!currentUser||!currentProfile)return false;
+    if(isValidGharDekhoPhone(currentProfile.phone||""))return false;
+    const role=pendingLoginRole==="owner"||activeRole==="owner"?"owner":"renter";
+    activeRole=role;pendingLoginRole=role;
+    sessionStorage.setItem("gd_pending_login_role",role);
+    sessionStorage.setItem("gd_active_role",role);
+    document.getElementById("loggedOutLanding")?.style.setProperty("display","none");
+    document.getElementById("loginSection")?.style.setProperty("display","none");
+    document.getElementById("dashboardSection")?.style.setProperty("display","none");
+    document.body.classList.add("gd-authenticated","gd-auth-page");
+    if(role==="owner"){
+        openOwnerProfileEditor();
+        const e=document.getElementById("ownerProfileEditor");if(e){e.dataset.requiredPhone="1";e.classList.add("active");e.setAttribute("aria-hidden","false");}
+        document.getElementById("ownerProfileEditPhone")?.focus();
+    }else{
+        openRenterProfileEditor();
+        const e=document.getElementById("renterProfileEditor");if(e){e.dataset.requiredPhone="1";e.classList.add("active");e.setAttribute("aria-hidden","false");}
+        document.getElementById("renterProfileEditPhone")?.focus();
+    }
+    showMessage("backendMessage","Phone number is mandatory. Enter your real 10-digit Indian mobile number to continue.","error");
+    return true;
+}
 async function updateAuthUI() {
     if (window.__gdPasswordRecovery === true) {
         const landing = document.getElementById("loggedOutLanding");
@@ -10987,6 +11022,7 @@ async function updateAuthUI() {
         sessionStorage.setItem("gd_active_role", requestedRole);
         sessionStorage.setItem("gd_pending_login_role", requestedRole);
 
+        if(await requireMandatoryPhoneProfile())return;
         setRoleSpecificUI(requestedRole);
         updateDashboardProfile();
         updateDashboardRoleSwitcher();
@@ -11003,6 +11039,7 @@ async function updateAuthUI() {
     /* Google OAuth does not require a phone-number authorization gate. */
     currentProfile = profile;
     updateDashboardProfile();
+    if(await requireMandatoryPhoneProfile())return;
 
     const emailInput = document.getElementById("userEmail");
     const nameInput = document.getElementById("userName");
@@ -11191,6 +11228,11 @@ async function signupUser() {
         if (error) {
             console.error("Signup error:", error);
             const signupErrorText = String(error?.message || "").toLowerCase();
+            if (signupErrorText.includes("phone number is already registered") || signupErrorText.includes("already registered with another ghardekho account")) {
+                authMessage.textContent = "This phone number is already registered with another GharDekho account. Use your own unique mobile number.";
+                document.getElementById("userPhone")?.focus();
+                return;
+            }
             if (signupErrorText.includes("already registered") || signupErrorText.includes("email address already exists") || signupErrorText.includes("email_exists")) {
                 showSignInPage();
                 authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
@@ -11546,6 +11588,10 @@ async function loginWithGoogle() {
      * The phone field is profile information only and must never block
      * a user who chooses "Continue with Google".
      */
+    const selectedGoogleRole=document.querySelector('input[name="accountRole"]:checked')?.value==="owner"?"owner":"renter";
+    pendingLoginRole=selectedGoogleRole;
+    sessionStorage.setItem("gd_pending_login_role",selectedGoogleRole);
+    sessionStorage.setItem("gd_login_destination",selectedGoogleRole);
     try {
         sessionStorage.removeItem("gd_pending_oauth_phone");
     } catch (e) {
@@ -11900,7 +11946,7 @@ function openRenterProfileEditor(){
     document.getElementById("renterProfileMessage").textContent="";
     document.getElementById("renterProfileEditor").classList.add("active");
 }
-function closeRenterProfileEditor(){document.getElementById("renterProfileEditor")?.classList.remove("active");}
+function closeRenterProfileEditor(){const e=document.getElementById("renterProfileEditor");if(e?.dataset.requiredPhone==="1")return;e?.classList.remove("active");if(e)e.dataset.requiredPhone="0";}
 async function saveRenterProfile(e){
     e.preventDefault();
     if(!currentUser||!["renter","tenant"].includes(String(activeRole||"").toLowerCase())) return;
@@ -11909,7 +11955,8 @@ async function saveRenterProfile(e){
     const phone=normalizePhone(document.getElementById("renterProfileEditPhone").value);
     const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
     if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
-    if(phone && !/^\+91\d{10}$/.test(phone)){showMessage("backendMessage","Enter exactly 10 digits after +91.","error");return;}
+    const phoneError=gharDekhoPhoneError(phone);
+    if(phoneError){showMessage("backendMessage",phoneError,"error");document.getElementById("renterProfileEditPhone")?.focus();return;}
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
     try{
         const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone||null});
@@ -11925,7 +11972,11 @@ async function saveRenterProfile(e){
         currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateDashboardProfile();
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
+        const re=document.getElementById("renterProfileEditor");
+        const requiredPhone=re?.dataset.requiredPhone==="1";
+        if(re)re.dataset.requiredPhone="0";
         closeRenterProfileEditor();
+        if(requiredPhone) await updateAuthUI();
     }catch(error){
         console.error("Renter profile update exception:",error);
         showMessage("backendMessage","Could not save renter details. Please try again.","error");
@@ -11955,7 +12006,7 @@ function openOwnerProfileEditor(){
     document.getElementById("ownerProfileMessage").textContent="";
     document.getElementById("ownerProfileEditor").classList.add("active");
 }
-function closeOwnerProfileEditor(){document.getElementById("ownerProfileEditor")?.classList.remove("active");}
+function closeOwnerProfileEditor(){const e=document.getElementById("ownerProfileEditor");if(e?.dataset.requiredPhone==="1")return;e?.classList.remove("active");if(e)e.dataset.requiredPhone="0";}
 async function saveOwnerProfile(e){
     e.preventDefault();
     if(!currentUser||activeRole!=="owner") return;
@@ -11967,6 +12018,8 @@ async function saveOwnerProfile(e){
     const saveButton=document.querySelector("#ownerProfileForm button[type='submit']");
 
     if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
+    const phoneError=gharDekhoPhoneError(phone);
+    if(phoneError){showMessage("backendMessage",phoneError,"error");document.getElementById("ownerProfileEditPhone")?.focus();return;}
 
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
     if(msg){msg.textContent="";msg.hidden=true;}
@@ -11993,7 +12046,11 @@ async function saveOwnerProfile(e){
         updateDashboardProfile();
 
         showMessage("backendMessage","Owner details saved successfully. ✓","success");
+        const oe=document.getElementById("ownerProfileEditor");
+        const requiredPhone=oe?.dataset.requiredPhone==="1";
+        if(oe)oe.dataset.requiredPhone="0";
         closeOwnerProfileEditor();
+        if(requiredPhone) await updateAuthUI();
     }catch(error){
         console.error("Owner profile update exception:",error);
         showMessage("backendMessage","Could not save owner details. Please try again.","error");
