@@ -15876,33 +15876,58 @@ function updateStayTypeFields() {
                 localStorage.setItem("gd_login_destination", "admin");
                 localStorage.setItem("gd_active_role", "admin");
 
-                await loadCurrentUser();
+                // Render the Admin route FIRST. Do not call the generic
+                // loadCurrentUser/updateAuthUI pipeline before the Admin UI is
+                // visible; that pipeline can repaint the public landing page
+                // during Supabase session restoration.
+                openAdminLogin();
 
-                // If an authenticated admin session was restored, explicitly
-                // rebuild the Admin profile before opening the dashboard.
-                if (currentUser && isAdminAccount()) {
-                    const { data: adminProfile } = await supabaseClient
-                        .from("users")
-                        .select("id,name,email,phone,role,roles")
-                        .eq("id", currentUser.id)
-                        .maybeSingle();
+                // Restore the Supabase session in the background. If the
+                // authorized admin session exists, immediately promote the
+                // already-visible Admin screen to the Control Center.
+                try {
+                    await loadCurrentUser();
 
-                    currentProfile = adminProfile || {
-                        id: currentUser.id,
-                        name: currentUser.email || "Admin",
-                        email: currentUser.email || "",
-                        phone: null,
-                        role: "admin",
-                        roles: ["admin"]
-                    };
-                    activeRole = "admin";
-                    pendingLoginRole = "admin";
-                    sessionStorage.setItem("gd_login_destination", "admin");
-                    sessionStorage.setItem("gd_pending_login_role", "admin");
-                    sessionStorage.setItem("gd_active_role", "admin");
+                    if (currentUser && isAdminAccount()) {
+                        const { data: adminProfile } = await supabaseClient
+                            .from("users")
+                            .select("id,name,email,phone,role,roles")
+                            .eq("id", currentUser.id)
+                            .maybeSingle();
+
+                        currentProfile = adminProfile || {
+                            id: currentUser.id,
+                            name: currentUser.email || "Admin",
+                            email: currentUser.email || "",
+                            phone: null,
+                            role: "admin",
+                            roles: ["admin"]
+                        };
+
+                        activeRole = "admin";
+                        pendingLoginRole = "admin";
+                        sessionStorage.setItem("gd_login_destination", "admin");
+                        sessionStorage.setItem("gd_pending_login_role", "admin");
+                        sessionStorage.setItem("gd_active_role", "admin");
+
+                        if (typeof showAdminDashboard === "function") {
+                            await showAdminDashboard();
+                        } else {
+                            setRoleSpecificUI("admin");
+                            const dashboard = document.getElementById("dashboardSection");
+                            const loginSection = document.getElementById("loginSection");
+                            if (loginSection) loginSection.style.setProperty("display","none","important");
+                            if (dashboard) dashboard.style.setProperty("display","block","important");
+                            await renderActiveDashboard();
+                        }
+                    }
+                } catch (adminRestoreError) {
+                    console.error("Admin session restore failed:", adminRestoreError);
+                    // Stay on the Admin Login screen. Never fall back to public
+                    // homepage for an Admin route.
+                    openAdminLogin();
                 }
 
-                openAdminLogin();
                 console.log("GharDekho Admin route ready.");
                 return;
             }
