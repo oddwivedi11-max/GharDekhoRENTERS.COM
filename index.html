@@ -15863,9 +15863,45 @@ function updateStayTypeFields() {
                 new URLSearchParams(window.location.search).get("admin") === "1";
 
             if (directAdminRoute) {
+                // ADMIN STARTUP ISOLATION:
+                // Restore the admin destination before any generic auth UI
+                // code runs. This prevents a persisted admin session from
+                // being interpreted as a Renter/Owner session during refresh.
                 window.__gdAdminLoginRequested = true;
+                activeRole = "admin";
+                pendingLoginRole = "admin";
                 sessionStorage.setItem("gd_login_destination", "admin");
+                sessionStorage.setItem("gd_pending_login_role", "admin");
+                sessionStorage.setItem("gd_active_role", "admin");
+                localStorage.setItem("gd_login_destination", "admin");
+                localStorage.setItem("gd_active_role", "admin");
+
                 await loadCurrentUser();
+
+                // If an authenticated admin session was restored, explicitly
+                // rebuild the Admin profile before opening the dashboard.
+                if (currentUser && isAdminAccount()) {
+                    const { data: adminProfile } = await supabaseClient
+                        .from("users")
+                        .select("id,name,email,phone,role,roles")
+                        .eq("id", currentUser.id)
+                        .maybeSingle();
+
+                    currentProfile = adminProfile || {
+                        id: currentUser.id,
+                        name: currentUser.email || "Admin",
+                        email: currentUser.email || "",
+                        phone: null,
+                        role: "admin",
+                        roles: ["admin"]
+                    };
+                    activeRole = "admin";
+                    pendingLoginRole = "admin";
+                    sessionStorage.setItem("gd_login_destination", "admin");
+                    sessionStorage.setItem("gd_pending_login_role", "admin");
+                    sessionStorage.setItem("gd_active_role", "admin");
+                }
+
                 openAdminLogin();
                 console.log("GharDekho Admin route ready.");
                 return;
