@@ -9412,7 +9412,7 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
       <label class="gd-v4-field"><span>Phone number</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="text" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter 10-digit number" inputmode="numeric" pattern="[6-9][0-9]{9}" minlength="10" autocomplete="off" required autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
-    <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your email and password to log in. Your selected dashboard is remembered for this login.</p></div>
+    <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Phone number is required for every Renter/Owner account. Enter it above before using Google.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="prepareSignupForm(); signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button></div>
     <div class="gd-v4-bottom">
@@ -11611,20 +11611,23 @@ async function loginWithGoogle() {
     const authMessage = document.getElementById("authMessage");
 
     /*
-     * Google OAuth is email-based authentication.
-     * Do NOT require the profile phone number before opening Google.
-     * The phone field is profile information only and must never block
-     * a user who chooses "Continue with Google".
+     * Google accounts must also provide a phone number BEFORE OAuth starts.
+     * OTP/ownership verification will be added later; for now the number is
+     * checked for valid format and uniqueness when the profile is saved.
      */
     const selectedGoogleRole=document.querySelector('input[name="accountRole"]:checked')?.value==="owner"?"owner":"renter";
+    const googlePhoneInput=document.getElementById("userPhone");
+    const googlePhone=normalizePhone(googlePhoneInput?.value||"");
+    const googlePhoneError=gharDekhoPhoneError(googlePhone);
+    if(googlePhoneError){
+        if(authMessage)authMessage.textContent="Enter your phone number first. "+googlePhoneError;
+        googlePhoneInput?.focus();
+        return;
+    }
     pendingLoginRole=selectedGoogleRole;
     sessionStorage.setItem("gd_pending_login_role",selectedGoogleRole);
     sessionStorage.setItem("gd_login_destination",selectedGoogleRole);
-    try {
-        sessionStorage.removeItem("gd_pending_oauth_phone");
-    } catch (e) {
-        console.warn("Could not clear old OAuth phone marker:", e);
-    }
+    sessionStorage.setItem("gd_pending_oauth_phone",googlePhone);
 
     if (button) {
         button.disabled = true;
@@ -11970,7 +11973,7 @@ function openRenterProfileEditor(){
     const p=currentProfile||{};
     document.getElementById("renterProfileEditName").value=p.name||currentUser?.email||"";
     document.getElementById("renterProfileEditEmail").value=p.email||currentUser?.email||"";
-    document.getElementById("renterProfileEditPhone").value=p.phone||"";
+    document.getElementById("renterProfileEditPhone").value=p.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"";
     document.getElementById("renterProfileMessage").textContent="";
     document.getElementById("renterProfileEditor").classList.add("active");
 }
@@ -12003,6 +12006,7 @@ async function saveRenterProfile(e){
         }
         currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateDashboardProfile();
+        try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
         closeRenterProfileEditor();
     }catch(error){
@@ -12030,7 +12034,7 @@ function openOwnerProfileEditor(){
     const p=currentOwnerProfile||currentProfile||{};
     document.getElementById("ownerProfileEditName").value=p.name||currentProfile?.name||"";
     document.getElementById("ownerProfileEditEmail").value=p.email||currentProfile?.email||currentUser?.email||"";
-    document.getElementById("ownerProfileEditPhone").value=p.phone||currentProfile?.phone||"";
+    document.getElementById("ownerProfileEditPhone").value=p.phone||currentProfile?.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"";
     document.getElementById("ownerProfileMessage").textContent="";
     document.getElementById("ownerProfileEditor").classList.add("active");
 }
@@ -12066,6 +12070,7 @@ async function saveOwnerProfile(e){
         currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateOwnerProfileUI(currentOwnerProfile);
         updateDashboardProfile();
+        try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
         showMessage("backendMessage","Owner details saved successfully. ✓","success");
         closeOwnerProfileEditor();
     }catch(error){
