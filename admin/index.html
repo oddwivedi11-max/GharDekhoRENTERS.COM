@@ -78,7 +78,7 @@
       await new Promise(resolve => setTimeout(resolve, 250));
       // Cache-bust the main SPA so Cloudflare cannot reuse an older public-home
       // index.html response after the Admin login redirect.
-      window.location.replace("/admin/control/?auth=1&admin_session=1");
+      window.location.replace("/admin/control.html?auth=1&admin_session=1");
     });
   </script>
 </body>
