@@ -9127,6 +9127,8 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
  #ownerDashboard #addPropertyBtn{min-height:54px!important}
  #ownerDashboard .gd-owner-modal-head{padding:18px 16px!important}
 }
+</style><style id="gd-login-method-copy-v1">
+#loginSection .gd-login-method-note{margin:8px 0 0;text-align:center;font-size:12px;line-height:1.45;color:#64746f;font-weight:700}
 </style></head>
 
 <body>
@@ -11568,7 +11570,7 @@ async function loginUser() {
         }
         const loginPhoneError = gharDekhoPhoneError(loginPhone);
         if (loginPhoneError) {
-            authMessage.textContent = "Enter phone number first.";
+            authMessage.textContent = loginPhoneError;
             loginPhoneInput?.focus();
             return;
         }
@@ -11611,31 +11613,31 @@ async function loginUser() {
 
         currentUser = data.user;
 
-        // Phone is required at login and must match the phone stored on the
-        // authenticated GharDekho profile. Ownership verification/OTP will
-        // be added later; for now this is a registered-number match.
-        const { data: loginProfile, error: loginProfileError } = await withAuthTimeout(
-            supabaseClient
-                .from("users")
-                .select("id,name,email,phone,role,roles")
-                .eq("id", currentUser.id)
-                .maybeSingle(),
-            "Profile phone check",
-            10000
-        );
-        if (!window.__gdAdminLoginRequested && (loginProfileError || !loginProfile || normalizePhone(loginProfile.phone || "") !== loginPhone)) {
-            await supabaseClient.auth.signOut();
-            currentUser = null;
-            authMessage.textContent = "Enter phone number first.";
-            loginPhoneInput?.focus();
-            return;
+        // Password authentication is handled by Supabase first. Then verify the
+        // registered GharDekho phone through a SECURITY DEFINER RPC so RLS on
+        // the users table can never incorrectly block a valid login.
+        if (!window.__gdAdminLoginRequested) {
+            const { data: phoneMatches, error: phoneCheckError } = await withAuthTimeout(
+                supabaseClient.rpc("verify_my_login_phone", { p_phone: loginPhone }),
+                "Phone verification",
+                10000
+            );
+            if (phoneCheckError || phoneMatches !== true) {
+                console.error("Login phone verification error:", phoneCheckError);
+                await supabaseClient.auth.signOut();
+                currentUser = null;
+                authMessage.textContent = phoneCheckError
+                    ? "We could not verify your registered phone. Please try again."
+                    : "The phone number does not match the number registered with this account.";
+                loginPhoneInput?.focus();
+                return;
+            }
         }
 
         /*
          * LOGIN AUTHENTICATION:
          * Renter/Owner login uses email + password + registered phone number.
-         * The phone number remains part of account/profile data, but it is
-         * NOT required to authenticate an existing account.
+         * Google is optional; it is never required for normal login.
          */
 
         /*
@@ -12128,14 +12130,18 @@ async function updatePassword() {
     message.textContent = "Updating password...";
 
     try {
-        const { error } = await supabaseClient.auth.updateUser({ password: newPassword });
+        const { data: updatedUser, error } = await supabaseClient.auth.updateUser({ password: newPassword });
         if (error) {
             console.error("Password update error:", error);
             message.textContent = getFriendlyAuthError(error);
             return;
         }
+        if (!updatedUser?.user) {
+            message.textContent = "Password update could not be confirmed. Please request a new reset link and try again.";
+            return;
+        }
 
-        message.textContent = "Password updated successfully. Please log in with your new password.";
+        message.textContent = "Password updated successfully. Your new password is ready. Please log in with Email + Phone + New Password.";
         document.getElementById("newPassword").value = "";
         document.getElementById("confirmNewPassword").value = "";
         passwordResetVerified = false;
