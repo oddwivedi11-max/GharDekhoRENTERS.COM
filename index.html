@@ -13028,6 +13028,43 @@ async function renderActiveDashboard() {
            PROPERTY DETAILS
            ========================================================= */
 
+        function sharePropertyToGharDekhoWhatsApp(property) {
+            const gharDekhoWhatsAppNumber = "917389595902";
+            const imageUrl = String(property?.image_url || "").trim();
+            const propertyUrl = window.location.origin + window.location.pathname + "?property=" + encodeURIComponent(property?.id || "");
+
+            const lines = [
+                "🏠 *GharDekho Property Share*",
+                "",
+                "*Property:* " + String(property?.title || "Rental Property"),
+                "*Rent:* " + formatRent(property?.rent),
+                "*Location:* " + String(property?.location || property?.address || "Not specified"),
+                "*Configuration:* " + String(
+                    property?.listing_type === "home" || !property?.listing_type
+                        ? ((property?.bhk || "-") + " BHK")
+                        : (property?.room_type || "Shared stay")
+                ),
+                "*Furnishing:* " + String(property?.furnishing || "Not specified"),
+                "*Status:* " + (
+                    property?.status === "occupied"
+                        ? "Occupied"
+                        : property?.status === "soon_available"
+                            ? "Soon Available"
+                            : "Available"
+                ),
+                "",
+                "*View property:* " + propertyUrl
+            ];
+
+            if (imageUrl) {
+                lines.push("*Property photo:* " + imageUrl);
+            }
+
+            lines.push("", "Please help me with this property.");
+
+            const whatsappUrl = "https://wa.me/" + gharDekhoWhatsAppNumber + "?text=" + encodeURIComponent(lines.join("\n"));
+            window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+        }
         async function openPropertyDetails(propertyId) {
             /* Property details are an intentional discovery surface. Owners use
                owner-explore mode; renters use renter-explore mode. */
@@ -13219,6 +13256,7 @@ async function renderActiveDashboard() {
                             ${callOwnerHtml}
                             <a class="map-button" target="_blank" rel="noopener noreferrer" href="${escapeHtml(mapsUrl)}">🗺️ Open in Google Maps</a>
                             ${visitHtml}
+                            <button type="button" id="detailsWhatsAppBtn" class="whatsapp-share-button">💬 Share on WhatsApp</button>
                             <button type="button" id="detailsSaveBtn">♡ Save Property</button>
                         </div>
 
@@ -13266,6 +13304,11 @@ async function renderActiveDashboard() {
             const visitButton = document.getElementById("detailsVisitBtn");
             if (visitButton && !visitButton.disabled) {
                 visitButton.addEventListener("click", openVisitForm);
+            }
+
+            const whatsappShareButton = document.getElementById("detailsWhatsAppBtn");
+            if (whatsappShareButton) {
+                whatsappShareButton.addEventListener("click", () => sharePropertyToGharDekhoWhatsApp(property));
             }
 
             const saveButton = document.getElementById("detailsSaveBtn");
