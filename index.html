@@ -19237,6 +19237,63 @@ html.gd-admin-route body.gd-auth-page #premiumAuthTitle{
   new MutationObserver(enforceAdminLogin).observe(document.documentElement,{childList:true,subtree:true});
 })();
 </script>
+<style id="gdr-login-left-visual-polish-v1">
+/* LEFT LOGIN VISUAL ONLY — keep the login/create-account panel unchanged */
+.gd-v4-auth-visual{
+  background:
+    radial-gradient(circle at 82% 12%,rgba(173,240,220,.16),transparent 25%),
+    radial-gradient(circle at 8% 92%,rgba(244,177,126,.10),transparent 24%),
+    linear-gradient(145deg,#082f2c 0%,#0d4b45 52%,#12665c 100%) !important;
+  color:#fff !important;
+}
+.gd-v4-auth-visual:before{
+  border-color:rgba(211,250,239,.14) !important;
+  box-shadow:0 0 0 55px rgba(211,250,239,.035),0 0 0 110px rgba(211,250,239,.018) !important;
+}
+.gd-v4-auth-visual:after{
+  background:#f2a36f !important;
+  opacity:.10 !important;
+}
+.gd-v4-visual-copy{
+  max-width:590px !important;
+  margin-top:62px !important;
+}
+.gd-v4-eyebrow{
+  color:#ffd0a8 !important;
+  font-size:11px !important;
+  letter-spacing:.16em !important;
+}
+.gd-v4-visual-copy h2{
+  color:#ffffff !important;
+  text-shadow:0 3px 20px rgba(0,0,0,.16);
+  font-size:clamp(2.8rem,4.8vw,5rem) !important;
+  line-height:.94 !important;
+  letter-spacing:-.065em !important;
+}
+.gd-v4-visual-copy h2 em{
+  color:#b9f3e1 !important;
+}
+.gd-v4-visual-copy p{
+  color:rgba(255,255,255,.88) !important;
+  max-width:520px !important;
+  font-size:15px !important;
+  line-height:1.7 !important;
+}
+.gd-auth-tagline{
+  background:rgba(255,255,255,.94) !important;
+  color:#0a3834 !important;
+  border:1px solid rgba(255,255,255,.55) !important;
+  box-shadow:0 12px 30px rgba(0,0,0,.12) !important;
+}
+.gd-auth-tagline strong{color:#0a3834 !important}
+.gd-auth-tagline em{color:#d97843 !important}
+.gd-v4-property-preview{
+  background:rgba(255,255,255,.105) !important;
+  border-color:rgba(255,255,255,.18) !important;
+  box-shadow:0 16px 40px rgba(0,0,0,.14) !important;
+}
+.gd-v4-stat-row small{color:rgba(255,255,255,.72) !important}
+</style>
 </body>
 
 </html>
