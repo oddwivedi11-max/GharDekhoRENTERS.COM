@@ -11308,6 +11308,8 @@ async function loginUser() {
 
     const email = document.getElementById("userEmail").value.trim().toLowerCase();
     const password = document.getElementById("userPassword").value;
+    const loginPhoneInput = document.getElementById("userPhone");
+    const loginPhone = normalizePhone(loginPhoneInput?.value || "");
     // Always honor the role explicitly selected on the login form.
     // This prevents a previous Owner selection in sessionStorage from
     // sending a dual-role account to the Owner dashboard when Renter is selected.
@@ -11321,6 +11323,12 @@ async function loginUser() {
     try {
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             authMessage.textContent = "Enter a valid email address.";
+            return;
+        }
+        const loginPhoneError = gharDekhoPhoneError(loginPhone);
+        if (loginPhoneError) {
+            authMessage.textContent = "Enter your registered phone number. " + loginPhoneError;
+            loginPhoneInput?.focus();
             return;
         }
         if (!password) {
@@ -11345,9 +11353,29 @@ async function loginUser() {
 
         currentUser = data.user;
 
+        // Phone is required at login and must match the phone stored on the
+        // authenticated GharDekho profile. Ownership verification/OTP will
+        // be added later; for now this is a registered-number match.
+        const { data: loginProfile, error: loginProfileError } = await withAuthTimeout(
+            supabaseClient
+                .from("users")
+                .select("id,name,email,phone,role,roles")
+                .eq("id", currentUser.id)
+                .maybeSingle(),
+            "Profile phone check",
+            10000
+        );
+        if (loginProfileError || !loginProfile || normalizePhone(loginProfile.phone || "") !== loginPhone) {
+            await supabaseClient.auth.signOut();
+            currentUser = null;
+            authMessage.textContent = "Phone number does not match this GharDekho account. Enter your registered phone number.";
+            loginPhoneInput?.focus();
+            return;
+        }
+
         /*
          * LOGIN AUTHENTICATION:
-         * Renter/Owner login uses Supabase email + password only.
+         * Renter/Owner login uses email + password + registered phone number.
          * The phone number remains part of account/profile data, but it is
          * NOT required to authenticate an existing account.
          */
