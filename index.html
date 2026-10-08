@@ -19310,6 +19310,57 @@ html.gd-admin-route body.gd-auth-page #premiumAuthTitle{
 }
 .gd-v4-stat-row small{color:rgba(255,255,255,.72) !important}
 </style>
+<style id="gdr-login-phone-force-v1">
+/* Phone is mandatory in BOTH Sign Up and Login modes. */
+body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField{
+  display:grid!important;
+  visibility:visible!important;
+  opacity:1!important;
+  position:relative!important;
+  height:auto!important;
+  max-height:none!important;
+  overflow:visible!important;
+  grid-column:1/-1!important;
+}
+body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField .gd-phone-wrap{
+  display:flex!important;
+  visibility:visible!important;
+  opacity:1!important;
+  width:100%!important;
+  min-height:50px!important;
+}
+body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField .gd-phone-prefix{
+  display:flex!important;
+  visibility:visible!important;
+}
+body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
+  display:block!important;
+  visibility:visible!important;
+  opacity:1!important;
+  color:#18201f!important;
+  -webkit-text-fill-color:#18201f!important;
+}
+@media(max-width:560px){
+  body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField{
+    grid-column:auto!important;
+  }
+}
+</style>
+<script id="gdr-login-phone-force-v1-js">
+(function(){
+  function forceLoginPhoneVisible(){
+    const field=document.getElementById("gdLoginPhoneField");
+    if(!field)return;
+    field.style.setProperty("display","grid","important");
+    field.style.setProperty("visibility","visible","important");
+    field.style.setProperty("opacity","1","important");
+  }
+  document.addEventListener("DOMContentLoaded",forceLoginPhoneVisible);
+  window.addEventListener("load",forceLoginPhoneVisible);
+  setTimeout(forceLoginPhoneVisible,300);
+  setTimeout(forceLoginPhoneVisible,1200);
+})();
+</script>
 </body>
 
 </html>
