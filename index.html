@@ -9929,8 +9929,8 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
 </section>
 <div id="adminAccessDenied" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Admin access only</h3><p>This area is restricted to the configured administrator account.</p><button type="button" class="dashboard-primary-action" onclick="closeAdminDenied()">OK</button></div></div>
 <div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required autocomplete="off"></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="adminOwnerPhone" name="gd_adminOwnerPhone_mobile" maxlength="10" inputmode="numeric" autocomplete="off"></span></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
-<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" name="gd_ownerProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
-<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" name="gd_ownerProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">Your phone number must be verified by OTP before your profile can be saved.</p><div id="ownerPhoneOtpBox" class="otp-box" style="display:none;"><strong>Verify your phone</strong><p id="ownerPhoneOtpHint" class="small-text">Enter the 6-digit OTP sent to your phone.</p><input id="ownerPhoneOtp" inputmode="numeric" maxlength="6" minlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="Enter 6-digit OTP"><button type="button" class="dashboard-primary-action" onclick="verifyPhoneOtp('owner')">Verify phone</button><p id="ownerPhoneOtpMessage" class="small-text" aria-live="polite"></p></div><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">Your phone number must be verified by OTP before your profile can be saved.</p><div id="renterPhoneOtpBox" class="otp-box" style="display:none;"><strong>Verify your phone</strong><p id="renterPhoneOtpHint" class="small-text">Enter the 6-digit OTP sent to your phone.</p><input id="renterPhoneOtp" inputmode="numeric" maxlength="6" minlength="6" pattern="[0-9]{6}" autocomplete="one-time-code" placeholder="Enter 6-digit OTP"><button type="button" class="dashboard-primary-action" onclick="verifyPhoneOtp('renter')">Verify phone</button><p id="renterPhoneOtpMessage" class="small-text" aria-live="polite"></p></div><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
         
 
 <div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><div class="gd-editor-full gd-editor-photo-box">
@@ -10897,7 +10897,8 @@ function resetRoleSpecificUI() {
 
 async function requireMandatoryPhoneProfile(){
     if(!currentUser||!currentProfile)return false;
-    if(isValidGharDekhoPhone(currentProfile.phone||""))return false;
+    const authPhone=normalizePhone(currentUser.phone||"");
+    if(isValidGharDekhoPhone(currentProfile.phone||"") && authPhone===normalizePhone(currentProfile.phone||"") && !!currentUser.phone_confirmed_at)return false;
     const role=pendingLoginRole==="owner"||activeRole==="owner"?"owner":"renter";
     activeRole=role;pendingLoginRole=role;
     sessionStorage.setItem("gd_pending_login_role",role);
@@ -11937,6 +11938,149 @@ function updateDashboardProfile() {
     });
 }
 
+let pendingPhoneVerification=null;
+
+function resetPhoneOtpUI(role){
+    const prefix=role==="owner"?"owner":"renter";
+    const box=document.getElementById(prefix+"PhoneOtpBox");
+    const input=document.getElementById(prefix+"PhoneOtp");
+    const msg=document.getElementById(prefix+"PhoneOtpMessage");
+    if(box)box.style.display="none";
+    if(input)input.value="";
+    if(msg)msg.textContent="";
+}
+
+async function startPhoneVerification(role, profileData){
+    const normalized=normalizePhone(profileData.phone);
+    if(!isValidGharDekhoPhone(normalized)){
+        showMessage("backendMessage",gharDekhoPhoneError(normalized),"error");
+        return false;
+    }
+
+    const prefix=role==="owner"?"owner":"renter";
+    const box=document.getElementById(prefix+"PhoneOtpBox");
+    const hint=document.getElementById(prefix+"PhoneOtpHint");
+    const input=document.getElementById(prefix+"PhoneOtp");
+    const msg=document.getElementById(prefix+"PhoneOtpMessage");
+
+    pendingPhoneVerification={role,name:profileData.name,email:profileData.email,phone:normalized};
+
+    if(box)box.style.display="block";
+    if(hint)hint.textContent="Sending a 6-digit OTP to "+normalized+".";
+    if(msg)msg.textContent="Sending OTP...";
+    if(input)input.value="";
+
+    try{
+        const {data,error}=await supabaseClient.auth.updateUser({phone:normalized});
+        if(error){
+            console.error("Phone OTP request failed:",error);
+            pendingPhoneVerification=null;
+            if(box)box.style.display="none";
+            const raw=String(error?.message||"").toLowerCase();
+            const message=raw.includes("already registered")||raw.includes("already exists")||raw.includes("phone number")
+                ?"This phone number is already registered or cannot be used. Please enter your own mobile number."
+                :"Could not send the verification OTP. Make sure the SMS provider is configured and try again.";
+            showMessage("backendMessage",message,"error");
+            return false;
+        }
+        if(hint)hint.textContent="OTP sent to "+normalized+". Enter the 6-digit code to verify ownership.";
+        if(msg)msg.textContent="OTP sent successfully.";
+        input?.focus();
+        return true;
+    }catch(error){
+        console.error("Phone OTP request exception:",error);
+        pendingPhoneVerification=null;
+        if(box)box.style.display="none";
+        showMessage("backendMessage","Could not send the verification OTP. Please try again.","error");
+        return false;
+    }
+}
+
+async function verifyPhoneOtp(role){
+    if(!pendingPhoneVerification || pendingPhoneVerification.role!==role)return;
+    const prefix=role==="owner"?"owner":"renter";
+    const input=document.getElementById(prefix+"PhoneOtp");
+    const msg=document.getElementById(prefix+"PhoneOtpMessage");
+    const token=String(input?.value||"").replace(/D/g,"");
+    if(!/^\d{6}$/.test(token)){
+        if(msg)msg.textContent="Enter the 6-digit OTP.";
+        input?.focus();
+        return;
+    }
+
+    const button=document.querySelector("#"+prefix+"PhoneOtpBox button");
+    if(button){button.disabled=true;button.textContent="Verifying...";}
+    if(msg)msg.textContent="Verifying phone ownership...";
+
+    try{
+        const {data,error}=await supabaseClient.auth.verifyOtp({
+            phone:pendingPhoneVerification.phone,
+            token,
+            type:"phone_change"
+        });
+        if(error){
+            console.error("Phone OTP verification failed:",error);
+            if(msg)msg.textContent="Invalid or expired OTP. Please request a new code.";
+            return;
+        }
+
+        const refreshed=await supabaseClient.auth.getUser();
+        if(refreshed.error||!refreshed.data?.user?.phone_confirmed_at){
+            if(msg)msg.textContent="Phone verification could not be confirmed. Please try again.";
+            return;
+        }
+
+        currentUser=refreshed.data.user;
+        const p=pendingPhoneVerification;
+
+        if(role==="renter"){
+            const {data:profile,error:profileError}=await supabaseClient.rpc("update_my_renter_profile",{
+                p_name:p.name,p_email:p.email,p_phone:p.phone
+            });
+            if(profileError){
+                console.error("Verified renter profile save failed:",profileError);
+                if(msg)msg.textContent="Phone verified, but profile could not be saved. Please try again.";
+                return;
+            }
+            currentProfile={...(currentProfile||{}),...(profile||{}),name:p.name,email:p.email,phone:p.phone};
+
+            if(getAccountRoles(currentProfile).includes("owner")){
+                const ownerSync=await supabaseClient.rpc("update_my_owner_profile",{
+                    p_name:p.name,p_email:p.email,p_phone:p.phone
+                });
+                if(!ownerSync.error&&ownerSync.data){
+                    currentOwnerProfile={...(currentOwnerProfile||{}),...(ownerSync.data),name:p.name,email:p.email,phone:p.phone};
+                }
+            }
+        }else{
+            const {data:profile,error:profileError}=await supabaseClient.rpc("update_my_owner_profile",{
+                p_name:p.name,p_email:p.email,p_phone:p.phone
+            });
+            if(profileError){
+                console.error("Verified owner profile save failed:",profileError);
+                if(msg)msg.textContent="Phone verified, but profile could not be saved. Please try again.";
+                return;
+            }
+            currentOwnerProfile={...(currentOwnerProfile||{}),...(profile||{}),name:p.name,email:p.email,phone:p.phone};
+            currentProfile={...(currentProfile||{}),name:p.name,email:p.email,phone:p.phone};
+        }
+
+        if(msg)msg.textContent="Phone verified successfully. ✓";
+        pendingPhoneVerification=null;
+        resetPhoneOtpUI(role);
+        const editor=document.getElementById(prefix+"ProfileEditor");
+        if(editor)editor.dataset.requiredPhone="0";
+        if(role==="owner")closeOwnerProfileEditor();else closeRenterProfileEditor();
+        showMessage("backendMessage","Your phone number is verified and your GharDekho profile is now active. ✓","success");
+        await updateAuthUI();
+    }catch(error){
+        console.error("Phone OTP verification exception:",error);
+        if(msg)msg.textContent="Phone verification failed. Please try again.";
+    }finally{
+        if(button){button.disabled=false;button.textContent="Verify phone";}
+    }
+}
+
 function openRenterProfileEditor(){
     if(!currentUser||!["renter","tenant"].includes(String(activeRole||"").toLowerCase())) return;
     const p=currentProfile||{};
@@ -11954,19 +12098,28 @@ async function saveRenterProfile(e){
     const email=document.getElementById("renterProfileEditEmail").value.trim().toLowerCase();
     const phone=normalizePhone(document.getElementById("renterProfileEditPhone").value);
     const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
+
     if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
     const phoneError=gharDekhoPhoneError(phone);
     if(phoneError){showMessage("backendMessage",phoneError,"error");document.getElementById("renterProfileEditPhone")?.focus();return;}
+
+    const authPhone=normalizePhone(currentUser.phone||"");
+    const phoneAlreadyVerified=authPhone===phone && !!currentUser.phone_confirmed_at;
+
+    if(!phoneAlreadyVerified){
+        await startPhoneVerification("renter",{name,email,phone});
+        return;
+    }
+
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
     try{
-        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone||null});
+        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone});
         if(error){
             console.error("Renter profile update failed:",error);
-            const raw=String(error?.message||"");
-            const lower=raw.toLowerCase();
-            const message=lower.includes("phone number is already registered") || lower.includes("already registered with another ghardekho account")
+            const raw=String(error?.message||"").toLowerCase();
+            const message=raw.includes("phone number is already registered")||raw.includes("already registered with another ghardekho account")
                 ?"This phone number is already registered with another GharDekho account. Use a different number."
-                :lower.includes("already used")
+                :raw.includes("already used")
                     ?"That contact email is already linked to another GharDekho account."
                     :"Unable to save renter details. Please try again.";
             showMessage("backendMessage",message,"error");
@@ -11975,11 +12128,7 @@ async function saveRenterProfile(e){
         currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateDashboardProfile();
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
-        const re=document.getElementById("renterProfileEditor");
-        const requiredPhone=re?.dataset.requiredPhone==="1";
-        if(re)re.dataset.requiredPhone="0";
         closeRenterProfileEditor();
-        if(requiredPhone) await updateAuthUI();
     }catch(error){
         console.error("Renter profile update exception:",error);
         showMessage("backendMessage","Could not save renter details. Please try again.","error");
@@ -12017,53 +12166,40 @@ async function saveOwnerProfile(e){
     const name=document.getElementById("ownerProfileEditName").value.trim();
     const email=document.getElementById("ownerProfileEditEmail").value.trim().toLowerCase();
     const phone=normalizePhone(document.getElementById("ownerProfileEditPhone").value);
-    const msg=document.getElementById("ownerProfileMessage");
     const saveButton=document.querySelector("#ownerProfileForm button[type='submit']");
 
     if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
     const phoneError=gharDekhoPhoneError(phone);
     if(phoneError){showMessage("backendMessage",phoneError,"error");document.getElementById("ownerProfileEditPhone")?.focus();return;}
 
+    const authPhone=normalizePhone(currentUser.phone||"");
+    const phoneAlreadyVerified=authPhone===phone && !!currentUser.phone_confirmed_at;
+
+    if(!phoneAlreadyVerified){
+        await startPhoneVerification("owner",{name,email,phone});
+        return;
+    }
+
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
-    if(msg){msg.textContent="";msg.hidden=true;}
-
     try{
-        const {data,error}=await supabaseClient.rpc("update_my_owner_profile",{
-            p_name:name,p_email:email,p_phone:phone||null
-        });
-
+        const {data,error}=await supabaseClient.rpc("update_my_owner_profile",{p_name:name,p_email:email,p_phone:phone});
         if(error){
             console.error("Owner profile update failed:",error);
-            const raw=String(error?.message||"");
+            const raw=String(error?.message||"").toLowerCase();
             let message="Unable to save owner details. Please try again.";
-            if(raw.toLowerCase().includes("phone number is already registered") || raw.toLowerCase().includes("already registered with another ghardekho account")) message="This phone number is already registered with another GharDekho account. Use a different number.";
-            else if(raw.toLowerCase().includes("already used")) message="That contact email is already linked to another GharDekho account.";
-            else if(raw.toLowerCase().includes("owner profile not found")) message="Owner profile is not linked to this account yet.";
-            else if(raw.toLowerCase().includes("authentication")) message="Your session has expired. Please log in again.";
+            if(raw.includes("phone number is already registered")||raw.includes("already registered with another ghardekho account")) message="This phone number is already registered with another GharDekho account. Use a different number.";
+            else if(raw.includes("already used")) message="That contact email is already linked to another GharDekho account.";
+            else if(raw.includes("owner profile not found")) message="Owner profile is not linked to this account yet.";
+            else if(raw.includes("authentication")) message="Your session has expired. Please log in again.";
             showMessage("backendMessage",message,"error");
             return;
         }
-
         currentOwnerProfile={...(currentOwnerProfile||{}),...(data||{}),name,email,phone};
         currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateOwnerProfileUI(currentOwnerProfile);
         updateDashboardProfile();
-
         showMessage("backendMessage","Owner details saved successfully. ✓","success");
-        const oe=document.getElementById("ownerProfileEditor");
-        const requiredPhone=oe?.dataset.requiredPhone==="1";
-        if(oe)oe.dataset.requiredPhone="0";
         closeOwnerProfileEditor();
-        if(requiredPhone) {
-            if(!getAccountRoles(currentProfile).includes("owner")) {
-                const ownerRoleReady=await saveActiveAccountRole("owner");
-                if(!ownerRoleReady) {
-                    showMessage("backendMessage","Phone saved, but Owner access could not be enabled yet. Please try again.","error");
-                    return;
-                }
-            }
-            await updateAuthUI();
-        }
     }catch(error){
         console.error("Owner profile update exception:",error);
         showMessage("backendMessage","Could not save owner details. Please try again.","error");
