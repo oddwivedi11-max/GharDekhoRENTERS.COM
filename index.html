@@ -13493,7 +13493,13 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 const budgetMatch = quickBudgetMatch && minBudgetMatch && maxBudgetMatch;
 
                 const furnishingMatch = !furnishing || property.furnishing === furnishing;
-                const propertyStatusMatch = !propertyStatus || (propertyStatus === "vacant" ? property.status === "verified" : true);
+                // A newly listed property starts as "pending" and is vacant by default.
+                // "verified" is also an available/vacant listing; only occupied is excluded.
+                const normalizedPropertyStatus = String(property.status || "").toLowerCase().trim();
+                const propertyStatusMatch = !propertyStatus ||
+                    (propertyStatus === "vacant"
+                        ? (normalizedPropertyStatus === "pending" || normalizedPropertyStatus === "verified")
+                        : true);
                 const roomTypeMatch = !renterRoomType || String(property.room_type || "").toLowerCase() === renterRoomType.toLowerCase();
                 const genderValue = String(property.gender_preference || "").toLowerCase();
                 const genderMatch = !renterGenderPreference || renterGenderPreference === "Any" || genderValue === renterGenderPreference.toLowerCase() || genderValue === "any";
