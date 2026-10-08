@@ -10955,7 +10955,22 @@ function resetRoleSpecificUI() {
 
 async function requireMandatoryPhoneProfile(){
     if(!currentUser||!currentProfile)return false;
-    if(isValidGharDekhoPhone(currentProfile.phone||""))return false;
+
+    /*
+     * A newly-created/older profile can have the phone in Supabase Auth
+     * metadata while the public users row is temporarily missing/empty.
+     * The editor already displayed that metadata phone, but this guard used
+     * only currentProfile.phone and therefore opened the mandatory editor
+     * even when a valid +91 number was visibly present.
+     */
+    const metadataPhone = String(currentUser?.user_metadata?.phone || "").trim();
+    const effectivePhone = normalizePhone(currentProfile.phone || metadataPhone || sessionStorage.getItem("gd_pending_oauth_phone") || "");
+
+    if(isValidGharDekhoPhone(effectivePhone)){
+        currentProfile.phone = effectivePhone;
+        return false;
+    }
+
     const role=pendingLoginRole==="owner"||activeRole==="owner"?"owner":"renter";
     activeRole=role;pendingLoginRole=role;
     sessionStorage.setItem("gd_pending_login_role",role);
@@ -12151,7 +12166,7 @@ function openRenterProfileEditor(){
     const p=currentProfile||{};
     document.getElementById("renterProfileEditName").value=p.name||currentUser?.email||"";
     document.getElementById("renterProfileEditEmail").value=p.email||currentUser?.email||"";
-    document.getElementById("renterProfileEditPhone").value=(normalizePhone(p.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"").replace(/^\+91/,""));
+    document.getElementById("renterProfileEditPhone").value=(normalizePhone(p.phone||currentUser?.user_metadata?.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"").replace(/^\+91/,""));
     document.getElementById("renterProfileMessage").textContent="";
     const editor=document.getElementById("renterProfileEditor");
     const cancel=editor?.querySelector(".gd-editor-actions button.secondary-button");
@@ -12230,7 +12245,7 @@ function openOwnerProfileEditor(){
     const p=currentOwnerProfile||currentProfile||{};
     document.getElementById("ownerProfileEditName").value=p.name||currentProfile?.name||"";
     document.getElementById("ownerProfileEditEmail").value=p.email||currentProfile?.email||currentUser?.email||"";
-    document.getElementById("ownerProfileEditPhone").value=(normalizePhone(p.phone||currentProfile?.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"").replace(/^\+91/,""));
+    document.getElementById("ownerProfileEditPhone").value=(normalizePhone(p.phone||currentProfile?.phone||currentUser?.user_metadata?.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"").replace(/^\+91/,""));
     document.getElementById("ownerProfileMessage").textContent="";
     const editor=document.getElementById("ownerProfileEditor");
     const cancel=editor?.querySelector(".gd-editor-actions button.secondary-button");
