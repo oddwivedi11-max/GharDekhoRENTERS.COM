@@ -11975,9 +11975,18 @@ function openRenterProfileEditor(){
     document.getElementById("renterProfileEditEmail").value=p.email||currentUser?.email||"";
     document.getElementById("renterProfileEditPhone").value=p.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"";
     document.getElementById("renterProfileMessage").textContent="";
-    document.getElementById("renterProfileEditor").classList.add("active");
+    const editor=document.getElementById("renterProfileEditor");
+    const cancel=editor?.querySelector(".gd-editor-actions button.secondary-button");
+    if(cancel)cancel.textContent=editor?.dataset.requiredPhone==="1"?"Logout":"Cancel";
+    if(editor)editor.classList.add("active");
+    try{if(window.location.search)history.replaceState({},document.title,window.location.pathname+window.location.hash);}catch(e){}
 }
-function closeRenterProfileEditor(){const e=document.getElementById("renterProfileEditor");if(e?.dataset.requiredPhone==="1")return;e?.classList.remove("active");if(e)e.dataset.requiredPhone="0";}
+function closeRenterProfileEditor(){
+    const e=document.getElementById("renterProfileEditor");
+    if(e?.dataset.requiredPhone==="1"){ logoutUser(); return; }
+    e?.classList.remove("active");
+    if(e)e.dataset.requiredPhone="0";
+}
 async function saveRenterProfile(e){
     e.preventDefault();
     if(!currentUser||!["renter","tenant"].includes(String(activeRole||"").toLowerCase())) return;
@@ -12036,9 +12045,18 @@ function openOwnerProfileEditor(){
     document.getElementById("ownerProfileEditEmail").value=p.email||currentProfile?.email||currentUser?.email||"";
     document.getElementById("ownerProfileEditPhone").value=p.phone||currentProfile?.phone||sessionStorage.getItem("gd_pending_oauth_phone")||"";
     document.getElementById("ownerProfileMessage").textContent="";
-    document.getElementById("ownerProfileEditor").classList.add("active");
+    const editor=document.getElementById("ownerProfileEditor");
+    const cancel=editor?.querySelector(".gd-editor-actions button.secondary-button");
+    if(cancel)cancel.textContent=editor?.dataset.requiredPhone==="1"?"Logout":"Cancel";
+    if(editor)editor.classList.add("active");
+    try{if(window.location.search)history.replaceState({},document.title,window.location.pathname+window.location.hash);}catch(e){}
 }
-function closeOwnerProfileEditor(){const e=document.getElementById("ownerProfileEditor");if(e?.dataset.requiredPhone==="1")return;e?.classList.remove("active");if(e)e.dataset.requiredPhone="0";}
+function closeOwnerProfileEditor(){
+    const e=document.getElementById("ownerProfileEditor");
+    if(e?.dataset.requiredPhone==="1"){ logoutUser(); return; }
+    e?.classList.remove("active");
+    if(e)e.dataset.requiredPhone="0";
+}
 async function saveOwnerProfile(e){
     e.preventDefault();
     if(!currentUser||activeRole!=="owner") return;
