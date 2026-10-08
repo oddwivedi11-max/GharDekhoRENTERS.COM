@@ -13062,8 +13062,32 @@ async function renderActiveDashboard() {
 
             lines.push("", "Please help me with this property.");
 
-            const whatsappUrl = "https://wa.me/" + gharDekhoWhatsAppNumber + "?text=" + encodeURIComponent(lines.join("\n"));
-            window.open(whatsappUrl, "_blank", "noopener,noreferrer");
+            const encodedMessage = encodeURIComponent(lines.join("\n"));
+            const desktopWhatsAppUrl =
+                "https://web.whatsapp.com/send?phone=" + gharDekhoWhatsAppNumber + "&text=" + encodedMessage;
+            const mobileWhatsAppUrl =
+                "whatsapp://send?phone=" + gharDekhoWhatsAppNumber + "&text=" + encodedMessage;
+
+            // Open the exact one-to-one conversation. The user does NOT need
+            // to save the GharDekho number in contacts.
+            const isMobileDevice = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+            if (isMobileDevice) {
+                let fallbackTimer = setTimeout(() => {
+                    window.location.href =
+                        "https://api.whatsapp.com/send?phone=" +
+                        gharDekhoWhatsAppNumber +
+                        "&text=" +
+                        encodedMessage;
+                }, 1200);
+
+                window.location.href = mobileWhatsAppUrl;
+                window.addEventListener("pagehide", () => clearTimeout(fallbackTimer), { once: true });
+            } else {
+                // WhatsApp Web's /send endpoint targets the exact phone number
+                // instead of opening the WhatsApp home/search screen.
+                window.location.href = desktopWhatsAppUrl;
+            }
         }
         async function openPropertyDetails(propertyId) {
             /* Property details are an intentional discovery surface. Owners use
