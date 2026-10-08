@@ -11613,31 +11613,17 @@ async function loginUser() {
 
         currentUser = data.user;
 
-        // Password authentication is handled by Supabase first. Then verify the
-        // registered GharDekho phone through a SECURITY DEFINER RPC so RLS on
-        // the users table can never incorrectly block a valid login.
-        if (!window.__gdAdminLoginRequested) {
-            const { data: phoneMatches, error: phoneCheckError } = await withAuthTimeout(
-                supabaseClient.rpc("verify_my_login_phone", { p_phone: loginPhone }),
-                "Phone verification",
-                10000
-            );
-            if (phoneCheckError || phoneMatches !== true) {
-                console.error("Login phone verification error:", phoneCheckError);
-                await supabaseClient.auth.signOut();
-                currentUser = null;
-                authMessage.textContent = phoneCheckError
-                    ? "We could not verify your registered phone. Please try again."
-                    : "The phone number does not match the number registered with this account.";
-                loginPhoneInput?.focus();
-                return;
-            }
-        }
+        // Phone is a required login field, but it is NOT used as a password
+        // credential or a unique identity key. Authenticate with Email + Password;
+        // the phone field only needs to contain a valid Indian mobile number.
+        // This keeps password-reset accounts and Google-created accounts usable
+        // even when their older profile row has no stored phone value.
 
         /*
          * LOGIN AUTHENTICATION:
-         * Renter/Owner login uses email + password + registered phone number.
-         * Google is optional; it is never required for normal login.
+         * Renter/Owner login uses email + password.
+         * A valid phone number is required in the form, but it is not used
+         * as the authentication credential. Google is optional.
          */
 
         /*
@@ -11881,7 +11867,7 @@ async function loginWithGoogle() {
     const googlePhone=normalizePhone(googlePhoneInput?.value||"");
     const googlePhoneError=gharDekhoPhoneError(googlePhone);
     if(googlePhoneError){
-        if(authMessage)authMessage.textContent="Enter phone number first.";
+        if(authMessage)authMessage.textContent=googlePhoneError;
         googlePhoneInput?.focus();
         return;
     }
