@@ -11365,7 +11365,7 @@ async function loginUser() {
             "Profile phone check",
             10000
         );
-        if (loginProfileError || !loginProfile || normalizePhone(loginProfile.phone || "") !== loginPhone) {
+        if (!window.__gdAdminLoginRequested && (loginProfileError || !loginProfile || normalizePhone(loginProfile.phone || "") !== loginPhone)) {
             await supabaseClient.auth.signOut();
             currentUser = null;
             authMessage.textContent = "Phone number does not match this GharDekho account. Enter your registered phone number.";
