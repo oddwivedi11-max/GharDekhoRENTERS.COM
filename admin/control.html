@@ -18,7 +18,7 @@
 <script id="gdr-admin-route-hard-isolation">
 (function(){
   var path=String(window.location.pathname||"").replace(/\\/+$/,"")||"/";
-  var isAdmin=path==="/admin" || path==="/admin/control" || new URLSearchParams(window.location.search).get("admin")==="1";
+  var isAdmin=path==="/admin" || path==="/admin/control" || path==="/admin/control.html" || new URLSearchParams(window.location.search).get("admin")==="1";
   if(!isAdmin) return;
 
   window.__gdAdminHardRoute=true;
@@ -10179,7 +10179,7 @@ function clearAuthFormFields(){
      */
     const adminRoute =
         window.location.pathname.replace(/\/+$/, "") === "/admin" ||
-        window.location.pathname.replace(/\/+$/, "") === "/admin/control" ||
+        window.location.pathname.replace(/\/+$/, "") === "/admin/control" || window.location.pathname.replace(/\/+$/, "") === "/admin/control.html" ||
         new URLSearchParams(window.location.search).get("admin") === "1";
     const adminMode =
         adminRoute &&
@@ -10309,8 +10309,8 @@ function openPrivateAdminAccess(){
     document.documentElement.classList.add("gd-admin-hard-route");
     try {
         const cleanUrl = normalizedPath === "/admin/control"
-            ? window.location.origin + "/admin/control"
-            : window.location.origin + "/admin/control";
+            ? window.location.origin + "/admin/control.html"
+            : window.location.origin + "/admin/control.html";
         window.history.replaceState({gdAdmin:true}, document.title, cleanUrl);
     } catch (err) {}
     openAdminLogin();
@@ -10374,7 +10374,7 @@ function openAdminLogin(){
     sessionStorage.setItem("gd_pending_login_role", "admin");
     sessionStorage.setItem("gd_login_destination", "admin");
     try {
-        window.history.replaceState({gdAdmin:true}, document.title, window.location.origin + "/admin/control");
+        window.history.replaceState({gdAdmin:true}, document.title, window.location.origin + "/admin/control.html");
     } catch (err) {}
 
     const gateway=document.getElementById("gdAuthGateway");
@@ -11036,7 +11036,7 @@ async function updateAuthUI() {
      */
     const adminRoute =
         window.location.pathname.replace(/\/+$/, "") === "/admin" ||
-        window.location.pathname.replace(/\/+$/, "") === "/admin/control" ||
+        window.location.pathname.replace(/\/+$/, "") === "/admin/control" || window.location.pathname.replace(/\/+$/, "") === "/admin/control.html" ||
         new URLSearchParams(window.location.search).get("admin") === "1";
     const adminDestination =
         isAdminAccount() &&
@@ -15862,7 +15862,7 @@ function updateStayTypeFields() {
             const directAdminRoute =
                 window.__gdAdminHardRoute === true ||
                 window.location.pathname.replace(/\/+$/, "") === "/admin" ||
-        window.location.pathname.replace(/\/+$/, "") === "/admin/control" ||
+        window.location.pathname.replace(/\/+$/, "") === "/admin/control" || window.location.pathname.replace(/\/+$/, "") === "/admin/control.html" ||
                 new URLSearchParams(window.location.search).get("admin") === "1";
 
             if (directAdminRoute) {
@@ -16368,7 +16368,7 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
     const adminRoute =
       window.__gdAdminHardRoute === true ||
       window.location.pathname.replace(/\\/+$/,'') === '/admin' ||
-      window.location.pathname.replace(/\\/+$/,'') === '/admin/control' ||
+      window.location.pathname.replace(/\\/+$/,'') === '/admin/control' || window.location.pathname.replace(/\/+$/,'') === '/admin/control.html' ||
       new URLSearchParams(window.location.search).get('admin') === '1';
 
     const loginRoute=String(window.location.hash||'').toLowerCase()==='#login'
@@ -19012,7 +19012,7 @@ html.gd-admin-route body.gd-auth-page #premiumAuthTitle{
 (function(){
   function isAdminRoute(){
     const path=window.location.pathname.replace(/\/+$/,"") || "/";
-    return path==="/admin" || path==="/admin/control" || new URLSearchParams(window.location.search).get("admin")==="1";
+    return path==="/admin" || path==="/admin/control" || path==="/admin/control.html" || new URLSearchParams(window.location.search).get("admin")==="1";
   }
 
   function enforceAdminLogin(){
@@ -20537,7 +20537,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
   function adminRoute(){
     const path=window.location.pathname.replace(/\/+$/,"") || "/";
-    return path==="/admin" || path==="/admin/control" || new URLSearchParams(window.location.search).get("admin")==="1" || window.__gdAdminHardRoute===true;
+    return path==="/admin" || path==="/admin/control" || path==="/admin/control.html" || new URLSearchParams(window.location.search).get("admin")==="1" || window.__gdAdminHardRoute===true;
   }
 
   function authorized(){
