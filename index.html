@@ -9409,7 +9409,7 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
     <div class="gd-v4-field-grid">
       <label class="gd-v4-field gd-v4-full"><span>Full name</span><input type="text" id="userName" name="gd_new_name" placeholder="Enter your name" autocomplete="off" data-form-type="other"></label>
       <label class="gd-v4-field"><span>Email</span><input type="email" id="userEmail" name="gd_new_email" placeholder="you@example.com" autocomplete="off" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></label>
-      <label class="gd-v4-field"><span>Phone number</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="text" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter 10-digit number" inputmode="numeric" pattern="[0-9]*" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
+      <label class="gd-v4-field"><span>Phone number</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="text" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter 10-digit number" inputmode="numeric" pattern="[6-9][0-9]{9}" minlength="10" autocomplete="off" required autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Use your email and password to log in. Your selected dashboard is remembered for this login.</p></div>
@@ -11963,9 +11963,12 @@ async function saveRenterProfile(e){
         if(error){
             console.error("Renter profile update failed:",error);
             const raw=String(error?.message||"");
-            const message=raw.toLowerCase().includes("already used")
-                ?"That contact email is already linked to another GharDekho account."
-                :"Unable to save renter details. Please try again.";
+            const lower=raw.toLowerCase();
+            const message=lower.includes("phone number is already registered") || lower.includes("already registered with another ghardekho account")
+                ?"This phone number is already registered with another GharDekho account. Use a different number."
+                :lower.includes("already used")
+                    ?"That contact email is already linked to another GharDekho account."
+                    :"Unable to save renter details. Please try again.";
             showMessage("backendMessage",message,"error");
             return;
         }
@@ -12033,7 +12036,8 @@ async function saveOwnerProfile(e){
             console.error("Owner profile update failed:",error);
             const raw=String(error?.message||"");
             let message="Unable to save owner details. Please try again.";
-            if(raw.toLowerCase().includes("already used")) message="That contact email is already linked to another GharDekho account.";
+            if(raw.toLowerCase().includes("phone number is already registered") || raw.toLowerCase().includes("already registered with another ghardekho account")) message="This phone number is already registered with another GharDekho account. Use a different number.";
+            else if(raw.toLowerCase().includes("already used")) message="That contact email is already linked to another GharDekho account.";
             else if(raw.toLowerCase().includes("owner profile not found")) message="Owner profile is not linked to this account yet.";
             else if(raw.toLowerCase().includes("authentication")) message="Your session has expired. Please log in again.";
             showMessage("backendMessage",message,"error");
@@ -12050,7 +12054,16 @@ async function saveOwnerProfile(e){
         const requiredPhone=oe?.dataset.requiredPhone==="1";
         if(oe)oe.dataset.requiredPhone="0";
         closeOwnerProfileEditor();
-        if(requiredPhone) await updateAuthUI();
+        if(requiredPhone) {
+            if(!getAccountRoles(currentProfile).includes("owner")) {
+                const ownerRoleReady=await saveActiveAccountRole("owner");
+                if(!ownerRoleReady) {
+                    showMessage("backendMessage","Phone saved, but Owner access could not be enabled yet. Please try again.","error");
+                    return;
+                }
+            }
+            await updateAuthUI();
+        }
     }catch(error){
         console.error("Owner profile update exception:",error);
         showMessage("backendMessage","Could not save owner details. Please try again.","error");
