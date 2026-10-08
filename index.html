@@ -9085,7 +9085,26 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
   #renterProfileEditor.active input,#ownerProfileEditor.active input{min-height:48px!important}
 }
 </style>
-</head>
+<style id="gd-profile-password-change-v1">
+.gd-password-change-box{margin:14px 0 4px;padding:14px;border:1px solid #d7e7e2;border-radius:16px;background:linear-gradient(145deg,#f7fcfa,#fff);box-shadow:0 10px 28px rgba(10,50,45,.06)}
+.gd-password-change-head{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gd-password-change-head>div{min-width:0}
+.gd-password-change-head span{display:block;font-size:9px;font-weight:950;letter-spacing:.16em;color:#08776c}
+.gd-password-change-head strong{display:block;margin-top:3px;color:#123c36;font-size:15px;font-weight:950}
+.gd-password-change-head small{display:block;margin-top:4px;color:#637873;font-size:11px;line-height:1.4}
+.gd-change-password-toggle{min-height:42px;white-space:nowrap;font-weight:900}
+.gd-password-change-panel{display:grid;gap:9px;margin-top:12px}
+.gd-password-change-panel[hidden]{display:none!important}
+.gd-password-change-panel .gd-password-wrap{position:relative}
+.gd-password-change-panel .gd-password-wrap input{width:100%;padding-right:68px}
+.gd-password-change-panel .gd-password-toggle{position:absolute;right:7px;top:50%;transform:translateY(-50%);min-height:34px;padding:0 9px;border:0;border-radius:9px;background:#eef7f4;color:#0b6259;font-weight:900}
+.gd-set-password-btn{width:100%;min-height:46px}
+@media(max-width:560px){
+ .gd-password-change-head{align-items:flex-start;flex-direction:column}
+ .gd-change-password-toggle{width:100%}
+ .gd-password-change-box{padding:12px}
+}
+</style></head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
@@ -9987,8 +10006,28 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
 </section>
 <div id="adminAccessDenied" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Admin access only</h3><p>This area is restricted to the configured administrator account.</p><button type="button" class="dashboard-primary-action" onclick="closeAdminDenied()">OK</button></div></div>
 <div id="adminOwnerEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit Owner</h3><form id="adminOwnerForm"><input type="hidden" id="adminOwnerId"><label>Name<input id="adminOwnerName" maxlength="120" required autocomplete="off"></label><label>Email<input id="adminOwnerEmail" type="email" maxlength="254" required autocomplete="off"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="adminOwnerPhone" name="gd_adminOwnerPhone_mobile" maxlength="10" inputmode="numeric" autocomplete="off"></span></label><p class="gd-admin-muted">Verification is controlled by the administrator. Role changes remain database-controlled.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeAdminOwnerEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save</button></div><p id="adminOwnerMessage" class="small-text"></p></form></div></div>
-<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" name="gd_ownerProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho owner profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
-<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho renter profile. Your login credential is not changed here.</p><div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="ownerProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Owner Details</h3><form id="ownerProfileForm"><label>Name<input id="ownerProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="ownerProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="ownerProfileEditPhone" name="gd_ownerProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho owner profile.</p>
+<div class="gd-password-change-box">
+  <div class="gd-password-change-head"><div><span>ACCOUNT SECURITY</span><strong>Change Password</strong><small>No old password required. Enter a new password and save it.</small></div><button type="button" class="secondary-button gd-change-password-toggle" onclick="toggleChangePassword('owner')">Change Password</button></div>
+  <div id="ownerChangePasswordPanel" class="gd-password-change-panel" hidden>
+    <div class="gd-password-wrap"><input type="password" id="ownerNewPassword" placeholder="Set new password (minimum 8 characters)" autocomplete="new-password"><button type="button" class="gd-password-toggle" data-password-target="ownerNewPassword" aria-label="Show password">Show</button></div>
+    <div class="gd-password-wrap"><input type="password" id="ownerConfirmNewPassword" placeholder="Confirm new password" autocomplete="new-password"><button type="button" class="gd-password-toggle" data-password-target="ownerConfirmNewPassword" aria-label="Show password">Show</button></div>
+    <button type="button" id="ownerSetNewPasswordBtn" class="dashboard-primary-action gd-set-password-btn" onclick="setAuthenticatedPassword('owner')">Set New Password</button>
+    <p id="ownerChangePasswordMessage" class="small-text" aria-live="polite"></p>
+  </div>
+</div>
+<div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeOwnerProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="ownerProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
+<div id="renterProfileEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><h3>Edit My Renter Details</h3><form id="renterProfileForm"><label>Name<input id="renterProfileEditName" maxlength="120" required autocomplete="off"></label><label>Contact email<input id="renterProfileEditEmail" type="text" inputmode="email" maxlength="254" required autocomplete="email"></label><label>Phone<span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input id="renterProfileEditPhone" name="gd_renterProfileEditPhone_mobile" maxlength="10" minlength="10" inputmode="numeric" autocomplete="off" required pattern="[6-9][0-9]{9}"></span></label><p class="gd-admin-muted">These details update your GharDekho renter profile.</p>
+<div class="gd-password-change-box">
+  <div class="gd-password-change-head"><div><span>ACCOUNT SECURITY</span><strong>Change Password</strong><small>No old password required. Enter a new password and save it.</small></div><button type="button" class="secondary-button gd-change-password-toggle" onclick="toggleChangePassword('renter')">Change Password</button></div>
+  <div id="renterChangePasswordPanel" class="gd-password-change-panel" hidden>
+    <div class="gd-password-wrap"><input type="password" id="renterNewPassword" placeholder="Set new password (minimum 8 characters)" autocomplete="new-password"><button type="button" class="gd-password-toggle" data-password-target="renterNewPassword" aria-label="Show password">Show</button></div>
+    <div class="gd-password-wrap"><input type="password" id="renterConfirmNewPassword" placeholder="Confirm new password" autocomplete="new-password"><button type="button" class="gd-password-toggle" data-password-target="renterConfirmNewPassword" aria-label="Show password">Show</button></div>
+    <button type="button" id="renterSetNewPasswordBtn" class="dashboard-primary-action gd-set-password-btn" onclick="setAuthenticatedPassword('renter')">Set New Password</button>
+    <p id="renterChangePasswordMessage" class="small-text" aria-live="polite"></p>
+  </div>
+</div>
+<div class="gd-editor-actions"><button type="button" class="secondary-button" onclick="closeRenterProfileEditor()">Cancel</button><button type="submit" class="dashboard-primary-action">Save details</button></div><p id="renterProfileMessage" class="small-text" aria-live="polite" hidden></p></form></div></div>
         
 
 <div id="propertyEditor" class="gd-property-editor" aria-hidden="true"><div class="gd-property-editor-card"><div class="gd-property-editor-head"><div><span class="dashboard-section-kicker">LISTING EDITOR</span><h3>Edit Property</h3><p class="small-text">Update your listing details.</p></div><button type="button" class="gd-editor-close" id="closePropertyEditorBtn">×</button></div><form id="propertyEditorForm"><input type="hidden" id="editPropertyId"><div class="gd-editor-grid"><label>Listing type<select id="editPropertyListingType"><option value="home">🏠 Home / Flat</option><option value="pg">🛏️ PG</option><option value="hostel">🏫 Hostel</option></select></label><label>Property name<input type="text" id="editPropertyTitle" maxlength="120" required></label><label>Monthly rent<input type="number" id="editPropertyRent" min="1" max="10000000" required></label><label>Location / address<input type="text" id="editPropertyLocation" maxlength="300" required></label><label>BHK<input type="number" id="editPropertyBhk" min="1" max="20"></label><label>Furnishing<select id="editPropertyFurnishing"><option value="">Not specified</option><option>Furnished</option><option>Semi-Furnished</option><option>Unfurnished</option></select></label><div class="gd-editor-stay-only" id="editStayDetailsFields" hidden><div class="gd-editor-stay-head"><span>STAY-SPECIFIC DETAILS</span><small>Only shown for PG and Hostel listings.</small></div><div class="gd-editor-stay-grid"><label>Room type<select id="editPropertyRoomType"><option value="">Room type</option><option>Single</option><option>Double Sharing</option><option>Triple Sharing</option><option>Dormitory</option></select></label><label>Gender preference<select id="editPropertyGender"><option value="">Any / not specified</option><option>Any</option><option>Male</option><option>Female</option></select></label><label>Total beds<input type="number" id="editPropertyTotalBeds" min="1" max="1000"></label><label>Available beds<input type="number" id="editPropertyAvailableBeds" min="0" max="1000"></label><label>Meals<select id="editPropertyFood"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label></div></div><label class="gd-editor-full">Description<textarea id="editPropertyDescription" maxlength="3000"></textarea></label><div class="gd-editor-full gd-editor-photo-box">
@@ -12159,6 +12198,77 @@ function updateDashboardProfile() {
         const el = document.getElementById(id);
         if (el) el.textContent = value;
     });
+}
+
+
+function toggleChangePassword(role){
+    const panel=document.getElementById(role==="owner"?"ownerChangePasswordPanel":"renterChangePasswordPanel");
+    if(!panel)return;
+    const opening=panel.hidden;
+    panel.hidden=!opening;
+    if(opening){
+        const first=document.getElementById(role==="owner"?"ownerNewPassword":"renterNewPassword");
+        first?.focus();
+    }
+}
+
+async function setAuthenticatedPassword(role){
+    if(!currentUser){
+        showMessage("backendMessage","Your session has expired. Please log in again.","error");
+        return;
+    }
+    const prefix=role==="owner"?"owner":"renter";
+    const newPassword=document.getElementById(prefix+"NewPassword")?.value||"";
+    const confirmPassword=document.getElementById(prefix+"ConfirmNewPassword")?.value||"";
+    const button=document.getElementById(prefix+"SetNewPasswordBtn");
+    const message=document.getElementById(prefix+"ChangePasswordMessage");
+
+    if(newPassword.length<8){
+        if(message)message.textContent="New password must be at least 8 characters.";
+        document.getElementById(prefix+"NewPassword")?.focus();
+        return;
+    }
+    if(newPassword!==confirmPassword){
+        if(message)message.textContent="Passwords do not match.";
+        document.getElementById(prefix+"ConfirmNewPassword")?.focus();
+        return;
+    }
+
+    if(button){button.disabled=true;button.textContent="Updating password...";}
+    if(message)message.textContent="Updating password...";
+
+    try{
+        /*
+         * User is already authenticated. Supabase updateUser changes the
+         * password for the current session and does NOT require the old
+         * password. No sign-out is performed, so the user stays logged in.
+         */
+        const {error}=await withAuthTimeout(
+            supabaseClient.auth.updateUser({password:newPassword}),
+            "Password update",
+            12000
+        );
+        if(error){
+            console.error("Authenticated password update failed:",error);
+            if(message)message.textContent=getFriendlyAuthError(error);
+            return;
+        }
+
+        document.getElementById(prefix+"NewPassword").value="";
+        document.getElementById(prefix+"ConfirmNewPassword").value="";
+        if(message)message.textContent="Password changed successfully. ✓";
+        showMessage("backendMessage","Password changed successfully. ✓","success");
+
+        setTimeout(()=>{
+            const panel=document.getElementById(prefix+"ChangePasswordPanel");
+            if(panel)panel.hidden=true;
+        },900);
+    }catch(error){
+        console.error("Authenticated password update exception:",error);
+        if(message)message.textContent="Could not change password. Please try again.";
+    }finally{
+        if(button){button.disabled=false;button.textContent="Set New Password";}
+    }
 }
 
 function openRenterProfileEditor(){
