@@ -13286,79 +13286,88 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
         });
     }
     const text=document.getElementById("gdNoNearbyText");
-    if(text) text.textContent=`We couldn't find a verified rental property within ${Number(radiusKm||3)} km of ${contextLabel}. Try expanding the search radius.`;
+    if(text) text.textContent=`We couldn't find any rental property within ${Number(radiusKm||3)} km of ${contextLabel}. Try expanding the search radius.`;
     modal.classList.add("active");
 }
 
         async function findPropertiesNearMe() {
-
             const status = document.getElementById("locationStatus");
-            const radiusKm = Number(document.getElementById("radiusSelect").value || 3);
+            const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
             const listingType = document.getElementById("listingTypeSelect")?.value || "";
 
             if (!navigator.geolocation) {
-                status.textContent = "Location is not supported by this browser.";
+                if (status) status.textContent = "Location is not supported by this browser.";
                 return;
             }
 
-            status.textContent = "Getting your location...";
+            if (status) status.textContent = "Getting your location...";
 
             navigator.geolocation.getCurrentPosition(
-                position => {
+                async position => {
                     userLatitude = Number(position.coords.latitude);
                     userLongitude = Number(position.coords.longitude);
 
                     if (!Number.isFinite(userLatitude) || !Number.isFinite(userLongitude)) {
-                        status.textContent = "Could not read a valid location.";
+                        if (status) status.textContent = "Could not read a valid location.";
                         return;
                     }
 
-                    const nearby = allProperties
-                        .map(property => {
-                            const lat = Number(property.latitude);
-                            const lon = Number(property.longitude);
+                    try {
+                        // Always query the live Supabase inventory. The previous
+                        // implementation only searched allProperties, which could be
+                        // stale/empty and made Nearby appear to do nothing.
+                        const { data, error } = await supabaseClient.rpc("get_nearby_properties", {
+                            p_lat: userLatitude,
+                            p_lng: userLongitude,
+                            p_radius_km: radiusKm,
+                            p_limit: 100
+                        });
+                        if (error) throw error;
 
-                            if (listingType && (property.listing_type || "home") !== listingType) return null;
-                            if (!Number.isFinite(lat) || !Number.isFinite(lon)) return null;
+                        const nearby = (Array.isArray(data) ? data : [])
+                            .map(property => ({
+                                ...property,
+                                listing_type: property.listing_type || "home",
+                                distanceKm: Number(property.distance_km)
+                            }))
+                            .filter(property =>
+                                Number.isFinite(property.distanceKm) &&
+                                (!listingType || property.listing_type === listingType)
+                            )
+                            .sort((a, b) => a.distanceKm - b.distanceKm);
 
-                            const distanceKm = calculateDistanceKm(
-                                userLatitude,
-                                userLongitude,
-                                lat,
-                                lon
-                            );
+                        currentPropertyPage = 1;
+                        renderProperties(nearby);
 
-                            return distanceKm <= radiusKm
-                                ? { ...property, distanceKm }
-                                : null;
-                        })
-                        .filter(Boolean)
-                        .sort((a, b) => a.distanceKm - b.distanceKm);
+                        if (!nearby.length) {
+                            showNoNearbyPropertiesPopup(radiusKm, "your current location");
+                        }
 
-                    currentPropertyPage = 1;
-                    renderProperties(nearby);
+                        const shownCount = Math.min(nearby.length, PROPERTIES_PER_PAGE);
+                        const typeLabel =
+                            listingType === "pg" ? " PGs" :
+                            listingType === "hostel" ? " hostels" :
+                            listingType === "home" ? " homes" : " properties";
 
-                    if (!nearby.length) {
-                        showNoNearbyPropertiesPopup(radiusKm, "your current location");
+                        if (status) {
+                            status.textContent = nearby.length
+                                ? nearby.length + typeLabel + " found within " + radiusKm + " km. Showing the nearest " + shownCount + "."
+                                : "No" + typeLabel + " found within " + radiusKm + " km.";
+                        }
+
+                        scrollToSection("propertiesSection");
+                    } catch (error) {
+                        console.error("Nearby property backend error:", error);
+                        if (status) {
+                            status.textContent = getSafeErrorMessage(error, "Nearby properties could not be loaded.");
+                        }
                     }
-
-                    const shownCount = Math.min(nearby.length, PROPERTIES_PER_PAGE);
-                    const typeLabel = listingType === "pg" ? " PGs" : listingType === "hostel" ? " hostels" : listingType === "home" ? " homes" : " stays";
-                    status.textContent = nearby.length
-                        ? `${nearby.length}${typeLabel} found within ${radiusKm} km. Showing the nearest ${shownCount}.`
-                        : `No${typeLabel} found within ${radiusKm} km.`;
-                    scrollToSection("propertiesSection");
                 },
                 error => {
                     console.error("Geolocation error:", error);
-                    status.textContent =
-                        "Location permission was denied or unavailable.";
+                    if (status) status.textContent = "Location permission was denied or unavailable.";
                 },
-                {
-                    enableHighAccuracy: false,
-                    timeout: 7000,
-                    maximumAge: 120000
-                }
+                { enableHighAccuracy: false, timeout: 7000, maximumAge: 120000 }
             );
         }
 
