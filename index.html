@@ -12016,8 +12016,11 @@ async function saveRenterProfile(e){
         currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
         updateDashboardProfile();
         try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
+        const renterEditor=document.getElementById("renterProfileEditor");
+        if(renterEditor)renterEditor.dataset.requiredPhone="0";
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
         closeRenterProfileEditor();
+        await updateAuthUI();
     }catch(error){
         console.error("Renter profile update exception:",error);
         showMessage("backendMessage","Could not save renter details. Please try again.","error");
@@ -12089,8 +12092,11 @@ async function saveOwnerProfile(e){
         updateOwnerProfileUI(currentOwnerProfile);
         updateDashboardProfile();
         try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
+        const ownerEditor=document.getElementById("ownerProfileEditor");
+        if(ownerEditor)ownerEditor.dataset.requiredPhone="0";
         showMessage("backendMessage","Owner details saved successfully. ✓","success");
         closeOwnerProfileEditor();
+        await updateAuthUI();
     }catch(error){
         console.error("Owner profile update exception:",error);
         showMessage("backendMessage","Could not save owner details. Please try again.","error");
