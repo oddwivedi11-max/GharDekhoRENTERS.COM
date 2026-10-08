@@ -9104,6 +9104,29 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
  .gd-change-password-toggle{width:100%}
  .gd-password-change-box{padding:12px}
 }
+</style><style id="gd-nearby-empty-popup-v1">
+#gdNoNearbyPopup{position:fixed!important;inset:0!important;z-index:2147483000!important;display:none!important;place-items:center!important;padding:18px!important}
+#gdNoNearbyPopup.active{display:grid!important}
+.gd-no-nearby-backdrop{position:absolute;inset:0;background:rgba(6,27,24,.58);backdrop-filter:blur(9px)}
+.gd-no-nearby-card{position:relative;width:min(430px,calc(100vw - 28px));padding:25px;border-radius:24px;background:linear-gradient(145deg,#ffffff,#f3faf7);border:1px solid #d6e7e1;box-shadow:0 30px 90px rgba(4,35,31,.30);text-align:center}
+.gd-no-nearby-icon{width:58px;height:58px;margin:0 auto 12px;display:grid;place-items:center;border-radius:18px;background:#e3f4ef;color:#176b63;font-size:28px}
+.gd-no-nearby-kicker{font-size:9px;letter-spacing:.18em;font-weight:1000;color:#17776d}
+.gd-no-nearby-card h3{margin:7px 0 8px;color:#123b35;font-size:23px;line-height:1.08}
+.gd-no-nearby-card p{margin:0 auto 18px;max-width:330px;color:#61736e;font-size:13px;line-height:1.55}
+.gd-no-nearby-actions{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.gd-no-nearby-actions button{min-height:46px!important;width:100%!important}
+@media(max-width:480px){.gd-no-nearby-card{padding:21px}.gd-no-nearby-actions{grid-template-columns:1fr}.gd-no-nearby-card h3{font-size:21px}}
+</style><style id="gd-owner-add-submit-fix-v1">
+#ownerDashboard .owner-add-property-card form{padding-bottom:96px!important}
+#ownerDashboard #addPropertyBtn{position:sticky!important;bottom:12px!important;z-index:30!important}
+#ownerDashboard .gd-mobile-form-actions{position:sticky!important;bottom:0!important;z-index:29!important;padding:10px 0!important;background:linear-gradient(180deg,rgba(255,255,255,0),#fff 28%)!important}
+#ownerDashboard .owner-add-property-card .backend-message{position:sticky!important;bottom:74px!important;z-index:31!important}
+@media(max-width:680px){
+ #ownerDashboard .owner-add-property-card{width:calc(100% - 14px)!important;max-height:92dvh!important}
+ #ownerDashboard .owner-add-property-card form{padding:0 16px 104px!important}
+ #ownerDashboard #addPropertyBtn{min-height:54px!important}
+ #ownerDashboard .gd-owner-modal-head{padding:18px 16px!important}
+}
 </style></head>
 
 <body>
@@ -10109,6 +10132,10 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
             if (code === "23503") return "This request refers to a record that no longer exists.";
             if (code === "42501" || message.includes("row-level security")) {
                 return "You do not have permission to perform this action.";
+            }
+            if (code === "P0001" || code === "23514" || code === "23502" || code === "22P02") {
+                const raw = String(error?.message || "").trim();
+                if (raw) return raw.replace(/^ERROR:\s*/i, "");
             }
             if (message.includes("network") || message.includes("fetch")) {
                 return "Network error. Please check your connection and try again.";
@@ -13176,6 +13203,10 @@ async function renderActiveDashboard() {
                 currentPropertyPage = 1;
                 renderProperties(nearby);
 
+                if (!nearby.length) {
+                    showNoNearbyPropertiesPopup(result.radiusKm, "your current location");
+                }
+
                 const withinBase = nearby.filter(row => row.distanceKm <= LIVE_NEARBY_START_RADIUS_KM).length;
                 const typeLabel = "registered properties";
                 const radiusText = Number(result.radiusKm).toFixed(1).replace(/\.0$/, "");
@@ -13228,6 +13259,45 @@ async function renderActiveDashboard() {
             );
         }
 
+
+function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
+    let modal=document.getElementById("gdNoNearbyPopup");
+    if(!modal){
+        modal=document.createElement("div");
+        modal.id="gdNoNearbyPopup";
+        modal.innerHTML=`
+          <div class="gd-no-nearby-backdrop"></div>
+          <div class="gd-no-nearby-card" role="dialog" aria-modal="true" aria-labelledby="gdNoNearbyTitle">
+            <div class="gd-no-nearby-icon">⌖</div>
+            <span class="gd-no-nearby-kicker">NEARBY DISCOVERY</span>
+            <h3 id="gdNoNearbyTitle">No property available near you</h3>
+            <p id="gdNoNearbyText"></p>
+            <div class="gd-no-nearby-actions">
+              <button type="button" class="secondary-button" id="gdNoNearbyExpandBtn">Expand radius</button>
+              <button type="button" class="dashboard-primary-action" id="gdNoNearbyCloseBtn">Got it</button>
+            </div>
+          </div>`;
+        document.body.appendChild(modal);
+        const close=()=>modal.classList.remove("active");
+        modal.querySelector(".gd-no-nearby-backdrop").addEventListener("click",close);
+        modal.querySelector("#gdNoNearbyCloseBtn").addEventListener("click",close);
+        modal.querySelector("#gdNoNearbyExpandBtn").addEventListener("click",function(){
+            const select=document.getElementById("radiusSelect");
+            if(select){
+                const values=[...select.options].map(o=>Number(o.value)).filter(Number.isFinite).sort((a,b)=>a-b);
+                const current=Number(select.value||3);
+                const next=values.find(v=>v>current) || 20;
+                select.value=String(next);
+            }
+            close();
+            document.getElementById("nearMeBtn")?.click();
+        });
+    }
+    const text=document.getElementById("gdNoNearbyText");
+    if(text) text.textContent=`We couldn't find a verified rental property within ${Number(radiusKm||3)} km of ${contextLabel}. Try expanding the search radius.`;
+    modal.classList.add("active");
+}
+
         async function findPropertiesNearMe() {
 
             const status = document.getElementById("locationStatus");
@@ -13275,6 +13345,10 @@ async function renderActiveDashboard() {
 
                     currentPropertyPage = 1;
                     renderProperties(nearby);
+
+                    if (!nearby.length) {
+                        showNoNearbyPropertiesPopup(radiusKm, "your current location");
+                    }
 
                     const shownCount = Math.min(nearby.length, PROPERTIES_PER_PAGE);
                     const typeLabel = listingType === "pg" ? " PGs" : listingType === "hostel" ? " hostels" : listingType === "home" ? " homes" : " stays";
@@ -14438,7 +14512,7 @@ async function refreshSaveButtons(propertyId) {
 
             showMessage("backendMessage", "Saving property details…", "info");
 
-            const { data: savedProperty, error } = await supabaseClient.rpc("owner_add_property", {
+            const addPropertyPromise = supabaseClient.rpc("owner_add_property", {
                 p_listing_type: listingType,
                 p_room_type: roomType,
                 p_gender_preference: genderPreference,
@@ -14460,6 +14534,10 @@ async function refreshSaveButtons(propertyId) {
                 p_description: description || null,
                 p_image_url: imageUrl || null
             });
+            const addTimeout = new Promise((_, reject) =>
+                setTimeout(() => reject(new Error("Saving property is taking too long. Please try again.")), 20000)
+            );
+            const { data: savedProperty, error } = await Promise.race([addPropertyPromise, addTimeout]);
 
             if (error || !savedProperty) {
                 console.error("Add property error:", error);
@@ -15674,6 +15752,7 @@ async function loadRenterNearbyHomes() {
 
         if (!nearby.length) {
             container.innerHTML = '<div class="saved-empty-state"><div class="saved-empty-icon">📍</div><strong>No nearby properties found</strong><p>Try expanding the radius and search again.</p></div>';
+            showNoNearbyPropertiesPopup(radiusKm, "your current location");
         }
 
         document.getElementById("renterNearbyPropertiesSection")?.scrollIntoView({behavior:"smooth",block:"start"});
