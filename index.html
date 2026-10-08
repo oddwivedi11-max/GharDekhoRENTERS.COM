@@ -9027,6 +9027,64 @@ body:not(.gd-renter-explore-mode) #renterDashboard~#propertiesSection{display:no
 @media(max-width:620px){.renter-budget-choice-grid{grid-template-columns:1fr;}}
 </style>
 
+
+<style id="gdr-auth-route-mobile-fix-v13">
+#gdrLoginErrorPopup{
+  position:fixed!important;inset:0!important;z-index:1000000!important;
+  display:none!important;place-items:center!important;padding:18px!important;
+  background:rgba(2,18,16,.58)!important;backdrop-filter:blur(10px)!important;
+}
+#gdrLoginErrorPopup.active{display:grid!important}
+.gdr-login-error-card{
+  width:min(430px,calc(100vw - 28px));display:grid;grid-template-columns:auto 1fr;
+  gap:13px;align-items:center;padding:20px;border:1px solid rgba(207,255,232,.22);
+  border-radius:22px;background:linear-gradient(145deg,#063c35,#0b5c50);
+  color:#fff;box-shadow:0 28px 80px rgba(0,0,0,.34),inset 0 1px 0 rgba(255,255,255,.10);
+}
+.gdr-login-error-icon{
+  width:48px;height:48px;display:grid;place-items:center;border-radius:15px;
+  background:linear-gradient(145deg,#ffbf8b,#f18b52);color:#17342f;font-size:24px;font-weight:1000;
+  box-shadow:0 8px 18px rgba(0,0,0,.18);
+}
+.gdr-login-error-copy{min-width:0}
+.gdr-login-error-copy>span{font-size:8px;font-weight:1000;letter-spacing:.18em;color:#b8f2df}
+.gdr-login-error-copy h3{margin:4px 0 4px;color:#fff;font-size:21px;line-height:1.05}
+.gdr-login-error-copy p{margin:0;color:rgba(255,255,255,.72);font-size:12px;line-height:1.45}
+.gdr-login-error-close{
+  grid-column:1/-1;width:100%;min-height:46px;border:0;border-radius:13px;
+  background:#fff;color:#0b514a;font-weight:950;cursor:pointer;
+}
+.gdr-login-error-close:hover{transform:translateY(-1px)}
+body.gd-profile-editor-lock #loginSection{display:none!important}
+body.gd-profile-editor-lock #loggedOutLanding,
+body.gd-profile-editor-lock #homeSection,
+body.gd-profile-editor-lock #propertiesSection,
+body.gd-profile-editor-lock #dashboardSection{display:none!important}
+body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
+#renterProfileEditor,#ownerProfileEditor{
+  z-index:100500!important;
+}
+#renterProfileEditor.active,#ownerProfileEditor.active{
+  position:fixed!important;inset:0!important;display:grid!important;place-items:center!important;
+  padding:16px!important;background:rgba(5,25,22,.64)!important;
+  backdrop-filter:blur(8px)!important;overflow:auto!important;
+}
+#renterProfileEditor.active .gd-property-editor-card,
+#ownerProfileEditor.active .gd-property-editor-card{
+  width:min(620px,calc(100vw - 24px))!important;max-height:min(88dvh,760px)!important;
+  overflow:auto!important;border-radius:22px!important;
+}
+@media(max-width:560px){
+  #renterProfileEditor.active,#ownerProfileEditor.active{padding:10px!important;align-items:center!important}
+  #renterProfileEditor.active .gd-property-editor-card,
+  #ownerProfileEditor.active .gd-property-editor-card{
+    width:100%!important;max-height:88dvh!important;padding:18px!important;
+  }
+  #renterProfileEditor.active h3,#ownerProfileEditor.active h3{font-size:20px!important}
+  #renterProfileEditor.active label,#ownerProfileEditor.active label{font-size:12px!important}
+  #renterProfileEditor.active input,#ownerProfileEditor.active input{min-height:48px!important}
+}
+</style>
 </head>
 
 <body>
@@ -10905,7 +10963,9 @@ async function requireMandatoryPhoneProfile(){
     document.getElementById("loggedOutLanding")?.style.setProperty("display","none");
     document.getElementById("loginSection")?.style.setProperty("display","none");
     document.getElementById("dashboardSection")?.style.setProperty("display","none");
-    document.body.classList.add("gd-authenticated","gd-auth-page");
+    document.body.classList.add("gd-authenticated","gd-auth-page","gd-profile-editor-lock");
+    document.getElementById("loginSection")?.style.setProperty("display","none","important");
+    document.getElementById("loggedOutLanding")?.style.setProperty("display","none","important");
     if(role==="owner"){
         openOwnerProfileEditor();
         const e=document.getElementById("ownerProfileEditor");if(e){e.dataset.requiredPhone="1";e.classList.add("active");e.setAttribute("aria-hidden","false");}
@@ -10945,6 +11005,38 @@ async function updateAuthUI() {
     const loginSection = document.getElementById("loginSection");
 
     if (!currentUser) {
+        /* Failed login / mandatory-profile modal must remain authoritative.
+           Supabase may emit SIGNED_OUT during a failed password attempt; do
+           not let that event repaint the public homepage or gateway. */
+        const activeProfileEditor =
+            document.getElementById("renterProfileEditor")?.classList.contains("active") ||
+            document.getElementById("ownerProfileEditor")?.classList.contains("active");
+
+        if (activeProfileEditor) {
+            document.body.classList.add("gd-auth-page","gd-profile-editor-lock");
+            if (loginSectionAtStart) loginSectionAtStart.style.display = "none";
+            document.getElementById("loggedOutLanding")?.style.setProperty("display","none","important");
+            document.getElementById("homeSection")?.style.setProperty("display","none","important");
+            document.getElementById("propertiesSection")?.style.setProperty("display","none","important");
+            document.getElementById("dashboardSection")?.style.setProperty("display","none","important");
+            return;
+        }
+
+        if (window.__gdLoginAttemptActive === true) {
+            document.body.classList.add("gd-auth-page");
+            document.documentElement.classList.add("gd-login-route");
+            if (window.location.hash.toLowerCase() !== "#login") {
+                try { history.replaceState({gdAuth:true},"","#login"); } catch(e) {}
+            }
+            if (loginSectionAtStart) loginSectionAtStart.style.setProperty("display","grid","important");
+            document.getElementById("gdAuthGateway")?.style.setProperty("display","none","important");
+            document.getElementById("gdAuthFormShell")?.style.setProperty("display","grid","important");
+            document.getElementById("loggedOutLanding")?.style.setProperty("display","none","important");
+            document.getElementById("homeSection")?.style.setProperty("display","none","important");
+            document.getElementById("propertiesSection")?.style.setProperty("display","none","important");
+            return;
+        }
+
         if (window.__gdRoleAccessDenied === true && loginSectionAtStart) {
             currentProfile = null;
             activeRole = pendingLoginRole === "owner" ? "owner" : "renter";
@@ -11302,6 +11394,74 @@ async function signupUser() {
     }
 }
 
+
+/* =========================================================
+   GDR AUTH ROUTE + MOBILE PROFILE GUARD V13
+   Fixes:
+   1) Wrong password must stay on Login and show a direct popup.
+   2) Auth SIGNED_OUT events during a failed login must not repaint
+      the logged-out Create Account/home screen.
+   3) Mandatory phone profile editor must be a true mobile modal and
+      must never render the login form underneath it.
+   ========================================================= */
+(function(){
+  function forceLoginRoute(message){
+    try{
+      window.__gdAuthRequested = true;
+      window.__gdLoginAttemptActive = true;
+      document.documentElement.classList.add("gd-login-route");
+      document.body.classList.add("gd-auth-page");
+      if(window.location.hash.toLowerCase() !== "#login"){
+        history.replaceState({gdAuth:true},"","#login");
+      }
+      const ids = ["loggedOutLanding","homeSection","propertiesSection","propertyDetails","visitSection","passwordResetSection","dashboardSection","gdAuthGateway"];
+      ids.forEach(function(id){
+        const el=document.getElementById(id);
+        if(el) el.style.setProperty("display","none","important");
+      });
+      const login=document.getElementById("loginSection");
+      const form=document.getElementById("gdAuthFormShell");
+      if(login) login.style.setProperty("display","grid","important");
+      if(form) form.style.setProperty("display","grid","important");
+      const profileEditor=document.getElementById("renterProfileEditor");
+      const ownerEditor=document.getElementById("ownerProfileEditor");
+      if(profileEditor && !profileEditor.classList.contains("active")) profileEditor.style.setProperty("display","none","important");
+      if(ownerEditor && !ownerEditor.classList.contains("active")) ownerEditor.style.setProperty("display","none","important");
+      const msg=document.getElementById("authMessage");
+      if(msg && message) msg.textContent=message;
+    }catch(e){
+      console.error("GDR forceLoginRoute error:",e);
+    }
+  }
+
+  function showLoginErrorPopup(title, body){
+    let modal=document.getElementById("gdrLoginErrorPopup");
+    if(!modal){
+      modal=document.createElement("div");
+      modal.id="gdrLoginErrorPopup";
+      modal.innerHTML='<div class="gdr-login-error-backdrop"></div><div class="gdr-login-error-card" role="alertdialog" aria-modal="true"><div class="gdr-login-error-icon">!</div><div class="gdr-login-error-copy"><span>LOGIN FAILED</span><h3></h3><p></p></div><button type="button" class="gdr-login-error-close">Try again</button></div>';
+      document.body.appendChild(modal);
+      modal.querySelector(".gdr-login-error-close").addEventListener("click",function(){
+        modal.classList.remove("active");
+        document.getElementById("userPassword")?.focus();
+      });
+      modal.querySelector(".gdr-login-error-backdrop").addEventListener("click",function(){
+        modal.classList.remove("active");
+      });
+    }
+    modal.querySelector("h3").textContent=title||"Password Wrong";
+    modal.querySelector("p").textContent=body||"The password you entered is incorrect. Please try again.";
+    modal.classList.add("active");
+  }
+
+  window.__gdrForceLoginRoute=forceLoginRoute;
+  window.__gdrShowLoginErrorPopup=showLoginErrorPopup;
+
+  const originalUpdateAuthUI=window.updateAuthUI;
+  /* updateAuthUI is declared later; this guard is also installed through
+     the injected branch below, so this reference is intentionally unused. */
+})();
+
 async function loginUser() {
     if (isAuthenticating) return;
     isAuthenticating = true;
@@ -11340,6 +11500,8 @@ async function loginUser() {
         if (signupButton) signupButton.disabled = true;
         authMessage.textContent = "Logging in...";
 
+        window.__gdLoginAttemptActive = true;
+        window.__gdAuthRequested = true;
         const { data, error } = await withAuthTimeout(
             supabaseClient.auth.signInWithPassword({ email, password }),
             "Login request",
@@ -11347,7 +11509,22 @@ async function loginUser() {
         );
         if (error) {
             console.error("Login error:", error);
-            authMessage.textContent = getFriendlyAuthError(error);
+            const friendlyError = getFriendlyAuthError(error);
+            window.__gdLoginAttemptActive = false;
+            window.__gdAuthRequested = true;
+            if (window.__gdrForceLoginRoute) window.__gdrForceLoginRoute(friendlyError);
+
+            const rawLoginError = String(error?.message || "").toLowerCase();
+            if (rawLoginError.includes("invalid login credentials") ||
+                rawLoginError.includes("invalid email or password") ||
+                rawLoginError.includes("invalid credentials")) {
+                if (window.__gdrShowLoginErrorPopup) {
+                    window.__gdrShowLoginErrorPopup(
+                        "Password Wrong",
+                        "The password you entered is incorrect. Please try again."
+                    );
+                }
+            }
             return;
         }
 
@@ -11598,6 +11775,7 @@ async function loginUser() {
             scrollToSection("dashboardSection");
         }
     } finally {
+        window.__gdLoginAttemptActive = false;
         isAuthenticating = false;
         if (loginButton) { loginButton.disabled = false; loginButton.textContent = "Login"; }
         if (signupButton) signupButton.disabled = false;
@@ -11986,6 +12164,7 @@ function closeRenterProfileEditor(){
     if(e?.dataset.requiredPhone==="1"){ logoutUser(); return; }
     e?.classList.remove("active");
     if(e)e.dataset.requiredPhone="0";
+    document.body.classList.remove("gd-profile-editor-lock");
 }
 async function saveRenterProfile(e){
     e.preventDefault();
@@ -12064,6 +12243,7 @@ function closeOwnerProfileEditor(){
     if(e?.dataset.requiredPhone==="1"){ logoutUser(); return; }
     e?.classList.remove("active");
     if(e)e.dataset.requiredPhone="0";
+    document.body.classList.remove("gd-profile-editor-lock");
 }
 async function saveOwnerProfile(e){
     e.preventDefault();
