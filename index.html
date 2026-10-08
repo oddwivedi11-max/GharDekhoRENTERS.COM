@@ -12406,10 +12406,10 @@ async function renderActiveDashboard() {
                 activityBody.innerHTML=connectionRows.slice(0,100).map(row=>'<div class="owner-property-row"><strong>'+escapeHtml(row.kind)+'</strong> — '+escapeHtml(row.renter?.name||"Renter")+' ↔ '+escapeHtml(row.owner?.name||"Owner")+'<br>'+escapeHtml(row.property?.title||"Property")+' · '+escapeHtml(row.status)+'<br><span class="small-text">'+escapeHtml(row.created||"—")+'</span></div>').join("")||'<p>No activity found.</p>';
             }
 
-            const ownerCount=document.getElementById("adminOwnerCount"), renterCount=document.getElementById("adminRenterCount"), visitCount=document.getElementById("adminVisitCount");
-            if(ownerCount)ownerCount.textContent=String(owners.length);
-            if(renterCount)renterCount.textContent=String(renters.length);
-            if(visitCount)visitCount.textContent=String(visits.length);
+            const ownerCount2=document.getElementById("adminOwnerCount"), renterCount2=document.getElementById("adminRenterCount"), visitCount2=document.getElementById("adminVisitCount");
+            if(ownerCount2)ownerCount2.textContent=String(owners.length);
+            if(renterCount2)renterCount2.textContent=String(renters.length);
+            if(visitCount2)visitCount2.textContent=String(visits.length);
         }
 
         function openAdminPropertyEditor(id) {
