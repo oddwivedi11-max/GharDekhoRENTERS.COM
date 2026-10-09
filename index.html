@@ -21608,6 +21608,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       const item=Array.isArray(data)?data[0]:null;
       const offices=item&&Array.isArray(item.PostOffice)?item.PostOffice:[];
       if(!item||item.Status!=="Success"||!offices.length){
+        lastPin="";
         setStatus("PIN code not found. Check the 6 digits and try again.","error");
         return;
       }
@@ -21629,6 +21630,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       setStatus("✓ "+area+" · "+district+" · "+state+" filled. Add house/street/landmark in the address field if needed.","success");
     }catch(error){
       if(error.name==="AbortError") return;
+      lastPin="";
       setStatus("Could not look up this PIN right now. Retry in a moment; PIN code is still required.","error");
     }
   }
