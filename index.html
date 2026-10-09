@@ -20043,7 +20043,7 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   padding:0 52px 0 18px;border:1px solid rgba(154,239,220,.75);border-radius:16px;
   color:#123b38;background:linear-gradient(180deg,#ffffff 0%,#effbf7 100%);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 0 rgba(5,61,55,.16),0 12px 22px rgba(0,28,26,.12);
-  font:700 16px/1.2 inherit;cursor:pointer;outline:none;
+  font-family:inherit;font-size:16px;font-weight:700;line-height:1.2;cursor:pointer;outline:none;
   transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease;
 }
 #renterLiveNearbyRadius:focus-visible{border-color:#78e8d2;box-shadow:0 0 0 4px rgba(120,232,210,.24),0 5px 0 rgba(5,61,55,.16);}
@@ -21515,14 +21515,13 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       error => {
         console.error("Renter Live Nearby geolocation error:",error);
         setLiveUi(false,false);
-        if(error && error.code === 1){
-          updateLiveText("Location permission was denied. Enable location permission for GharDekho in your browser settings, then tap <strong>Start Live Nearby</strong> again.");
-        }else{
-          updateLiveText("Your location could not be read right now. Please try again.");
-        }
+        const locationErrorMessage = error && error.code === 1
+          ? "Location permission was denied. Enable location permission for GharDekho in your browser settings, then tap <strong>Start Live Nearby</strong> again."
+          : "Your location could not be read right now. Please try again.";
+        stopLiveNearby();
+        updateLiveText(locationErrorMessage);
         const container = byId("renterLiveNearbyContainer");
         if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>!</span><strong>Location unavailable</strong><p>Please allow location access and start Live Nearby again.</p></div>';
-        stopLiveNearby();
       },
       {
         enableHighAccuracy:true,
