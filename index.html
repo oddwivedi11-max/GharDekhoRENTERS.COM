@@ -9719,6 +9719,22 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                             </div>
                         </div>
 
+                        <div class="renter-live-radius-control">
+                            <label for="renterLiveNearbyRadius">Search radius</label>
+                            <select id="renterLiveNearbyRadius" aria-label="Nearby search radius">
+                                <option value="1" selected>1 km</option>
+                                <option value="2">2 km</option>
+                                <option value="3">3 km</option>
+                                <option value="4">4 km</option>
+                                <option value="5">5 km</option>
+                                <option value="6">6 km</option>
+                                <option value="7">7 km</option>
+                                <option value="8">8 km</option>
+                                <option value="9">9 km</option>
+                                <option value="10">10 km</option>
+                            </select>
+                            <span>Results refresh when you move 500 m.</span>
+                        </div>
                         <div class="renter-live-nearby-controls">
                             <button type="button" class="renter-live-start-btn" id="renterLiveNearbyStartBtn">
                                 <span class="renter-live-btn-icon">⌖</span>
@@ -20906,6 +20922,23 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 .renter-live-metrics>div{padding:10px 8px;border:1px solid rgba(255,255,255,.10);border-radius:13px;background:rgba(255,255,255,.055)}
 .renter-live-metrics strong{display:block;color:#fff;font-size:14px}
 .renter-live-metrics span{display:block;margin-top:2px;color:rgba(255,255,255,.48);font-size:7px;text-transform:uppercase;letter-spacing:.08em}
+.renter-live-radius-control{
+  display:flex;align-items:center;gap:10px;flex-wrap:wrap;
+  margin:14px 0 12px;padding:12px 14px;
+  border:1px solid rgba(151,211,201,.42);border-radius:14px;
+  background:rgba(255,255,255,.07);color:#e8fff9;
+}
+.renter-live-radius-control label{font-weight:800;font-size:13px}
+.renter-live-radius-control select{
+  min-width:112px;padding:9px 12px;border-radius:10px;
+  border:1px solid #a7d8cf;background:#fff;color:#123e39;
+  font:700 14px inherit;cursor:pointer;
+}
+.renter-live-radius-control span{font-size:11px;opacity:.86}
+@media(max-width:560px){
+  .renter-live-radius-control{align-items:flex-start;flex-direction:column}
+  .renter-live-radius-control select{width:100%}
+}
 .renter-live-nearby-controls{display:grid;grid-template-columns:1fr auto;gap:9px;margin-top:17px}
 .renter-live-start-btn{
   min-height:54px;border:1px solid rgba(255,255,255,.24);border-radius:15px;
@@ -21085,6 +21118,12 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     if(distanceEl) distanceEl.textContent = "Tracking paused";
   }
 
+  function selectedRadiusKm(){
+    const select = byId("renterLiveNearbyRadius");
+    const value = Number(select?.value || 1);
+    return Number.isFinite(value) ? Math.min(10,Math.max(1,value)) : 1;
+  }
+
   async function refreshAtLocation(latitude, longitude, force){
     if(refreshBusy) return;
     if(!force && lastLat !== null && lastLng !== null){
@@ -21097,10 +21136,11 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     lastLng = longitude;
     userLatitude = latitude;
     userLongitude = longitude;
+    const radiusKm = selectedRadiusKm();
 
     try{
-      updateLiveText("Refreshing live property conditions around your current location…");
-      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,1);
+      updateLiveText(`Searching for homes within <strong>${radiusKm} km</strong> of your current location…`);
+      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,radiusKm);
       const nearby = result.rows.map(row => ({
         ...row,
         listing_type: row.listing_type || "home",
@@ -21114,13 +21154,13 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       if(!nearby.length){
         const container = byId("renterLiveNearbyContainer");
         if(container){
-          container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>No property found within 1 km.</strong><p>There are no matching rental homes within 1 km of your current location. Move to another area; results refresh after you move 500 m.</p></div>';
+          container.innerHTML = `<div class="renter-live-empty-state"><span>⌖</span><strong>No property found within ${radiusKm} km.</strong><p>There are no matching rental homes within ${radiusKm} km of your current location. Change the radius or move to another area; results refresh after you move 500 m.</p></div>`;
         }
       }
 
-      updateLiveText(nearby.length ? `<strong>${nearby.length}</strong> registered properties found within <strong>1 km</strong>. Results refresh when you move <strong>500 m</strong> from this position.` : `No property found within <strong>1 km</strong> of your current location. Results refresh when you move <strong>500 m</strong>.`);
+      updateLiveText(nearby.length ? `<strong>${nearby.length}</strong> registered properties found within <strong>${radiusKm} km</strong>. Results refresh when you move <strong>500 m</strong> from this position.` : `No property found within <strong>${radiusKm} km</strong> of your current location. Choose a larger radius or move to another area. Results refresh when you move <strong>500 m</strong>.`);
       const distanceEl = byId("renterLiveNearbyDistance");
-      if(distanceEl) distanceEl.textContent = `${nearby.length} homes in range`;
+      if(distanceEl) distanceEl.textContent = nearby.length ? `${nearby.length} homes • ${radiusKm} km` : `No homes • ${radiusKm} km`;
       const card = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
       card?.classList.remove("live-error");
     }catch(error){
@@ -21205,6 +21245,15 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       stop.addEventListener("click",function(e){
         e.preventDefault();
         stopLiveNearby();
+      });
+    }
+    const radius = byId("renterLiveNearbyRadius");
+    if(radius && radius.dataset.gdrRadiusBound!=="1"){
+      radius.dataset.gdrRadiusBound="1";
+      radius.addEventListener("change",function(){
+        const km = selectedRadiusKm();
+        updateLiveText(`Search radius set to <strong>${km} km</strong>. Results will update now if your location is available.`);
+        if(lastLat !== null && lastLng !== null) refreshAtLocation(lastLat,lastLng,true);
       });
     }
   }
