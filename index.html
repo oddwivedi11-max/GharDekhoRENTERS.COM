@@ -12362,7 +12362,26 @@ async function saveRenterProfile(e){
             showMessage("backendMessage",message,"error");
             return;
         }
-        currentProfile={...(currentProfile||{}),...(data||{}),name,email,phone};
+
+        /*
+         * The mandatory-phone login gate reads public.users.phone. Keep that
+         * row synchronized with the successful profile RPC so a phone saved
+         * by the editor is not treated as missing on the next login.
+         */
+        const { data: persistedProfile, error: persistError } = await supabaseClient
+            .from("users")
+            .update({ name, email, phone })
+            .eq("id", currentUser.id)
+            .select("id,name,email,phone,role,roles")
+            .maybeSingle();
+
+        if (persistError || !persistedProfile || !isValidGharDekhoPhone(normalizePhone(persistedProfile.phone))) {
+            console.error("Renter profile was accepted by RPC but users.phone could not be verified:", persistError || persistedProfile);
+            showMessage("backendMessage","Your details were submitted, but we could not verify the saved phone in your profile. Please try again; if it repeats, contact support.","error");
+            return;
+        }
+
+        currentProfile={...(currentProfile||{}),...(data||{}),...persistedProfile,name,email,phone};
         updateDashboardProfile();
         try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
         const renterEditor=document.getElementById("renterProfileEditor");
