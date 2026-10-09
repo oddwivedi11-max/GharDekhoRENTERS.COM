@@ -14499,11 +14499,26 @@ async function refreshSaveButtons(propertyId) {
             // "Verify Location". If an exact suggestion was selected earlier,
             // keep its coordinates for maps/distance features.
             if (!verifiedPropertyLocation) {
-                verifiedPropertyLocation = {
-                    address: location,
-                    latitude: null,
-                    longitude: null
-                };
+                const addressInput = document.getElementById("propertyLocation");
+                const selectedLat = Number(addressInput?.dataset.gdSelectedLat);
+                const selectedLng = Number(addressInput?.dataset.gdSelectedLng);
+                const selectedAddress = String(addressInput?.dataset.gdSelectedDisplayName || "").trim();
+                if (Number.isFinite(selectedLat) && Number.isFinite(selectedLng) &&
+                    addressInput?.dataset.gdLocationSelected === "1") {
+                    verifiedPropertyLocation = {
+                        address: location || selectedAddress,
+                        latitude: selectedLat,
+                        longitude: selectedLng
+                    };
+                } else {
+                    // Manual addresses remain allowed, but the UI explicitly
+                    // tells the owner when map coordinates were not resolved.
+                    verifiedPropertyLocation = {
+                        address: location,
+                        latitude: null,
+                        longitude: null
+                    };
+                }
             }
 
             // The secure owner_add_property RPC verifies auth.uid() and the
@@ -14579,31 +14594,40 @@ async function refreshSaveButtons(propertyId) {
                 return;
             }
 
-            showMessage("backendMessage", "✓ Property submitted for admin verification.", "success");
-
             showMessage(
                 "backendMessage",
-                "Property submitted successfully. It will appear publicly after admin verification.",
+                "✓ Property saved successfully. It is now in My Properties with Pending verification status.",
                 "success"
             );
 
-            document
-                .getElementById("addPropertyForm")
-                .reset();
+            document.getElementById("addPropertyForm")?.reset();
             resetPropertyImagePicker();
             verifiedPropertyLocation = null;
+            const addressInputAfterSave = document.getElementById("propertyLocation");
+            if (addressInputAfterSave) {
+                delete addressInputAfterSave.dataset.gdSelectedLat;
+                delete addressInputAfterSave.dataset.gdSelectedLng;
+                delete addressInputAfterSave.dataset.gdSelectedDisplayName;
+                delete addressInputAfterSave.dataset.gdLocationSelected;
+            }
+            const suggestionsAfterSave = document.getElementById("gdPropertyLocationSuggestions");
+            if (suggestionsAfterSave) suggestionsAfterSave.hidden = true;
 
-            document.getElementById(
-                "verificationMessage"
-            ).textContent = "";
+            const verificationMessageAfterSave = document.getElementById("verificationMessage");
+            if (verificationMessageAfterSave) verificationMessageAfterSave.textContent = "";
+            const verifyButtonAfterSave = document.getElementById("verifyLocationBtn");
+            if (verifyButtonAfterSave) verifyButtonAfterSave.textContent = "📍 Verify Property Location";
 
-            document.getElementById(
-                "verifyLocationBtn"
-            ).textContent =
-                "📍 Verify Property Location";
-
-            await loadProperties();
-            await loadOwnerProperties();
+            // The database insert has already succeeded. A dashboard refresh
+            // failure must never tell the owner that their saved property failed.
+            const refreshResults = await Promise.allSettled([
+                loadProperties(),
+                loadOwnerProperties()
+            ]);
+            if (refreshResults[1].status === "rejected") {
+                console.error("Property saved, but My Properties refresh failed:", refreshResults[1].reason);
+                showMessage("backendMessage", "Property saved successfully. My Properties could not refresh automatically—reopen the dashboard or refresh once.", "success");
+            }
 
             // Close the mobile modal only after the database insert succeeded.
             window.__gdCloseOwnerPropertyModal?.();
@@ -16210,9 +16234,18 @@ function updateStayTypeFields() {
             const choosePropertyImageBtn = document.getElementById("choosePropertyImageBtn");
             const propertyImageFile = document.getElementById("propertyImageFile");
             const removePropertyImageBtn = document.getElementById("removePropertyImageBtn");
-            if (choosePropertyImageBtn && propertyImageFile) choosePropertyImageBtn.addEventListener("click", () => propertyImageFile.click());
-            if (propertyImageFile) propertyImageFile.addEventListener("change", handlePropertyImageSelection);
-            if (removePropertyImageBtn) removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
+            if (choosePropertyImageBtn && propertyImageFile && choosePropertyImageBtn.dataset.gdImageBound !== "1") {
+                choosePropertyImageBtn.dataset.gdImageBound = "1";
+                choosePropertyImageBtn.addEventListener("click", () => propertyImageFile.click());
+            }
+            if (propertyImageFile && propertyImageFile.dataset.gdImageBound !== "1") {
+                propertyImageFile.dataset.gdImageBound = "1";
+                propertyImageFile.addEventListener("change", handlePropertyImageSelection);
+            }
+            if (removePropertyImageBtn && removePropertyImageBtn.dataset.gdImageBound !== "1") {
+                removePropertyImageBtn.dataset.gdImageBound = "1";
+                removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
+            }
             if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", openRenterFindHomePage);
             if (ownerExploreNearbyBtn && ownerExploreNearbyBtn.dataset.gdOwnerExploreBound !== "1") {
                 ownerExploreNearbyBtn.dataset.gdOwnerExploreBound = "1";
@@ -19790,6 +19823,148 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   window.addEventListener("load",forceLoginPhoneVisible);
   setTimeout(forceLoginPhoneVisible,300);
   setTimeout(forceLoginPhoneVisible,1200);
+})();
+</script>
+
+<style id="gd-owner-location-autocomplete-fix">
+  #propertyLocation { position: relative; }
+  #gdPropertyLocationSuggestions {
+    position:absolute; z-index:10050; top:calc(100% + 5px); left:0; right:0;
+    max-height:280px; overflow:auto; background:#fff; color:#173a35;
+    border:1px solid #c9ddd8; border-radius:14px;
+    box-shadow:0 16px 38px rgba(7,43,38,.18); padding:6px;
+  }
+  #gdPropertyLocationSuggestions[hidden] { display:none!important; }
+  #gdPropertyLocationSuggestions button {
+    display:block; width:100%; text-align:left; border:0; border-radius:9px;
+    background:#fff; color:#173a35; padding:11px 12px; cursor:pointer;
+    font:inherit; line-height:1.35; min-height:44px;
+  }
+  #gdPropertyLocationSuggestions button:hover,
+  #gdPropertyLocationSuggestions button:focus { background:#eaf7f3; outline:2px solid #9acfc3; }
+  #gdPropertyLocationSuggestions small { display:block; color:#647874; margin-top:3px; }
+  #gdPropertyLocationStatus { display:block; margin-top:6px; font-size:12px; color:#52706a; }
+  @media(max-width:680px){#gdPropertyLocationSuggestions{max-height:230px}}
+</style>
+<script id="gd-owner-property-location-autocomplete-fix">
+(function(){
+  let timer = null;
+  let controller = null;
+  let boundInput = null;
+  const byId = id => document.getElementById(id);
+  function displayName(p){
+    return [p.housenumber && p.street ? p.housenumber+" "+p.street : p.name,
+      p.street && !(p.housenumber && p.street) ? p.street : "",
+      p.locality, p.district, p.city, p.state, p.country]
+      .filter(Boolean).map(x=>String(x).trim()).filter((x,i,a)=>x && a.indexOf(x)===i).join(", ");
+  }
+  function ensureUI(input){
+    let box=byId("gdPropertyLocationSuggestions");
+    if(!box){
+      box=document.createElement("div"); box.id="gdPropertyLocationSuggestions";
+      box.setAttribute("role","listbox"); box.hidden=true;
+      const parent=input.parentElement;
+      if(parent){ if(getComputedStyle(parent).position==="static") parent.style.position="relative"; parent.appendChild(box); }
+    }
+    let status=byId("gdPropertyLocationStatus");
+    if(!status){
+      status=document.createElement("small"); status.id="gdPropertyLocationStatus";
+      status.setAttribute("aria-live","polite");
+      const parent=input.parentElement; if(parent) parent.appendChild(status);
+    }
+    input.setAttribute("aria-autocomplete","list");
+    input.setAttribute("aria-controls","gdPropertyLocationSuggestions");
+    return {box,status};
+  }
+  function clearSelected(input){
+    delete input.dataset.gdSelectedLat;
+    delete input.dataset.gdSelectedLng;
+    delete input.dataset.gdSelectedDisplayName;
+    delete input.dataset.gdLocationSelected;
+    if(typeof verifiedPropertyLocation!=="undefined") verifiedPropertyLocation=null;
+    const btn=byId("verifyLocationBtn");
+    if(btn) btn.textContent="📍 Verify Property Location";
+  }
+  async function search(input, query, ui){
+    if(controller) controller.abort();
+    controller=new AbortController();
+    ui.box.innerHTML="";
+    ui.box.hidden=false;
+    ui.status.textContent="Searching Indian addresses…";
+    try{
+      const url="https://photon.komoot.io/api/?limit=7&lang=en&q="+encodeURIComponent(query);
+      const response=await fetch(url,{headers:{Accept:"application/json"},signal:controller.signal});
+      if(!response.ok) throw new Error("Location service is temporarily unavailable.");
+      const data=await response.json();
+      const features=(Array.isArray(data.features)?data.features:[])
+        .filter(f=>f && f.geometry && Array.isArray(f.geometry.coordinates) &&
+          Number.isFinite(Number(f.geometry.coordinates[0])) && Number.isFinite(Number(f.geometry.coordinates[1])))
+        .sort((a,b)=>Number(String(b.properties?.countrycode||"").toLowerCase()==="in")-Number(String(a.properties?.countrycode||"").toLowerCase()==="in"));
+      if(!features.length){
+        ui.box.hidden=true;
+        ui.status.textContent="No matching address found. Add area, city and state, then try again.";
+        return;
+      }
+      features.forEach(feature=>{
+        const p=feature.properties||{};
+        const label=displayName(p);
+        if(!label) return;
+        const [lng,lat]=feature.geometry.coordinates.map(Number);
+        const button=document.createElement("button");
+        button.type="button"; button.setAttribute("role","option");
+        button.innerHTML="";
+        const main=document.createElement("strong"); main.textContent=label;
+        const sub=document.createElement("small"); sub.textContent="Use this address and map location";
+        button.append(main,sub);
+        button.addEventListener("click",()=>{
+          input.value=label;
+          input.dataset.gdSelectedLat=String(lat);
+          input.dataset.gdSelectedLng=String(lng);
+          input.dataset.gdSelectedDisplayName=label;
+          input.dataset.gdLocationSelected="1";
+          ui.box.hidden=true;
+          ui.status.textContent="✓ Location selected. Coordinates will be saved with the property.";
+          const message=byId("verificationMessage");
+          if(message){message.textContent="✓ Exact property location selected.";message.className="message success";}
+          const verify=byId("verifyLocationBtn");
+          if(verify) verify.textContent="✓ Location Selected";
+          if(typeof verifiedPropertyLocation!=="undefined") verifiedPropertyLocation={address:label,latitude:lat,longitude:lng};
+        });
+        ui.box.appendChild(button);
+      });
+      ui.box.hidden=false;
+      ui.status.textContent="Choose the exact address from the suggestions to save map coordinates.";
+    }catch(error){
+      if(error.name==="AbortError") return;
+      console.warn("Owner property address search:",error);
+      ui.box.hidden=true;
+      ui.status.textContent="Address suggestions are temporarily unavailable. You can still enter the full address manually.";
+    }
+  }
+  function bind(){
+    const input=byId("propertyLocation");
+    if(!input || input===boundInput) return;
+    boundInput=input;
+    const ui=ensureUI(input);
+    input.addEventListener("input",()=>{
+      clearSelected(input);
+      ui.box.hidden=true;
+      if(timer) clearTimeout(timer);
+      const q=input.value.trim();
+      if(q.length<3){ui.status.textContent="Type at least 3 characters for address suggestions.";return;}
+      timer=setTimeout(()=>search(input,q,ui),350);
+    });
+    input.addEventListener("focus",()=>{
+      const q=input.value.trim();
+      if(q.length>=3 && ui.box.childElementCount && !input.dataset.gdLocationSelected) ui.box.hidden=false;
+    });
+    document.addEventListener("click",e=>{
+      if(e.target!==input && !ui.box.contains(e.target)) ui.box.hidden=true;
+    });
+  }
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind,{once:true});
+  else bind();
+  window.addEventListener("load",bind);
 })();
 </script>
 </body>
