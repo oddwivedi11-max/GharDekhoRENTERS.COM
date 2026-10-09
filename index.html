@@ -21566,6 +21566,25 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     },{once:true});
   }
 
+  function showRetryState(message,token){
+    const inventory=byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+    const container=byId("renterLiveNearbyContainer");
+    if(inventory) inventory.hidden=false;
+    if(container){
+      container.innerHTML='<div class="renter-live-empty-state gdr-live-error-state"><span>!</span><strong>Nearby homes could not be loaded.</strong><p></p><button type="button" class="gdr-increase-radius-btn" id="gdrRetryNearbySearch">Retry Search</button></div>';
+      container.querySelector("p").textContent=message;
+      byId("gdrRetryNearbySearch")?.addEventListener("click",()=>{
+        if(token!==sessionToken||!tracking||!lastSuccessfulLocation) return;
+        refreshAtLocation(lastSuccessfulLocation.latitude,lastSuccessfulLocation.longitude,token,true).catch(error=>{
+          if(token===sessionToken&&tracking){
+            console.error("GharDekho nearby retry failed:",error);
+            showRetryState("Check your connection and retry the nearby search.",token);
+          }
+        });
+      },{once:true});
+    }
+  }
+
   async function performRefresh(latitude,longitude,token){
     if(token!==sessionToken) return false;
     const radiusKm=selectedRadiusKm();
@@ -21620,6 +21639,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
         refreshAtLocation(queued.latitude,queued.longitude,queued.token,queued.force).catch(error=>{
           if(queued.token===sessionToken&&tracking){
             updateLiveText("Nearby homes could not be refreshed. Your location tracking remains active; please retry the search.");
+            showRetryState("Your location tracking is active, but the property service did not return results.",queued.token);
             toast("SEARCH COULD NOT REFRESH","Your location is active, but the nearby property search failed.","error");
           }
         });
@@ -21660,6 +21680,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
           if(token!==sessionToken) return;
           console.error("GharDekho nearby refresh failed:",error);
           updateLiveText("Nearby homes could not be refreshed. Please retry the search.");
+          showRetryState("The latest nearby property results could not be loaded.",token);
           toast("SEARCH COULD NOT REFRESH","The latest nearby property results could not be loaded.","error");
         });
       }
@@ -21732,7 +21753,8 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       action.addEventListener("click",event=>{
         event.preventDefault();
         showPanel();
-        updateLiveText("Tap <strong>Start Live Nearby</strong> when you are ready. Your browser will ask for location permission only after you start.");
+        setLiveUi(tracking,starting);
+        if(!tracking&&!starting) updateLiveText("Tap <strong>Start Live Nearby</strong> when you are ready. Your browser will ask for location permission only after you start.");
       });
     }
     if(start&&start.dataset.gdrLiveBound!=="2"){
@@ -21754,6 +21776,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
             if(!tracking) return;
             console.error("GharDekho radius update failed:",error);
             updateLiveText("The radius was changed, but the nearby results could not be refreshed. Please retry.");
+            showRetryState("Your selected radius is saved, but results could not be refreshed.",sessionToken);
             toast("RADIUS UPDATE FAILED","Your selected radius is saved, but results could not be refreshed.","error");
           });
         }else{
