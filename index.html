@@ -21333,246 +21333,477 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 }
 </style>
 
-<script id="gdr-renter-live-nearby-v1-js">
+<script id="gdr-renter-live-nearby-v2-js">
 (function(){
+  "use strict";
   const MOVE_THRESHOLD_KM = 0.5;
   let watchId = null;
-  let lastLat = null;
-  let lastLng = null;
+  let lastSuccessfulLocation = null;
+  let tracking = false;
+  let starting = false;
+  let firstFixReceived = false;
   let refreshBusy = false;
+  let pendingRefresh = null;
+  let sessionToken = 0;
+  let toastTimer = null;
 
-  function byId(id){ return document.getElementById(id); }
-
-  function setLiveUi(active, ready){
-    const action = byId("renterLiveNearbyBtn");
-    const start = byId("renterLiveNearbyStartBtn");
-    const stop = byId("renterLiveNearbyStopBtn");
-    if(action){
-      action.classList.toggle("live-active", active);
-      action.classList.toggle("live-ready", ready || active);
-      action.setAttribute("aria-expanded", active ? "true" : "false");
-    }
-    if(start) start.hidden = active;
-    if(stop) {
-      stop.hidden = false;
-      stop.classList.toggle("stop-active", active);
-      stop.setAttribute("aria-pressed", active ? "true" : "false");
-    }
-    const panel = byId("renterLiveNearbyPanel");
-    const card = panel?.querySelector(".renter-live-nearby-card");
-    if(card) card.classList.toggle("gdr-tracking-active", active);
-  }
+  const byId = id => document.getElementById(id);
+  const validCoordinate = (lat,lng) => Number.isFinite(lat) && Number.isFinite(lng) && lat >= -90 && lat <= 90 && lng >= -180 && lng <= 180;
 
   function updateLiveText(message){
-    const status = byId("renterLiveNearbyStatus");
-    if(status) status.innerHTML = message;
+    const status=byId("renterLiveNearbyStatus");
+    if(status) status.innerHTML=message;
   }
 
-  function updateLiveMetrics(count, distanceKm){
-    const countEl = byId("renterLiveNearbyCount");
-    const distanceEl = byId("renterLiveNearbyDistance");
-    const updatedEl = byId("renterLiveNearbyUpdated");
-    if(countEl) countEl.textContent = Number.isFinite(count) ? String(count) : "—";
-    if(distanceEl){
-      distanceEl.textContent = Number.isFinite(distanceKm)
-        ? `Center radius ${distanceKm.toFixed(1).replace(/\.0$/,"")} km`
-        : "Waiting for location";
+  function toast(title,message,kind){
+    let node=byId("gdrLiveNearbyToast");
+    if(!node){
+      node=document.createElement("div");
+      node.id="gdrLiveNearbyToast";
+      node.className="gdr-live-nearby-toast";
+      node.setAttribute("role","status");
+      node.setAttribute("aria-live","polite");
+      node.innerHTML='<span class="gdr-live-toast-icon" aria-hidden="true">⌖</span><span class="gdr-live-toast-copy"><strong></strong><small></small></span><button type="button" aria-label="Dismiss notification">×</button>';
+      document.body.appendChild(node);
+      node.querySelector("button").addEventListener("click",()=>{node.classList.remove("is-visible");});
     }
-    if(updatedEl){
-      updatedEl.textContent = new Date().toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"});
+    node.classList.remove("is-success","is-error","is-stop");
+    node.classList.add(kind==="error"?"is-error":kind==="stop"?"is-stop":"is-success");
+    node.querySelector("strong").textContent=title;
+    node.querySelector("small").textContent=message;
+    node.classList.add("is-visible");
+    if(toastTimer) clearTimeout(toastTimer);
+    toastTimer=setTimeout(()=>node.classList.remove("is-visible"),5000);
+  }
+
+  function setLiveUi(active, pending){
+    const action=byId("renterLiveNearbyBtn");
+    const start=byId("renterLiveNearbyStartBtn");
+    const stop=byId("renterLiveNearbyStopBtn");
+    if(action){
+      action.classList.toggle("live-active",active);
+      action.classList.toggle("live-ready",pending||active);
+      action.setAttribute("aria-expanded",byId("renterLiveNearbyPanel")?.hidden?"false":"true");
     }
+    if(start){
+      start.hidden=active;
+      start.disabled=!!pending;
+      start.setAttribute("aria-busy",pending?"true":"false");
+      const copy=start.querySelector("span:nth-child(2)");
+      if(copy) copy.textContent=pending?"Locating you…":"Start Live Nearby";
+    }
+    if(stop){
+      stop.hidden=!active&&!pending;
+      stop.disabled=!active&&!pending;
+      stop.setAttribute("aria-pressed",active?"true":"false");
+    }
+    const panel=byId("renterLiveNearbyPanel");
+    const card=panel?.querySelector(".renter-live-nearby-card");
+    if(card) card.classList.toggle("gdr-tracking-active",active);
   }
 
   function showPanel(){
-    const panel = byId("renterLiveNearbyPanel");
-    if(panel){
-      panel.hidden = false;
-      panel.classList.add("gdr-live-nearby-open");
-      panel.setAttribute("aria-hidden","false");
-    }
-    panel?.scrollIntoView({behavior:"smooth",block:"start"});
+    const panel=byId("renterLiveNearbyPanel");
+    if(!panel) return;
+    panel.hidden=false;
+    panel.classList.add("gdr-live-nearby-open");
+    panel.setAttribute("aria-hidden","false");
+    panel.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
-  function stopLiveNearby(){
-    if(watchId !== null && navigator.geolocation?.clearWatch){
-      navigator.geolocation.clearWatch(watchId);
-    }
-    watchId = null;
-    lastLat = null;
-    lastLng = null;
-    refreshBusy = false;
-    setLiveUi(false,false);
-    const panel = byId("renterLiveNearbyPanel");
-    if(panel){
-      panel.hidden = false;
-      panel.classList.add("gdr-live-nearby-open");
-      panel.setAttribute("aria-hidden","false");
-    }
-    const inventoryCard = panel?.querySelector(".renter-live-results-card");
-    if(inventoryCard) inventoryCard.hidden = true;
-    const container = byId("renterLiveNearbyContainer");
-    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Live tracking off</strong><p>Location tracking has stopped. Press Start Live Nearby when you want to search again.</p></div>';
-    const countEl = byId("renterLiveNearbyCount");
-    if(countEl) countEl.textContent = "—";
-    updateLiveText("<strong>LIVE TRACKING OFF</strong> · Your location is no longer being tracked.");
-    const distanceEl = byId("renterLiveNearbyDistance");
-    if(distanceEl) distanceEl.textContent = "Tracking off";
+  function hideInventory(){
+    const panel=byId("renterLiveNearbyPanel");
+    const inventory=panel?.querySelector(".renter-live-results-card");
+    if(inventory) inventory.hidden=true;
+    const container=byId("renterLiveNearbyContainer");
+    if(container) container.innerHTML='<div class="renter-live-empty-state"><span>⌖</span><strong>Ready when you are</strong><p>Start Live Nearby to discover homes around your current location. Your location is requested only after you press Start.</p></div>';
+    const count=byId("renterLiveNearbyCount");
+    if(count) count.textContent="—";
+    const updated=byId("renterLiveNearbyUpdated");
+    if(updated) updated.textContent="—";
+    const distance=byId("renterLiveNearbyDistance");
+    if(distance) distance.textContent="Waiting for location";
+  }
+
+  function updateMetrics(count,radiusKm){
+    const countEl=byId("renterLiveNearbyCount");
+    const distanceEl=byId("renterLiveNearbyDistance");
+    const updatedEl=byId("renterLiveNearbyUpdated");
+    if(countEl) countEl.textContent=String(count);
+    if(distanceEl) distanceEl.textContent=count+" homes · within "+radiusKm+" km";
+    if(updatedEl) updatedEl.textContent=new Date().toLocaleTimeString([],{hour:"2-digit",minute:"2-digit"});
   }
 
   function selectedRadiusKm(){
-    const select = byId("renterLiveNearbyRadius");
-    const value = Number(select?.value || 1);
-    return Number.isFinite(value) ? Math.min(10,Math.max(1,value)) : 1;
+    const value=Number(byId("renterLiveNearbyRadius")?.value||1);
+    return Number.isFinite(value)?Math.min(10,Math.max(1,Math.round(value))):1;
   }
 
-  async function refreshAtLocation(latitude, longitude, force){
-    if(refreshBusy) return;
-    if(!force && lastLat !== null && lastLng !== null){
-      const moved = calculateDistanceKm(lastLat,lastLng,latitude,longitude);
-      if(moved < MOVE_THRESHOLD_KM) return;
+  function enhanceRadiusControl(){
+    const select=byId("renterLiveNearbyRadius");
+    const control=select?.closest(".renter-live-radius-control");
+    if(!select||!control||byId("gdrLiveRadiusTrigger")) return;
+    const label=control.querySelector('label[for="renterLiveNearbyRadius"]');
+    const wrap=document.createElement("div");
+    wrap.className="gdr-live-radius-picker";
+    const trigger=document.createElement("button");
+    trigger.type="button";
+    trigger.id="gdrLiveRadiusTrigger";
+    trigger.className="gdr-live-radius-trigger";
+    trigger.setAttribute("aria-haspopup","listbox");
+    trigger.setAttribute("aria-expanded","false");
+    trigger.setAttribute("aria-controls","gdrLiveRadiusMenu");
+    trigger.innerHTML='<span class="gdr-radius-trigger-value"></span><span class="gdr-radius-chevron" aria-hidden="true">⌄</span>';
+    const menu=document.createElement("div");
+    menu.id="gdrLiveRadiusMenu";
+    menu.className="gdr-live-radius-menu";
+    menu.setAttribute("role","listbox");
+    menu.setAttribute("aria-label","Search radius in kilometres");
+    menu.hidden=true;
+    Array.from(select.options).forEach(option=>{
+      const item=document.createElement("button");
+      item.type="button";
+      item.className="gdr-live-radius-option";
+      item.setAttribute("role","option");
+      item.dataset.value=option.value;
+      item.textContent=option.textContent.trim();
+      item.addEventListener("click",()=>{
+        select.value=option.value;
+        select.dispatchEvent(new Event("change",{bubbles:true}));
+        closeMenu();
+        trigger.focus();
+      });
+      menu.appendChild(item);
+    });
+    function sync(){
+      const current=select.options[select.selectedIndex];
+      const value=trigger.querySelector(".gdr-radius-trigger-value");
+      if(value) value.textContent=current?current.textContent.trim():selectedRadiusKm()+" km";
+      menu.querySelectorAll(".gdr-live-radius-option").forEach(item=>{
+        const chosen=item.dataset.value===select.value;
+        item.setAttribute("aria-selected",String(chosen));
+        item.classList.toggle("is-selected",chosen);
+      });
     }
-
-    refreshBusy = true;
-    lastLat = latitude;
-    lastLng = longitude;
-    userLatitude = latitude;
-    userLongitude = longitude;
-    const radiusKm = selectedRadiusKm();
-
-    try{
-      updateLiveText(`Searching for homes within <strong>${radiusKm} km</strong> of your current location…`);
-      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,radiusKm);
-      const nearby = result.rows.map(row => ({
-        ...row,
-        listing_type: row.listing_type || "home",
-        distanceKm: Number(row.distance_km)
-      })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm >= 0 && row.distanceKm <= radiusKm)
-        .sort((a,b) => a.distanceKm - b.distanceKm);
-
-      const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
-      if(inventoryCard) inventoryCard.hidden = false;
-      renderProperties(nearby,"renterLiveNearbyContainer","renterLiveNearbyPagination",false);
-      updateLiveMetrics(nearby.length,Number(result.radiusKm));
-
-      if(!nearby.length){
-        const container = byId("renterLiveNearbyContainer");
-        if(container){
-          container.innerHTML = `<div class="renter-live-empty-state"><span>⌖</span><strong>No property found within ${radiusKm} km.</strong><p>There are no matching rental homes within ${radiusKm} km of your current location. Increase your search radius to see more properties. Results refresh after you move 500 m.</p></div>`;
-        }
+    function closeMenu(){
+      menu.hidden=true;
+      trigger.setAttribute("aria-expanded","false");
+    }
+    function openMenu(){
+      menu.hidden=false;
+      trigger.setAttribute("aria-expanded","true");
+      const chosen=menu.querySelector(".is-selected");
+      chosen?.focus({preventScroll:true});
+    }
+    trigger.addEventListener("click",()=>menu.hidden?openMenu():closeMenu());
+    trigger.addEventListener("keydown",event=>{
+      if(event.key==="ArrowDown"||event.key==="Enter"||event.key===" "){
+        event.preventDefault();openMenu();
       }
+    });
+    menu.addEventListener("keydown",event=>{
+      const options=Array.from(menu.querySelectorAll("button"));
+      const index=options.indexOf(document.activeElement);
+      if(event.key==="Escape"){event.preventDefault();closeMenu();trigger.focus();}
+      else if(event.key==="ArrowDown"){event.preventDefault();options[Math.min(options.length-1,index+1)]?.focus();}
+      else if(event.key==="ArrowUp"){event.preventDefault();options[Math.max(0,index-1)]?.focus();}
+      else if(event.key==="Home"){event.preventDefault();options[0]?.focus();}
+      else if(event.key==="End"){event.preventDefault();options[options.length-1]?.focus();}
+    });
+    document.addEventListener("click",event=>{
+      if(!wrap.contains(event.target)&&event.target!==trigger) closeMenu();
+    });
+    select.addEventListener("change",sync);
+    if(label) label.htmlFor=trigger.id;
+    select.hidden=true;
+    select.setAttribute("aria-hidden","true");
+    select.tabIndex=-1;
+    select.insertAdjacentElement("afterend",wrap);
+    wrap.append(trigger,menu);
+    sync();
+  }
 
-      updateLiveText(nearby.length ? `<strong>${nearby.length}</strong> registered properties found within <strong>${radiusKm} km</strong>. Results refresh when you move <strong>500 m</strong> from this position.` : `No property found within <strong>${radiusKm} km</strong> of your current location. Choose a larger radius or move to another area. Results refresh when you move <strong>500 m</strong>.`);
-      const distanceEl = byId("renterLiveNearbyDistance");
-      if(distanceEl) distanceEl.textContent = nearby.length ? `${nearby.length} homes • ${radiusKm} km` : `No homes • ${radiusKm} km`;
-      const card = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
-      card?.classList.remove("live-error");
-    }catch(error){
-      console.error("Renter Live Nearby refresh error:",error);
-      updateLiveText("We could not refresh the nearby inventory right now. Keep Live Nearby on and try again when your connection is available.");
-      const card = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
-      card?.classList.add("live-error");
+  function stopWatch(){
+    if(watchId!==null&&navigator.geolocation?.clearWatch){
+      try{navigator.geolocation.clearWatch(watchId);}catch(e){}
+    }
+    watchId=null;
+  }
+
+  function resetSession(){
+    sessionToken++;
+    stopWatch();
+    tracking=false;
+    starting=false;
+    firstFixReceived=false;
+    refreshBusy=false;
+    pendingRefresh=null;
+    lastSuccessfulLocation=null;
+    setLiveUi(false,false);
+  }
+
+  function failStart(message){
+    resetSession();
+    hideInventory();
+    updateLiveText(message);
+    toast("LOCATION NOT AVAILABLE",message.replace(/<[^>]*>/g,""),"error");
+  }
+
+  function emptyState(radiusKm){
+    const container=byId("renterLiveNearbyContainer");
+    if(!container) return;
+    container.innerHTML='<div class="renter-live-empty-state gdr-live-empty-state"><span>⌖</span><strong>No properties found within '+radiusKm+' km. Increase your KM radius to discover more homes.</strong><p>No eligible, location-verified homes are available within the selected radius.</p><button type="button" class="gdr-increase-radius-btn" id="gdrIncreaseNearbyRadius">Increase Radius</button></div>';
+    byId("gdrIncreaseNearbyRadius")?.addEventListener("click",()=>{
+      const select=byId("renterLiveNearbyRadius");
+      if(!select) return;
+      const next=Math.min(10,selectedRadiusKm()+1);
+      if(next===selectedRadiusKm()){
+        updateLiveText("You are already searching the maximum radius of <strong>10 km</strong>.");
+        return;
+      }
+      select.value=String(next);
+      select.dispatchEvent(new Event("change",{bubbles:true}));
+    },{once:true});
+  }
+
+  async function performRefresh(latitude,longitude,token){
+    if(token!==sessionToken) return false;
+    const radiusKm=selectedRadiusKm();
+    updateLiveText('Searching verified rental homes within <strong>'+radiusKm+' km</strong> of your current location…');
+    const result=await fetchNearbyPropertiesFromBackend(latitude,longitude,radiusKm);
+    if(token!==sessionToken) return false;
+    if(!result||!Array.isArray(result.rows)) throw new Error("Nearby property service returned an invalid response.");
+    const effectiveRadius=Number(result.radiusKm);
+    if(!Number.isFinite(effectiveRadius)||effectiveRadius!==radiusKm) throw new Error("Nearby property service returned an unexpected search radius.");
+    const nearby=result.rows.map(row=>{
+      const distanceKm=Number(row.distance_km);
+      return {...row,listing_type:row.listing_type||"home",distanceKm};
+    }).filter(row=>Number.isFinite(row.distanceKm)&&row.distanceKm>=0&&row.distanceKm<=radiusKm)
+      .sort((a,b)=>a.distanceKm-b.distanceKm);
+    const inventory=byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+    const container=byId("renterLiveNearbyContainer");
+    if(nearby.length){
+      renderProperties(nearby,"renterLiveNearbyContainer","renterLiveNearbyPagination",false);
+    }else{
+      emptyState(radiusKm);
+    }
+    if(token!==sessionToken) return false;
+    if(inventory) inventory.hidden=false;
+    updateMetrics(nearby.length,radiusKm);
+    updateLiveText(nearby.length
+      ? '<strong>'+nearby.length+'</strong> eligible properties found within <strong>'+radiusKm+' km</strong>. Results refresh after you move <strong>500 m</strong>.'
+      : 'No properties found within <strong>'+radiusKm+' km</strong>. Increase your KM radius to discover more homes.');
+    const card=byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
+    card?.classList.remove("live-error");
+    lastSuccessfulLocation={latitude,longitude};
+    return true;
+  }
+
+  async function refreshAtLocation(latitude,longitude,token,force){
+    if(token!==sessionToken||(!tracking&&!starting)) return false;
+    if(!validCoordinate(latitude,longitude)) throw new Error("The browser did not provide valid GPS coordinates.");
+    if(refreshBusy){
+      pendingRefresh={latitude,longitude,token,force:!!force};
+      return false;
+    }
+    if(!force&&lastSuccessfulLocation&&calculateDistanceKm(lastSuccessfulLocation.latitude,lastSuccessfulLocation.longitude,latitude,longitude)<MOVE_THRESHOLD_KM) return false;
+    refreshBusy=true;
+    let succeeded=false;
+    try{
+      succeeded=await performRefresh(latitude,longitude,token);
+      return succeeded;
     }finally{
-      refreshBusy = false;
+      refreshBusy=false;
+      const queued=pendingRefresh;
+      pendingRefresh=null;
+      if(queued&&queued.token===sessionToken&&(tracking||starting)){
+        refreshAtLocation(queued.latitude,queued.longitude,queued.token,queued.force).catch(error=>{
+          if(queued.token===sessionToken&&tracking){
+            updateLiveText("Nearby homes could not be refreshed. Your location tracking remains active; please retry the search.");
+            toast("SEARCH COULD NOT REFRESH","Your location is active, but the nearby property search failed.","error");
+          }
+        });
+      }
+    }
+  }
+
+  async function handlePosition(position,token){
+    if(token!==sessionToken||(!starting&&!tracking)) return;
+    const latitude=Number(position?.coords?.latitude);
+    const longitude=Number(position?.coords?.longitude);
+    if(!validCoordinate(latitude,longitude)){
+      if(starting) failStart("Your browser returned an invalid location. Please retry.");
+      return;
+    }
+    if(starting){
+      if(firstFixReceived) return;
+      firstFixReceived=true;
+      try{
+        const success=await refreshAtLocation(latitude,longitude,token,true);
+        if(!success||token!==sessionToken||!starting) return;
+        starting=false;
+        tracking=true;
+        setLiveUi(true,false);
+        updateLiveText('<strong>LIVE TRACKING ON</strong> · Your location is active. Discovering homes within <strong>'+selectedRadiusKm()+' km</strong>.');
+        toast("LIVE TRACKING STARTED","Your location is active. Discovering homes within "+selectedRadiusKm()+" km.","success");
+      }catch(error){
+        if(token!==sessionToken) return;
+        console.error("GharDekho initial nearby search failed:",error);
+        failStart("We could not initialise nearby search. Check your connection and tap Start Live Nearby to retry.");
+      }
+      return;
+    }
+    if(tracking){
+      const previous=lastSuccessfulLocation;
+      if(!previous||calculateDistanceKm(previous.latitude,previous.longitude,latitude,longitude)>=MOVE_THRESHOLD_KM){
+        refreshAtLocation(latitude,longitude,token,false).catch(error=>{
+          if(token!==sessionToken) return;
+          console.error("GharDekho nearby refresh failed:",error);
+          updateLiveText("Nearby homes could not be refreshed. Please retry the search.");
+          toast("SEARCH COULD NOT REFRESH","The latest nearby property results could not be loaded.","error");
+        });
+      }
     }
   }
 
   function startLiveNearby(){
     showPanel();
-    const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
-    if(inventoryCard) inventoryCard.hidden = true;
-    const container = byId("renterLiveNearbyContainer");
-    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Waiting for your location…</strong><p>Nearby inventory will appear only after you allow location access and the live search succeeds.</p></div>';
-    const countEl = byId("renterLiveNearbyCount");
-    if(countEl) countEl.textContent = "—";
-    const updatedEl = byId("renterLiveNearbyUpdated");
-    if(updatedEl) updatedEl.textContent = "—";
-
+    if(starting||tracking) return;
     if(!navigator.geolocation){
-      updateLiveText("Live location is not supported by this browser.");
+      failStart("Live location is not supported by this browser.");
       return;
     }
+    hideInventory();
+    const token=++sessionToken;
+    starting=true;
+    tracking=false;
+    firstFixReceived=false;
+    lastSuccessfulLocation=null;
+    setLiveUi(false,true);
+    updateLiveText("Requesting your location… Allow location access in your browser to search nearby homes.");
+    const locating=byId("renterLiveNearbyContainer");
+    if(locating) locating.innerHTML='<div class="renter-live-empty-state"><span>⌖</span><strong>Locating you…</strong><p>Nearby inventory will appear after your location is received and the search succeeds.</p></div>';
+    try{
+      watchId=navigator.geolocation.watchPosition(
+        position=>{handlePosition(position,token);},
+        error=>{
+          if(token!==sessionToken) return;
+          const message=error?.code===1
+            ?"Location permission was denied. Enable location access in your browser settings, then tap Start Live Nearby again."
+            :error?.code===3
+              ?"Your location request timed out. Move to an area with better GPS reception and retry."
+              :"Your location is unavailable right now. Check device location services and retry.";
+          console.warn("GharDekho geolocation issue:",error?.code||"unknown");
+          failStart(message);
+        },
+        {enableHighAccuracy:true,timeout:20000,maximumAge:5000}
+      );
+    }catch(error){
+      console.error("GharDekho could not start geolocation:",error);
+      failStart("Live location could not be started. Please retry.");
+    }
+  }
 
-    if(watchId !== null){
-      updateLiveText("<strong>LIVE TRACKING ON</strong> · Your location is already being tracked.");
+  function stopLiveNearby(){
+    const hadActiveSession=tracking;
+    const hadPendingSession=starting;
+    if(!hadActiveSession&&!hadPendingSession){
+      hideInventory();
+      setLiveUi(false,false);
       return;
     }
-
-    setLiveUi(true,true);
-    updateLiveText("Requesting your location permission… <strong>Allow location access</strong> when your browser asks.");
-    const locatingContainer = byId("renterLiveNearbyContainer");
-    if(locatingContainer) locatingContainer.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Locating you…</strong><p>Allow location access to discover homes around you.</p></div>';
-
-    watchId = navigator.geolocation.watchPosition(
-      position => {
-        const latitude = Number(position.coords.latitude);
-        const longitude = Number(position.coords.longitude);
-        if(!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
-
-        const firstFix = lastLat === null || lastLng === null;
-        updateLiveText("<strong>LIVE TRACKING ON</strong> · Location received. Finding properties within <strong>" + selectedRadiusKm() + " km</strong>…");
-        refreshAtLocation(latitude,longitude,firstFix);
-      },
-      error => {
-        console.error("Renter Live Nearby geolocation error:",error);
-        setLiveUi(false,false);
-        const locationErrorMessage = error && error.code === 1
-          ? "Location permission was denied. Enable location permission for GharDekho in your browser settings, then tap <strong>Start Live Nearby</strong> again."
-          : "Your location could not be read right now. Please try again.";
-        stopLiveNearby();
-        updateLiveText(locationErrorMessage);
-        const container = byId("renterLiveNearbyContainer");
-        if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>!</span><strong>Location unavailable</strong><p>Please allow location access and start Live Nearby again.</p></div>';
-      },
-      {
-        enableHighAccuracy:true,
-        timeout:12000,
-        maximumAge:10000
-      }
-    );
+    resetSession();
+    hideInventory();
+    updateLiveText(hadActiveSession
+      ?"<strong>LIVE TRACKING OFF</strong> · Your location is no longer being tracked."
+      :"Location request cancelled. Press Start Live Nearby when you are ready.");
+    const distance=byId("renterLiveNearbyDistance");
+    if(distance) distance.textContent="Tracking off";
+    if(hadActiveSession) toast("LIVE TRACKING STOPPED","Location tracking has ended. Your radar is now inactive.","stop");
   }
 
   function bind(){
-    const action = byId("renterLiveNearbyBtn");
-    const start = byId("renterLiveNearbyStartBtn");
-    const stop = byId("renterLiveNearbyStopBtn");
-    if(action && action.dataset.gdrLiveBound!=="1"){
-      action.dataset.gdrLiveBound="1";
-      action.addEventListener("click",function(e){
-        e.preventDefault();
+    enhanceRadiusControl();
+    const action=byId("renterLiveNearbyBtn");
+    const start=byId("renterLiveNearbyStartBtn");
+    const stop=byId("renterLiveNearbyStopBtn");
+    if(action&&action.dataset.gdrLiveBound!=="2"){
+      action.dataset.gdrLiveBound="2";
+      action.addEventListener("click",event=>{
+        event.preventDefault();
         showPanel();
-        if(watchId === null) startLiveNearby();
-        else stopLiveNearby();
+        updateLiveText("Tap <strong>Start Live Nearby</strong> when you are ready. Your browser will ask for location permission only after you start.");
       });
     }
-    if(start && start.dataset.gdrLiveBound!=="1"){
-      start.dataset.gdrLiveBound="1";
-      start.addEventListener("click",function(e){
-        e.preventDefault();
-        startLiveNearby();
+    if(start&&start.dataset.gdrLiveBound!=="2"){
+      start.dataset.gdrLiveBound="2";
+      start.addEventListener("click",event=>{event.preventDefault();startLiveNearby();});
+    }
+    if(stop&&stop.dataset.gdrLiveBound!=="2"){
+      stop.dataset.gdrLiveBound="2";
+      stop.addEventListener("click",event=>{event.preventDefault();stopLiveNearby();});
+    }
+    const radius=byId("renterLiveNearbyRadius");
+    if(radius&&radius.dataset.gdrRadiusBound!=="2"){
+      radius.dataset.gdrRadiusBound="2";
+      radius.addEventListener("change",()=>{
+        const km=selectedRadiusKm();
+        if(tracking&&lastSuccessfulLocation){
+          updateLiveText("Updating nearby homes using your selected radius of <strong>"+km+" km</strong>…");
+          refreshAtLocation(lastSuccessfulLocation.latitude,lastSuccessfulLocation.longitude,sessionToken,true).catch(error=>{
+            if(!tracking) return;
+            console.error("GharDekho radius update failed:",error);
+            updateLiveText("The radius was changed, but the nearby results could not be refreshed. Please retry.");
+            toast("RADIUS UPDATE FAILED","Your selected radius is saved, but results could not be refreshed.","error");
+          });
+        }else{
+          updateLiveText("Search radius set to <strong>"+km+" km</strong>. Press Start Live Nearby when you are ready.");
+        }
       });
     }
-    if(stop && stop.dataset.gdrLiveBound!=="1"){
-      stop.dataset.gdrLiveBound="1";
-      stop.addEventListener("click",function(e){
-        e.preventDefault();
-        stopLiveNearby();
-      });
+    if(!document.documentElement.dataset.gdrNearbyPageCleanup){
+      document.documentElement.dataset.gdrNearbyPageCleanup="1";
+      window.addEventListener("pagehide",()=>{if(tracking||starting) resetSession();});
     }
-    const radius = byId("renterLiveNearbyRadius");
-    if(radius && radius.dataset.gdrRadiusBound!=="1"){
-      radius.dataset.gdrRadiusBound="1";
-      radius.addEventListener("change",function(){
-        const km = selectedRadiusKm();
-        updateLiveText(`Search radius set to <strong>${km} km</strong>. Results will update now if your location is available.`);
-        if(lastLat !== null && lastLng !== null) refreshAtLocation(lastLat,lastLng,true);
-      });
+    if(!byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card[hidden]")){
+      const inventory=byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+      if(inventory) inventory.hidden=true;
     }
+    setLiveUi(tracking,starting);
   }
 
-  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind);
+  const style=document.createElement("style");
+  style.id="gdr-live-nearby-production-v2-css";
+  style.textContent=`
+    #renterLiveNearbyPanel[hidden],#renterLiveNearbyPanel .renter-live-results-card[hidden]{display:none!important}
+    #renterLiveNearbyPanel:not(.gdr-live-nearby-open){display:none!important}
+    .renter-live-radius-control{position:relative;z-index:20;display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+    .renter-live-radius-control>label{font-size:12px;font-weight:900;letter-spacing:.06em;text-transform:uppercase;color:#bcefe3}
+    .gdr-live-radius-picker{position:relative;width:100%;min-width:0}
+    .gdr-live-radius-trigger{display:flex;align-items:center;justify-content:space-between;gap:14px;width:100%;min-height:56px;padding:0 17px;border:1px solid rgba(154,239,220,.65);border-radius:16px;background:linear-gradient(145deg,#fafffd,#dff6ef);color:#103e38;box-shadow:0 5px 0 rgba(3,52,47,.65),0 13px 24px rgba(0,20,18,.18),inset 0 1px 0 #fff;font-family:inherit;font-size:16px;font-weight:800;line-height:1.2;cursor:pointer;text-align:left}
+    .gdr-live-radius-trigger:focus-visible,.gdr-live-radius-option:focus-visible{outline:3px solid #9ff5e1;outline-offset:3px}
+    .gdr-radius-chevron{font-size:20px;transition:transform .18s ease}
+    .gdr-live-radius-trigger[aria-expanded="true"] .gdr-radius-chevron{transform:rotate(180deg)}
+    .gdr-live-radius-menu{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:10030;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:min(300px,42vh);overflow-y:auto;overscroll-behavior:contain;padding:10px;border:1px solid rgba(150,232,213,.55);border-radius:18px;background:linear-gradient(145deg,#073e39,#0b5d54);box-shadow:0 20px 45px rgba(0,20,18,.38),inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(16px)}
+    .gdr-live-radius-menu[hidden]{display:none!important}
+    .gdr-live-radius-option{min-width:0;min-height:44px;padding:9px 12px;border:1px solid rgba(196,255,240,.12);border-radius:12px;background:rgba(255,255,255,.07);color:#eafff8;font-family:inherit;font-size:14px;font-weight:750;line-height:1.2;cursor:pointer;text-align:center;transition:background .16s ease,border-color .16s ease,transform .16s ease}
+    .gdr-live-radius-option:hover,.gdr-live-radius-option.is-selected{border-color:rgba(164,255,230,.75);background:linear-gradient(145deg,#c8fff0,#8ce4ce);color:#063f38;box-shadow:0 4px 0 rgba(0,26,23,.4)}
+    .gdr-increase-radius-btn{margin-top:12px;min-height:46px;padding:0 18px;border:1px solid #9adfd0;border-radius:13px;background:linear-gradient(145deg,#08776b,#064d46);color:#fff;font-weight:900;box-shadow:0 5px 0 #043b36,0 10px 18px rgba(5,61,55,.16);cursor:pointer}
+    .gdr-live-nearby-toast{position:fixed;right:18px;bottom:calc(22px + env(safe-area-inset-bottom));z-index:110000;display:flex;align-items:center;gap:12px;width:min(390px,calc(100vw - 28px));padding:14px 14px;border:1px solid rgba(173,255,231,.42);border-radius:18px;background:linear-gradient(145deg,#063d37,#0a6b5f);color:#fff;box-shadow:0 18px 42px rgba(2,36,32,.35),inset 0 1px 0 rgba(255,255,255,.18);opacity:0;transform:translateY(12px) scale(.98);pointer-events:none;transition:opacity .22s ease,transform .22s ease}
+    .gdr-live-nearby-toast.is-visible{opacity:1;transform:translateY(0) scale(1);pointer-events:auto}
+    .gdr-live-nearby-toast.is-error{border-color:rgba(255,185,170,.6);background:linear-gradient(145deg,#542723,#8b392d)}
+    .gdr-live-nearby-toast.is-stop{border-color:rgba(255,207,160,.55);background:linear-gradient(145deg,#613c1d,#8c5427)}
+    .gdr-live-toast-icon{flex:0 0 38px;width:38px;height:38px;display:grid;place-items:center;border:1px solid rgba(255,255,255,.24);border-radius:13px;background:rgba(255,255,255,.12);font-size:20px}
+    .gdr-live-toast-copy{flex:1;min-width:0}.gdr-live-toast-copy strong{display:block;font-size:12px;letter-spacing:.07em;font-weight:950}.gdr-live-toast-copy small{display:block;margin-top:4px;font-size:12px;line-height:1.45;color:rgba(255,255,255,.82)}
+    .gdr-live-nearby-toast>button{flex:0 0 30px;min-height:30px;width:30px;padding:0;border:0;border-radius:9px;background:rgba(255,255,255,.1);color:#fff;font-size:22px}
+    @media(max-width:680px){.gdr-live-nearby-toast{left:12px;right:12px;bottom:calc(84px + env(safe-area-inset-bottom));width:auto}.gdr-live-radius-menu{grid-template-columns:repeat(2,minmax(0,1fr));max-height:35vh}.gdr-live-radius-trigger{min-height:52px}}
+    @media(prefers-reduced-motion:reduce){.gdr-live-nearby-toast,.gdr-radius-chevron,.gdr-live-radius-option{transition:none!important}}
+  `;
+  document.head.appendChild(style);
+
+  if(document.readyState==="loading") document.addEventListener("DOMContentLoaded",bind,{once:true});
   else bind();
-  window.addEventListener("load",bind);
-  new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+  window.addEventListener("load",bind,{once:true});
 })();
 </script>
 
