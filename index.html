@@ -21343,6 +21343,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
   let starting = false;
   let firstFixReceived = false;
   let refreshBusy = false;
+  let refreshBusyToken = null;
   let pendingRefresh = null;
   let sessionToken = 0;
   let toastTimer = null;
@@ -21537,6 +21538,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     starting=false;
     firstFixReceived=false;
     refreshBusy=false;
+    refreshBusyToken=null;
     pendingRefresh=null;
     lastSuccessfulLocation=null;
     setLiveUi(false,false);
@@ -21627,22 +21629,26 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     }
     if(!force&&lastSuccessfulLocation&&calculateDistanceKm(lastSuccessfulLocation.latitude,lastSuccessfulLocation.longitude,latitude,longitude)<MOVE_THRESHOLD_KM) return false;
     refreshBusy=true;
+    refreshBusyToken=token;
     let succeeded=false;
     try{
       succeeded=await performRefresh(latitude,longitude,token);
       return succeeded;
     }finally{
-      refreshBusy=false;
-      const queued=pendingRefresh;
-      pendingRefresh=null;
-      if(queued&&queued.token===sessionToken&&(tracking||starting)){
-        refreshAtLocation(queued.latitude,queued.longitude,queued.token,queued.force).catch(error=>{
-          if(queued.token===sessionToken&&tracking){
-            updateLiveText("Nearby homes could not be refreshed. Your location tracking remains active; please retry the search.");
-            showRetryState("Your location tracking is active, but the property service did not return results.",queued.token);
-            toast("SEARCH COULD NOT REFRESH","Your location is active, but the nearby property search failed.","error");
-          }
-        });
+      if(refreshBusyToken===token){
+        refreshBusy=false;
+        refreshBusyToken=null;
+        const queued=pendingRefresh;
+        pendingRefresh=null;
+        if(queued&&queued.token===sessionToken&&(tracking||starting)){
+          refreshAtLocation(queued.latitude,queued.longitude,queued.token,queued.force).catch(error=>{
+            if(queued.token===sessionToken&&tracking){
+              updateLiveText("Nearby homes could not be refreshed. Your location tracking remains active; please retry the search.");
+              showRetryState("Your location tracking is active, but the property service did not return results.",queued.token);
+              toast("SEARCH COULD NOT REFRESH","Your location is active, but the nearby property search failed.","error");
+            }
+          });
+        }
       }
     }
   }
