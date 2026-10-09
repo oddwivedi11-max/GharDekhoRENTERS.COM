@@ -13136,6 +13136,16 @@ async function renderActiveDashboard() {
                 section.insertBefore(panel, section.querySelector("#propertiesContainer"));
             }
             panel.innerHTML = `<span class="live-nearby-dot" aria-hidden="true"></span><strong>Live Nearby</strong><span class="live-nearby-summary">${escapeHtml(message)}</span>`;
+
+            // Keep location-based results separate from the public inventory.
+            // Otherwise a zero-result nearby search replaces the homepage listings.
+            let results = document.getElementById("liveNearbyResults");
+            if (!results) {
+                results = document.createElement("div");
+                results.id = "liveNearbyResults";
+                results.className = "property-grid live-nearby-results";
+                panel.insertAdjacentElement("afterend", results);
+            }
         }
 
         function stopLiveNearby() {
@@ -13149,6 +13159,7 @@ async function renderActiveDashboard() {
             setLiveNearbyButton(false);
             const panel = document.getElementById("liveNearbyPanel");
             if (panel) panel.remove();
+            document.getElementById("liveNearbyResults")?.remove();
             const status = document.getElementById("locationStatus");
             if (status) status.textContent = "Live nearby tracking stopped.";
         }
@@ -13197,12 +13208,15 @@ async function renderActiveDashboard() {
                     distanceKm: Number(row.distance_km)
                 })).filter(row => Number.isFinite(row.distanceKm));
 
-                allProperties = nearby;
-                currentPropertyPage = 1;
-                renderProperties(nearby);
+                // Do not replace allProperties or the homepage's Available Rental
+                // Properties list with a location-specific result (especially an empty one).
+                const nearbyResults = document.getElementById("liveNearbyResults");
+                if (nearbyResults) {
+                    renderProperties(nearby, "liveNearbyResults", "", false);
+                }
 
-                if (!nearby.length) {
-                    /* Empty-state text is shown inline; avoid a disruptive popup. */
+                if (!nearby.length && nearbyResults) {
+                    nearbyResults.innerHTML = '<div class="empty-state"><h3>No property found within 1 km</h3><p>Your public property inventory is still available below. Try a larger radius or move to another area.</p></div>';
                 }
 
                 const withinBase = nearby.filter(row => row.distanceKm <= LIVE_NEARBY_START_RADIUS_KM).length;
