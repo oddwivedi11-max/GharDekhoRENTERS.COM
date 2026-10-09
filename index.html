@@ -13155,11 +13155,12 @@ async function renderActiveDashboard() {
 
         async function fetchNearbyPropertiesFromBackend(latitude, longitude, startRadiusKm = 1) {
             /*
-             * Keep Live Nearby within a strict 1 km radius. The search center
-             * updates after the user moves 500 m, but the result radius remains
-             * 1 km. Never expand silently just to fill the result list.
+             * Use the renter-selected radius (1–10 km). The search center
+             * updates after 500 m movement; radius changes only when selected
+             * by the user and never expands silently to fill results.
              */
-            const radiusKm = 1;
+            const requestedRadius = Number(startRadiusKm);
+            const radiusKm = Number.isFinite(requestedRadius) ? Math.min(10, Math.max(1, requestedRadius)) : 1;
             const { data, error } = await supabaseClient.rpc("get_nearby_properties", {
                 p_lat: latitude,
                 p_lng: longitude,
