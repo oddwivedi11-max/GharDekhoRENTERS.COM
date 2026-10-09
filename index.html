@@ -14397,9 +14397,15 @@ async function refreshSaveButtons(propertyId) {
             const totalBedsRaw = document.getElementById("propertyTotalBeds")?.value || "";
             const availableBedsRaw = document.getElementById("propertyAvailableBeds")?.value || "";
 
-            const location =
-                document.getElementById("propertyLocation")
-                    .value.trim();
+            const propertyAddressInput = document.getElementById("propertyLocation");
+            const typedPropertyAddress = propertyAddressInput?.value.trim() || "";
+            const propertyPinInput = document.getElementById("propertyPincode");
+            const propertyPin = String(propertyPinInput?.value || "").trim();
+            const pinLocationBase = String(propertyPinInput?.dataset.gdrAppliedBase || "").trim();
+            const locationParts = [typedPropertyAddress, pinLocationBase, /^\d{6}$/.test(propertyPin) ? "PIN " + propertyPin : "", "India"];
+            const location = locationParts.filter(Boolean).filter((value,index,array) =>
+                array.findIndex(other => other.toLowerCase() === value.toLowerCase()) === index
+            ).join(", ");
 
             const bhk =
                 document.getElementById("propertyBhk")
@@ -17853,18 +17859,9 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
     const b=box(); if(!b)return;
     b.innerHTML="";
     if(!items.length){
-      // A valid PIN lookup already supplies a real Indian locality. Do not
-      // show a contradictory geocoder warning for that auto-filled address.
-      const pinInput=document.getElementById("propertyPincode");
-      const addressInput=input();
-      const pin=String(pinInput?.value||"").trim();
-      const pinBase=String(pinInput?.dataset.gdrAppliedBase||"").trim();
-      const currentAddress=String(addressInput?.value||"").trim();
-      if(/^\\d{6}$/.test(pin) && pinBase && currentAddress.toLowerCase().startsWith(pinBase.toLowerCase())){
-        hide(); return;
-      }
-      b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">No location found. Try area + city + state.</div>';
-      b.style.display="block"; return;
+      // Suggestions are optional. Keep the address field clean and editable
+      // when no useful nearby match exists; never block manual entry.
+      hide(); return;
     }
     items.slice(0,10).forEach(item=>{
       const title=item.display_name?.split(",").slice(0,2).join(", ") || "Location";
@@ -21416,8 +21413,8 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
     setLiveUi(true,true);
     updateLiveText("Requesting your location permission… <strong>Allow location access</strong> when your browser asks.");
-    const container = byId("renterLiveNearbyContainer");
-    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Locating you…</strong><p>Allow location access to discover homes around you.</p></div>';
+    const locatingContainer = byId("renterLiveNearbyContainer");
+    if(locatingContainer) locatingContainer.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Locating you…</strong><p>Allow location access to discover homes around you.</p></div>';
 
     watchId = navigator.geolocation.watchPosition(
       position => {
@@ -21645,16 +21642,17 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       const state=String(office.State||"").trim();
       const base=[area,district,state,"India"].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(", ");
       const current=addressInput.value.trim();
-      const currentPin=pinInput.dataset.gdrAppliedPin||"";
       const previousBase=pinInput.dataset.gdrAppliedBase||"";
-      const extra=current&&previousBase&&current.toLowerCase().startsWith(previousBase.toLowerCase())?current.slice(previousBase.length).replace(/^\s*,?\s*/,""):"";
-      if(!current||!previousBase||current===previousBase||currentPin!==pin){
-        addressInput.value=extra?base+", "+extra:base;
+      // Keep the address box for the owner's own house/street/landmark details.
+      // If an older version auto-filled the whole address, remove only that
+      // generated prefix while preserving any extra details the owner typed.
+      if(previousBase && current.toLowerCase().startsWith(previousBase.toLowerCase())){
+        addressInput.value=current.slice(previousBase.length).replace(/^\s*,?\s*/,"");
       }
       pinInput.dataset.gdrAppliedPin=pin;
       pinInput.dataset.gdrAppliedBase=base;
-      addressInput.dispatchEvent(new Event("input",{bubbles:true}));
-      setStatus("✓ "+area+" · "+district+" · "+state+" filled. Add house/street/landmark in the address field if needed.","success");
+      addressInput.setAttribute("placeholder","Enter house/flat number, street, landmark or any extra address details");
+      setStatus("✓ Area: "+area+" · District: "+district+" · State: "+state+". Your full location will include PIN "+pin+". Enter property address details beside this field.","success");
     }catch(error){
       if(error.name==="AbortError") return;
       lastPin="";
