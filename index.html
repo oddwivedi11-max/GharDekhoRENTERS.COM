@@ -19829,10 +19829,10 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 <style id="gd-owner-location-autocomplete-fix">
   #propertyLocation { position: relative; }
   #gdPropertyLocationSuggestions {
-    position:absolute; z-index:10050; top:calc(100% + 5px); left:0; right:0;
+    position:relative; z-index:10050; grid-column:1 / -1;
     max-height:280px; overflow:auto; background:#fff; color:#173a35;
     border:1px solid #c9ddd8; border-radius:14px;
-    box-shadow:0 16px 38px rgba(7,43,38,.18); padding:6px;
+    box-shadow:0 16px 38px rgba(7,43,38,.18); padding:6px; margin-top:-7px;
   }
   #gdPropertyLocationSuggestions[hidden] { display:none!important; }
   #gdPropertyLocationSuggestions button {
@@ -19860,17 +19860,20 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   }
   function ensureUI(input){
     let box=byId("gdPropertyLocationSuggestions");
+    const field=input.parentElement;
     if(!box){
       box=document.createElement("div"); box.id="gdPropertyLocationSuggestions";
       box.setAttribute("role","listbox"); box.hidden=true;
-      const parent=input.parentElement;
-      if(parent){ if(getComputedStyle(parent).position==="static") parent.style.position="relative"; parent.appendChild(box); }
+      // Keep suggestion buttons outside the <label>; nested interactive
+      // controls inside a label can steal clicks/focus on mobile browsers.
+      if(field) field.insertAdjacentElement("afterend",box);
     }
     let status=byId("gdPropertyLocationStatus");
     if(!status){
       status=document.createElement("small"); status.id="gdPropertyLocationStatus";
       status.setAttribute("aria-live","polite");
-      const parent=input.parentElement; if(parent) parent.appendChild(status);
+      if(box) box.insertAdjacentElement("afterend",status);
+      else if(field) field.insertAdjacentElement("afterend",status);
     }
     input.setAttribute("aria-autocomplete","list");
     input.setAttribute("aria-controls","gdPropertyLocationSuggestions");
