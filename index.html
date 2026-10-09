@@ -20024,6 +20024,18 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   window.addEventListener("load",bind);
 })();
 </script>
+
+<style id="gdr-live-nearby-hidden-until-click-v2">
+/* Respect the native hidden attribute even when dashboard styles set display. */
+#renterLiveNearbyPanel[hidden],
+#renterLiveNearbyPanel .renter-live-results-card[hidden] {
+  display: none !important;
+}
+/* The nearby inventory must not flash before a successful GPS + backend lookup. */
+#renterLiveNearbyPanel:not(.gdr-live-nearby-open) {
+  display: none !important;
+}
+</style>
 </body>
 
 </html>
@@ -21348,7 +21360,11 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
   function showPanel(){
     const panel = byId("renterLiveNearbyPanel");
-    if(panel) panel.hidden = false;
+    if(panel){
+      panel.hidden = false;
+      panel.classList.add("gdr-live-nearby-open");
+      panel.setAttribute("aria-hidden","false");
+    }
     panel?.scrollIntoView({behavior:"smooth",block:"start"});
   }
 
@@ -21361,7 +21377,13 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     lastLng = null;
     refreshBusy = false;
     setLiveUi(false,false);
-    const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+    const panel = byId("renterLiveNearbyPanel");
+    if(panel){
+      panel.classList.remove("gdr-live-nearby-open");
+      panel.hidden = true;
+      panel.setAttribute("aria-hidden","true");
+    }
+    const inventoryCard = panel?.querySelector(".renter-live-results-card");
     if(inventoryCard) inventoryCard.hidden = true;
     const container = byId("renterLiveNearbyContainer");
     if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Live Nearby is paused.</strong><p>Tap Start Live Nearby and allow location access to load current nearby rental homes.</p></div>';
