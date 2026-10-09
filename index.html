@@ -17900,10 +17900,23 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
       const response=await fetch(url,{signal:controller.signal,headers:{Accept:"application/json"}});
       if(!response.ok)throw Error("request failed");
       const data=await response.json();
-      const items=(Array.isArray(data)?data:[]).filter(x=>{
+      let items=(Array.isArray(data)?data:[]).filter(x=>{
         const a=x.address||{};
         return String(a.country_code||"").toLowerCase()==="in";
       });
+      // When a PIN has been resolved, show only suggestions in the same
+      // district and state. A fuzzy geocoder result from another Indian city
+      // is not a useful "nearby" address suggestion.
+      const pinInput=document.getElementById("propertyPincode");
+      const baseParts=String(pinInput?.dataset.gdrAppliedBase||"").split(",").map(v=>v.trim()).filter(Boolean);
+      if(baseParts.length>=3){
+        const district=baseParts[1].toLowerCase();
+        const state=baseParts[2].toLowerCase();
+        items=items.filter(item=>{
+          const name=String(item.display_name||"").toLowerCase();
+          return name.includes(district) && name.includes(state);
+        });
+      }
       renderResults(items);
     }catch(e){
       if(e.name!=="AbortError"){
