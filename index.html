@@ -13201,12 +13201,16 @@ async function renderActiveDashboard() {
             const status = document.getElementById("locationStatus");
             try {
                 updateLiveNearbyPanel("Updating real property conditions around your current location...");
-                const result = await fetchNearbyPropertiesFromBackend(latitude, longitude, LIVE_NEARBY_START_RADIUS_KM);
+                const liveRadiusSelect = document.getElementById("renterLiveNearbyRadius");
+                const selectedLiveRadiusKm = Number(liveRadiusSelect?.value || LIVE_NEARBY_START_RADIUS_KM);
+                const result = await fetchNearbyPropertiesFromBackend(latitude, longitude, selectedLiveRadiusKm);
+                // Enforce the selected radius in the browser too. Never render rows outside it,
+                // even if a backend response unexpectedly includes extra properties.
                 const nearby = result.rows.map(row => ({
                     ...row,
                     listing_type: row.listing_type || "home",
                     distanceKm: Number(row.distance_km)
-                })).filter(row => Number.isFinite(row.distanceKm));
+                })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm <= Number(result.radiusKm) + 0.000001);
 
                 // Do not replace allProperties or the homepage's Available Rental
                 // Properties list with a location-specific result (especially an empty one).
@@ -13216,14 +13220,13 @@ async function renderActiveDashboard() {
                 }
 
                 if (!nearby.length && nearbyResults) {
-                    nearbyResults.innerHTML = '<div class="empty-state"><h3>No property found within 1 km</h3><p>Your public property inventory is still available below. Try a larger radius or move to another area.</p></div>';
+                    nearbyResults.innerHTML = '<div class="empty-state"><h3>No property found within ' + Number(result.radiusKm).toString() + ' km</h3><p>Your public property inventory is still available below. Increase the radius to include properties farther away.</p></div>';
                 }
 
-                const withinBase = nearby.filter(row => row.distanceKm <= LIVE_NEARBY_START_RADIUS_KM).length;
                 const typeLabel = "registered properties";
                 const radiusText = Number(result.radiusKm).toFixed(1).replace(/\.0$/, "");
-                updateLiveNearbyPanel(nearby.length ? `${nearby.length} ${typeLabel} • within 1 km • refreshes after 500 m movement` : `No property found within 1 km • refreshes after 500 m movement`);
-                if (status) status.textContent = `${withinBase} properties are within the first 3 km. ${nearby.length} shown within ${radiusText} km.`;
+                updateLiveNearbyPanel(nearby.length ? `${nearby.length} ${typeLabel} • within ${radiusText} km • refreshes after 500 m movement` : `No property found within ${radiusText} km • refreshes after 500 m movement`);
+                if (status) status.textContent = `${nearby.length} properties shown within ${radiusText} km.`;
                 scrollToSection("propertiesSection");
             } catch (error) {
                 console.error("Live nearby backend error:", error);
@@ -21338,7 +21341,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
         ...row,
         listing_type: row.listing_type || "home",
         distanceKm: Number(row.distance_km)
-      })).filter(row => Number.isFinite(row.distanceKm))
+      })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm <= radiusKm + 0.000001)
         .sort((a,b) => a.distanceKm - b.distanceKm);
 
       renderProperties(nearby,"renterLiveNearbyContainer","renterLiveNearbyPagination",false);
