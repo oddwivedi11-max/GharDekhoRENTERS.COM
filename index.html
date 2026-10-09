@@ -11034,14 +11034,31 @@ async function requireMandatoryPhoneProfile(){
     if(!currentUser||!currentProfile)return false;
 
     /*
-     * A newly-created/older profile can have the phone in Supabase Auth
-     * metadata while the public users row is temporarily missing/empty.
-     * The editor already displayed that metadata phone, but this guard used
-     * only currentProfile.phone and therefore opened the mandatory editor
-     * even when a valid +91 number was visibly present.
+     * Always re-read the authenticated user's persisted profile before
+     * forcing the editor. currentProfile can be stale after auth refresh or
+     * role switching even when the renter phone was already saved in users.
      */
+    let persistedPhone = "";
+    try {
+        const { data: savedProfile, error: savedProfileError } = await supabaseClient
+            .from("users")
+            .select("phone")
+            .eq("id", currentUser.id)
+            .maybeSingle();
+
+        if (!savedProfileError && savedProfile?.phone) {
+            persistedPhone = String(savedProfile.phone).trim();
+            currentProfile.phone = persistedPhone;
+        } else if (savedProfileError) {
+            console.warn("Could not refresh saved profile phone before profile gate:", savedProfileError);
+        }
+    } catch (profileReadError) {
+        console.warn("Profile phone refresh failed; checking available auth/profile values:", profileReadError);
+    }
+
     const metadataPhone = String(currentUser?.user_metadata?.phone || "").trim();
-    const effectivePhone = normalizePhone(currentProfile.phone || metadataPhone || sessionStorage.getItem("gd_pending_oauth_phone") || "");
+    const pendingPhone = String(sessionStorage.getItem("gd_pending_oauth_phone") || "").trim();
+    const effectivePhone = normalizePhone(persistedPhone || currentProfile.phone || metadataPhone || pendingPhone || "");
 
     if(isValidGharDekhoPhone(effectivePhone)){
         currentProfile.phone = effectivePhone;
