@@ -9753,7 +9753,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                         </div>
                     </div>
 
-                    <div class="renter-live-results-card">
+                    <div class="renter-live-results-card" hidden aria-live="polite">
                         <div class="dashboard-card-heading">
                             <div>
                                 <span class="dashboard-section-kicker">LIVE PROPERTY CONDITIONS</span>
@@ -13241,7 +13241,7 @@ async function renderActiveDashboard() {
                     ...row,
                     listing_type: row.listing_type || "home",
                     distanceKm: Number(row.distance_km)
-                })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm <= Number(result.radiusKm) + 0.000001);
+                })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm >= 0 && row.distanceKm <= Number(result.radiusKm));
 
                 // Do not replace allProperties or the homepage's Available Rental
                 // Properties list with a location-specific result (especially an empty one).
@@ -21421,7 +21421,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
         ...row,
         listing_type: row.listing_type || "home",
         distanceKm: Number(row.distance_km)
-      })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm <= radiusKm + 0.000001)
+      })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm >= 0 && row.distanceKm <= radiusKm)
         .sort((a,b) => a.distanceKm - b.distanceKm);
 
       const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
@@ -21432,7 +21432,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       if(!nearby.length){
         const container = byId("renterLiveNearbyContainer");
         if(container){
-          container.innerHTML = `<div class="renter-live-empty-state"><span>⌖</span><strong>No property found within ${radiusKm} km.</strong><p>There are no matching rental homes within ${radiusKm} km of your current location. Change the radius or move to another area; results refresh after you move 500 m.</p></div>`;
+          container.innerHTML = `<div class="renter-live-empty-state"><span>⌖</span><strong>No property found within ${radiusKm} km.</strong><p>There are no matching rental homes within ${radiusKm} km of your current location. Increase your search radius to see more properties. Results refresh after you move 500 m.</p></div>`;
         }
       }
 
