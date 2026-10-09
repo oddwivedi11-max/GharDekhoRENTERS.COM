@@ -9781,7 +9781,20 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                 </div>
             </section>
 
-            <!-- OWNER DASHBOARD: owner information only -->
+            <style id="gdr-owner-nearby-shared-search-fix-v1">
+/* Owner Explore Near Me uses the shared search/results surface, not the
+   renter-only dashboard panel. Do not let an active/old renter panel leak in. */
+body.gd-owner-explore-mode #renterDashboard,
+body.gd-owner-explore-mode #renterLiveNearbyPanel {
+  display:none!important;
+}
+body.gd-owner-explore-mode #homeSection,
+body.gd-owner-explore-mode #propertiesSection {
+  display:block;
+}
+</style>
+
+<!-- OWNER DASHBOARD: owner information only -->
             <section id="ownerDashboard" class="dashboard-section owner-dashboard" aria-label="Owner dashboard">
                 <div class="dashboard-stats-grid owner-stats-grid">
                     <article class="dashboard-stat-card owner-stat-card">
@@ -10979,13 +10992,26 @@ function setRoleSpecificUI(role) {
 async function openOwnerNearbyHomes() {
     if (!currentUser || !accountHasRole("owner")) { openLoginAs("owner"); return; }
 
+    // Owners use the same one-shot nearby search and property result cards as
+    // renters. Never leave the renter dashboard's separate Live Nearby panel
+    // open when switching to the shared property search surface.
+    document.getElementById("renterLiveNearbyStopBtn")?.click();
+    const renterLivePanel = document.getElementById("renterLiveNearbyPanel");
+    if (renterLivePanel) renterLivePanel.hidden = true;
+    const renterDashboard = document.getElementById("renterDashboard");
+    if (renterDashboard) {
+        renterDashboard.classList.remove("active");
+        renterDashboard.style.display = "none";
+        renterDashboard.setAttribute("aria-hidden", "true");
+    }
+
     ownerExploreMode = true;
     setRoleSpecificUI("owner");
 
-    // Nearby discovery uses the live get_nearby_properties RPC directly.
-    // Do not wait for the full property-list render before starting location lookup.
+    // Use the shared search form + standard property results. Find Near Me
+    // asks for location permission only after the owner explicitly clicks.
     document.getElementById("homeSection")?.scrollIntoView({behavior:"smooth",block:"start"});
-    showMessage("backendMessage","Nearby property discovery is on. Getting your location…","success");
+    showMessage("backendMessage","Getting your location to find nearby rental properties…","success");
 
     if (typeof findPropertiesNearMe === "function") {
         await findPropertiesNearMe();
