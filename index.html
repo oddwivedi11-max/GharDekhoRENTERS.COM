@@ -13137,31 +13137,24 @@ async function renderActiveDashboard() {
             if (status) status.textContent = "Live nearby tracking stopped.";
         }
 
-        async function fetchNearbyPropertiesFromBackend(latitude, longitude, startRadiusKm = LIVE_NEARBY_START_RADIUS_KM) {
-            let radiusKm = Math.max(0.5, Number(startRadiusKm) || LIVE_NEARBY_START_RADIUS_KM);
-            let rows = [];
-            let lastError = null;
+        async function fetchNearbyPropertiesFromBackend(latitude, longitude, startRadiusKm = 0.5) {
+            /*
+             * The UI promises a strict 500 m search radius. Do not silently
+             * expand the query when fewer than LIVE_NEARBY_MIN_RESULTS exist:
+             * that was returning properties kilometres away while the panel
+             * still described the search as nearby.
+             */
+            const radiusKm = 0.5;
+            const { data, error } = await supabaseClient.rpc("get_nearby_properties", {
+                p_lat: latitude,
+                p_lng: longitude,
+                p_radius_km: radiusKm,
+                p_limit: 100
+            });
 
-            while (radiusKm <= LIVE_NEARBY_MAX_RADIUS_KM) {
-                const { data, error } = await supabaseClient.rpc("get_nearby_properties", {
-                    p_lat: latitude,
-                    p_lng: longitude,
-                    p_radius_km: radiusKm,
-                    p_limit: 100
-                });
+            if (error) throw error;
 
-                if (error) {
-                    lastError = error;
-                    break;
-                }
-
-                rows = Array.isArray(data) ? data : [];
-                if (rows.length >= LIVE_NEARBY_MIN_RESULTS || radiusKm >= LIVE_NEARBY_MAX_RADIUS_KM) break;
-                radiusKm = Math.min(radiusKm + 0.5, LIVE_NEARBY_MAX_RADIUS_KM);
-            }
-
-            if (lastError) throw lastError;
-
+            const rows = Array.isArray(data) ? data : [];
             return { rows, radiusKm };
         }
 
@@ -21108,7 +21101,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
     try{
       updateLiveText("Refreshing live property conditions around your current location…");
-      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,3);
+      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,0.5);
       const nearby = result.rows.map(row => ({
         ...row,
         listing_type: row.listing_type || "home",
