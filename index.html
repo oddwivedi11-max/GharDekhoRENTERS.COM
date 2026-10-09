@@ -21220,6 +21220,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
   padding:16px;border:1px solid #d9e7e2;border-radius:21px;background:linear-gradient(145deg,#fff,#f6fbf9);
   box-shadow:0 12px 32px rgba(23,74,71,.07);
 }
+.renter-live-results-card[hidden]{display:none!important;}
 .renter-live-empty-state{
   display:grid;place-items:center;text-align:center;padding:34px 18px;
   border:1px dashed #c9ddd8;border-radius:16px;background:#fbfdfc;color:#5e716c;
@@ -21314,6 +21315,12 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     lastLng = null;
     refreshBusy = false;
     setLiveUi(false,false);
+    const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+    if(inventoryCard) inventoryCard.hidden = true;
+    const container = byId("renterLiveNearbyContainer");
+    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Live Nearby is paused.</strong><p>Tap Start Live Nearby and allow location access to load current nearby rental homes.</p></div>';
+    const countEl = byId("renterLiveNearbyCount");
+    if(countEl) countEl.textContent = "—";
     updateLiveText("Live Nearby is paused. Tap <strong>Start Live Nearby</strong> whenever you want to search around your current position.");
     const distanceEl = byId("renterLiveNearbyDistance");
     if(distanceEl) distanceEl.textContent = "Tracking paused";
@@ -21349,6 +21356,8 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       })).filter(row => Number.isFinite(row.distanceKm) && row.distanceKm <= radiusKm + 0.000001)
         .sort((a,b) => a.distanceKm - b.distanceKm);
 
+      const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+      if(inventoryCard) inventoryCard.hidden = false;
       renderProperties(nearby,"renterLiveNearbyContainer","renterLiveNearbyPagination",false);
       updateLiveMetrics(nearby.length,Number(result.radiusKm));
 
@@ -21376,6 +21385,14 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
   function startLiveNearby(){
     showPanel();
+    const inventoryCard = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+    if(inventoryCard) inventoryCard.hidden = true;
+    const container = byId("renterLiveNearbyContainer");
+    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Waiting for your location…</strong><p>Nearby inventory will appear only after you allow location access and the live search succeeds.</p></div>';
+    const countEl = byId("renterLiveNearbyCount");
+    if(countEl) countEl.textContent = "—";
+    const updatedEl = byId("renterLiveNearbyUpdated");
+    if(updatedEl) updatedEl.textContent = "—";
 
     if(!navigator.geolocation){
       updateLiveText("Live location is not supported by this browser.");
