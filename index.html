@@ -17853,6 +17853,16 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
     const b=box(); if(!b)return;
     b.innerHTML="";
     if(!items.length){
+      // A valid PIN lookup already supplies a real Indian locality. Do not
+      // show a contradictory geocoder warning for that auto-filled address.
+      const pinInput=document.getElementById("propertyPincode");
+      const addressInput=input();
+      const pin=String(pinInput?.value||"").trim();
+      const pinBase=String(pinInput?.dataset.gdrAppliedBase||"").trim();
+      const currentAddress=String(addressInput?.value||"").trim();
+      if(/^\\d{6}$/.test(pin) && pinBase && currentAddress.toLowerCase().startsWith(pinBase.toLowerCase())){
+        hide(); return;
+      }
       b.innerHTML='<div style="padding:12px;color:#8a4b20;font-size:12px">No location found. Try area + city + state.</div>';
       b.style.display="block"; return;
     }
