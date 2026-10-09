@@ -20036,6 +20036,27 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   display: none !important;
 }
 </style>
+<style id="gdr-live-nearby-premium-controls-v3">
+/* Premium radius control that matches GharDekho's deep-teal, mint UI. */
+#renterLiveNearbyRadius{
+  appearance:none;-webkit-appearance:none;width:100%;min-height:54px;
+  padding:0 52px 0 18px;border:1px solid rgba(154,239,220,.75);border-radius:16px;
+  color:#123b38;background:linear-gradient(180deg,#ffffff 0%,#effbf7 100%);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 5px 0 rgba(5,61,55,.16),0 12px 22px rgba(0,28,26,.12);
+  font:700 16px/1.2 inherit;cursor:pointer;outline:none;
+  transition:box-shadow .18s ease,transform .18s ease,border-color .18s ease;
+}
+#renterLiveNearbyRadius:focus-visible{border-color:#78e8d2;box-shadow:0 0 0 4px rgba(120,232,210,.24),0 5px 0 rgba(5,61,55,.16);}
+#renterLiveNearbyRadius:active{transform:translateY(2px);box-shadow:inset 0 2px 5px rgba(0,40,36,.12),0 2px 0 rgba(5,61,55,.16);}
+#renterLiveNearbyRadius option{font-family:inherit;font-weight:650;color:#123b38;background:#fff;}
+#renterLiveNearbyPanel .renter-radar-sweep{animation-play-state:paused!important;opacity:.2;}
+#renterLiveNearbyPanel .renter-live-nearby-card.gdr-tracking-active .renter-radar-sweep{animation-play-state:running!important;opacity:1;}
+#renterLiveNearbyPanel .renter-live-nearby-card .renter-radar-pulse{animation-play-state:paused!important;}
+#renterLiveNearbyPanel .renter-live-nearby-card.gdr-tracking-active .renter-radar-pulse{animation-play-state:running!important;}
+#renterLiveNearbyPanel .renter-live-nearby-card.gdr-tracking-active .renter-live-pill{border-color:#79e7cb;box-shadow:0 0 0 3px rgba(121,231,203,.12);}
+#renterLiveNearbyStatus strong{font-weight:900;letter-spacing:.045em;}
+@media(max-width:640px){#renterLiveNearbyRadius{min-height:50px;font-size:15px;border-radius:14px;}}
+</style>
 </body>
 
 </html>
@@ -21335,7 +21356,11 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     if(stop) {
       stop.hidden = false;
       stop.classList.toggle("stop-active", active);
+      stop.setAttribute("aria-pressed", active ? "true" : "false");
     }
+    const panel = byId("renterLiveNearbyPanel");
+    const card = panel?.querySelector(".renter-live-nearby-card");
+    if(card) card.classList.toggle("gdr-tracking-active", active);
   }
 
   function updateLiveText(message){
@@ -21379,19 +21404,19 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     setLiveUi(false,false);
     const panel = byId("renterLiveNearbyPanel");
     if(panel){
-      panel.classList.remove("gdr-live-nearby-open");
-      panel.hidden = true;
-      panel.setAttribute("aria-hidden","true");
+      panel.hidden = false;
+      panel.classList.add("gdr-live-nearby-open");
+      panel.setAttribute("aria-hidden","false");
     }
     const inventoryCard = panel?.querySelector(".renter-live-results-card");
     if(inventoryCard) inventoryCard.hidden = true;
     const container = byId("renterLiveNearbyContainer");
-    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Live Nearby is paused.</strong><p>Tap Start Live Nearby and allow location access to load current nearby rental homes.</p></div>';
+    if(container) container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>Live tracking off</strong><p>Location tracking has stopped. Press Start Live Nearby when you want to search again.</p></div>';
     const countEl = byId("renterLiveNearbyCount");
     if(countEl) countEl.textContent = "—";
-    updateLiveText("Live Nearby is paused. Tap <strong>Start Live Nearby</strong> whenever you want to search around your current position.");
+    updateLiveText("<strong>LIVE TRACKING OFF</strong> · Your location is no longer being tracked.");
     const distanceEl = byId("renterLiveNearbyDistance");
-    if(distanceEl) distanceEl.textContent = "Tracking paused";
+    if(distanceEl) distanceEl.textContent = "Tracking off";
   }
 
   function selectedRadiusKm(){
@@ -21468,7 +21493,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     }
 
     if(watchId !== null){
-      stopLiveNearby();
+      updateLiveText("<strong>LIVE TRACKING ON</strong> · Your location is already being tracked.");
       return;
     }
 
@@ -21484,6 +21509,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
         if(!Number.isFinite(latitude) || !Number.isFinite(longitude)) return;
 
         const firstFix = lastLat === null || lastLng === null;
+        updateLiveText("<strong>LIVE TRACKING ON</strong> · Location received. Finding properties within <strong>" + selectedRadiusKm() + " km</strong>…");
         refreshAtLocation(latitude,longitude,firstFix);
       },
       error => {
