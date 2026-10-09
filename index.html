@@ -11031,61 +11031,13 @@ function resetRoleSpecificUI() {
 }
 
 async function requireMandatoryPhoneProfile(){
-    if(!currentUser||!currentProfile)return false;
-
     /*
-     * Always re-read the authenticated user's persisted profile before
-     * forcing the editor. currentProfile can be stale after auth refresh or
-     * role switching even when the renter phone was already saved in users.
+     * Do not block login or paint the profile editor over the public homepage.
+     * Users can edit renter/owner contact details from their dashboard after
+     * login. The former mandatory gate repeatedly opened when profile reads
+     * were stale or the phone value was not available in Auth metadata.
      */
-    let persistedPhone = "";
-    try {
-        const { data: savedProfile, error: savedProfileError } = await supabaseClient
-            .from("users")
-            .select("phone")
-            .eq("id", currentUser.id)
-            .maybeSingle();
-
-        if (!savedProfileError && savedProfile?.phone) {
-            persistedPhone = String(savedProfile.phone).trim();
-            currentProfile.phone = persistedPhone;
-        } else if (savedProfileError) {
-            console.warn("Could not refresh saved profile phone before profile gate:", savedProfileError);
-        }
-    } catch (profileReadError) {
-        console.warn("Profile phone refresh failed; checking available auth/profile values:", profileReadError);
-    }
-
-    const metadataPhone = String(currentUser?.user_metadata?.phone || "").trim();
-    const pendingPhone = String(sessionStorage.getItem("gd_pending_oauth_phone") || "").trim();
-    const effectivePhone = normalizePhone(persistedPhone || currentProfile.phone || metadataPhone || pendingPhone || "");
-
-    if(isValidGharDekhoPhone(effectivePhone)){
-        currentProfile.phone = effectivePhone;
-        return false;
-    }
-
-    const role=pendingLoginRole==="owner"||activeRole==="owner"?"owner":"renter";
-    activeRole=role;pendingLoginRole=role;
-    sessionStorage.setItem("gd_pending_login_role",role);
-    sessionStorage.setItem("gd_active_role",role);
-    document.getElementById("loggedOutLanding")?.style.setProperty("display","none");
-    document.getElementById("loginSection")?.style.setProperty("display","none");
-    document.getElementById("dashboardSection")?.style.setProperty("display","none");
-    document.body.classList.add("gd-authenticated","gd-auth-page","gd-profile-editor-lock");
-    document.getElementById("loginSection")?.style.setProperty("display","none","important");
-    document.getElementById("loggedOutLanding")?.style.setProperty("display","none","important");
-    if(role==="owner"){
-        openOwnerProfileEditor();
-        const e=document.getElementById("ownerProfileEditor");if(e){e.dataset.requiredPhone="1";e.classList.add("active");e.setAttribute("aria-hidden","false");}
-        document.getElementById("ownerProfileEditPhone")?.focus();
-    }else{
-        openRenterProfileEditor();
-        const e=document.getElementById("renterProfileEditor");if(e){e.dataset.requiredPhone="1";e.classList.add("active");e.setAttribute("aria-hidden","false");}
-        document.getElementById("renterProfileEditPhone")?.focus();
-    }
-    showMessage("backendMessage","Phone number is mandatory. Enter your real 10-digit Indian mobile number to continue.","error");
-    return true;
+    return false;
 }
 async function updateAuthUI() {
     if (window.__gdPasswordRecovery === true) {
