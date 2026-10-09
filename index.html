@@ -13097,9 +13097,9 @@ async function renderActiveDashboard() {
         let liveNearbyLastLongitude = null;
         let liveNearbyRefreshInProgress = false;
         const LIVE_NEARBY_MOVE_THRESHOLD_KM = 0.5;
-        const LIVE_NEARBY_START_RADIUS_KM = 3;
-        const LIVE_NEARBY_MAX_RADIUS_KM = 20;
-        const LIVE_NEARBY_MIN_RESULTS = 10;
+        const LIVE_NEARBY_START_RADIUS_KM = 1;
+        const LIVE_NEARBY_MAX_RADIUS_KM = 1;
+        const LIVE_NEARBY_MIN_RESULTS = 1;
 
         function setLiveNearbyButton(active) {
             const button = document.getElementById("liveNearbyBtn");
@@ -13137,14 +13137,13 @@ async function renderActiveDashboard() {
             if (status) status.textContent = "Live nearby tracking stopped.";
         }
 
-        async function fetchNearbyPropertiesFromBackend(latitude, longitude, startRadiusKm = 0.5) {
+        async function fetchNearbyPropertiesFromBackend(latitude, longitude, startRadiusKm = 1) {
             /*
-             * The UI promises a strict 500 m search radius. Do not silently
-             * expand the query when fewer than LIVE_NEARBY_MIN_RESULTS exist:
-             * that was returning properties kilometres away while the panel
-             * still described the search as nearby.
+             * Keep Live Nearby within a strict 1 km radius. The search center
+             * updates after the user moves 500 m, but the result radius remains
+             * 1 km. Never expand silently just to fill the result list.
              */
-            const radiusKm = 0.5;
+            const radiusKm = 1;
             const { data, error } = await supabaseClient.rpc("get_nearby_properties", {
                 p_lat: latitude,
                 p_lng: longitude,
@@ -13186,13 +13185,13 @@ async function renderActiveDashboard() {
                 renderProperties(nearby);
 
                 if (!nearby.length) {
-                    showNoNearbyPropertiesPopup(result.radiusKm, "your current location");
+                    /* Empty-state text is shown inline; avoid a disruptive popup. */
                 }
 
                 const withinBase = nearby.filter(row => row.distanceKm <= LIVE_NEARBY_START_RADIUS_KM).length;
                 const typeLabel = "registered properties";
                 const radiusText = Number(result.radiusKm).toFixed(1).replace(/\.0$/, "");
-                updateLiveNearbyPanel(`${nearby.length} ${typeLabel} • ${radiusText} km radius • refreshes after 500 m movement`);
+                updateLiveNearbyPanel(nearby.length ? `${nearby.length} ${typeLabel} • within 1 km • refreshes after 500 m movement` : `No property found within 1 km • refreshes after 500 m movement`);
                 if (status) status.textContent = `${withinBase} properties are within the first 3 km. ${nearby.length} shown within ${radiusText} km.`;
                 scrollToSection("propertiesSection");
             } catch (error) {
@@ -21101,7 +21100,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 
     try{
       updateLiveText("Refreshing live property conditions around your current location…");
-      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,0.5);
+      const result = await fetchNearbyPropertiesFromBackend(latitude,longitude,1);
       const nearby = result.rows.map(row => ({
         ...row,
         listing_type: row.listing_type || "home",
@@ -21115,11 +21114,11 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       if(!nearby.length){
         const container = byId("renterLiveNearbyContainer");
         if(container){
-          container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>No rental homes found in this live area.</strong><p>Move to another area or continue walking. GDR will refresh after 500 m.</p></div>';
+          container.innerHTML = '<div class="renter-live-empty-state"><span>⌖</span><strong>No property found within 1 km.</strong><p>There are no matching rental homes within 1 km of your current location. Move to another area; results refresh after you move 500 m.</p></div>';
         }
       }
 
-      updateLiveText(`<strong>${nearby.length}</strong> registered properties found around you. The live search will refresh again after you move <strong>500 m</strong> from this position.`);
+      updateLiveText(nearby.length ? `<strong>${nearby.length}</strong> registered properties found within <strong>1 km</strong>. Results refresh when you move <strong>500 m</strong> from this position.` : `No property found within <strong>1 km</strong> of your current location. Results refresh when you move <strong>500 m</strong>.`);
       const distanceEl = byId("renterLiveNearbyDistance");
       if(distanceEl) distanceEl.textContent = `${nearby.length} homes in range`;
       const card = byId("renterLiveNearbyPanel")?.querySelector(".renter-live-nearby-card");
