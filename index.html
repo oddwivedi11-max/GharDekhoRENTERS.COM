@@ -10957,12 +10957,21 @@ function setRoleSpecificUI(role) {
 
 async function openOwnerNearbyHomes() {
     if (!currentUser || !accountHasRole("owner")) { openLoginAs("owner"); return; }
+
     ownerExploreMode = true;
     setRoleSpecificUI("owner");
-    await loadProperties();
+
+    // Nearby discovery uses the live get_nearby_properties RPC directly.
+    // Do not wait for the full property-list render before starting location lookup.
     document.getElementById("homeSection")?.scrollIntoView({behavior:"smooth",block:"start"});
-    showMessage("backendMessage","Nearby property discovery is on. You can view properties and request visits with this same Owner account.","success");
-    setTimeout(() => document.getElementById("nearMeBtn")?.click(), 250);
+    showMessage("backendMessage","Nearby property discovery is on. Getting your location…","success");
+
+    if (typeof findPropertiesNearMe === "function") {
+        await findPropertiesNearMe();
+    } else {
+        const status = document.getElementById("locationStatus");
+        if (status) status.textContent = "Nearby search is still loading. Please refresh and try again.";
+    }
 }
 function exitOwnerExploreMode() {
     ownerExploreMode = false;
@@ -15801,6 +15810,19 @@ function bindRenterExploreNearbyShortcut() {
 bindRenterExploreNearbyShortcut();
 new MutationObserver(bindRenterExploreNearbyShortcut).observe(document.body,{childList:true,subtree:true});
 
+function bindOwnerExploreNearbyShortcut() {
+    const btn = document.getElementById("ownerExploreNearbyBtn");
+    if (!btn || btn.dataset.gdOwnerExploreBound === "1") return;
+    btn.dataset.gdOwnerExploreBound = "1";
+    btn.addEventListener("click", function(event) {
+        event.preventDefault();
+        event.stopPropagation();
+        openOwnerNearbyHomes();
+    });
+}
+bindOwnerExploreNearbyShortcut();
+new MutationObserver(bindOwnerExploreNearbyShortcut).observe(document.body,{childList:true,subtree:true});
+
 function updateStayTypeFields() {
             const type = document.getElementById("propertyListingType")?.value || "home";
             const form = document.getElementById("addPropertyForm");
@@ -16181,7 +16203,14 @@ function updateStayTypeFields() {
             if (propertyImageFile) propertyImageFile.addEventListener("change", handlePropertyImageSelection);
             if (removePropertyImageBtn) removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
             if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", openRenterFindHomePage);
-            if (ownerExploreNearbyBtn) ownerExploreNearbyBtn.addEventListener("click", openOwnerNearbyHomes);
+            if (ownerExploreNearbyBtn && ownerExploreNearbyBtn.dataset.gdOwnerExploreBound !== "1") {
+                ownerExploreNearbyBtn.dataset.gdOwnerExploreBound = "1";
+                ownerExploreNearbyBtn.addEventListener("click", function(event) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    openOwnerNearbyHomes();
+                });
+            }
             if (ownerAddPropertyBtn) ownerAddPropertyBtn.addEventListener("click", (event) => {
                 event.preventDefault();
                 event.stopPropagation();
