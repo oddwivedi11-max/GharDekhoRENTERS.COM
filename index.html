@@ -14254,7 +14254,7 @@ async function refreshSaveButtons(propertyId) {
                 // No suggestion was selected. Try one exact geocoding request,
                 // but reject a result that is clearly unrelated to the typed text.
                 const pin = String(document.getElementById("propertyPincode")?.value || "").trim();
-                const geocodeQuery = [address, /^\\d{6}$/.test(pin) ? pin : "", "India"].filter(Boolean).join(", ");
+                const geocodeQuery = [address, /^\d{6}$/.test(pin) ? pin : "", "India"].filter(Boolean).join(", ");
                 const url = "https://photon.komoot.io/api/?limit=7&lang=en&q=" + encodeURIComponent(geocodeQuery);
                 const response = await fetch(url,{headers:{Accept:"application/json"}});
                 if (!response.ok) throw new Error("Location service failed (" + response.status + ").");
