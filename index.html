@@ -14253,7 +14253,9 @@ async function refreshSaveButtons(propertyId) {
 
                 // No suggestion was selected. Try one exact geocoding request,
                 // but reject a result that is clearly unrelated to the typed text.
-                const url = "https://photon.komoot.io/api/?limit=5&lang=en&q=" + encodeURIComponent(address);
+                const pin = String(document.getElementById("propertyPincode")?.value || "").trim();
+                const geocodeQuery = [address, /^\\d{6}$/.test(pin) ? pin : "", "India"].filter(Boolean).join(", ");
+                const url = "https://photon.komoot.io/api/?limit=7&lang=en&q=" + encodeURIComponent(geocodeQuery);
                 const response = await fetch(url,{headers:{Accept:"application/json"}});
                 if (!response.ok) throw new Error("Location service failed (" + response.status + ").");
 
@@ -14306,6 +14308,9 @@ async function refreshSaveButtons(propertyId) {
                 if(!verifiedPropertyLocation) button.textContent="📍 Verify Property Location";
             }
         }
+
+        // Expose the same verified handler for mobile/modal event delegation.
+        window.verifyPropertyLocation = verifyPropertyLocation;
 
         /* =========================================================
            OWNER - PROPERTY IMAGE GALLERY UPLOAD
@@ -14687,6 +14692,9 @@ async function refreshSaveButtons(propertyId) {
                 }
             }
         }
+
+        // The sticky mobile submit control calls this public entry point directly.
+        window.addProperty = addProperty;
 
         /* =========================================================
            OWNER - MY PROPERTIES
@@ -20867,6 +20875,41 @@ body.gd-renter-find-page-open #renterFindHomeSection{
   else bindMobilePropertySubmit();
   window.addEventListener("load",bindMobilePropertySubmit);
   new MutationObserver(bindMobilePropertySubmit).observe(document.body,{childList:true,subtree:true});
+})();
+</script>
+
+<script id="gdr-owner-actions-reliable-v1">
+(function(){
+  if (window.__gdrOwnerActionsReliableV1) return;
+  window.__gdrOwnerActionsReliableV1 = true;
+
+  // Capture the location button even when the owner form is opened as a mobile modal.
+  document.addEventListener("click", function(event){
+    const button = event.target && event.target.closest ? event.target.closest("#verifyLocationBtn") : null;
+    if (!button) return;
+    event.preventDefault();
+    event.stopImmediatePropagation();
+    if (typeof window.verifyPropertyLocation === "function") {
+      window.verifyPropertyLocation();
+    } else {
+      const message = document.getElementById("verificationMessage");
+      if (message) {
+        message.textContent = "Location verification is still loading. Please wait a moment and try again.";
+        message.className = "message error";
+      }
+    }
+  }, true);
+
+  // Keep the submit status visible inside the modal, including backend/RPC errors.
+  document.addEventListener("click", function(event){
+    const button = event.target && event.target.closest ? event.target.closest("#addPropertyBtn") : null;
+    if (!button) return;
+    const status = document.getElementById("mobilePropertySubmitStatus");
+    if (status && !status.textContent.trim()) {
+      status.textContent = "Checking details and saving your property…";
+      status.className = "mobile-property-submit-status";
+    }
+  }, true);
 })();
 </script>
 
