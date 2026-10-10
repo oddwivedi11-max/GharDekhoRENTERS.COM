@@ -13540,14 +13540,27 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     property.bhk, property.rent, property.status, property.verification_status
                 ].filter(value => value !== null && value !== undefined).join(" ").toLowerCase();
 
-                // Suggestions are optional. Any free-typed city, area, district or PIN
-                // is accepted and matched against the property's searchable fields.
+                // Match city/area terms intelligently when a PIN and city are entered together.
+                // Prefer an exact PIN only when that PIN actually exists in the current inventory;
+                // otherwise fall back to the typed city/area instead of returning a false empty state.
                 const locationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
-                const locationMatch = !locationTerms.length || locationTerms.every(term => searchableText.includes(term));
+                const pinTerms = locationTerms.filter(term => /^\d{6}$/.test(term));
+                const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term));
+                const exactPinExists = pinTerms.some(pin => allProperties.some(item =>
+                    [item.title, item.location, item.address, item.area, item.name]
+                        .filter(value => value !== null && value !== undefined)
+                        .join(" ").toLowerCase().includes(pin)
+                ));
+                const textLocationMatch = textLocationTerms.every(term => searchableText.includes(term));
+                const exactPinMatch = pinTerms.some(pin => searchableText.includes(pin));
+                const locationMatch = !locationTerms.length ||
+                    (textLocationTerms.length > 0
+                        ? textLocationMatch && (!pinTerms.length || !exactPinExists || exactPinMatch)
+                        : pinTerms.length > 0 && exactPinExists && exactPinMatch);
 
                 const propertyBhk = Number(property.bhk);
                 const listingTypeMatch = !listingType || (property.listing_type || "home") === listingType;
-                const bhkMatch = !bhk || (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk));
+                const bhkMatch = !bhk || (String(bhk) === "5+" ? propertyBhk >= 5 : (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk)));
 
                 const rent = Number(property.rent);
                 const quickBudgetMatch = !budget || rent <= Number(budget);
@@ -13555,7 +13568,11 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 const maxBudgetMatch = !Number.isFinite(maxBudget) || rent <= maxBudget;
                 const budgetMatch = quickBudgetMatch && minBudgetMatch && maxBudgetMatch;
 
-                const furnishingMatch = !furnishing || property.furnishing === furnishing;
+                // A blank furnishing value means the owner has not specified it yet;
+                // do not hide that listing just because the renter selected a furnishing preference.
+                const propertyFurnishing = String(property.furnishing || "").trim().toLowerCase();
+                const furnishingMatch = !furnishing || !propertyFurnishing ||
+                    propertyFurnishing === String(furnishing).trim().toLowerCase();
                 // A newly listed property starts as "pending" and is vacant by default.
                 // "verified" is also an available/vacant listing; only occupied is excluded.
                 const normalizedPropertyStatus = String(property.status || "").toLowerCase().trim();
