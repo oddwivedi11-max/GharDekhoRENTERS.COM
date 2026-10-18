@@ -4,7 +4,7 @@
 html,body{max-width:100%;overflow-x:hidden}
 img{max-width:100%}
 button,input,select,textarea{max-width:100%}
-header h1:before{content:""!important;width:40px!important;height:40px!important;background:var(--gdr-teal-dark) url("/assets/gdr-mark.svg") center/26px 26px no-repeat!important;border:1px solid rgba(255,255,255,.16)}
+header h1:before{content:""!important;width:40px!important;height:40px!important;background:var(--gdr-teal-dark) url("gdr-mark.svg") center/26px 26px no-repeat!important;border:1px solid rgba(255,255,255,.16)}
 header h1:after{color:var(--gdr-ink)!important}
 .gd-landing-hero{isolation:isolate}
 .gd-landing-copy h2{text-wrap:balance}
