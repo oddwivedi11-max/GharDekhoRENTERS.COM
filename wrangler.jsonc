@@ -3,11 +3,6 @@
   "name": "ghardekhorenters-com",
   "compatibility_date": "2026-10-08",
   "assets": {
-    "directory": ".",
-    "exclude": [
-      "node_modules/**",
-      ".git/**",
-      ".github/**"
-    ]
+    "directory": "."
   }
 }
