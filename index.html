@@ -13329,12 +13329,27 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
         modal.querySelector("#gdNoNearbyCloseBtn").addEventListener("click",close);
         modal.querySelector("#gdNoNearbyExpandBtn").addEventListener("click",function(){
             const select=document.getElementById("radiusSelect");
-            if(select){
-                const values=[...select.options].map(o=>Number(o.value)).filter(Number.isFinite).sort((a,b)=>a-b);
-                const current=Number(select.value||3);
-                const next=values.find(v=>v>current) || 20;
-                select.value=String(next);
+            if(!select){
+                close();
+                return;
             }
+            const values=[...select.options]
+                .map(o=>Number(o.value))
+                .filter(v=>Number.isFinite(v) && v>0)
+                .sort((a,b)=>a-b);
+            const current=Number(select.value||3);
+            const next=values.find(v=>v>current);
+            if(next===undefined){
+                const message=document.getElementById("gdNoNearbyText");
+                const expandButton=document.getElementById("gdNoNearbyExpandBtn");
+                if(message) message.textContent="You're already searching at the maximum available radius ("+current+" km). Try searching by city, area or PIN code instead.";
+                if(expandButton){
+                    expandButton.disabled=true;
+                    expandButton.textContent="Maximum radius reached";
+                }
+                return;
+            }
+            select.value=String(next);
             close();
             document.getElementById("nearMeBtn")?.click();
         });
