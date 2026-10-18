@@ -20100,6 +20100,90 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 #renterLiveNearbyStatus strong{font-weight:900;letter-spacing:.045em;}
 @media(max-width:640px){#renterLiveNearbyRadius{min-height:50px;font-size:15px;border-radius:14px;}}
 </style>
+<script id="gdr-renter-pincode-area-suggestions-v1">
+(function(){
+  function init(){
+    const input=document.getElementById("renterSearchLocation");
+    if(!input||input.dataset.gdrPinSuggestBound==="1") return;
+    input.dataset.gdrPinSuggestBound="1";
+    const host=input.parentElement;
+    if(!host) return;
+    if(getComputedStyle(host).position==="static") host.style.position="relative";
+    const panel=document.createElement("div");
+    panel.id="gdrRenterPinSuggestions";
+    panel.setAttribute("role","listbox");
+    panel.style.cssText="display:none;position:absolute;z-index:9999;top:100%;left:0;right:0;margin-top:6px;background:#fff;border:1px solid #b9dcd3;border-radius:14px;box-shadow:0 12px 32px rgba(10,50,44,.16);max-height:260px;overflow:auto;padding:6px;";
+    host.appendChild(panel);
+    let timer=null, controller=null, lastPin="", request=0;
+    function hide(){panel.style.display="none";panel.replaceChildren();}
+    function choose(office,pin){
+      const area=String(office.Name||office.Block||"").trim();
+      const district=String(office.District||"").trim();
+      const state=String(office.State||"").trim();
+      input.value=[area,district,state,"PIN "+pin].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(", ");
+      hide();
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+      input.focus();
+    }
+    function showMessage(message){
+      panel.replaceChildren();
+      const row=document.createElement("div");
+      row.textContent=message;
+      row.style.cssText="padding:12px;color:#50615d;font-size:14px;";
+      panel.appendChild(row);panel.style.display="block";
+    }
+    async function lookup(){
+      const raw=input.value.trim();
+      const match=raw.match(/(?:^|\D)(\d{6})(?:\D|$)/);
+      if(!match){lastPin="";hide();return;}
+      const pin=match[1];
+      if(pin===lastPin)return;
+      lastPin=pin;
+      if(controller)controller.abort();
+      controller=new AbortController();
+      const current=++request;
+      showMessage("PIN "+pin+" ke areas search ho rahe hain…");
+      try{
+        const response=await fetch("https://api.postalpincode.in/pincode/"+pin,{signal:controller.signal,headers:{Accept:"application/json"}});
+        if(!response.ok)throw new Error("PIN lookup unavailable");
+        const data=await response.json();
+        if(current!==request)return;
+        const item=Array.isArray(data)?data[0]:null;
+        const offices=item&&item.Status==="Success"&&Array.isArray(item.PostOffice)?item.PostOffice:[];
+        if(!offices.length){lastPin="";showMessage("PIN code nahi mila. 6 digits check karke dobara try karein.");return;}
+        panel.replaceChildren();
+        const heading=document.createElement("div");
+        heading.textContent="PIN "+pin+" ke areas — ek select karein";
+        heading.style.cssText="padding:9px 11px;font-size:12px;font-weight:800;letter-spacing:.03em;color:#17665e;";
+        panel.appendChild(heading);
+        const seen=new Set();
+        offices.forEach(office=>{
+          const key=[office.Name,office.District,office.State].join("|");
+          if(seen.has(key))return;seen.add(key);
+          const button=document.createElement("button");
+          button.type="button";
+          button.style.cssText="display:block;width:100%;text-align:left;padding:11px;border:0;border-radius:9px;background:#fff;color:#173b35;font:inherit;cursor:pointer;";
+          button.textContent=[office.Name,office.Block,office.District,office.State].filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(" · ");
+          button.addEventListener("mouseenter",()=>button.style.background="#eaf8f4");
+          button.addEventListener("mouseleave",()=>button.style.background="#fff");
+          button.addEventListener("click",()=>choose(office,pin));
+          panel.appendChild(button);
+        });
+        panel.style.display="block";
+      }catch(error){
+        if(error.name==="AbortError")return;
+        lastPin="";
+        showMessage("PIN lookup abhi available nahi hai. Thodi der baad try karein.");
+      }
+    }
+    input.addEventListener("input",()=>{if(timer)clearTimeout(timer);timer=setTimeout(lookup,250);});
+    input.addEventListener("focus",lookup);
+    document.addEventListener("click",event=>{if(!host.contains(event.target))hide();});
+    input.addEventListener("keydown",event=>{if(event.key==="Escape")hide();});
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+})();
+</script>
 </body>
 
 </html>
