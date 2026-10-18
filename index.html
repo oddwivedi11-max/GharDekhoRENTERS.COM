@@ -10700,6 +10700,9 @@ function normalizePhone(value) {
             if (message.includes("password") && message.includes("6")) {
                 return "Password must be at least 8 characters.";
             }
+            if (message.includes("database error saving new user") || message.includes("error saving new user")) {
+                return "We couldn't create this account because the profile could not be saved. This phone number may already be linked to a GharDekho account. Try Login or Forgot password; if this is a new number, check the +91 mobile number and try again.";
+            }
             return error?.message || "Something went wrong. Please try again.";
         }
 
