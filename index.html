@@ -10686,7 +10686,7 @@ function normalizePhone(value) {
             const message = String(error?.message || "").toLowerCase();
 
             if (message.includes("invalid login credentials")) {
-                return "Incorrect email or password. If you are creating a new account, use Create Account with an email that is not already registered.";
+                return "Incorrect email or password.";
             }
             if (message.includes("user already registered") || message.includes("email address already exists") || message.includes("email_exists")) {
                 return "This email is already registered. Please use Login, or use Forgot password if you do not remember the password.";
