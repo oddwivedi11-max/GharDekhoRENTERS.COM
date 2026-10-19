@@ -10,9 +10,10 @@ Backup branch: `backup-20261019`
 - Created `backup-20261019` from `main`. This is a Git branch backup, not a Git tag.
 - Created `fix/full-qa` from `main`.
 - No production code, database rows, auth settings, DNS settings, or deployment settings have been changed.
-- A Git tag and a recoverable external export of database schema/policies/functions/triggers/storage policies/Auth settings are not yet confirmed.
-- Browser automation and baseline screenshots have not yet been created; the available connected tools do not currently expose an interactive browser automation runner.
-- The GitHub file connector returned no content for the approximately 1 MB `index.html` and returned 404 when requesting ranges/alternate encoding. The main crash fixes A1–A3 therefore cannot yet be safely applied or verified from the available file response. A repository ZIP or full `index.html` source export is needed if this limitation persists.
+- A Git tag is still missing: the available GitHub write actions can create branches/files/commits but do not expose a tag-creation action. Do not substitute a branch for a tag.
+- A recoverable external export of schema, RLS policies, functions, triggers, storage policies and Auth settings is not yet saved. The Supabase connector can inspect the database but does not expose an export/download operation or Auth-settings read endpoint. No production rows were queried for user content, changed or exported.
+- Browser automation and baseline screenshots have not yet been created. The available connected tools do not expose a real interactive browser session or screenshot-at-viewport runner. Container networking cannot resolve GitHub, and Playwright setup timed out; no browser tests are claimed.
+- The full index.html was successfully retrieved through the GitHub REST contents endpoint (1,063,328 characters), so source access is no longer the blocker. However, Phase 2 code changes must wait until Gate 0 is satisfied as required by the Master Brief.
 
 ## Phase 1 — Initial read-only inspection
 
@@ -38,3 +39,33 @@ Backup branch: `backup-20261019`
 - Gate 0: PARTIAL — branches exist; tag, external schema/settings backup, browser runner and baseline screenshots remain unverified.
 - Gate 1: IN PROGRESS — initial database and deployment configuration inspected. Full reproduction and the required user decisions are still pending.
 - No production migration, merge to `main`, or production deployment has been performed.
+
+
+## Phase 1 — Owner decisions received (2026-10-19)
+
+- Owner phone visibility: keep current behaviour; all logged-in renters may see the owner phone on property details.
+- Signup email confirmation: keep disabled/current setting; do not change Supabase Auth configuration.
+- Approved listing edits: preserve approval for rent, description, furnishing, photo and availability edits; address or listing-type changes require re-approval.
+- Wrong-role login: show a clear message and route the user to the correct dashboard.
+- Duplicate email/phone signup errors: use a neutral message to avoid account enumeration.
+- Test data: user authorized two ZZ-TEST renters, two ZZ-TEST owners and one ZZ-TEST admin. No accounts have been created yet because no Auth-admin/user-creation tool or interactive browser is available; do not insert fake auth rows via SQL or use real accounts.
+- Cleanup: do not delete any ZZ-TEST accounts, rows or files until user separately confirms.
+
+## Phase 0 — Current gate status (updated)
+
+GATE 0 remains **BLOCKED / NOT PASSED**. Remaining required items:
+1. Create an actual Git tag from the current main commit (no tag-write tool is available in the current GitHub connector).
+2. Save a recoverable schema/policies/functions/triggers/storage-policy/Auth-settings export outside the repository or in a private location.
+3. Configure a local/preview test server and Playwright, or obtain an interactive browser automation capability.
+4. Create the five authorized test accounts with the actual Auth system.
+5. Capture the requested baseline screenshots at 390, 768 and 1366 px for the required pages and dashboard states.
+
+Do not start Phase 2 until Gate 0 passes. No application code, production SQL, auth settings, Cloudflare/DNS settings, GitHub workflows/secrets, main branch, or production deployment has been changed.
+
+## Phase 1 — Additional confirmed read-only findings
+
+- The live database contains migration versions through 20261016175344; this is materially more than the five migration files described in the project-facts section. The repository migration history and live migration history need a reconciliation inventory before proposing SQL.
+- The live definitions of get_public_properties() and get_nearby_properties(...) include pending listings, do not filter to verified owners, and return owner_id. This conflicts with the Master Brief's explicit requirement that pending listings remain private and public RPC responses must not expose owner IDs. These are confirmed from function definitions, not yet reproduced through an anonymous HTTP request.
+- Supabase security advisors flag anonymous execution of the SECURITY DEFINER functions get_public_properties, get_nearby_properties, and verify_my_login_phone. Do not revoke permissions blindly; inspect actual grants and caller needs first.
+- Existing RLS is enabled on inspected public tables. This is not a complete security pass: all policies, function grants/search_path, storage policies and Auth settings still require a full export/inventory.
+- The deployed repository contains both Cloudflare Workers and GitHub Pages workflows triggered by pushes to main. Cloudflare is documented as production hosting; confirm Pages custom-domain/environment configuration before changing workflow behaviour. No workflow has been changed.
