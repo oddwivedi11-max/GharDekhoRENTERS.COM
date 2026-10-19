@@ -69,3 +69,11 @@ Do not start Phase 2 until Gate 0 passes. No application code, production SQL, a
 - Supabase security advisors flag anonymous execution of the SECURITY DEFINER functions get_public_properties, get_nearby_properties, and verify_my_login_phone. Do not revoke permissions blindly; inspect actual grants and caller needs first.
 - Existing RLS is enabled on inspected public tables. This is not a complete security pass: all policies, function grants/search_path, storage policies and Auth settings still require a full export/inventory.
 - The deployed repository contains both Cloudflare Workers and GitHub Pages workflows triggered by pushes to main. Cloudflare is documented as production hosting; confirm Pages custom-domain/environment configuration before changing workflow behaviour. No workflow has been changed.
+
+## Exact recovery point and inventory snapshot
+
+- Current main commit SHA (and starting point of backup-20261019): `abf163e39e10c86ee03971e8198f4dc689e97414`.
+- The backup branch currently points to exactly the same commit as main. Working branch `fix/full-qa` has only the QA work-log commits on top; it has no application-code edits.
+- Read-only database inventory snapshot: 8 public tables (`admin_users`, `owners`, `properties`, `property_occupancies`, `saved_properties`, `units`, `users`, `visit_requests`); RLS enabled on all 8. The inspected `storage.objects` table has 7 policies across the `property-images` and `owner-documents` buckets. 42 public-schema functions and 14 triggers across `public`, `auth`, and `storage` were counted. Full definitions and grants still need a recoverable export; these counts are not a substitute for the export.
+- Repository `main` currently contains 4 SQL migration files (not 5): `20260929103300_lock_admin_read_rpcs.sql`, `20260929104500_fix_property_verification_flow.sql`, `20260929163000_allow_owner_submit_without_exact_location.sql`, and `20261016231500_fix_phone_validation_regex.sql`. The live database has migration versions through `20261016175344`; drift must be investigated before proposing/applying migrations.
+- The exact `main` commit SHA above is ready for a Git tag named `backup-20261019` if a tag-writing path is provided. No tag was created by this session.
