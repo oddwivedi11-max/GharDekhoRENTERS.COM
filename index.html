@@ -13550,6 +13550,33 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 await loadProperties(false);
             }
 
+            // A bare six-digit PIN is resolved to its postal district/state before
+            // matching. The app has no dedicated property PIN column, so exact PIN
+            // matching is preferred when present; otherwise use the resolved locality.
+            let resolvedPinLocation = "";
+            if (/^\d{6}$/.test(location)) {
+                try {
+                    const pinResponse = await fetch("https://api.postalpincode.in/pincode/" + encodeURIComponent(location), {
+                        headers: { Accept: "application/json" }
+                    });
+                    if (!pinResponse.ok) throw new Error("PIN lookup unavailable");
+                    const pinPayload = await pinResponse.json();
+                    const pinResult = Array.isArray(pinPayload) ? pinPayload[0] : null;
+                    const pinOffices = pinResult && pinResult.Status === "Success" && Array.isArray(pinResult.PostOffice)
+                        ? pinResult.PostOffice : [];
+                    if (!pinOffices.length) {
+                        showMessage("backendMessage", "PIN " + location + " was not found. Check the six digits and try again.", "error");
+                        return;
+                    }
+                    const firstOffice = pinOffices[0];
+                    resolvedPinLocation = [firstOffice.District, firstOffice.State]
+                        .filter(Boolean).join(" ").toLowerCase();
+                } catch (pinError) {
+                    showMessage("backendMessage", "Could not verify this PIN right now. Please retry or search by city/locality.", "error");
+                    return;
+                }
+            }
+
             const filtered = allProperties.filter(function(property) {
                 const searchableText = [
                     property.title, property.location, property.address, property.area,
@@ -13561,16 +13588,18 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 // Match city/area terms intelligently when a PIN and city are entered together.
                 // Prefer an exact PIN only when that PIN actually exists in the current inventory;
                 // otherwise fall back to the typed city/area instead of returning a false empty state.
-                const locationParts = location.split(",").map(part => part.trim()).filter(Boolean);
+                const rawLocationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
+                const pinTerms = rawLocationTerms.filter(term => /^\d{6}$/.test(term));
+                const locationSource = resolvedPinLocation || location;
+                const locationParts = locationSource.split(",").map(part => part.trim()).filter(Boolean);
                 const hasPinMarker = /\b(?:pin|pincode|postal code)\b/i.test(location);
                 // Postal suggestions begin with the post-office name. If the full
                 // suggestion includes office, district, state and PIN, match the
                 // district/state rather than requiring the office name in the listing.
                 const locationForMatching = hasPinMarker && locationParts.length >= 4
                     ? locationParts.slice(1).join(" ")
-                    : location;
+                    : locationSource;
                 const locationTerms = locationForMatching.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
-                const pinTerms = locationTerms.filter(term => /^\d{6}$/.test(term));
                 const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term) && !/^(?:pin|pincode|code|postal)$/i.test(term));
                 const exactPinExists = pinTerms.some(pin => allProperties.some(item =>
                     [item.title, item.location, item.address, item.area, item.name]
