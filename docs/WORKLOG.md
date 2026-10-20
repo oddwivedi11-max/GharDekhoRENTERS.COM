@@ -57,3 +57,13 @@ See the conversation for PIN choice, public pending-listing policy, Explore logi
 - B2/B5: owner edit now calls the new guarded RPC; migration file `20261020190000_guard_owner_property_updates_and_validate_images.sql` is prepared but not applied. This remains BLOCKED pending isolated QA database testing and approval.
 - Static validation rerun after latest code edits: `index.html` 36 inline scripts, zero syntax errors; `admin/control.html` 31 inline scripts, zero syntax errors.
 - Synthetic logic simulation: 6/6 PIN/location/budget cases passed after correcting the test expectations to distinguish listings that do and do not store PIN text. This is a small isolated logic simulation, not a browser or live database test.
+
+## Further findings and work status
+- D8: changed the Explore Homes action to load public approved listings without forcing login. The direct `?property=` startup route already calls `openPropertyDetails`; the end-to-end route still needs a browser test after the startup fix.
+- D6: added a shared in-flight promise for concurrent `get_my_owner_profile` calls so simultaneous dashboard widgets can reuse one request. Sequential duplicate requests may remain and must be measured in browser network logs.
+- D2: viewport scroll/sticky action rules are now inside a style block; browser visual comparison still pending.
+- D7: signup now requires acceptance of Terms of Use and Privacy Policy; the checkbox hides in Login mode.
+- D5: budget presets labelled `Under` now use strict less-than; custom max budgets remain inclusive.
+- D11: the Nearby radius label explicitly states the 10 km maximum, and backend errors are replaced with a clean message in both Nearby call paths.
+- The new `_headers` policy is CSP Report-Only only. It has not been tested against the live browser and must not be switched to enforcing until all CSP reports are reviewed.
+- The current live Cloudflare deployment has not been changed by this branch. No merge, production migration, or deployment has been performed.
