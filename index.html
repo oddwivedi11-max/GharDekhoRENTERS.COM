@@ -14940,7 +14940,9 @@ async function savePropertyEdit(e){
         });
         if(error)throw error;
         if(!updateResult?.success)throw new Error(updateResult?.message||"Property update was not confirmed by the database.");
-        msg.textContent="All property details updated successfully.";
+        msg.textContent=updateResult?.requires_reverification
+            ? "Changes saved. This property's address or listing type changed, so it is pending admin re-verification and hidden from public search until approved."
+            : "All property details updated successfully.";
         await Promise.allSettled([loadProperties(),loadOwnerProperties()]);
         setTimeout(closePropertyEditor,500);
     }catch(err){msg.textContent=getSafeErrorMessage(err,"Unable to update this property.")}finally{btn.disabled=false}
