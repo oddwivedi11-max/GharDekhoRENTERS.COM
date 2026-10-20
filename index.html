@@ -13854,16 +13854,30 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
             let owner = null;
 
-            if (property.owner_id && currentUser) {
-                const { data, error } = await supabaseClient.rpc(
-                    "get_verified_owner_contact",
-                    { p_owner_id: property.owner_id }
-                );
+            // Fail closed: do not even request owner contact until this renter
+            // has an approved visit for this exact property. The database RPC
+            // must enforce the same rule independently (see unapplied migration).
+            if (property.owner_id && currentUser && activeRole === "renter") {
+                const { data: approvedVisit, error: approvedVisitError } = await supabaseClient
+                    .from("visit_requests")
+                    .select("id")
+                    .eq("property_id", property.id)
+                    .eq("tenant_id", currentUser.id)
+                    .eq("status", "approved")
+                    .limit(1)
+                    .maybeSingle();
 
-                if (error) {
-                    console.error("Owner contact error:", error);
-                } else {
-                    owner = Array.isArray(data) ? (data[0] || null) : data;
+                if (!approvedVisitError && approvedVisit) {
+                    const { data, error } = await supabaseClient.rpc(
+                        "get_verified_owner_contact",
+                        { p_owner_id: property.owner_id }
+                    );
+
+                    if (error) {
+                        console.error("Owner contact error:", error);
+                    } else {
+                        owner = Array.isArray(data) ? (data[0] || null) : data;
+                    }
                 }
             }
 
