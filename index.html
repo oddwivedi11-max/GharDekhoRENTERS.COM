@@ -10705,8 +10705,8 @@ function normalizePhone(value) {
             if (message.includes("invalid login credentials")) {
                 return "Incorrect email or password. If you are creating a new account, use Create Account with an email that is not already registered.";
             }
-            if (message.includes("user already registered") || message.includes("email address already exists") || message.includes("email_exists")) {
-                return "This email is already registered. Please use Login, or use Forgot password if you do not remember the password.";
+            if (message.includes("user already registered") || message.includes("email address already exists") || message.includes("email_exists") || message.includes("already registered with another ghardekho account") || message.includes("phone number is already registered")) {
+                return "We couldn't complete that request. If you already have an account, try logging in or resetting your password.";
             }
             if (message.includes("signup_disabled")) {
                 return "New account creation is currently disabled in Supabase Authentication. Please enable Allow new users to sign up.";
@@ -10718,7 +10718,7 @@ function normalizePhone(value) {
                 return "Password must be at least 8 characters.";
             }
             if (message.includes("database error saving new user") || message.includes("error saving new user")) {
-                return "We couldn't create this account because the profile could not be saved. This phone number may already be linked to a GharDekho account. Try Login or Forgot password; if this is a new number, check the +91 mobile number and try again.";
+                return "We couldn't complete sign-up with those details. Please check the information and try again, or use Login/Forgot password if you already have an account.";
             }
             return error?.message || "Something went wrong. Please try again.";
         }
@@ -11453,16 +11453,8 @@ async function signupUser() {
         if (error) {
             console.error("Signup error:", error);
             const signupErrorText = String(error?.message || "").toLowerCase();
-            if (signupErrorText.includes("phone number is already registered") || signupErrorText.includes("already registered with another ghardekho account")) {
-                authMessage.textContent = "This phone number is already registered with another GharDekho account. Use your own unique mobile number.";
-                document.getElementById("userPhone")?.focus();
-                return;
-            }
-            if (signupErrorText.includes("already registered") || signupErrorText.includes("email address already exists") || signupErrorText.includes("email_exists")) {
-                showSignInPage();
-                authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
-                document.getElementById("userEmail").value = email;
-                document.getElementById("userPassword")?.focus();
+            if (signupErrorText.includes("phone number is already registered") || signupErrorText.includes("already registered with another ghardekho account") || signupErrorText.includes("already registered") || signupErrorText.includes("email address already exists") || signupErrorText.includes("email_exists")) {
+                authMessage.textContent = "We couldn't complete sign-up with those details. Please check the information and try again, or use Login/Forgot password if you already have an account.";
                 return;
             }
             const loginErrorText = String(error?.message || "").toLowerCase();
@@ -11480,10 +11472,7 @@ async function signupUser() {
          * Never tell the user that a new account was created in that case.
          */
         if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-            showSignInPage();
-            authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
-            document.getElementById("userEmail").value = email;
-            document.getElementById("userPassword")?.focus();
+            authMessage.textContent = "We couldn't complete sign-up with those details. If you already have an account, try logging in or resetting your password.";
             return;
         }
 
@@ -11828,16 +11817,44 @@ async function loginUser() {
             }
 
             if (!getAccountRoles(currentProfile).includes("owner")) {
-                // Authentication succeeded, but this account has no Owner access.
-                // Never fall through to the Renter dashboard. Sign the session out
-                // and keep the user on the Owner login screen with a clear action.
+                const availableRoles = getAccountRoles(currentProfile);
+                if (availableRoles.includes("renter")) {
+                    // A valid renter signed in from the Owner tab: keep the
+                    // authenticated session and route to the role they actually have.
+                    activeRole = "renter";
+                    pendingLoginRole = "renter";
+                    sessionStorage.setItem("gd_active_role", "renter");
+                    sessionStorage.setItem("gd_pending_login_role", "renter");
+                    sessionStorage.setItem("gd_login_destination", "renter");
+                    authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";
+                    await withAuthTimeout(updateAuthUI(), "Renter dashboard preparation", 12000);
+                    setRoleSpecificUI("renter");
+                    const landing = document.getElementById("loggedOutLanding");
+                    const loginSection = document.getElementById("loginSection");
+                    const homeSection = document.getElementById("homeSection");
+                    const propertiesSection = document.getElementById("propertiesSection");
+                    const dashboard = document.getElementById("dashboardSection");
+                    if (landing) landing.style.display = "none";
+                    if (loginSection) loginSection.style.display = "none";
+                    if (homeSection) homeSection.style.display = "none";
+                    if (propertiesSection) propertiesSection.style.display = "none";
+                    if (dashboard) dashboard.style.display = "block";
+                    document.body.classList.remove("gd-auth-page", "gd-renter-explore-mode");
+                    await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
+                        console.warn("Renter dashboard loading timed out:", error);
+                    });
+                    scrollToSection("dashboardSection");
+                    return;
+                }
+                // This account has no Renter or Owner role; do not grant one
+                // merely because the user selected the Owner login tab.
                 window.__gdRoleAccessDenied = true;
                 activeRole = "owner";
                 pendingLoginRole = "owner";
                 sessionStorage.setItem("gd_pending_login_role", "owner");
                 sessionStorage.setItem("gd_active_role", "owner");
                 sessionStorage.removeItem("gd_login_destination");
-                authMessage.textContent = "Owner account not found. Kindly create your account first as Owner.";
+                authMessage.textContent = "This account does not have Owner access. Please create an Owner account or use the correct login option.";
                 try {
                     await supabaseClient.auth.signOut();
                 } catch (signOutError) {
@@ -12378,11 +12395,7 @@ async function saveRenterProfile(e){
         if(error){
             console.error("Renter profile update failed:",error);
             const raw=String(error?.message||"").toLowerCase();
-            const message=raw.includes("phone number is already registered")||raw.includes("already registered with another ghardekho account")
-                ?"This phone number is already registered with another GharDekho account. Use a different number."
-                :raw.includes("already used")
-                    ?"That contact email is already linked to another GharDekho account."
-                    :"Unable to save renter details. Please try again.";
+            const message="Unable to save renter details with the supplied information. Please check the details and try again.";
             showMessage("backendMessage",message,"error");
             return;
         }
@@ -13061,8 +13074,8 @@ async function renderActiveDashboard() {
                 // properties schema. Optional PG/Hostel columns are not queried here.
                 // Public inventory is served through a SECURITY DEFINER RPC.
                 // Only properties belonging to admin-verified owners are public.
-                // Property verification may still be pending; that state is shown
-                // publicly and visit booking remains blocked until verification.
+                // Only admin-verified properties owned by verified owners are public.
+                // Pending and rejected listings must never appear in public search.
                 const propertyQuery = supabaseClient.rpc("get_public_properties");
 
                 // Prevent the UI from being stuck on "Loading properties..." forever.
