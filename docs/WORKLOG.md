@@ -67,3 +67,40 @@ See the conversation for PIN choice, public pending-listing policy, Explore logi
 - D11: the Nearby radius label explicitly states the 10 km maximum, and backend errors are replaced with a clean message in both Nearby call paths.
 - The new `_headers` policy is CSP Report-Only only. It has not been tested against the live browser and must not be switched to enforcing until all CSP reports are reviewed.
 - The current live Cloudflare deployment has not been changed by this branch. No merge, production migration, or deployment has been performed.
+
+
+## Continuation after user decisions (2026-10-20)
+User decisions recorded:
+- Singrauli PIN to verify/use: 486885.
+- Pending/rejected property listings must not be public.
+- Explore Homes remains public for approved/verified inventory without forcing login.
+- Owner phone is disclosed only after the renter has an approved visit request.
+- Keep current email-confirmation setting unchanged.
+- Use an isolated QA database; check cost and obtain approval before creating it.
+- Normal rent/description/photo edits preserve an approved listing; address or listing-type changes require admin re-verification.
+- If someone selects Owner login but the account only has Renter access, route them to the Renter dashboard with a clear message.
+- Duplicate email/phone/account errors must be neutral and must not reveal whether an account exists.
+- Production SQL, merge to main, and production deployment remain approval-gated.
+
+## Changes prepared on QA branch after decisions
+- Updated signup and profile error messages to be neutral for duplicate email/phone/account conditions; removed automatic switch-to-login behaviour when signup identifies an existing account.
+- Owner-tab login for a Renter-only account now keeps the authenticated session and routes to the Renter dashboard; it does not grant Owner permissions.
+- Corrected the public listing comment so it matches the actual verified-only public RPC behavior.
+- Owner editor now displays a clear pending re-verification notice when the RPC reports an address/listing-type change.
+- Updated the prepared owner-edit migration so address/listing-type changes set property status and verification status to pending; normal rent/description/photo edits preserve current statuses. It blocks address/type changes while occupied and preserves an existing full address when the location value did not change.
+- Added prepared migration `20261020200000_limit_owner_contact_to_approved_visits.sql`. It restricts `get_verified_owner_contact` to authenticated users who have an `approved` visit request for that owner. Frontend explains the owner phone is available after visit approval.
+- These database migrations are drafts on the QA branch only. They have NOT been applied to production or any database.
+
+## Additional audit findings / blockers
+- Supabase production has 43 recorded migrations and the repository contains only a small subset of historical migration files. This is migration-history drift; do not apply repository migrations to production until schema/history reconciliation and a recoverable backup/export are complete.
+- No Supabase development branches currently exist. A QA branch or separate QA project must be cost-checked and approved before creation. Production data is not to be copied into QA; use synthetic test accounts and listings only.
+- Security advisor warns about `SECURITY DEFINER` routines. The current production admin legacy RPCs with no internal admin guard were observed as executable only by `postgres` and `service_role`; the currently named admin RPCs checked include an internal admin guard. Do not blanket-revoke all function grants: public listing RPCs intentionally support logged-out Explore Homes and must return verified inventory only.
+- Production currently grants anonymous execution to `get_public_properties()` and `get_nearby_properties(...)`; this is intentional only if their verified-only filtering remains enforced. Keep both under focused tests.
+- Existing production `get_verified_owner_contact(uuid)` currently returns contact for any verified owner to authenticated callers, without checking for an approved visit. The prepared migration closes this policy gap once isolated QA tests pass.
+- The separate `deploy-pages.yml` injects a PIN resolver script into the build, while the Cloudflare workflow deploys repository assets directly. The inline renter search already contains a PIN lookup path. Deployment target parity and PIN behavior for PIN 486885 still require browser tests; no deployment was triggered.
+- Supabase Auth leaked-password protection remains disabled per advisor. Do not change Auth-wide settings until the effect and user impact are reviewed and explicitly approved.
+
+## Current verification status
+- Existing branch worklog's inline-JavaScript syntax checks reported 36 scripts in `index.html` and 31 in `admin/control.html` with zero syntax errors before the latest targeted edits. Re-run syntax checks after the new edits.
+- No authenticated browser session or isolated QA database is available in this turn, so renter/owner/admin end-to-end tests, responsive viewport tests, actual PIN 486885 lookup, and migration execution are still unverified.
+- No production SQL, real-user data changes, main-branch merge, or live deployment has been performed.
