@@ -1,6 +1,100 @@
 -- Guard owner edits through a SECURITY DEFINER RPC with explicit ownership checks.
 -- Prepared on the QA branch only. Do not apply to production without approval.
 
+-- Both existing verification triggers must allow only the safe owner downgrade
+-- to pending when an owned listing's address or type changes. They must still block
+-- owners from marking a listing verified/rejected or changing a verified address/type
+-- without re-verification. Keep both functions in sync because both triggers exist.
+create or replace function public.prevent_non_admin_property_verification_change()
+returns trigger
+language plpgsql
+security definer
+set search_path = 'public'
+as $function$
+declare
+  v_is_owner boolean;
+  v_location_or_type_changed boolean;
+begin
+  if public.is_ghardekho_admin() then
+    return new;
+  end if;
+
+  v_location_or_type_changed :=
+    new.location is distinct from old.location
+    or new.listing_type is distinct from old.listing_type;
+
+  select exists (
+    select 1 from public.owners o
+    where o.id = old.owner_id and o.user_id = auth.uid()
+  ) into v_is_owner;
+
+  if v_location_or_type_changed then
+    if not v_is_owner then
+      raise exception 'Only the property owner or an admin can change the address or listing type';
+    end if;
+    if old.status = 'occupied' then
+      raise exception 'Release current occupancy before changing the address or listing type';
+    end if;
+    if new.verification_status is distinct from 'pending' then
+      raise exception 'Address or listing type changes require admin re-verification';
+    end if;
+  end if;
+
+  if new.verification_status is distinct from old.verification_status then
+    if new.verification_status <> 'pending' or not v_is_owner or not v_location_or_type_changed then
+      raise exception 'Only an admin can change property verification status except when an owner resubmits an address or listing-type change';
+    end if;
+  end if;
+
+  return new;
+end
+$function$;
+
+create or replace function public.protect_property_verification_status()
+returns trigger
+language plpgsql
+security definer
+set search_path = 'public'
+as $function$
+declare
+  v_is_owner boolean;
+  v_location_or_type_changed boolean;
+begin
+  if public.is_ghardekho_admin() then
+    return new;
+  end if;
+
+  v_location_or_type_changed :=
+    new.location is distinct from old.location
+    or new.listing_type is distinct from old.listing_type;
+
+  select exists (
+    select 1 from public.owners o
+    where o.id = old.owner_id and o.user_id = auth.uid()
+  ) into v_is_owner;
+
+  if v_location_or_type_changed then
+    if not v_is_owner then
+      raise exception 'Only the property owner or an admin can change the address or listing type';
+    end if;
+    if old.status = 'occupied' then
+      raise exception 'Release current occupancy before changing the address or listing type';
+    end if;
+    if new.verification_status is distinct from 'pending' then
+      raise exception 'Address or listing type changes require admin re-verification';
+    end if;
+  end if;
+
+  if new.verification_status is distinct from old.verification_status then
+    if new.verification_status <> 'pending' or not v_is_owner or not v_location_or_type_changed then
+      raise exception 'Only GharDekho administration can change property verification status except when an owner resubmits an address or listing-type change';
+    end if;
+  end if;
+
+  return new;
+end
+$function$;
+
 create or replace function public.owner_update_property(
   p_property_id uuid,
   p_listing_type text,
