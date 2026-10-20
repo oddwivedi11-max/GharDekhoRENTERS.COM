@@ -9514,6 +9514,10 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
       <label class="gd-v4-field" id="gdLoginPhoneField"><span>Phone number</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter phone number" inputmode="numeric" pattern="[6-9][0-9]{9}" minlength="10" autocomplete="tel-national" required autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
+    <label id="signupTermsField" class="gd-v4-field gd-v4-full" style="display:none;grid-template-columns:20px 1fr;align-items:start;gap:10px;font-size:12px;line-height:1.5;">
+      <input type="checkbox" id="signupTermsAccepted" style="width:18px;height:18px;min-height:18px;margin:2px 0 0;accent-color:#176b63;">
+      <span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+    </label>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Phone number is required for every Renter/Owner account.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="prepareSignupForm(); signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button></div>
@@ -10236,6 +10240,7 @@ body.gd-owner-explore-mode #propertiesSection {
 function setAuthLoginMode(isLoginMode){
     const phoneField = document.getElementById("userPhone")?.closest(".gd-v4-field");
     const nameField = document.getElementById("userName")?.closest(".gd-v4-field");
+    const termsField = document.getElementById("signupTermsField");
     const title = document.getElementById("premiumAuthTitle");
     const intro = document.getElementById("premiumAuthIntro");
     const signupButton = document.getElementById("signupBtn");
@@ -10244,6 +10249,7 @@ function setAuthLoginMode(isLoginMode){
     const signUpTab = document.getElementById("authSignUpTab");
     if (phoneField) phoneField.style.display = "";
     if (nameField) nameField.style.display = isLoginMode ? "none" : "";
+    if (termsField) termsField.style.display = isLoginMode ? "none" : "grid";
     if (signupButton) signupButton.style.display = isLoginMode ? "none" : "";
     if (loginButton) loginButton.style.display = isLoginMode ? "" : "none";
     if (signInTab) {
@@ -11413,6 +11419,11 @@ async function signupUser() {
         }
         if (!password || password.length < 8) {
             authMessage.textContent = "Password must be at least 8 characters.";
+            return;
+        }
+        if (!document.getElementById("signupTermsAccepted")?.checked) {
+            authMessage.textContent = "Please accept the Terms of Use and Privacy Policy to create an account.";
+            document.getElementById("signupTermsAccepted")?.focus();
             return;
         }
 
@@ -13634,7 +13645,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 const bhkMatch = !bhk || (String(bhk) === "5+" ? propertyBhk >= 5 : (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk)));
 
                 const rent = Number(property.rent);
-                const quickBudgetMatch = !budget || rent <= Number(budget);
+                const quickBudgetMatch = !budget || rent < Number(budget);
                 const minBudgetMatch = !Number.isFinite(minBudget) || rent >= minBudget;
                 const maxBudgetMatch = !Number.isFinite(maxBudget) || rent <= maxBudget;
                 const budgetMatch = quickBudgetMatch && minBudgetMatch && maxBudgetMatch;
