@@ -13645,9 +13645,11 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 const bhkMatch = !bhk || (String(bhk) === "5+" ? propertyBhk >= 5 : (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk)));
 
                 const rent = Number(property.rent);
-                const quickBudgetMatch = !budget || rent < Number(budget);
+                const quickBudgetMatch = !budget || rent <= Number(budget);
                 const minBudgetMatch = !Number.isFinite(minBudget) || rent >= minBudget;
-                const maxBudgetMatch = !Number.isFinite(maxBudget) || rent <= maxBudget;
+                const maxPreset = document.getElementById("renterMaxBudgetPreset")?.value || "";
+                const isUnderPreset = ["5000", "10000", "15000", "20000", "30000"].includes(maxPreset);
+                const maxBudgetMatch = !Number.isFinite(maxBudget) || (isUnderPreset ? rent < maxBudget : rent <= maxBudget);
                 const budgetMatch = quickBudgetMatch && minBudgetMatch && maxBudgetMatch;
 
                 // A blank furnishing value means the owner has not specified it yet;
@@ -20754,17 +20756,6 @@ body.gd-renter-find-page-open #renterFindHomeSection{
 })();
 </script>
 
-<style id="gdr-property-editor-viewport-fix">
-#propertyEditor.active{align-items:flex-start!important;overflow-y:auto!important;padding:16px!important}
-#propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;margin:0 auto!important}
-#propertyEditor.active .gd-editor-actions{position:sticky;bottom:0;z-index:3;background:#fff;padding:12px 0 6px;border-top:1px solid #e6eeeb}
-@media(max-width:560px){
-  #propertyEditor.active{padding:10px!important}
-  #propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 20px)!important;padding:16px!important}
-  #propertyEditor.active .gd-editor-actions{flex-wrap:wrap}
-  #propertyEditor.active .gd-editor-actions button{min-height:44px}
-}
-</style>
 </html>
 
 <style id="ghardekho-dual-role-v1">
@@ -21591,6 +21582,17 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 @media(prefers-reduced-motion:reduce){
   .renter-live-nearby-action *,
   .renter-live-nearby-card *{animation:none!important}
+}
+
+/* Keep edit actions reachable on short desktop and phone viewports. */
+#propertyEditor.active{align-items:flex-start!important;overflow-y:auto!important;padding:16px!important}
+#propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;margin:0 auto!important}
+#propertyEditor.active .gd-editor-actions{position:sticky;bottom:0;z-index:3;background:#fff;padding:12px 0 6px;border-top:1px solid #e6eeeb}
+@media(max-width:560px){
+  #propertyEditor.active{padding:10px!important}
+  #propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 20px)!important;padding:16px!important}
+  #propertyEditor.active .gd-editor-actions{flex-wrap:wrap}
+  #propertyEditor.active .gd-editor-actions button{min-height:44px}
 }
 </style>
 
