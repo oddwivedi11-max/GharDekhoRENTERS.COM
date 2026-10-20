@@ -17,7 +17,7 @@
 <!-- GDR ADMIN ROUTE HARD ISOLATION: /admin must never boot the public SPA UI. -->
 <script id="gdr-admin-route-hard-isolation">
 (function(){
-  var path=String(window.location.pathname||"").replace(/\\/+$/,"")||"/";
+  var path=String(window.location.pathname||"").replace(/\/+$/,"")||"/";
   var isAdmin=path==="/admin" || path==="/admin/control" || path==="/admin/control.html" || new URLSearchParams(window.location.search).get("admin")==="1";
   if(!isAdmin) return;
 
@@ -11631,8 +11631,8 @@ async function loginUser() {
                 rawLoginError.includes("invalid credentials")) {
                 if (window.__gdrShowLoginErrorPopup) {
                     window.__gdrShowLoginErrorPopup(
-                        "Password Wrong",
-                        "The password you entered is incorrect. Please try again."
+                        "Login failed",
+                        "Incorrect email or password."
                     );
                 }
             }
@@ -13561,9 +13561,17 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 // Match city/area terms intelligently when a PIN and city are entered together.
                 // Prefer an exact PIN only when that PIN actually exists in the current inventory;
                 // otherwise fall back to the typed city/area instead of returning a false empty state.
-                const locationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
+                const locationParts = location.split(",").map(part => part.trim()).filter(Boolean);
+                const hasPinMarker = /\b(?:pin|pincode|postal code)\b/i.test(location);
+                // Postal suggestions begin with the post-office name. If the full
+                // suggestion includes office, district, state and PIN, match the
+                // district/state rather than requiring the office name in the listing.
+                const locationForMatching = hasPinMarker && locationParts.length >= 4
+                    ? locationParts.slice(1).join(" ")
+                    : location;
+                const locationTerms = locationForMatching.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
                 const pinTerms = locationTerms.filter(term => /^\d{6}$/.test(term));
-                const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term));
+                const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term) && !/^(?:pin|pincode|code|postal)$/i.test(term));
                 const exactPinExists = pinTerms.some(pin => allProperties.some(item =>
                     [item.title, item.location, item.address, item.area, item.name]
                         .filter(value => value !== null && value !== undefined)
@@ -16329,7 +16337,7 @@ function updateStayTypeFields() {
                 removePropertyImageBtn.dataset.gdImageBound = "1";
                 removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
             }
-            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", openRenterFindHomePage);
+            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", function() { window.openRenterFindHomePage(); });
             if (ownerExploreNearbyBtn && ownerExploreNearbyBtn.dataset.gdOwnerExploreBound !== "1") {
                 ownerExploreNearbyBtn.dataset.gdOwnerExploreBound = "1";
                 ownerExploreNearbyBtn.addEventListener("click", function(event) {
@@ -16570,8 +16578,7 @@ function updateStayTypeFields() {
                 initialSearchParams.has("code") ||
                 (initialSearchParams.get("type") === "recovery" && initialSearchParams.has("token_hash")) ||
                 String(window.location.hash || "").toLowerCase().includes("reset") ||
-                window.__gdPasswordRecovery === true ||
-                recentPasswordResetRequest;
+                window.__gdPasswordRecovery === true;
 
             // Never strip #login during startup. It is a real client-side
             // route used by the landing-page login buttons.
@@ -17094,8 +17101,8 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
     // HARD ADMIN ROUTE: /admin must never repaint the public homepage.
     const adminRoute =
       window.__gdAdminHardRoute === true ||
-      window.location.pathname.replace(/\\/+$/,'') === '/admin' ||
-      window.location.pathname.replace(/\\/+$/,'') === '/admin/control' || window.location.pathname.replace(/\/+$/,'') === '/admin/control.html' ||
+      window.location.pathname.replace(/\/+$/,'') === '/admin' ||
+      window.location.pathname.replace(/\/+$/,'') === '/admin/control' || window.location.pathname.replace(/\/+$/,'') === '/admin/control.html' ||
       new URLSearchParams(window.location.search).get('admin') === '1';
 
     const loginRoute=String(window.location.hash||'').toLowerCase()==='#login'
@@ -19640,11 +19647,22 @@ body.gd-auth-page #gdAuthFormShell input{
    * through the visible Signup tab.
    */
   window.openLoginAs = function(role){
-    if(typeof originalOpenLoginAs === "function") originalOpenLoginAs(role);
+    const signupWasActive = window.location.hash === "#signup" ||
+      (window.history && window.history.state && window.history.state.mode === "signup");
+    const selectedRole = role === "owner" ? "owner" : "renter";
+    if(typeof originalOpenLoginAs === "function") originalOpenLoginAs(selectedRole);
     requestAnimationFrame(function(){
-      if(typeof window.showSignInPage === "function") window.showSignInPage();
-      const email=document.getElementById("userEmail");
-      if(email) email.focus();
+      const owner=document.getElementById("roleOwner");
+      const renter=document.getElementById("roleRenter");
+      if(owner) owner.checked = selectedRole === "owner";
+      if(renter) renter.checked = selectedRole === "renter";
+      if(signupWasActive && typeof window.showSignUpPage === "function"){
+        window.showSignUpPage();
+        document.getElementById("userName")?.focus();
+      }else{
+        if(typeof window.showSignInPage === "function") window.showSignInPage();
+        document.getElementById("userEmail")?.focus();
+      }
     });
   };
 
