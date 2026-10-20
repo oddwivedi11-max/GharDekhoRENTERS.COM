@@ -112,3 +112,10 @@ User decisions recorded:
 - Owner-profile duplicate phone/email errors are also neutralized in the frontend. Remaining literal matches for duplicate phrases are error-code detection or comments, not user-facing disclosure copy.
 - Static QA workflow was added and its regex escaping corrected. First run failed at the whitespace-check step before syntax checks could execute; a follow-up run makes that check advisory so JavaScript syntax validation can proceed. Wait for the newest run result before treating static validation as passed.
 - No production functions/triggers were modified. Trigger changes exist only in the unapplied migration draft on the QA branch.
+
+
+## Search and visit-state follow-up (2026-10-20)
+- Verified PIN `486885` maps to Vindhyanagar, Singrauli, Madhya Pradesh. The bare-PIN search now matches a property against either the post-office locality or district instead of requiring both district and state to be stored in the property address. This is a best-effort fallback because the current schema has no dedicated property PIN column; exact PIN matching remains preferred when the listing itself stores the PIN.
+- Removed the standalone PIN resolver injection from the GitHub Pages build. It previously replaced the entered PIN with a single post-office name before the existing search ran, which could make valid district-level listings disappear. Both deployment builds now rely on the shared inline PIN lookup/matching logic. No deployment was triggered.
+- Read-only review found an unused legacy `owner_update_visit_status(uuid,text)` RPC could change a visit away from pending even after it had already been approved/rejected/completed. Added an unapplied migration to restrict that legacy function to owner-scoped pending requests only.
+- The new legacy-RPC migration, owner-contact migration, and owner-edit/trigger migration remain unapplied. These are drafts for isolated QA only.
