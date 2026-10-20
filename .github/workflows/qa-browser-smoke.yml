@@ -1,0 +1,43 @@
+name: GDR Free Browser Smoke Tests
+
+on:
+  push:
+    branches:
+      - "fix/full-qa-20261020"
+    paths:
+      - "index.html"
+      - "admin/**"
+      - "assets/**"
+      - "tests/**"
+      - "playwright.config.cjs"
+      - ".github/workflows/qa-browser-smoke.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gdr-free-browser-smoke
+  cancel-in-progress: true
+
+jobs:
+  browser-smoke:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout QA branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Install Playwright test runner
+        run: npm install --no-save @playwright/test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run read-only responsive smoke tests
+        run: npx playwright test tests/gdr-smoke.spec.cjs
