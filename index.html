@@ -14882,26 +14882,27 @@ async function savePropertyEdit(e){
     if(listingType!=="home"&&availableBeds!==""&&totalBeds!==""&&Number(availableBeds)>Number(totalBeds)){msg.textContent="Available beds cannot exceed total beds.";return}
     btn.disabled=true;msg.textContent="Saving all property details...";
     try{
-        const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");
-        const owner=Array.isArray(data)?(data[0]||null):data;
-        if(pe||!owner)throw pe||new Error("Owner profile not found");
         let imageUrl=imageUrlInput;
         if(imageUrl && !/^https:\/\/[A-Za-z0-9.-]+(?:\/[^\s]*)?$/i.test(imageUrl))throw new Error("Image URL must start with https://");
         if(imageFile){msg.textContent="Uploading new property photo...";imageUrl=await uploadPropertyImage(imageFile);}
-        const {error}=await supabaseClient.from("properties").update({
-            title,name:title,location,address:location,rent,
-            bhk:listingType==="home"&&bhk?Number(bhk):null,
-            furnishing:furnishing||null,
-            listing_type:listingType,
-            room_type:listingType!=="home"?(roomType||null):null,
-            gender_preference:listingType!=="home"?(gender||null):null,
-            total_beds:listingType!=="home"&&totalBeds?Number(totalBeds):null,
-            available_beds:listingType!=="home"&&availableBeds!==""?Number(availableBeds):null,
-            food_included:listingType!=="home"&&foodValue!==""?foodValue==="yes":null,
-            description:description||null,
-            image_url:imageUrl||null
-        }).eq("id",id).eq("owner_id",owner.id);
+        const {data:updateResult,error}=await supabaseClient.rpc("owner_update_property",{
+            p_property_id:id,
+            p_listing_type:listingType,
+            p_room_type:listingType!=="home"?(roomType||null):null,
+            p_gender_preference:listingType!=="home"?(gender||null):null,
+            p_food_included:listingType!=="home"&&foodValue!==""?foodValue==="yes":null,
+            p_total_beds:listingType!=="home"&&totalBeds?Number(totalBeds):null,
+            p_available_beds:listingType!=="home"&&availableBeds!==""?Number(availableBeds):null,
+            p_title:title,
+            p_location:location,
+            p_rent:rent,
+            p_bhk:listingType==="home"&&bhk?Number(bhk):null,
+            p_furnishing:furnishing||null,
+            p_description:description||null,
+            p_image_url:imageUrl||null
+        });
         if(error)throw error;
+        if(!updateResult?.success)throw new Error(updateResult?.message||"Property update was not confirmed by the database.");
         msg.textContent="All property details updated successfully.";
         await Promise.allSettled([loadProperties(),loadOwnerProperties()]);
         setTimeout(closePropertyEditor,500);
