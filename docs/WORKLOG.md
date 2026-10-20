@@ -119,3 +119,11 @@ User decisions recorded:
 - Removed the standalone PIN resolver injection from the GitHub Pages build. It previously replaced the entered PIN with a single post-office name before the existing search ran, which could make valid district-level listings disappear. Both deployment builds now rely on the shared inline PIN lookup/matching logic. No deployment was triggered.
 - Read-only review found an unused legacy `owner_update_visit_status(uuid,text)` RPC could change a visit away from pending even after it had already been approved/rejected/completed. Added an unapplied migration to restrict that legacy function to owner-scoped pending requests only.
 - The new legacy-RPC migration, owner-contact migration, and owner-edit/trigger migration remain unapplied. These are drafts for isolated QA only.
+
+
+## Free Playwright browser smoke tests (2026-10-20)
+- Added `tests/gdr-smoke.spec.cjs` and `playwright.config.cjs`, plus `.github/workflows/qa-browser-smoke.yml`. These run on the QA branch using GitHub Actions and install Chromium; no paid Supabase branch or hosted QA database is created.
+- Browser smoke run `39448442571` passed on commit `58f1ef23a47c94afd2bd09f5cf408b50e5a7e877`.
+- Covered page rendering, title/body availability, uncaught page exceptions, and horizontal overflow at 390px, 768px, and 1366px. The tests deliberately do not click login/signup, save, visit, owner edit, or admin actions.
+- This is a local static-page browser smoke test, not full renter/owner/admin end-to-end validation. Public data/API requests may still use configured Supabase endpoints, but tests perform no intentional database writes.
+- Production SQL, main merge, and deployment remain unchanged and approval-gated.
