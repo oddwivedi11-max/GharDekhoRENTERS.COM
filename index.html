@@ -13618,8 +13618,11 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                         showMessage("backendMessage", "PIN " + location + " was not found. Check the six digits and try again.", "error");
                         return;
                     }
-                    const firstOffice = pinOffices[0];
-                    resolvedPinLocation = [firstOffice.District, firstOffice.State]
+                    const firstOffice = pinOffices.find(office => office && (office.Name || office.District)) || pinOffices[0];
+                    // Match either the post-office locality or district. Requiring
+                    // both district and state would hide valid listings whose stored
+                    // address omits the state name.
+                    resolvedPinLocation = [firstOffice.Name, firstOffice.District]
                         .filter(Boolean).join(" ").toLowerCase();
                 } catch (pinError) {
                     showMessage("backendMessage", "Could not verify this PIN right now. Please retry or search by city/locality.", "error");
@@ -13656,7 +13659,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                         .filter(value => value !== null && value !== undefined)
                         .join(" ").toLowerCase().includes(pin)
                 ));
-                const textLocationMatch = textLocationTerms.every(term => searchableText.includes(term));
+                const textLocationMatch = resolvedPinLocation
+                    ? textLocationTerms.some(term => searchableText.includes(term))
+                    : textLocationTerms.every(term => searchableText.includes(term));
                 const exactPinMatch = pinTerms.some(pin => searchableText.includes(pin));
                 const locationMatch = !locationTerms.length ||
                     (textLocationTerms.length > 0
