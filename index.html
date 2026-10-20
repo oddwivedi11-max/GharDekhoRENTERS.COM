@@ -13889,7 +13889,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 currentUser && activeRole === "renter"
                     ? (owner?.phone
                         ? `<a href="tel:${escapeHtml(owner.phone)}">${escapeHtml(owner.phone)}</a>`
-                        : '<span class="small-text">Phone number not available</span>')
+                        : '<span class="small-text">Phone number is available after the owner approves your visit request.</span>')
                     : '<button type="button" class="text-button" id="loginToOwnerPhoneBtn">Login to view phone</button>';
 
             const callOwnerHtml =
