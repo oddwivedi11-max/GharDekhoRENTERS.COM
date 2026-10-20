@@ -10154,6 +10154,17 @@ body.gd-owner-explore-mode #propertiesSection {
         let isAuthenticating = false;
         let currentOwnerProfile = null;
         let ownerPropertiesCache = [];
+        let gdOwnerProfileRequest = null;
+
+        // Coalesce simultaneous dashboard requests into one owner-profile RPC.
+        // The promise is cleared after completion so later explicit refreshes stay fresh.
+        function getMyOwnerProfileShared() {
+            if (!gdOwnerProfileRequest) {
+                gdOwnerProfileRequest = supabaseClient.rpc("get_my_owner_profile")
+                    .finally(() => { gdOwnerProfileRequest = null; });
+            }
+            return gdOwnerProfileRequest;
+        }
 
         const APP_LIMITS = Object.freeze({
             maxPropertyLoad: 100,
@@ -14135,7 +14146,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 let ownOwnerId = currentOwnerProfile?.id || null;
                 if (!ownOwnerId) {
                     const { data: ownOwnerProfile, error: ownOwnerError } =
-                        await supabaseClient.rpc("get_my_owner_profile");
+                        await getMyOwnerProfileShared();
                     if (!ownOwnerError) {
                         const ownRecord = Array.isArray(ownOwnerProfile)
                             ? (ownOwnerProfile[0] || null)
@@ -14867,7 +14878,7 @@ function syncEditStayDetails(){
     }
 }
 function closePropertyEditor(){document.getElementById("propertyEditor")?.classList.remove("active");}
-async function deleteOwnerProperty(id){if(isAdminAccount())return deleteAdminProperty(id);if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can delete properties.","error");if(!confirm("Delete this property permanently? This action cannot be undone."))return;const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)return showMessage("backendMessage","Unable to verify property ownership.","error");const {error}=await supabaseClient.from("properties").delete().eq("id",id).eq("owner_id",owner.id);if(error)return showMessage("backendMessage",getSafeErrorMessage(error,"Unable to delete this property."),"error");showMessage("backendMessage","Property deleted successfully.","success");await Promise.allSettled([loadProperties(),loadOwnerProperties()]);}
+async function deleteOwnerProperty(id){if(isAdminAccount())return deleteAdminProperty(id);if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can delete properties.","error");if(!confirm("Delete this property permanently? This action cannot be undone."))return;const {data,error:pe}=await getMyOwnerProfileShared();const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)return showMessage("backendMessage","Unable to verify property ownership.","error");const {error}=await supabaseClient.from("properties").delete().eq("id",id).eq("owner_id",owner.id);if(error)return showMessage("backendMessage",getSafeErrorMessage(error,"Unable to delete this property."),"error");showMessage("backendMessage","Property deleted successfully.","success");await Promise.allSettled([loadProperties(),loadOwnerProperties()]);}
 async function savePropertyEdit(e){
     e.preventDefault();
     if(isAdminAccount()){
@@ -14930,7 +14941,7 @@ async function loadOwnerVerificationStatus() {
     const title = document.getElementById("ownerVerificationTitle");
 
     try {
-        const { data, error } = await supabaseClient.rpc("get_my_owner_profile");
+        const { data, error } = await getMyOwnerProfileShared();
         if (error) throw error;
 
         const owner = Array.isArray(data) ? (data[0] || null) : data;
@@ -15000,7 +15011,7 @@ async function loadOwnerProperties() {
             const {
                 data: ownerProfile,
                 error: ownerLookupError
-            } = await supabaseClient.rpc("get_my_owner_profile");
+            } = await getMyOwnerProfileShared();
 
             const ownerRecord = Array.isArray(ownerProfile)
                 ? (ownerProfile[0] || null)
@@ -15424,7 +15435,7 @@ async function loadOwnerVisits() {
     if (!container) return;
 
     const { data: ownerProfile, error: ownerError } =
-        await supabaseClient.rpc("get_my_owner_profile");
+        await getMyOwnerProfileShared();
 
     const ownerRecord = Array.isArray(ownerProfile)
         ? (ownerProfile[0] || null)
