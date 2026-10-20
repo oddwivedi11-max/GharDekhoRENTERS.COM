@@ -13079,6 +13079,16 @@ async function renderActiveDashboard() {
             }
         }
 
+        function formatPropertyLocation(value) {
+            const seen = new Set();
+            return String(value || "").split(",").map(part => part.trim()).filter(part => {
+                const normalized = part.toLowerCase().replace(/\\s+/g, " ").trim();
+                if (!normalized || seen.has(normalized)) return false;
+                seen.add(normalized);
+                return true;
+            }).join(", ");
+        }
+
         function renderProperties(properties, targetContainerId = "propertiesContainer", targetPaginationId = "propertyPagination", showPagination = true) {
             const container = document.getElementById(targetContainerId);
             const pagination = document.getElementById(targetPaginationId);
@@ -13097,15 +13107,21 @@ async function renderActiveDashboard() {
 
             container.innerHTML = visible.map(function(property) {
                 const image = property.image_url || getDefaultPropertyImage();
+                const configuration = property.listing_type === "home" || !property.listing_type
+                    ? (String(property.bhk || "-") + " BHK")
+                    : (String(property.room_type || "Shared stay") +
+                        (property.available_beds !== null && property.available_beds !== undefined
+                            ? " · " + String(property.available_beds) + " beds available"
+                            : ""));
                 return `
                     <article class="property-card" data-property-id="${escapeHtml(property.id)}">
                         <img src="${escapeHtml(image)}" alt="${escapeHtml(property.title || "Rental property")}" class="property-card-image" onerror="this.src='${getDefaultPropertyImage()}'">
                         <div class="property-card-body">
                             <h3>${escapeHtml(property.title || "Rental Property")}</h3>
                             <p>${property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}${property.room_type ? " · " + escapeHtml(property.room_type) : ""}</p>
-                            <p>📍 ${escapeHtml(property.location || "Location not specified")}</p>
+                            <p>📍 ${escapeHtml(formatPropertyLocation(property.location || property.address || "Location not specified"))}</p>
                             ${Number.isFinite(Number(property.distanceKm)) ? `<p>📏 ${Number(property.distanceKm).toFixed(1)} km away</p>` : ""}
-                            <p>🏠 ${property.bhk || "-"} BHK · ${escapeHtml(property.furnishing || "Not specified")}</p>
+                            <p>🏠 ${escapeHtml(configuration)} · ${escapeHtml(property.furnishing || "Not specified")}</p>
                             <p class="property-rent">${formatRent(property.rent)}</p>
                             <div class="property-status-wrap" aria-label="Property availability status">
                                 ${property.status === "occupied"
@@ -13646,6 +13662,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
             currentPropertyPage = 1;
             renderProperties(filtered);
+            if (!filtered.length && /^\\d{6}$/.test(location)) {
+                showMessage("backendMessage", "No homes are listed for PIN " + location + " yet. Try the locality or district name for a broader match.", "info");
+            }
             scrollToSection("propertiesSection");
         }
 
@@ -13860,7 +13879,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                         <div class="detail-meta">
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Location</span>
-                                <span class="detail-meta-value">${escapeHtml(property.location || property.address || "Not specified")}</span>
+                                <span class="detail-meta-value">${escapeHtml(formatPropertyLocation(property.location || property.address || "Not specified"))}</span>
                             </div>
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Stay type</span>
@@ -15698,7 +15717,7 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
                                 <span class="saved-property-date">Saved recently</span>
                             </div>
                             <h4>${escapeHtml(property.title || "Property")}</h4>
-                            <p class="saved-property-location">📍 ${escapeHtml(property.location || property.address || "Location not available")}</p>
+                            <p class="saved-property-location">📍 ${escapeHtml(formatPropertyLocation(property.location || property.address || "Location not available"))}</p>
 
                             <div class="saved-property-tags">
                                 <span>⌂ ${escapeHtml(configuration)}</span>
