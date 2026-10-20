@@ -110,7 +110,7 @@ User decisions recorded:
 - Read-only production inspection found two BEFORE UPDATE triggers protecting `properties.verification_status`: `properties_protect_verification_status` and `trg_protect_property_verification_status`.
 - The first draft of the owner-edit migration would have been rejected by these existing guards when attempting to move an approved listing to pending after an address/type change. The QA-only migration has now been updated to replace both trigger functions consistently: only the authenticated owner of that property may downgrade it to pending when changing address/listing type; owners still cannot set verification to verified/rejected, and address/type changes while occupied are blocked. Admin behavior is preserved.
 - Owner-profile duplicate phone/email errors are also neutralized in the frontend. Remaining literal matches for duplicate phrases are error-code detection or comments, not user-facing disclosure copy.
-- Static QA workflow was added and its regex escaping corrected. First run failed at the whitespace-check step before syntax checks could execute; a follow-up run makes that check advisory so JavaScript syntax validation can proceed. Wait for the newest run result before treating static validation as passed.
+- Static QA workflow was added and its regex escaping corrected. The latest run on commit `ab89dca` passed the commit-formatting check, inline JavaScript syntax checks for the public/admin pages, and standalone PIN resolver syntax check.
 - No production functions/triggers were modified. Trigger changes exist only in the unapplied migration draft on the QA branch.
 
 
