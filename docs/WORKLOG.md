@@ -46,3 +46,14 @@ See the conversation for PIN choice, public pending-listing policy, Explore logi
 - Current `get_public_properties()` and `get_nearby_properties(...)` definitions filter to verified properties and verified owners. Both still return `owner_id`; the frontend uses this field in visit-request/self-booking logic, so it must not be removed without updating that flow.
 - No Supabase development branches were found. No QA database has been created, and no production SQL has been applied.
 - Supabase security advisor reports leaked-password protection disabled and generic SECURITY DEFINER warnings. Admin RPC definitions were checked: the current non-legacy admin functions include an internal admin check; legacy variants need privilege/grant review before any changes.
+
+## Additional fixes and static/logic checks
+- D5: renter property cards now display PG/hostel room type and available beds instead of a BHK placeholder; duplicate comma-separated location segments are removed from card/detail/saved displays.
+- D5: the renter budget presets labelled `Under ₹5,000` (and other preset caps) now use a strict less-than comparison; custom numeric max budgets remain inclusive.
+- D7: added a Terms of Use / Privacy Policy checkbox to signup and validation before account creation; the checkbox is shown only in Sign Up mode.
+- D8: Explore Homes now opens approved public listings without forcing the visitor to log in. Contact/visit actions remain in their existing protected flows.
+- D2: added a viewport-aware property editor scroll container and sticky action row to keep Save/Cancel/Delete reachable on short screens. Browser visual verification remains pending.
+- D11: Nearby UI now states the 10 km maximum and surfaces a clean user-facing error instead of the raw database error.
+- B2/B5: owner edit now calls the new guarded RPC; migration file `20261020190000_guard_owner_property_updates_and_validate_images.sql` is prepared but not applied. This remains BLOCKED pending isolated QA database testing and approval.
+- Static validation rerun after latest code edits: `index.html` 36 inline scripts, zero syntax errors; `admin/control.html` 31 inline scripts, zero syntax errors.
+- Synthetic logic simulation: 3/5 PIN/location/budget cases passed. This is a small isolated logic simulation, not a browser or live database test.
