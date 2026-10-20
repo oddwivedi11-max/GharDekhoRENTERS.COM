@@ -127,3 +127,12 @@ User decisions recorded:
 - Covered page rendering, title/body availability, uncaught page exceptions, and horizontal overflow at 390px, 768px, and 1366px. The tests deliberately do not click login/signup, save, visit, owner edit, or admin actions.
 - This is a local static-page browser smoke test, not full renter/owner/admin end-to-end validation. Public data/API requests may still use configured Supabase endpoints, but tests perform no intentional database writes.
 - Production SQL, main merge, and deployment remain unchanged and approval-gated.
+
+
+## Expanded browser QA and fixes (2026-10-20)
+- Added `tests/gdr-controls.spec.cjs` to check core renter/owner/admin controls, blank renter-search validation, and duplicate concrete DOM IDs. The browser workflow now runs all `tests/*.spec.cjs` files.
+- First expanded run found duplicate IDs shared by style/script pairs: `ghardekho-property-location-autocomplete-v1` and `ghardekho-renter-action-fix-v2`. Renamed the CSS and JS IDs independently in `index.html`.
+- Follow-up browser run passed on commit `aa7736820b9da8843a56a3c37817e2fc2e76546c`; it passed the three responsive checks, public access check, core-control presence, blank renter-search validation, and duplicate-ID check.
+- Added a frontend fail-closed check before calling `get_verified_owner_contact`: the signed-in renter must have an `approved` visit request for the exact property. This reduces accidental UI disclosure while the database RPC migration remains unapplied. It is **not a substitute** for enforcing the approval check inside the database RPC; direct RPC calls remain a release blocker until that migration is reviewed/tested/applied with explicit approval.
+- Browser smoke tests passed again on commit `e2e0d860df0b67c124c7daaba0602fdbeda69b52` after the owner-contact UI guard. Static checks passed on the same commit.
+- No production SQL, merge to `main`, or deployment was performed. Authenticated renter/owner/admin E2E, database policy testing, and real PIN-to-listing behavior remain unverified without isolated synthetic test data.
