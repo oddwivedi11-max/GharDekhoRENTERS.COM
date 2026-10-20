@@ -9724,7 +9724,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                         </div>
 
                         <div class="renter-live-radius-control">
-                            <label for="renterLiveNearbyRadius">Search radius</label>
+                            <label for="renterLiveNearbyRadius">Search radius (maximum 10 km)</label>
                             <select id="renterLiveNearbyRadius" aria-label="Nearby search radius">
                                 <option value="1" selected>1 km</option>
                                 <option value="2">2 km</option>
@@ -13240,7 +13240,7 @@ async function renderActiveDashboard() {
                 p_limit: 100
             });
 
-            if (error) throw error;
+            if (error) throw new Error("Nearby homes are temporarily unavailable. Please check location permission and try again.");
 
             const rows = Array.isArray(data) ? data : [];
             return { rows, radiusKm };
@@ -13421,7 +13421,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                             p_radius_km: radiusKm,
                             p_limit: 100
                         });
-                        if (error) throw error;
+                        if (error) throw new Error("Nearby homes are temporarily unavailable. Please check location permission and try again.");
 
                         const nearby = (Array.isArray(data) ? data : [])
                             .map(property => ({
@@ -19737,23 +19737,32 @@ body.gd-auth-page #gdAuthFormShell input{
     el.scrollIntoView({behavior:"auto",block:"start"});
   };
 
-  window.gdrOpenPublicExplore = function(event){
+  window.gdrOpenPublicExplore = async function(event){
     if(event){
       event.preventDefault();
       event.stopPropagation();
     }
 
-    // "Explore Rentals" is the renter entry point.
-    // Always open the real Renter sign-in form instead of the public
-    // search surface, so the CTA cannot land on the wrong page.
+    // Public visitors can browse approved listings without signing in.
+    // Contact and visit-request actions remain protected by their own flows.
     try{
-      if(typeof window.openLoginAs === "function"){
-        window.openLoginAs("renter");
-      }else if(typeof window.openLoginSection === "function"){
-        window.openLoginSection("renter");
-      }
+      document.body.classList.remove("gd-auth-page");
+      const landing=document.getElementById("loggedOutLanding");
+      const authGateway=document.getElementById("gdAuthGateway");
+      const loginSection=document.getElementById("loginSection");
+      const homeSection=document.getElementById("homeSection");
+      const propertiesSection=document.getElementById("propertiesSection");
+      if(landing) landing.style.display="none";
+      if(authGateway) authGateway.style.display="none";
+      if(loginSection) loginSection.style.display="none";
+      if(homeSection) homeSection.style.display="block";
+      if(propertiesSection) propertiesSection.style.display="block";
+      if(typeof window.loadProperties === "function") await window.loadProperties(true);
+      if(typeof window.gdrFastScrollTo === "function") window.gdrFastScrollTo("propertiesSection");
     }catch(error){
-      console.error("GharDekho renter login action failed:",error);
+      console.error("GharDekho public explore failed:",error);
+      const message=document.getElementById("backendMessage");
+      if(message){message.textContent="Homes could not be loaded right now. Please try again.";message.className="backend-message error";}
     }
     return false;
   };
@@ -20744,6 +20753,18 @@ body.gd-renter-find-page-open #renterFindHomeSection{
   new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
+<style id="gdr-property-editor-viewport-fix">
+#propertyEditor.active{align-items:flex-start!important;overflow-y:auto!important;padding:16px!important}
+#propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;margin:0 auto!important}
+#propertyEditor.active .gd-editor-actions{position:sticky;bottom:0;z-index:3;background:#fff;padding:12px 0 6px;border-top:1px solid #e6eeeb}
+@media(max-width:560px){
+  #propertyEditor.active{padding:10px!important}
+  #propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 20px)!important;padding:16px!important}
+  #propertyEditor.active .gd-editor-actions{flex-wrap:wrap}
+  #propertyEditor.active .gd-editor-actions button{min-height:44px}
+}
+</style>
 </html>
 
 <style id="ghardekho-dual-role-v1">
