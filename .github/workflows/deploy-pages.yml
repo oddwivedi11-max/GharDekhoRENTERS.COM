@@ -41,9 +41,9 @@ jobs:
           if old_css in s:
               s = s.replace(old_css, css)
           elif css not in s:
-              s = s.replace("</head>", f"    {css}\\n</head>", 1)
+              s = s.replace("</head>", f"    {css}\n</head>", 1)
           if js not in s:
-              s = s.replace("</head>", f"    {js}\\n</head>", 1)
+              s = s.replace("</head>", f"    {js}\n</head>", 1)
           p.write_text(s, encoding="utf-8")
           assert 'gdr-pincode-search.js' in p.read_text(encoding="utf-8")
           PY
