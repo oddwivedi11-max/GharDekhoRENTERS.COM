@@ -56,4 +56,4 @@ See the conversation for PIN choice, public pending-listing policy, Explore logi
 - D11: Nearby UI now states the 10 km maximum and surfaces a clean user-facing error instead of the raw database error.
 - B2/B5: owner edit now calls the new guarded RPC; migration file `20261020190000_guard_owner_property_updates_and_validate_images.sql` is prepared but not applied. This remains BLOCKED pending isolated QA database testing and approval.
 - Static validation rerun after latest code edits: `index.html` 36 inline scripts, zero syntax errors; `admin/control.html` 31 inline scripts, zero syntax errors.
-- Synthetic logic simulation: 3/5 PIN/location/budget cases passed. This is a small isolated logic simulation, not a browser or live database test.
+- Synthetic logic simulation: 6/6 PIN/location/budget cases passed after correcting the test expectations to distinguish listings that do and do not store PIN text. This is a small isolated logic simulation, not a browser or live database test.
