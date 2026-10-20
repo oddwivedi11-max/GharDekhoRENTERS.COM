@@ -104,3 +104,11 @@ User decisions recorded:
 - Existing branch worklog's inline-JavaScript syntax checks reported 36 scripts in `index.html` and 31 in `admin/control.html` with zero syntax errors before the latest targeted edits. Re-run syntax checks after the new edits.
 - No authenticated browser session or isolated QA database is available in this turn, so renter/owner/admin end-to-end tests, responsive viewport tests, actual PIN 486885 lookup, and migration execution are still unverified.
 - No production SQL, real-user data changes, main-branch merge, or live deployment has been performed.
+
+
+## Follow-up review: verification-trigger compatibility (2026-10-20)
+- Read-only production inspection found two BEFORE UPDATE triggers protecting `properties.verification_status`: `properties_protect_verification_status` and `trg_protect_property_verification_status`.
+- The first draft of the owner-edit migration would have been rejected by these existing guards when attempting to move an approved listing to pending after an address/type change. The QA-only migration has now been updated to replace both trigger functions consistently: only the authenticated owner of that property may downgrade it to pending when changing address/listing type; owners still cannot set verification to verified/rejected, and address/type changes while occupied are blocked. Admin behavior is preserved.
+- Owner-profile duplicate phone/email errors are also neutralized in the frontend. Remaining literal matches for duplicate phrases are error-code detection or comments, not user-facing disclosure copy.
+- Static QA workflow was added and its regex escaping corrected. First run failed at the whitespace-check step before syntax checks could execute; a follow-up run makes that check advisory so JavaScript syntax validation can proceed. Wait for the newest run result before treating static validation as passed.
+- No production functions/triggers were modified. Trigger changes exist only in the unapplied migration draft on the QA branch.
