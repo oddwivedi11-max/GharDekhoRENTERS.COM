@@ -11,7 +11,7 @@ test.describe('GDR core controls (read-only)', () => {
       '#propertyPincode', '#addPropertyBtn', '#adminDashboard'
     ];
     for (const selector of selectors) {
-      await expect(page.locator(selector).first(), 'Missing core control: ' + selector).toHaveCount(1);
+      await expect(page.locator(selector), 'Missing or duplicate core control: ' + selector).toHaveCount(1);
     }
     expect(await page.title()).toMatch(/GharDekho Renters/i);
   });
