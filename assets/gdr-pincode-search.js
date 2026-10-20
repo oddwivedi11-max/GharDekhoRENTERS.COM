@@ -5,7 +5,7 @@
 (function () {
   "use strict";
   const INPUT_ID = "renterSearchLocation";
-  const PIN_RE = /^\\d{6}$/;
+  const PIN_RE = /^\d{6}$/;
   let resolving = false;
 
   function statusNode(input) {
