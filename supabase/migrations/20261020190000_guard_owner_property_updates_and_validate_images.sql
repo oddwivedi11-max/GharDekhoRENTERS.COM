@@ -28,6 +28,7 @@ declare
   v_property public.properties;
   v_image_prefix text;
   v_image_value text := nullif(btrim(coalesce(p_image_url, '')), '');
+  v_requires_reverification boolean := false;
 begin
   if v_user_id is null then raise exception 'Authentication required'; end if;
 
@@ -42,6 +43,14 @@ begin
   where p.id = p_property_id and p.owner_id = v_owner_id
   for update;
   if not found then raise exception 'Property not found or access denied'; end if;
+
+  v_requires_reverification :=
+    p_listing_type is distinct from v_property.listing_type
+    or btrim(p_location) is distinct from btrim(coalesce(v_property.location, ''));
+
+  if v_property.status = 'occupied' and v_requires_reverification then
+    raise exception 'Release current occupancy before changing the address or listing type';
+  end if;
 
   if p_listing_type not in ('home', 'pg', 'hostel') then raise exception 'Invalid property type'; end if;
   if nullif(btrim(coalesce(p_title, '')), '') is null or length(btrim(p_title)) > 120 then
@@ -79,7 +88,19 @@ begin
   set title = btrim(p_title),
       name = btrim(p_title),
       location = btrim(p_location),
-      address = btrim(p_location),
+      address = case
+        when btrim(p_location) is distinct from btrim(coalesce(v_property.location, ''))
+          then btrim(p_location)
+        else v_property.address
+      end,
+      verification_status = case
+        when v_requires_reverification then 'pending'
+        else v_property.verification_status
+      end,
+      status = case
+        when v_requires_reverification then 'pending'
+        else v_property.status
+      end,
       rent = p_rent,
       bhk = case when p_listing_type = 'home' then p_bhk else null end,
       furnishing = p_furnishing,
@@ -93,7 +114,11 @@ begin
       image_url = v_image_value
   where id = p_property_id and owner_id = v_owner_id;
 
-  return jsonb_build_object('success', true, 'id', p_property_id);
+  return jsonb_build_object(
+    'success', true,
+    'id', p_property_id,
+    'requires_reverification', v_requires_reverification
+  );
 end
 $function$;
 
