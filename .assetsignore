@@ -1,3 +1,9 @@
 node_modules/
 .git/
 .github/
+supabase/
+wrangler.jsonc
+*.md
+docs/
+tests/
+tools/
