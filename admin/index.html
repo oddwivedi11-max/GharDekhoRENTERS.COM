@@ -39,7 +39,7 @@
         <label for="password">PASSWORD</label>
         <div class="password-wrap"><input class="input" id="password" type="password" autocomplete="current-password" placeholder="Enter password" required><button class="password-toggle" id="togglePassword" type="button" aria-label="Show password" aria-pressed="false">Show</button></div>
         <button id="btn" type="submit">Enter Admin Control Center →</button>
-        <div id="msg"></div>
+        <div id="msg" role="status" aria-live="polite" aria-atomic="true"></div>
       </form>
       <div class="secure">Only the authorized GharDekho admin account can enter this workspace. Renter/Owner accounts are rejected.</div>
     </section>
@@ -53,10 +53,10 @@
       e.preventDefault();
       const email=document.getElementById("email").value.trim().toLowerCase(),password=document.getElementById("password").value;
       msg.textContent="";
-      if(email!==ADMIN_EMAIL){msg.textContent="This account is not authorized for Admin access.";return}
+      if(email!==ADMIN_EMAIL){msg.textContent="Unable to sign in with those credentials.";return}
       btn.disabled=true;btn.textContent="Authenticating…";
       const {data,error}=await supabaseClient.auth.signInWithPassword({email,password});
-      if(error||!data.user){msg.textContent=error?.message||"Login failed.";btn.disabled=false;btn.textContent="Enter Admin Control Center →";return}
+      if(error||!data.user){msg.textContent="Unable to sign in with those credentials.";btn.disabled=false;btn.textContent="Enter Admin Control Center →";return}
       sessionStorage.setItem("gd_login_destination","admin");
       sessionStorage.setItem("gd_pending_login_role","admin");
       sessionStorage.setItem("gd_active_role","admin");
