@@ -17,7 +17,7 @@
 <!-- GDR ADMIN ROUTE HARD ISOLATION: /admin must never boot the public SPA UI. -->
 <script id="gdr-admin-route-hard-isolation">
 (function(){
-  var path=String(window.location.pathname||"").replace(/\\/+$/,"")||"/";
+  var path=String(window.location.pathname||"").replace(/\/+$/,"")||"/";
   var isAdmin=path==="/admin" || path==="/admin/control" || path==="/admin/control.html" || new URLSearchParams(window.location.search).get("admin")==="1";
   if(!isAdmin) return;
 
@@ -9514,6 +9514,10 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
       <label class="gd-v4-field" id="gdLoginPhoneField"><span>Phone number</span><span class="gd-phone-wrap"><span class="gd-phone-prefix">+91</span><input type="tel" id="userPhone" name="gd_mobile_entry_x7" placeholder="Enter phone number" inputmode="numeric" pattern="[6-9][0-9]{9}" minlength="10" autocomplete="tel-national" required autocorrect="off" autocapitalize="off" spellcheck="false" maxlength="10" data-form-type="other" data-lpignore="true" data-1p-ignore="true"></span></label>
       <label class="gd-v4-field gd-v4-full"><span>Password</span><div class="gd-password-wrap"><input type="password" id="userPassword" name="gd_new_password" placeholder="Minimum 8 characters" autocomplete="new-password" data-form-type="other" data-lpignore="true" data-1p-ignore="true"><button type="button" class="gd-password-toggle" data-password-target="userPassword" aria-label="Show password">Show</button></div></label>
     </div>
+    <label id="signupTermsField" class="gd-v4-field gd-v4-full" style="display:none;grid-template-columns:20px 1fr;align-items:start;gap:10px;font-size:12px;line-height:1.5;">
+      <input type="checkbox" id="signupTermsAccepted" style="width:18px;height:18px;min-height:18px;margin:2px 0 0;accent-color:#176b63;">
+      <span>I agree to the <a href="/terms" target="_blank" rel="noopener">Terms of Use</a> and <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a>.</span>
+    </label>
     <div class="role-switch gd-v4-role-switch"><label><input type="radio" name="accountRole" id="roleRenter" value="renter" checked><span><b>Renter</b><small>Find & save homes</small></span></label><label><input type="radio" name="accountRole" id="roleOwner" value="owner"><span><b>Owner</b><small>List your property</small></span></label><p id="loginRoleHint" class="form-help gd-v4-full">Phone number is required for every Renter/Owner account.</p></div>
     <div class="gd-v4-actions"><button id="signupBtn" type="button" onclick="prepareSignupForm(); signupUser()">Create Account <span>→</span></button><button id="loginSubmitBtn" type="button" onclick="loginUser()">Login</button></div>
     <div class="gd-v4-secondary"><button id="googleLoginBtn" type="button" class="google-login-button" onclick="loginWithGoogle()"><span class="google-g-icon" aria-hidden="true">G</span><span>Continue with Google</span></button></div>
@@ -9720,7 +9724,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                         </div>
 
                         <div class="renter-live-radius-control">
-                            <label for="renterLiveNearbyRadius">Search radius</label>
+                            <label for="renterLiveNearbyRadius">Search radius (maximum 10 km)</label>
                             <select id="renterLiveNearbyRadius" aria-label="Nearby search radius">
                                 <option value="1" selected>1 km</option>
                                 <option value="2">2 km</option>
@@ -10150,6 +10154,17 @@ body.gd-owner-explore-mode #propertiesSection {
         let isAuthenticating = false;
         let currentOwnerProfile = null;
         let ownerPropertiesCache = [];
+        let gdOwnerProfileRequest = null;
+
+        // Coalesce simultaneous dashboard requests into one owner-profile RPC.
+        // The promise is cleared after completion so later explicit refreshes stay fresh.
+        function getMyOwnerProfileShared() {
+            if (!gdOwnerProfileRequest) {
+                gdOwnerProfileRequest = supabaseClient.rpc("get_my_owner_profile")
+                    .finally(() => { gdOwnerProfileRequest = null; });
+            }
+            return gdOwnerProfileRequest;
+        }
 
         const APP_LIMITS = Object.freeze({
             maxPropertyLoad: 100,
@@ -10236,6 +10251,7 @@ body.gd-owner-explore-mode #propertiesSection {
 function setAuthLoginMode(isLoginMode){
     const phoneField = document.getElementById("userPhone")?.closest(".gd-v4-field");
     const nameField = document.getElementById("userName")?.closest(".gd-v4-field");
+    const termsField = document.getElementById("signupTermsField");
     const title = document.getElementById("premiumAuthTitle");
     const intro = document.getElementById("premiumAuthIntro");
     const signupButton = document.getElementById("signupBtn");
@@ -10244,6 +10260,7 @@ function setAuthLoginMode(isLoginMode){
     const signUpTab = document.getElementById("authSignUpTab");
     if (phoneField) phoneField.style.display = "";
     if (nameField) nameField.style.display = isLoginMode ? "none" : "";
+    if (termsField) termsField.style.display = isLoginMode ? "none" : "grid";
     if (signupButton) signupButton.style.display = isLoginMode ? "none" : "";
     if (loginButton) loginButton.style.display = isLoginMode ? "" : "none";
     if (signInTab) {
@@ -10686,10 +10703,10 @@ function normalizePhone(value) {
             const message = String(error?.message || "").toLowerCase();
 
             if (message.includes("invalid login credentials")) {
-                return "Incorrect email or password. If you are creating a new account, use Create Account with an email that is not already registered.";
+                return "Incorrect email or password.";
             }
-            if (message.includes("user already registered") || message.includes("email address already exists") || message.includes("email_exists")) {
-                return "This email is already registered. Please use Login, or use Forgot password if you do not remember the password.";
+            if (message.includes("user already registered") || message.includes("email address already exists") || message.includes("email_exists") || message.includes("already registered with another ghardekho account") || message.includes("phone number is already registered")) {
+                return "We couldn't complete that request. If you already have an account, try logging in or resetting your password.";
             }
             if (message.includes("signup_disabled")) {
                 return "New account creation is currently disabled in Supabase Authentication. Please enable Allow new users to sign up.";
@@ -10701,7 +10718,7 @@ function normalizePhone(value) {
                 return "Password must be at least 8 characters.";
             }
             if (message.includes("database error saving new user") || message.includes("error saving new user")) {
-                return "We couldn't create this account because the profile could not be saved. This phone number may already be linked to a GharDekho account. Try Login or Forgot password; if this is a new number, check the +91 mobile number and try again.";
+                return "We couldn't complete sign-up with those details. Please check the information and try again, or use Login/Forgot password if you already have an account.";
             }
             return error?.message || "Something went wrong. Please try again.";
         }
@@ -11415,6 +11432,11 @@ async function signupUser() {
             authMessage.textContent = "Password must be at least 8 characters.";
             return;
         }
+        if (!document.getElementById("signupTermsAccepted")?.checked) {
+            authMessage.textContent = "Please accept the Terms of Use and Privacy Policy to create an account.";
+            document.getElementById("signupTermsAccepted")?.focus();
+            return;
+        }
 
         if (signupButton) { signupButton.disabled = true; signupButton.textContent = "Creating account..."; }
         if (loginButton) loginButton.disabled = true;
@@ -11431,16 +11453,8 @@ async function signupUser() {
         if (error) {
             console.error("Signup error:", error);
             const signupErrorText = String(error?.message || "").toLowerCase();
-            if (signupErrorText.includes("phone number is already registered") || signupErrorText.includes("already registered with another ghardekho account")) {
-                authMessage.textContent = "This phone number is already registered with another GharDekho account. Use your own unique mobile number.";
-                document.getElementById("userPhone")?.focus();
-                return;
-            }
-            if (signupErrorText.includes("already registered") || signupErrorText.includes("email address already exists") || signupErrorText.includes("email_exists")) {
-                showSignInPage();
-                authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
-                document.getElementById("userEmail").value = email;
-                document.getElementById("userPassword")?.focus();
+            if (signupErrorText.includes("phone number is already registered") || signupErrorText.includes("already registered with another ghardekho account") || signupErrorText.includes("already registered") || signupErrorText.includes("email address already exists") || signupErrorText.includes("email_exists")) {
+                authMessage.textContent = "We couldn't complete sign-up with those details. Please check the information and try again, or use Login/Forgot password if you already have an account.";
                 return;
             }
             const loginErrorText = String(error?.message || "").toLowerCase();
@@ -11458,10 +11472,7 @@ async function signupUser() {
          * Never tell the user that a new account was created in that case.
          */
         if (data?.user && Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-            showSignInPage();
-            authMessage.textContent = "This email is already registered. We have moved you to Login — enter your password to continue, or use Forgot password.";
-            document.getElementById("userEmail").value = email;
-            document.getElementById("userPassword")?.focus();
+            authMessage.textContent = "We couldn't complete sign-up with those details. If you already have an account, try logging in or resetting your password.";
             return;
         }
 
@@ -11631,8 +11642,8 @@ async function loginUser() {
                 rawLoginError.includes("invalid credentials")) {
                 if (window.__gdrShowLoginErrorPopup) {
                     window.__gdrShowLoginErrorPopup(
-                        "Password Wrong",
-                        "The password you entered is incorrect. Please try again."
+                        "Login failed",
+                        "Incorrect email or password."
                     );
                 }
             }
@@ -11806,16 +11817,44 @@ async function loginUser() {
             }
 
             if (!getAccountRoles(currentProfile).includes("owner")) {
-                // Authentication succeeded, but this account has no Owner access.
-                // Never fall through to the Renter dashboard. Sign the session out
-                // and keep the user on the Owner login screen with a clear action.
+                const availableRoles = getAccountRoles(currentProfile);
+                if (availableRoles.includes("renter")) {
+                    // A valid renter signed in from the Owner tab: keep the
+                    // authenticated session and route to the role they actually have.
+                    activeRole = "renter";
+                    pendingLoginRole = "renter";
+                    sessionStorage.setItem("gd_active_role", "renter");
+                    sessionStorage.setItem("gd_pending_login_role", "renter");
+                    sessionStorage.setItem("gd_login_destination", "renter");
+                    authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";
+                    await withAuthTimeout(updateAuthUI(), "Renter dashboard preparation", 12000);
+                    setRoleSpecificUI("renter");
+                    const landing = document.getElementById("loggedOutLanding");
+                    const loginSection = document.getElementById("loginSection");
+                    const homeSection = document.getElementById("homeSection");
+                    const propertiesSection = document.getElementById("propertiesSection");
+                    const dashboard = document.getElementById("dashboardSection");
+                    if (landing) landing.style.display = "none";
+                    if (loginSection) loginSection.style.display = "none";
+                    if (homeSection) homeSection.style.display = "none";
+                    if (propertiesSection) propertiesSection.style.display = "none";
+                    if (dashboard) dashboard.style.display = "block";
+                    document.body.classList.remove("gd-auth-page", "gd-renter-explore-mode");
+                    await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
+                        console.warn("Renter dashboard loading timed out:", error);
+                    });
+                    scrollToSection("dashboardSection");
+                    return;
+                }
+                // This account has no Renter or Owner role; do not grant one
+                // merely because the user selected the Owner login tab.
                 window.__gdRoleAccessDenied = true;
                 activeRole = "owner";
                 pendingLoginRole = "owner";
                 sessionStorage.setItem("gd_pending_login_role", "owner");
                 sessionStorage.setItem("gd_active_role", "owner");
                 sessionStorage.removeItem("gd_login_destination");
-                authMessage.textContent = "Owner account not found. Kindly create your account first as Owner.";
+                authMessage.textContent = "This account does not have Owner access. Please create an Owner account or use the correct login option.";
                 try {
                     await supabaseClient.auth.signOut();
                 } catch (signOutError) {
@@ -12356,11 +12395,7 @@ async function saveRenterProfile(e){
         if(error){
             console.error("Renter profile update failed:",error);
             const raw=String(error?.message||"").toLowerCase();
-            const message=raw.includes("phone number is already registered")||raw.includes("already registered with another ghardekho account")
-                ?"This phone number is already registered with another GharDekho account. Use a different number."
-                :raw.includes("already used")
-                    ?"That contact email is already linked to another GharDekho account."
-                    :"Unable to save renter details. Please try again.";
+            const message="Unable to save renter details with the supplied information. Please check the details and try again.";
             showMessage("backendMessage",message,"error");
             return;
         }
@@ -12456,8 +12491,7 @@ async function saveOwnerProfile(e){
             console.error("Owner profile update failed:",error);
             const raw=String(error?.message||"").toLowerCase();
             let message="Unable to save owner details. Please try again.";
-            if(raw.includes("phone number is already registered")||raw.includes("already registered with another ghardekho account")) message="This phone number is already registered with another GharDekho account. Use a different number.";
-            else if(raw.includes("already used")) message="That contact email is already linked to another GharDekho account.";
+            if(raw.includes("phone number is already registered")||raw.includes("already registered with another ghardekho account")||raw.includes("already used")) message="Unable to save owner details with the supplied information. Please check the details and try again.";
             else if(raw.includes("owner profile not found")) message="Owner profile is not linked to this account yet.";
             else if(raw.includes("authentication")) message="Your session has expired. Please log in again.";
             showMessage("backendMessage",message,"error");
@@ -13039,8 +13073,8 @@ async function renderActiveDashboard() {
                 // properties schema. Optional PG/Hostel columns are not queried here.
                 // Public inventory is served through a SECURITY DEFINER RPC.
                 // Only properties belonging to admin-verified owners are public.
-                // Property verification may still be pending; that state is shown
-                // publicly and visit booking remains blocked until verification.
+                // Only admin-verified properties owned by verified owners are public.
+                // Pending and rejected listings must never appear in public search.
                 const propertyQuery = supabaseClient.rpc("get_public_properties");
 
                 // Prevent the UI from being stuck on "Loading properties..." forever.
@@ -13079,6 +13113,16 @@ async function renderActiveDashboard() {
             }
         }
 
+        function formatPropertyLocation(value) {
+            const seen = new Set();
+            return String(value || "").split(",").map(part => part.trim()).filter(part => {
+                const normalized = part.toLowerCase().replace(/\\s+/g, " ").trim();
+                if (!normalized || seen.has(normalized)) return false;
+                seen.add(normalized);
+                return true;
+            }).join(", ");
+        }
+
         function renderProperties(properties, targetContainerId = "propertiesContainer", targetPaginationId = "propertyPagination", showPagination = true) {
             const container = document.getElementById(targetContainerId);
             const pagination = document.getElementById(targetPaginationId);
@@ -13097,15 +13141,21 @@ async function renderActiveDashboard() {
 
             container.innerHTML = visible.map(function(property) {
                 const image = property.image_url || getDefaultPropertyImage();
+                const configuration = property.listing_type === "home" || !property.listing_type
+                    ? (String(property.bhk || "-") + " BHK")
+                    : (String(property.room_type || "Shared stay") +
+                        (property.available_beds !== null && property.available_beds !== undefined
+                            ? " · " + String(property.available_beds) + " beds available"
+                            : ""));
                 return `
                     <article class="property-card" data-property-id="${escapeHtml(property.id)}">
                         <img src="${escapeHtml(image)}" alt="${escapeHtml(property.title || "Rental property")}" class="property-card-image" onerror="this.src='${getDefaultPropertyImage()}'">
                         <div class="property-card-body">
                             <h3>${escapeHtml(property.title || "Rental Property")}</h3>
                             <p>${property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}${property.room_type ? " · " + escapeHtml(property.room_type) : ""}</p>
-                            <p>📍 ${escapeHtml(property.location || "Location not specified")}</p>
+                            <p>📍 ${escapeHtml(formatPropertyLocation(property.location || property.address || "Location not specified"))}</p>
                             ${Number.isFinite(Number(property.distanceKm)) ? `<p>📏 ${Number(property.distanceKm).toFixed(1)} km away</p>` : ""}
-                            <p>🏠 ${property.bhk || "-"} BHK · ${escapeHtml(property.furnishing || "Not specified")}</p>
+                            <p>🏠 ${escapeHtml(configuration)} · ${escapeHtml(property.furnishing || "Not specified")}</p>
                             <p class="property-rent">${formatRent(property.rent)}</p>
                             <div class="property-status-wrap" aria-label="Property availability status">
                                 ${property.status === "occupied"
@@ -13213,7 +13263,7 @@ async function renderActiveDashboard() {
                 p_limit: 100
             });
 
-            if (error) throw error;
+            if (error) throw new Error("Nearby homes are temporarily unavailable. Please check location permission and try again.");
 
             const rows = Array.isArray(data) ? data : [];
             return { rows, radiusKm };
@@ -13394,7 +13444,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                             p_radius_km: radiusKm,
                             p_limit: 100
                         });
-                        if (error) throw error;
+                        if (error) throw new Error("Nearby homes are temporarily unavailable. Please check location permission and try again.");
 
                         const nearby = (Array.isArray(data) ? data : [])
                             .map(property => ({
@@ -13550,6 +13600,36 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 await loadProperties(false);
             }
 
+            // A bare six-digit PIN is resolved to its postal district/state before
+            // matching. The app has no dedicated property PIN column, so exact PIN
+            // matching is preferred when present; otherwise use the resolved locality.
+            let resolvedPinLocation = "";
+            if (/^\d{6}$/.test(location)) {
+                try {
+                    const pinResponse = await fetch("https://api.postalpincode.in/pincode/" + encodeURIComponent(location), {
+                        headers: { Accept: "application/json" }
+                    });
+                    if (!pinResponse.ok) throw new Error("PIN lookup unavailable");
+                    const pinPayload = await pinResponse.json();
+                    const pinResult = Array.isArray(pinPayload) ? pinPayload[0] : null;
+                    const pinOffices = pinResult && pinResult.Status === "Success" && Array.isArray(pinResult.PostOffice)
+                        ? pinResult.PostOffice : [];
+                    if (!pinOffices.length) {
+                        showMessage("backendMessage", "PIN " + location + " was not found. Check the six digits and try again.", "error");
+                        return;
+                    }
+                    const firstOffice = pinOffices.find(office => office && (office.Name || office.District)) || pinOffices[0];
+                    // Match either the post-office locality or district. Requiring
+                    // both district and state would hide valid listings whose stored
+                    // address omits the state name.
+                    resolvedPinLocation = [firstOffice.Name, firstOffice.District]
+                        .filter(Boolean).join(" ").toLowerCase();
+                } catch (pinError) {
+                    showMessage("backendMessage", "Could not verify this PIN right now. Please retry or search by city/locality.", "error");
+                    return;
+                }
+            }
+
             const filtered = allProperties.filter(function(property) {
                 const searchableText = [
                     property.title, property.location, property.address, property.area,
@@ -13561,15 +13641,27 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 // Match city/area terms intelligently when a PIN and city are entered together.
                 // Prefer an exact PIN only when that PIN actually exists in the current inventory;
                 // otherwise fall back to the typed city/area instead of returning a false empty state.
-                const locationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
-                const pinTerms = locationTerms.filter(term => /^\d{6}$/.test(term));
-                const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term));
+                const rawLocationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
+                const pinTerms = rawLocationTerms.filter(term => /^\d{6}$/.test(term));
+                const locationSource = resolvedPinLocation || location;
+                const locationParts = locationSource.split(",").map(part => part.trim()).filter(Boolean);
+                const hasPinMarker = /\b(?:pin|pincode|postal code)\b/i.test(location);
+                // Postal suggestions begin with the post-office name. If the full
+                // suggestion includes office, district, state and PIN, match the
+                // district/state rather than requiring the office name in the listing.
+                const locationForMatching = hasPinMarker && locationParts.length >= 4
+                    ? locationParts.slice(1).join(" ")
+                    : locationSource;
+                const locationTerms = locationForMatching.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
+                const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term) && !/^(?:pin|pincode|code|postal)$/i.test(term));
                 const exactPinExists = pinTerms.some(pin => allProperties.some(item =>
                     [item.title, item.location, item.address, item.area, item.name]
                         .filter(value => value !== null && value !== undefined)
                         .join(" ").toLowerCase().includes(pin)
                 ));
-                const textLocationMatch = textLocationTerms.every(term => searchableText.includes(term));
+                const textLocationMatch = resolvedPinLocation
+                    ? textLocationTerms.some(term => searchableText.includes(term))
+                    : textLocationTerms.every(term => searchableText.includes(term));
                 const exactPinMatch = pinTerms.some(pin => searchableText.includes(pin));
                 const locationMatch = !locationTerms.length ||
                     (textLocationTerms.length > 0
@@ -13583,7 +13675,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 const rent = Number(property.rent);
                 const quickBudgetMatch = !budget || rent <= Number(budget);
                 const minBudgetMatch = !Number.isFinite(minBudget) || rent >= minBudget;
-                const maxBudgetMatch = !Number.isFinite(maxBudget) || rent <= maxBudget;
+                const maxPreset = document.getElementById("renterMaxBudgetPreset")?.value || "";
+                const isUnderPreset = ["5000", "10000", "15000", "20000", "30000"].includes(maxPreset);
+                const maxBudgetMatch = !Number.isFinite(maxBudget) || (isUnderPreset ? rent < maxBudget : rent <= maxBudget);
                 const budgetMatch = quickBudgetMatch && minBudgetMatch && maxBudgetMatch;
 
                 // A blank furnishing value means the owner has not specified it yet;
@@ -13609,6 +13703,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
             currentPropertyPage = 1;
             renderProperties(filtered);
+            if (!filtered.length && /^\\d{6}$/.test(location)) {
+                showMessage("backendMessage", "No homes are listed for PIN " + location + " yet. Try the locality or district name for a broader match.", "info");
+            }
             scrollToSection("propertiesSection");
         }
 
@@ -13757,16 +13854,30 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
             let owner = null;
 
-            if (property.owner_id && currentUser) {
-                const { data, error } = await supabaseClient.rpc(
-                    "get_verified_owner_contact",
-                    { p_owner_id: property.owner_id }
-                );
+            // Fail closed: do not even request owner contact until this renter
+            // has an approved visit for this exact property. The database RPC
+            // must enforce the same rule independently (see unapplied migration).
+            if (property.owner_id && currentUser && activeRole === "renter") {
+                const { data: approvedVisit, error: approvedVisitError } = await supabaseClient
+                    .from("visit_requests")
+                    .select("id")
+                    .eq("property_id", property.id)
+                    .eq("tenant_id", currentUser.id)
+                    .eq("status", "approved")
+                    .limit(1)
+                    .maybeSingle();
 
-                if (error) {
-                    console.error("Owner contact error:", error);
-                } else {
-                    owner = Array.isArray(data) ? (data[0] || null) : data;
+                if (!approvedVisitError && approvedVisit) {
+                    const { data, error } = await supabaseClient.rpc(
+                        "get_verified_owner_contact",
+                        { p_owner_id: property.owner_id }
+                    );
+
+                    if (error) {
+                        console.error("Owner contact error:", error);
+                    } else {
+                        owner = Array.isArray(data) ? (data[0] || null) : data;
+                    }
                 }
             }
 
@@ -13796,7 +13907,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 currentUser && activeRole === "renter"
                     ? (owner?.phone
                         ? `<a href="tel:${escapeHtml(owner.phone)}">${escapeHtml(owner.phone)}</a>`
-                        : '<span class="small-text">Phone number not available</span>')
+                        : '<span class="small-text">Phone number is available after the owner approves your visit request.</span>')
                     : '<button type="button" class="text-button" id="loginToOwnerPhoneBtn">Login to view phone</button>';
 
             const callOwnerHtml =
@@ -13823,7 +13934,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                         <div class="detail-meta">
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Location</span>
-                                <span class="detail-meta-value">${escapeHtml(property.location || property.address || "Not specified")}</span>
+                                <span class="detail-meta-value">${escapeHtml(formatPropertyLocation(property.location || property.address || "Not specified"))}</span>
                             </div>
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Stay type</span>
@@ -14066,7 +14177,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 let ownOwnerId = currentOwnerProfile?.id || null;
                 if (!ownOwnerId) {
                     const { data: ownOwnerProfile, error: ownOwnerError } =
-                        await supabaseClient.rpc("get_my_owner_profile");
+                        await getMyOwnerProfileShared();
                     if (!ownOwnerError) {
                         const ownRecord = Array.isArray(ownOwnerProfile)
                             ? (ownOwnerProfile[0] || null)
@@ -14798,7 +14909,7 @@ function syncEditStayDetails(){
     }
 }
 function closePropertyEditor(){document.getElementById("propertyEditor")?.classList.remove("active");}
-async function deleteOwnerProperty(id){if(isAdminAccount())return deleteAdminProperty(id);if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can delete properties.","error");if(!confirm("Delete this property permanently? This action cannot be undone."))return;const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)return showMessage("backendMessage","Unable to verify property ownership.","error");const {error}=await supabaseClient.from("properties").delete().eq("id",id).eq("owner_id",owner.id);if(error)return showMessage("backendMessage",getSafeErrorMessage(error,"Unable to delete this property."),"error");showMessage("backendMessage","Property deleted successfully.","success");await Promise.allSettled([loadProperties(),loadOwnerProperties()]);}
+async function deleteOwnerProperty(id){if(isAdminAccount())return deleteAdminProperty(id);if(!currentUser||activeRole!=="owner"||!accountHasRole("owner"))return showMessage("backendMessage","Only the property owner can delete properties.","error");if(!confirm("Delete this property permanently? This action cannot be undone."))return;const {data,error:pe}=await getMyOwnerProfileShared();const owner=Array.isArray(data)?(data[0]||null):data;if(pe||!owner)return showMessage("backendMessage","Unable to verify property ownership.","error");const {error}=await supabaseClient.from("properties").delete().eq("id",id).eq("owner_id",owner.id);if(error)return showMessage("backendMessage",getSafeErrorMessage(error,"Unable to delete this property."),"error");showMessage("backendMessage","Property deleted successfully.","success");await Promise.allSettled([loadProperties(),loadOwnerProperties()]);}
 async function savePropertyEdit(e){
     e.preventDefault();
     if(isAdminAccount()){
@@ -14826,27 +14937,30 @@ async function savePropertyEdit(e){
     if(listingType!=="home"&&availableBeds!==""&&totalBeds!==""&&Number(availableBeds)>Number(totalBeds)){msg.textContent="Available beds cannot exceed total beds.";return}
     btn.disabled=true;msg.textContent="Saving all property details...";
     try{
-        const {data,error:pe}=await supabaseClient.rpc("get_my_owner_profile");
-        const owner=Array.isArray(data)?(data[0]||null):data;
-        if(pe||!owner)throw pe||new Error("Owner profile not found");
         let imageUrl=imageUrlInput;
         if(imageUrl && !/^https:\/\/[A-Za-z0-9.-]+(?:\/[^\s]*)?$/i.test(imageUrl))throw new Error("Image URL must start with https://");
         if(imageFile){msg.textContent="Uploading new property photo...";imageUrl=await uploadPropertyImage(imageFile);}
-        const {error}=await supabaseClient.from("properties").update({
-            title,name:title,location,address:location,rent,
-            bhk:listingType==="home"&&bhk?Number(bhk):null,
-            furnishing:furnishing||null,
-            listing_type:listingType,
-            room_type:listingType!=="home"?(roomType||null):null,
-            gender_preference:listingType!=="home"?(gender||null):null,
-            total_beds:listingType!=="home"&&totalBeds?Number(totalBeds):null,
-            available_beds:listingType!=="home"&&availableBeds!==""?Number(availableBeds):null,
-            food_included:listingType!=="home"&&foodValue!==""?foodValue==="yes":null,
-            description:description||null,
-            image_url:imageUrl||null
-        }).eq("id",id).eq("owner_id",owner.id);
+        const {data:updateResult,error}=await supabaseClient.rpc("owner_update_property",{
+            p_property_id:id,
+            p_listing_type:listingType,
+            p_room_type:listingType!=="home"?(roomType||null):null,
+            p_gender_preference:listingType!=="home"?(gender||null):null,
+            p_food_included:listingType!=="home"&&foodValue!==""?foodValue==="yes":null,
+            p_total_beds:listingType!=="home"&&totalBeds?Number(totalBeds):null,
+            p_available_beds:listingType!=="home"&&availableBeds!==""?Number(availableBeds):null,
+            p_title:title,
+            p_location:location,
+            p_rent:rent,
+            p_bhk:listingType==="home"&&bhk?Number(bhk):null,
+            p_furnishing:furnishing||null,
+            p_description:description||null,
+            p_image_url:imageUrl||null
+        });
         if(error)throw error;
-        msg.textContent="All property details updated successfully.";
+        if(!updateResult?.success)throw new Error(updateResult?.message||"Property update was not confirmed by the database.");
+        msg.textContent=updateResult?.requires_reverification
+            ? "Changes saved. This property's address or listing type changed, so it is pending admin re-verification and hidden from public search until approved."
+            : "All property details updated successfully.";
         await Promise.allSettled([loadProperties(),loadOwnerProperties()]);
         setTimeout(closePropertyEditor,500);
     }catch(err){msg.textContent=getSafeErrorMessage(err,"Unable to update this property.")}finally{btn.disabled=false}
@@ -14860,7 +14974,7 @@ async function loadOwnerVerificationStatus() {
     const title = document.getElementById("ownerVerificationTitle");
 
     try {
-        const { data, error } = await supabaseClient.rpc("get_my_owner_profile");
+        const { data, error } = await getMyOwnerProfileShared();
         if (error) throw error;
 
         const owner = Array.isArray(data) ? (data[0] || null) : data;
@@ -14930,7 +15044,7 @@ async function loadOwnerProperties() {
             const {
                 data: ownerProfile,
                 error: ownerLookupError
-            } = await supabaseClient.rpc("get_my_owner_profile");
+            } = await getMyOwnerProfileShared();
 
             const ownerRecord = Array.isArray(ownerProfile)
                 ? (ownerProfile[0] || null)
@@ -15354,7 +15468,7 @@ async function loadOwnerVisits() {
     if (!container) return;
 
     const { data: ownerProfile, error: ownerError } =
-        await supabaseClient.rpc("get_my_owner_profile");
+        await getMyOwnerProfileShared();
 
     const ownerRecord = Array.isArray(ownerProfile)
         ? (ownerProfile[0] || null)
@@ -15661,7 +15775,7 @@ window.markVisitAsCurrentRenter = markVisitAsCurrentRenter;
                                 <span class="saved-property-date">Saved recently</span>
                             </div>
                             <h4>${escapeHtml(property.title || "Property")}</h4>
-                            <p class="saved-property-location">📍 ${escapeHtml(property.location || property.address || "Location not available")}</p>
+                            <p class="saved-property-location">📍 ${escapeHtml(formatPropertyLocation(property.location || property.address || "Location not available"))}</p>
 
                             <div class="saved-property-tags">
                                 <span>⌂ ${escapeHtml(configuration)}</span>
@@ -16329,7 +16443,7 @@ function updateStayTypeFields() {
                 removePropertyImageBtn.dataset.gdImageBound = "1";
                 removePropertyImageBtn.addEventListener("click", resetPropertyImagePicker);
             }
-            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", openRenterFindHomePage);
+            if (renterFindHomeBtn) renterFindHomeBtn.addEventListener("click", function() { window.openRenterFindHomePage(); });
             if (ownerExploreNearbyBtn && ownerExploreNearbyBtn.dataset.gdOwnerExploreBound !== "1") {
                 ownerExploreNearbyBtn.dataset.gdOwnerExploreBound = "1";
                 ownerExploreNearbyBtn.addEventListener("click", function(event) {
@@ -16570,8 +16684,7 @@ function updateStayTypeFields() {
                 initialSearchParams.has("code") ||
                 (initialSearchParams.get("type") === "recovery" && initialSearchParams.has("token_hash")) ||
                 String(window.location.hash || "").toLowerCase().includes("reset") ||
-                window.__gdPasswordRecovery === true ||
-                recentPasswordResetRequest;
+                window.__gdPasswordRecovery === true;
 
             // Never strip #login during startup. It is a real client-side
             // route used by the landing-page login buttons.
@@ -17094,8 +17207,8 @@ button:not(:disabled){pointer-events:auto!important;cursor:pointer!important}
     // HARD ADMIN ROUTE: /admin must never repaint the public homepage.
     const adminRoute =
       window.__gdAdminHardRoute === true ||
-      window.location.pathname.replace(/\\/+$/,'') === '/admin' ||
-      window.location.pathname.replace(/\\/+$/,'') === '/admin/control' || window.location.pathname.replace(/\/+$/,'') === '/admin/control.html' ||
+      window.location.pathname.replace(/\/+$/,'') === '/admin' ||
+      window.location.pathname.replace(/\/+$/,'') === '/admin/control' || window.location.pathname.replace(/\/+$/,'') === '/admin/control.html' ||
       new URLSearchParams(window.location.search).get('admin') === '1';
 
     const loginRoute=String(window.location.hash||'').toLowerCase()==='#login'
@@ -17900,7 +18013,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 })();
 </script>
 
-<style id="ghardekho-property-location-autocomplete-v1">
+<style id="ghardekho-property-location-autocomplete-v1-css">
 #propertyLocationWrap{position:relative;grid-column:1/-1}
 #gdPropertyLocationSuggestions{position:absolute;left:0;right:0;top:calc(100% + 4px);z-index:40000;display:none;max-height:300px;overflow:auto;background:#fff;border:1px solid #dbe7e3;border-radius:12px;box-shadow:0 18px 40px rgba(7,31,28,.18);padding:5px}
 .gd-property-location-option{display:block;width:100%;padding:11px 12px;border:0;border-radius:9px;background:#fff;text-align:left;color:#173a36;cursor:pointer}
@@ -17909,7 +18022,7 @@ body.gd-auth-page #gdAuthFormShell{position:relative!important;z-index:10001!imp
 .gd-property-location-option span{display:block;margin-top:3px;color:#72817c;font-size:11px;line-height:1.3}
 @media(max-width:680px){#gdPropertyLocationSuggestions{max-height:260px}.gd-property-location-option{min-height:56px}}
 </style>
-<script id="ghardekho-property-location-autocomplete-v1">
+<script id="ghardekho-property-location-autocomplete-v1-js">
 (function(){
   const API="https://nominatim.openstreetmap.org/search";
   let timer=null,controller=null,last="";
@@ -19640,11 +19753,22 @@ body.gd-auth-page #gdAuthFormShell input{
    * through the visible Signup tab.
    */
   window.openLoginAs = function(role){
-    if(typeof originalOpenLoginAs === "function") originalOpenLoginAs(role);
+    const signupWasActive = window.location.hash === "#signup" ||
+      (window.history && window.history.state && window.history.state.mode === "signup");
+    const selectedRole = role === "owner" ? "owner" : "renter";
+    if(typeof originalOpenLoginAs === "function") originalOpenLoginAs(selectedRole);
     requestAnimationFrame(function(){
-      if(typeof window.showSignInPage === "function") window.showSignInPage();
-      const email=document.getElementById("userEmail");
-      if(email) email.focus();
+      const owner=document.getElementById("roleOwner");
+      const renter=document.getElementById("roleRenter");
+      if(owner) owner.checked = selectedRole === "owner";
+      if(renter) renter.checked = selectedRole === "renter";
+      if(signupWasActive && typeof window.showSignUpPage === "function"){
+        window.showSignUpPage();
+        document.getElementById("userName")?.focus();
+      }else{
+        if(typeof window.showSignInPage === "function") window.showSignInPage();
+        document.getElementById("userEmail")?.focus();
+      }
     });
   };
 
@@ -19659,23 +19783,32 @@ body.gd-auth-page #gdAuthFormShell input{
     el.scrollIntoView({behavior:"auto",block:"start"});
   };
 
-  window.gdrOpenPublicExplore = function(event){
+  window.gdrOpenPublicExplore = async function(event){
     if(event){
       event.preventDefault();
       event.stopPropagation();
     }
 
-    // "Explore Rentals" is the renter entry point.
-    // Always open the real Renter sign-in form instead of the public
-    // search surface, so the CTA cannot land on the wrong page.
+    // Public visitors can browse approved listings without signing in.
+    // Contact and visit-request actions remain protected by their own flows.
     try{
-      if(typeof window.openLoginAs === "function"){
-        window.openLoginAs("renter");
-      }else if(typeof window.openLoginSection === "function"){
-        window.openLoginSection("renter");
-      }
+      document.body.classList.remove("gd-auth-page");
+      const landing=document.getElementById("loggedOutLanding");
+      const authGateway=document.getElementById("gdAuthGateway");
+      const loginSection=document.getElementById("loginSection");
+      const homeSection=document.getElementById("homeSection");
+      const propertiesSection=document.getElementById("propertiesSection");
+      if(landing) landing.style.display="none";
+      if(authGateway) authGateway.style.display="none";
+      if(loginSection) loginSection.style.display="none";
+      if(homeSection) homeSection.style.display="block";
+      if(propertiesSection) propertiesSection.style.display="block";
+      if(typeof window.loadProperties === "function") await window.loadProperties(true);
+      if(typeof window.gdrFastScrollTo === "function") window.gdrFastScrollTo("propertiesSection");
     }catch(error){
-      console.error("GharDekho renter login action failed:",error);
+      console.error("GharDekho public explore failed:",error);
+      const message=document.getElementById("backendMessage");
+      if(message){message.textContent="Homes could not be loaded right now. Please try again.";message.className="backend-message error";}
     }
     return false;
   };
@@ -20388,7 +20521,7 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   .renter-form-actions{bottom:74px!important}
 }
 </style>
-<style id="ghardekho-renter-action-fix-v2">
+<style id="ghardekho-renter-action-fix-v2-css">
 /* Reliable renter action navigation: the dashboard buttons always open a
    real screen, even when another legacy listener is not initialized. */
 #renterFindHomeSection.gd-force-visible{
@@ -20442,7 +20575,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
   }
 }
 </style>
-<script id="ghardekho-renter-action-fix-v2">
+<script id="ghardekho-renter-action-fix-v2-js">
 (function(){
   function byId(id){return document.getElementById(id);}
   function openFindHome(){
@@ -20666,6 +20799,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
   new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
 </script>
+
 </html>
 
 <style id="ghardekho-dual-role-v1">
@@ -21492,6 +21626,17 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 @media(prefers-reduced-motion:reduce){
   .renter-live-nearby-action *,
   .renter-live-nearby-card *{animation:none!important}
+}
+
+/* Keep edit actions reachable on short desktop and phone viewports. */
+#propertyEditor.active{align-items:flex-start!important;overflow-y:auto!important;padding:16px!important}
+#propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 32px)!important;overflow-y:auto!important;margin:0 auto!important}
+#propertyEditor.active .gd-editor-actions{position:sticky;bottom:0;z-index:3;background:#fff;padding:12px 0 6px;border-top:1px solid #e6eeeb}
+@media(max-width:560px){
+  #propertyEditor.active{padding:10px!important}
+  #propertyEditor.active .gd-property-editor-card{max-height:calc(100dvh - 20px)!important;padding:16px!important}
+  #propertyEditor.active .gd-editor-actions{flex-wrap:wrap}
+  #propertyEditor.active .gd-editor-actions button{min-height:44px}
 }
 </style>
 

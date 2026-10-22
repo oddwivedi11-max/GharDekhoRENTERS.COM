@@ -1,0 +1,72 @@
+name: GDR QA Static Checks
+
+on:
+  push:
+    branches:
+      - "fix/full-qa-20261020"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: gdr-qa-static-checks
+  cancel-in-progress: true
+
+jobs:
+  javascript-syntax:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout QA branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Check committed diff formatting
+        run: git show --check --oneline HEAD || echo "::warning::Whitespace warnings detected in the latest commit; continuing with JavaScript syntax checks."
+
+      - name: Parse inline JavaScript in public and admin pages
+        shell: bash
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          targets = [Path("index.html"), Path("admin/control.html")]
+          out = Path(".qa-inline-js")
+          out.mkdir(exist_ok=True)
+          total = 0
+
+          for target in targets:
+              source = target.read_text(encoding="utf-8")
+              matches = re.findall(r"<script\b([^>]*)>(.*?)</script\s*>", source, flags=re.I | re.S)
+              count = 0
+              for attrs, body in matches:
+                  if re.search(r"\bsrc\s*=", attrs, flags=re.I):
+                      continue
+                  type_match = re.search(r"""\btype\s*=\s*["']([^"']+)["']""", attrs, flags=re.I)
+                  script_type = type_match.group(1).lower() if type_match else "text/javascript"
+                  if script_type not in ("text/javascript", "application/javascript", "module"):
+                      continue
+                  suffix = "mjs" if script_type == "module" else "js"
+                  path = out / f"{target.stem}-{count:03d}.{suffix}"
+                  path.write_text(body, encoding="utf-8")
+                  count += 1
+              print(f"{target}: extracted {count} inline JavaScript blocks")
+              if count == 0:
+                  raise SystemExit(f"No inline JavaScript found in {target}")
+              total += count
+
+          print(f"Total inline JavaScript blocks: {total}")
+          PY
+
+          find .qa-inline-js -type f \( -name '*.js' -o -name '*.mjs' \) -print0 | while IFS= read -r -d '' file; do
+            echo "Checking $file"
+            node --check "$file"
+          done
+
+      - name: Check standalone PIN resolver
+        run: node --check assets/gdr-pincode-search.js
