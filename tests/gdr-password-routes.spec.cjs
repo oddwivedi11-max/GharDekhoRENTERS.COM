@@ -37,7 +37,9 @@ test.describe('GDR password and route safety regression checks', () => {
     const html = fs.readFileSync('index.html', 'utf8');
     const pinAsset = fs.readFileSync('assets/gdr-pincode-search.js', 'utf8');
     expect(pinAsset.length).toBeGreaterThan(100);
-    expect(html).toMatch(/gdr-pincode-search\.js/);
+    expect(pinAsset).toContain('const INPUT_ID = "renterSearchLocation"');
+    // The standalone resolver is intentionally not injected by the Pages workflow.
+    // Checking for a script tag in index.html would reintroduce the old bug.
     expect(html).toMatch(/renterSearchLocation/);
     expect(html).toMatch(/pincode|pin code|postal code/i);
   });
