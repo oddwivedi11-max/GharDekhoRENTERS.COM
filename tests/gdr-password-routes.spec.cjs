@@ -43,4 +43,12 @@ test.describe('GDR password and route safety regression checks', () => {
     expect(html).toMatch(/renterSearchLocation/);
     expect(html).toMatch(/pincode|pin code|postal code/i);
   });
+
+  test('signup confirmation matches the email-and-password login flow', async () => {
+    const html = fs.readFileSync('index.html', 'utf8');
+    expect(html).toContain('Confirm your email first, then log in with your registered email address and password.');
+    expect(html).not.toContain('Confirm your email first, then log in with your registered +91 phone number and password.');
+    expect(html).toMatch(/signInWithPassword\(\{\s*email,\s*password\s*\}\)/);
+  });
+
 });
