@@ -43,4 +43,24 @@ test.describe('GDR password and route safety regression checks', () => {
     expect(html).toMatch(/renterSearchLocation/);
     expect(html).toMatch(/pincode|pin code|postal code/i);
   });
+
+  test('signup confirmation instructs users to log in with email and password', async () => {
+    const html = fs.readFileSync('index.html', 'utf8');
+    expect(html).toContain('Confirm your email first, then log in with your registered email address and password.');
+    expect(html).not.toContain('Confirm your email first, then log in with your registered +91 phone number and password.');
+    expect(html).toMatch(/signInWithPassword\(\{\s*email,\s*password\s*\}\)/);
+  });
+
+  test('owner-tab login for a renter-only account routes to renter without signing out', async () => {
+    const html = fs.readFileSync('index.html', 'utf8');
+    const start = html.indexOf('if (!getAccountRoles(currentProfile).includes("owner"))');
+    expect(start, 'Owner-role access check is missing').toBeGreaterThanOrEqual(0);
+    const end = html.indexOf('const ownerRoleReady', start);
+    expect(end, 'Could not isolate owner-role fallback').toBeGreaterThan(start);
+    const fallback = html.slice(start, end);
+    expect(fallback).toContain('This account has Renter access, so we opened your Renter dashboard.');
+    expect(fallback).toContain('await withAuthTimeout(renderActiveDashboard()');
+    expect(fallback).not.toMatch(/auth\.signOut\(/);
+  });
+
 });
