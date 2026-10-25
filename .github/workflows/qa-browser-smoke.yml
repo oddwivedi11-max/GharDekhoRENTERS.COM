@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "fix/full-qa-20261020"
+      - "fix/account-flow-audit-20261025"
     paths:
       - "index.html"
       - "admin/**"
@@ -25,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout QA branch
+      - name: Checkout branch under test
         uses: actions/checkout@v4
 
       - name: Set up Node
