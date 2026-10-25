@@ -1,5 +1,6 @@
 name: Deploy GharDekho to Cloudflare Workers
 
+# Trigger a fresh deployment of the current main branch.
 on:
   push:
     branches: ["main"]
