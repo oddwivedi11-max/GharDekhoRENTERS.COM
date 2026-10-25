@@ -51,4 +51,18 @@ test.describe('GDR password and route safety regression checks', () => {
     expect(html).toMatch(/signInWithPassword\(\{\s*email,\s*password\s*\}\)/);
   });
 
+
+  test('email-password login does not block on a phone number field', async () => {
+    const html = fs.readFileSync('index.html', 'utf8');
+    const start = html.indexOf('async function loginUser()');
+    expect(start, 'Login function is missing').toBeGreaterThanOrEqual(0);
+    const end = html.indexOf('\n// Keep auth actions available', start);
+    expect(end, 'Could not isolate login function').toBeGreaterThan(start);
+    const login = html.slice(start, end);
+    expect(login).toMatch(/signInWithPassword\(\{\s*email,\s*password\s*\}\)/);
+    expect(login).not.toContain('gharDekhoPhoneError');
+    expect(login).not.toContain('loginPhoneInput');
+    expect(login).toMatch(/if\s*\(!password\)/);
+  });
+
 });
