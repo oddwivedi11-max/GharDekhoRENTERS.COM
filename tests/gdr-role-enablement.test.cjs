@@ -53,12 +53,12 @@ test('ordinary Owner login does not silently grant Owner access to a renter-only
 test('role persistence preserves the existing role when enabling the second mode', () => {
   const source = functionSource(
     'async function saveActiveAccountRole(role)',
-    '\\nasync function switchAccountRole(role)'
+    '\nasync function switchAccountRole(role)'
   );
 
-  assert.match(source, /const existingRoles = getAccountRoles\\(currentProfile\\)/);
-  assert.match(source, /existingRoles\\.map/);
+  assert.match(source, /const existingRoles = getAccountRoles\(currentProfile\)/);
+  assert.match(source, /existingRoles\.map/);
   assert.match(source, /normalized/);
-  assert.match(source, /update\\(\\{ roles: roleValues \\}\\)/);
-  assert.doesNotMatch(source, /update\\(\\{[^}]*role:\\s*normalized/);
+  assert.match(source, /update\(\{ roles: roleValues \}\)/);
+  assert.doesNotMatch(source, /update\(\{[^}]*role:\s*normalized/);
 });
