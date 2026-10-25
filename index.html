@@ -10918,18 +10918,36 @@ async function saveActiveAccountRole(role) {
 
 async function switchAccountRole(role) {
     const target = role === "owner" ? "owner" : "renter";
-    if (!currentUser || !currentProfile) return;
+    if (!currentUser || !currentProfile) {
+        showMessage("backendMessage", "Please log in before switching account modes.", "error");
+        return;
+    }
 
     const availableRoles = getAccountRoles(currentProfile);
-    if (!availableRoles.includes(target)) {
-        showMessage("backendMessage", "This account does not have Owner access.", "error");
+    const isExplicitCrossRoleAction =
+        (target === "owner" && activeRole === "renter") ||
+        (target === "renter" && activeRole === "owner");
+
+    // The dashboard switcher is shown only to existing owners. The explicit
+    // "List a Property" action may add Owner access to a Renter account, and
+    // an Owner may explicitly add Renter access. Persist the role first; never
+    // fake a role in browser memory if the database rejects the update.
+    if (!availableRoles.includes(target) && !isExplicitCrossRoleAction) {
+        showMessage("backendMessage", "This account cannot switch to that mode from the current screen.", "error");
         updateDashboardRoleSwitcher();
         return;
     }
 
     const ok = await saveActiveAccountRole(target);
     if (!ok) {
-        showMessage("backendMessage", "Could not switch dashboard. Please try again.", "error");
+        showMessage(
+            "backendMessage",
+            target === "owner"
+                ? "Owner access could not be enabled. Your Renter account is unchanged; please try again."
+                : "Renter access could not be enabled. Your Owner account is unchanged; please try again.",
+            "error"
+        );
+        updateDashboardRoleSwitcher();
         return;
     }
 
