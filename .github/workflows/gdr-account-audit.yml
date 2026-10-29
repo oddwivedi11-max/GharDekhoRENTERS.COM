@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "fix/gdr-role-and-audit-20261025"
+      - "fix/signup-confirmation-20261025"
     paths:
       - "index.html"
       - "admin/**"
@@ -23,7 +24,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
-      - name: Checkout QA branch
+      - name: Checkout branch under test
         uses: actions/checkout@v4
 
       - name: Set up Node

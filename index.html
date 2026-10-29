@@ -11475,11 +11475,6 @@ async function signupUser() {
                 authMessage.textContent = "We couldn't complete sign-up with those details. Please check the information and try again, or use Login/Forgot password if you already have an account.";
                 return;
             }
-            const loginErrorText = String(error?.message || "").toLowerCase();
-            if (loginErrorText.includes("invalid login credentials") || loginErrorText.includes("user not found")) {
-                authMessage.textContent = "No account found with these details, or the password is incorrect. If you are new to GharDekho, please Sign Up.";
-                return;
-            }
             authMessage.textContent = getFriendlyAuthError(error);
             return;
         }
@@ -11523,7 +11518,7 @@ async function signupUser() {
         sessionStorage.setItem("gd_active_role", selectedRole);
 
         authMessage.textContent =
-            "Confirm your email first, then log in with your registered +91 phone number and password.";
+            "Confirm your email first, then log in with your registered email address and password.";
         const passwordField = document.getElementById("userPassword");
         if (passwordField) passwordField.value = "";
         return;
@@ -11608,8 +11603,6 @@ async function loginUser() {
 
     const email = document.getElementById("userEmail").value.trim().toLowerCase();
     const password = document.getElementById("userPassword").value;
-    const loginPhoneInput = document.getElementById("userPhone");
-    const loginPhone = normalizePhone(loginPhoneInput?.value || "");
     // Always honor the role explicitly selected on the login form.
     // This prevents a previous Owner selection in sessionStorage from
     // sending a dual-role account to the Owner dashboard when Renter is selected.
@@ -11623,12 +11616,6 @@ async function loginUser() {
     try {
         if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
             authMessage.textContent = "Enter a valid email address.";
-            return;
-        }
-        const loginPhoneError = gharDekhoPhoneError(loginPhone);
-        if (loginPhoneError) {
-            authMessage.textContent = loginPhoneError;
-            loginPhoneInput?.focus();
             return;
         }
         if (!password) {
