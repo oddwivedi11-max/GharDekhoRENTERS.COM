@@ -19794,26 +19794,41 @@ body.gd-auth-page #gdAuthFormShell input{
       event.stopPropagation();
     }
 
-    // Public visitors can browse approved listings without signing in.
-    // Contact and visit-request actions remain protected by their own flows.
+    // Property discovery requires an account. Send visitors straight to the
+    // renter login/signup screen and keep the guidance visible while they choose.
     try{
-      document.body.classList.remove("gd-auth-page");
-      const landing=document.getElementById("loggedOutLanding");
-      const authGateway=document.getElementById("gdAuthGateway");
-      const loginSection=document.getElementById("loginSection");
-      const homeSection=document.getElementById("homeSection");
-      const propertiesSection=document.getElementById("propertiesSection");
-      if(landing) landing.style.display="none";
-      if(authGateway) authGateway.style.display="none";
-      if(loginSection) loginSection.style.display="none";
-      if(homeSection) homeSection.style.display="block";
-      if(propertiesSection) propertiesSection.style.display="block";
-      if(typeof window.loadProperties === "function") await window.loadProperties(true);
-      if(typeof window.gdrFastScrollTo === "function") window.gdrFastScrollTo("propertiesSection");
+      const noticeId = "gdrExploreLoginNotice";
+      let notice = document.getElementById(noticeId);
+      if(!notice){
+        notice = document.createElement("div");
+        notice.id = noticeId;
+        notice.setAttribute("role","status");
+        notice.setAttribute("aria-live","polite");
+        notice.style.cssText = "position:fixed;z-index:10050;top:18px;left:50%;transform:translateX(-50%);width:min(92vw,560px);padding:14px 18px;border-radius:14px;background:#073b37;color:#fff;box-shadow:0 12px 34px rgba(0,0,0,.22);font:600 15px/1.45 system-ui,sans-serif;text-align:center;";
+        document.body.appendChild(notice);
+      }
+      notice.textContent = "To explore properties, please log in first. New user? Create your account first.";
+      notice.style.display = "block";
+      if(window.__gdrExploreNoticeTimer) clearTimeout(window.__gdrExploreNoticeTimer);
+      window.__gdrExploreNoticeTimer = setTimeout(function(){
+        const currentNotice = document.getElementById(noticeId);
+        if(currentNotice) currentNotice.style.display = "none";
+      }, 9000);
+
+      if(typeof window.openLoginAs === "function"){
+        await window.openLoginAs("renter");
+      }else if(typeof window.openLoginSection === "function"){
+        window.openLoginSection("renter");
+      }else{
+        window.location.hash = "login";
+        const loginSection = document.getElementById("loginSection");
+        if(loginSection) loginSection.scrollIntoView({behavior:"auto",block:"start"});
+      }
     }catch(error){
-      console.error("GharDekho public explore failed:",error);
-      const message=document.getElementById("backendMessage");
-      if(message){message.textContent="Homes could not be loaded right now. Please try again.";message.className="backend-message error";}
+      console.error("GharDekho explore login redirect failed:",error);
+      window.location.hash = "login";
+      const loginSection = document.getElementById("loginSection");
+      if(loginSection) loginSection.scrollIntoView({behavior:"auto",block:"start"});
     }
     return false;
   };
