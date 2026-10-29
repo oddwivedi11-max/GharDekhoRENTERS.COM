@@ -14540,14 +14540,13 @@ async function refreshSaveButtons(propertyId) {
            OWNER - ADD PROPERTY
            ========================================================= */
 
-        <style id="gdr-owner-required-field-validation">
-          #addPropertyForm .gd-field-invalid {
-            border: 2px solid #c62828 !important;
-            outline: 3px solid rgba(198,40,40,.14) !important;
-            background-color: #fff6f6 !important;
-            box-shadow: 0 0 0 2px rgba(198,40,40,.08) !important;
-          }
-        </style>
+        (function(){
+            if (document.getElementById("gdr-owner-required-field-validation")) return;
+            const style = document.createElement("style");
+            style.id = "gdr-owner-required-field-validation";
+            style.textContent = "#addPropertyForm .gd-field-invalid{border:2px solid #c62828!important;outline:3px solid rgba(198,40,40,.14)!important;background-color:#fff6f6!important;box-shadow:0 0 0 2px rgba(198,40,40,.08)!important}";
+            document.head.appendChild(style);
+        })();
 
         function focusInvalidPropertyField(field, message) {
             const form = document.getElementById("addPropertyForm");
