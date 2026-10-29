@@ -14540,6 +14540,64 @@ async function refreshSaveButtons(propertyId) {
            OWNER - ADD PROPERTY
            ========================================================= */
 
+        <style id="gdr-owner-required-field-validation">
+          #addPropertyForm .gd-field-invalid {
+            border: 2px solid #c62828 !important;
+            outline: 3px solid rgba(198,40,40,.14) !important;
+            background-color: #fff6f6 !important;
+            box-shadow: 0 0 0 2px rgba(198,40,40,.08) !important;
+          }
+        </style>
+
+        function focusInvalidPropertyField(field, message) {
+            const form = document.getElementById("addPropertyForm");
+            if (!form || !field) return;
+            form.querySelectorAll(".gd-field-invalid").forEach(el => el.classList.remove("gd-field-invalid"));
+            field.classList.add("gd-field-invalid");
+            field.setAttribute("aria-invalid", "true");
+            const clearInvalid = () => {
+                if (field.value && String(field.value).trim()) {
+                    field.classList.remove("gd-field-invalid");
+                    field.removeAttribute("aria-invalid");
+                }
+            };
+            field.addEventListener("input", clearInvalid, { once: true });
+            field.addEventListener("change", clearInvalid, { once: true });
+            showMessage("backendMessage", message, "error");
+            field.focus({ preventScroll: true });
+            requestAnimationFrame(() => field.scrollIntoView({ behavior: "smooth", block: "center" }));
+        }
+
+        async function verifyOwnerPropertyPincode(pin, input) {
+            const status = document.getElementById("propertyPincodeStatus");
+            if (!/^\\d{6}$/.test(pin)) {
+                if (status) status.textContent = "Enter a valid 6-digit Indian PIN code.";
+                focusInvalidPropertyField(input, "Please enter a valid 6-digit PIN code.");
+                return null;
+            }
+            if (status) status.textContent = "Verifying PIN code with India Post…";
+            input.classList.remove("gd-field-invalid");
+            input.removeAttribute("aria-invalid");
+            try {
+                const response = await fetch("https://api.postalpincode.in/pincode/" + encodeURIComponent(pin), { headers: { Accept: "application/json" } });
+                if (!response.ok) throw new Error("PIN lookup is unavailable");
+                const payload = await response.json();
+                const record = Array.isArray(payload) ? payload[0] : null;
+                const offices = record && record.Status === "Success" && Array.isArray(record.PostOffice) ? record.PostOffice : [];
+                if (!offices.length) throw new Error("This PIN code was not found by India Post. Check the number.");
+                const office = offices.find(item => item && item.Name) || offices[0];
+                const base = [office.Name, office.District, office.State].filter(Boolean).filter((value,index,array) => array.indexOf(value) === index).join(", ");
+                input.dataset.gdrVerifiedPin = pin;
+                input.dataset.gdrAppliedBase = base;
+                if (status) status.textContent = "✓ PIN verified: " + base;
+                return { base, office };
+            } catch (error) {
+                if (status) status.textContent = error.message || "PIN verification failed. Please try again.";
+                focusInvalidPropertyField(input, error.message || "Could not verify the PIN code. Please try again.");
+                return null;
+            }
+        }
+
         async function addProperty(event) {
             event.preventDefault();
             if (isSubmittingProperty) return;
@@ -14568,6 +14626,39 @@ async function refreshSaveButtons(propertyId) {
 
             const listingType =
                 document.getElementById("propertyListingType")?.value || "home";
+
+            // Custom validation puts the user directly on the missing field.
+            const requiredFields = [
+                ["propertyTitle", "Please enter the property name."],
+                ["propertyPincode", "Please enter a valid 6-digit PIN code."],
+                ["propertyLocation", "Please enter the property address / street / landmark."],
+                ["propertyRent", "Please enter the monthly rent."]
+            ];
+            if (listingType === "home") {
+                requiredFields.push(["propertyBhk", "Please enter the BHK for this home."]);
+            } else {
+                requiredFields.push(
+                    ["propertyRoomType", "Please select a room type for the PG/Hostel."],
+                    ["propertyGender", "Please select a gender preference for the PG/Hostel."],
+                    ["propertyTotalBeds", "Please enter the total number of beds."],
+                    ["propertyAvailableBeds", "Please enter the available number of beds."]
+                );
+            }
+            for (const [fieldId, errorMessage] of requiredFields) {
+                const field = document.getElementById(fieldId);
+                if (!field || !String(field.value || "").trim()) {
+                    if (field) focusInvalidPropertyField(field, errorMessage);
+                    else showMessage("backendMessage", errorMessage, "error");
+                    return;
+                }
+            }
+
+            const pinInput = document.getElementById("propertyPincode");
+            const pinValue = String(pinInput?.value || "").trim();
+            if (pinInput?.dataset.gdrVerifiedPin !== pinValue) {
+                const pinResult = await verifyOwnerPropertyPincode(pinValue, pinInput);
+                if (!pinResult) return;
+            }
 
             const title =
                 document.getElementById("propertyTitle")
@@ -19794,41 +19885,26 @@ body.gd-auth-page #gdAuthFormShell input{
       event.stopPropagation();
     }
 
-    // Property discovery requires an account. Send visitors straight to the
-    // renter login/signup screen and keep the guidance visible while they choose.
+    // Public visitors can browse approved listings without signing in.
+    // Contact and visit-request actions remain protected by their own flows.
     try{
-      const noticeId = "gdrExploreLoginNotice";
-      let notice = document.getElementById(noticeId);
-      if(!notice){
-        notice = document.createElement("div");
-        notice.id = noticeId;
-        notice.setAttribute("role","status");
-        notice.setAttribute("aria-live","polite");
-        notice.style.cssText = "position:fixed;z-index:10050;top:18px;left:50%;transform:translateX(-50%);width:min(92vw,560px);padding:14px 18px;border-radius:14px;background:#073b37;color:#fff;box-shadow:0 12px 34px rgba(0,0,0,.22);font:600 15px/1.45 system-ui,sans-serif;text-align:center;";
-        document.body.appendChild(notice);
-      }
-      notice.textContent = "To explore properties, please log in first. New user? Create your account first.";
-      notice.style.display = "block";
-      if(window.__gdrExploreNoticeTimer) clearTimeout(window.__gdrExploreNoticeTimer);
-      window.__gdrExploreNoticeTimer = setTimeout(function(){
-        const currentNotice = document.getElementById(noticeId);
-        if(currentNotice) currentNotice.style.display = "none";
-      }, 9000);
-
-      if(typeof window.openLoginAs === "function"){
-        await window.openLoginAs("renter");
-      }else if(typeof window.openLoginSection === "function"){
-        window.openLoginSection("renter");
-      }else{
-        window.location.hash = "login";
-        const loginSection = document.getElementById("loginSection");
-        if(loginSection) loginSection.scrollIntoView({behavior:"auto",block:"start"});
-      }
+      document.body.classList.remove("gd-auth-page");
+      const landing=document.getElementById("loggedOutLanding");
+      const authGateway=document.getElementById("gdAuthGateway");
+      const loginSection=document.getElementById("loginSection");
+      const homeSection=document.getElementById("homeSection");
+      const propertiesSection=document.getElementById("propertiesSection");
+      if(landing) landing.style.display="none";
+      if(authGateway) authGateway.style.display="none";
+      if(loginSection) loginSection.style.display="none";
+      if(homeSection) homeSection.style.display="block";
+      if(propertiesSection) propertiesSection.style.display="block";
+      if(typeof window.loadProperties === "function") await window.loadProperties(true);
+      if(typeof window.gdrFastScrollTo === "function") window.gdrFastScrollTo("propertiesSection");
     }catch(error){
-      console.error("GharDekho explore login redirect failed:",error);
-      window.location.hash = "login";
-      const loginSection = document.getElementById("loginSection");
-      if(loginSection) loginSection.scrollIntoView({behavior:"auto",block:"start"});
+      console.error("GharDekho public explore failed:",error);
+      const message=document.getElementById("backendMessage");
+      if(message){message.textContent="Homes could not be loaded right now. Please try again.";message.className="backend-message error";}
     }
     return false;
   };
