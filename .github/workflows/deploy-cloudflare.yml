@@ -1,6 +1,7 @@
 name: Deploy GharDekho to Cloudflare Workers
 
 # Trigger a fresh deployment of the current main branch.
+# Manual redeploys can be started from the Actions tab via workflow_dispatch.
 on:
   push:
     branches: ["main"]
