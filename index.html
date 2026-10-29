@@ -12638,7 +12638,11 @@ async function renderActiveDashboard() {
         if (subtitle) subtitle.textContent = "Manage your properties, occupancy and renter visit requests.";
         if (roleBadge) roleBadge.textContent = "OWNER";
         if (dashboardIdentity) dashboardIdentity.textContent =
-            (currentProfile?.name || "User") + " • Owner";
+            (currentProfile?.name || currentUser?.email || "User") + " • Owner";
+
+        // Paint the saved account profile immediately; do not wait for the
+        // owner-verification RPC or a property-list query to finish.
+        updateOwnerProfileUI(currentOwnerProfile || currentProfile || {});
         await Promise.allSettled([loadOwnerVerificationStatus(), loadOwnerProperties(), loadOwnerVisits(), loadSavedProperties()]);
         return;
     }
@@ -15069,11 +15073,33 @@ async function loadOwnerVerificationStatus() {
     const title = document.getElementById("ownerVerificationTitle");
 
     try {
+        let owner = null;
         const { data, error } = await getMyOwnerProfileShared();
-        if (error) throw error;
 
-        const owner = Array.isArray(data) ? (data[0] || null) : data;
+        if (!error) {
+            owner = Array.isArray(data) ? (data[0] || null) : data;
+        } else {
+            console.warn("Owner profile RPC unavailable; trying the owner row directly:", error);
+        }
+
+        // The direct, authenticated owner-row read is a safe fallback if the
+        // RPC is temporarily unavailable or returns no row.
+        if (!owner) {
+            const { data: fallbackOwner, error: fallbackError } = await supabaseClient
+                .from("owners")
+                .select("id,name,phone,verification_status")
+                .eq("user_id", currentUser.id)
+                .maybeSingle();
+
+            if (fallbackError) throw fallbackError;
+            owner = fallbackOwner || null;
+        }
+
         currentOwnerProfile = owner || null;
+
+        // Name/phone can come from the owner row; email and any missing
+        // fields fall back to the authenticated user's saved public profile.
+        updateOwnerProfileUI(owner || currentProfile || {});
 
         if (!owner) {
             if (badge) {
@@ -15114,11 +15140,14 @@ async function loadOwnerVerificationStatus() {
         }
     } catch (error) {
         console.error("Owner verification status error:", error);
+        // Keep the saved name, email and phone visible even when the
+        // verification-status request itself fails.
+        updateOwnerProfileUI(currentOwnerProfile || currentProfile || {});
         if (badge) {
             badge.textContent = "Unable to check";
             badge.className = "pending-badge";
         }
-        if (text) text.textContent = "We could not load your verification status. Please refresh and try again.";
+        if (text) text.textContent = "We could not load your verification status. Your saved profile details are still available above.";
     }
 }
 
