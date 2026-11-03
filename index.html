@@ -19897,42 +19897,30 @@ body.gd-auth-page #gdAuthFormShell input{
   };
 
   /*
-   * Explore is a public action. It must never require authentication.
-   * Keep the search surface and property inventory visible and land on the
-   * actual listings after the public inventory request starts.
+   * All public Explore Homes CTAs must enter the Renter sign-in flow.
+   * Do not expose the property inventory before renter authentication.
    */
-  window.gdrFastScrollTo = function(id){
-    const el=document.getElementById(id);
-    if(!el) return;
-    el.scrollIntoView({behavior:"auto",block:"start"});
-  };
-
-  window.gdrOpenPublicExplore = async function(event){
+  window.gdrOpenPublicExplore = function(event){
     if(event){
       event.preventDefault();
       event.stopPropagation();
     }
 
-    // Public visitors can browse approved listings without signing in.
-    // Contact and visit-request actions remain protected by their own flows.
-    try{
-      document.body.classList.remove("gd-auth-page");
+    if(typeof window.openLoginAs === "function"){
+      window.openLoginAs("renter");
+    }else if(typeof window.openLoginSection === "function"){
+      window.openLoginSection("renter");
+    }else{
+      const login=document.getElementById("loginSection");
       const landing=document.getElementById("loggedOutLanding");
-      const authGateway=document.getElementById("gdAuthGateway");
-      const loginSection=document.getElementById("loginSection");
-      const homeSection=document.getElementById("homeSection");
-      const propertiesSection=document.getElementById("propertiesSection");
+      const gateway=document.getElementById("gdAuthGateway");
+      const form=document.getElementById("gdAuthFormShell");
+      document.body.classList.add("gd-auth-page");
       if(landing) landing.style.display="none";
-      if(authGateway) authGateway.style.display="none";
-      if(loginSection) loginSection.style.display="none";
-      if(homeSection) homeSection.style.display="block";
-      if(propertiesSection) propertiesSection.style.display="block";
-      if(typeof window.loadProperties === "function") await window.loadProperties(true);
-      if(typeof window.gdrFastScrollTo === "function") window.gdrFastScrollTo("propertiesSection");
-    }catch(error){
-      console.error("GharDekho public explore failed:",error);
-      const message=document.getElementById("backendMessage");
-      if(message){message.textContent="Homes could not be loaded right now. Please try again.";message.className="backend-message error";}
+      if(gateway) gateway.style.display="none";
+      if(login) login.style.display="grid";
+      if(form) form.style.display="grid";
+      try{history.replaceState({gdAuth:true},"","#login");}catch(e){}
     }
     return false;
   };
