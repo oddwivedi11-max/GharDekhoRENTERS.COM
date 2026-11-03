@@ -15142,7 +15142,7 @@ async function savePropertyEdit(e){
 }
 
 async function loadOwnerVerificationStatus() {
-    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
+    if (!currentUser || !accountHasRole("owner")) return;
 
     const badge = document.getElementById("ownerVerificationBadge");
     const text = document.getElementById("ownerVerificationText");
@@ -15228,7 +15228,7 @@ async function loadOwnerVerificationStatus() {
 }
 
 async function loadOwnerProperties() {
-            if (!currentUser || !accountHasRole("owner") || activeRole !== "owner") {
+            if (!currentUser || !accountHasRole("owner")) {
                 return;
             }
 
@@ -15671,7 +15671,7 @@ async function markVisitAsCurrentRenter(visitId) {
 }
 
 async function loadOwnerVisits() {
-    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
+    if (!currentUser || !accountHasRole("owner")) return;
 
     const container = document.getElementById("ownerVisitsContainer");
     const pendingEl = document.getElementById("ownerPendingVisitCount");
