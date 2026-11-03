@@ -181,30 +181,34 @@ replace_once(
 )
 
 
-# Force-fix the exact owner inventory loader guard. Earlier broad replacements
-# could match another owner function first; this targets this function by name.
+# Confirm the owner inventory loader no longer depends on the active UI role.
 import re
-inventory_guard = re.compile(
-    r'(async function loadOwnerProperties\\(\\)\\s*\\{\\s*)'
-    r'if\\s*\\(\\s*!currentUser\\s*\\|\\|\\s*!accountHasRole\\("owner"\\)\\s*'
-    r'\\|\\|\\s*activeRole\\s*!==\\s*"owner"\\s*\\)\\s*\\{\\s*return;\\s*\\}',
-    re.MULTILINE
-)
-source, inventory_guard_count = inventory_guard.subn(
-    r'\\1if (!currentUser || !accountHasRole("owner")) { return; }',
-    source,
-    count=1
-)
-if inventory_guard_count:
-    print("Applied: exact loadOwnerProperties active-role guard")
-elif re.search(
-    r'async function loadOwnerProperties\\(\\)\\s*\\{\\s*if\\s*\\(\\s*!currentUser\\s*\\|\\|\\s*!accountHasRole\\("owner"\\)\\s*\\)\\s*\\{\\s*return;',
-    source,
-    re.MULTILINE
-):
-    print("Already applied: exact loadOwnerProperties active-role guard")
+loader_match = re.search(r'async function loadOwnerProperties\\(\\)\\s*\\{\\s*if\\s*\\(([^)]*)\\)\\s*\\{\\s*return;\\s*\\}', source, re.MULTILINE)
+if not loader_match:
+    raise SystemExit("Stopped safely: loadOwnerProperties guard not found")
+if "activeRole" in loader_match.group(1):
+    source = source[:loader_match.start(1)] + '!currentUser || !accountHasRole("owner")' + source[loader_match.end(1):]
+    print("Applied: remove active-role condition from loadOwnerProperties")
 else:
-    raise SystemExit("Stopped safely: could not locate loadOwnerProperties guard")
+    print("Already applied: loadOwnerProperties is not gated by activeRole")
+
+replace_once(
+'''            const {
+                data,
+                error
+            } = await supabaseClient
+                .from("properties")
+                .select("id,title,name,location,address,rent,status,verification_status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description,image_url,latitude,longitude,owner_id")
+                .eq("owner_id", ownerRecord.id)
+                .order("created_at", {
+                    ascending: false
+                });''',
+'''            const {
+                data,
+                error
+            } = await supabaseClient.rpc("get_my_owner_properties");''',
+    "load My Properties through authenticated owner RPC"
+)
 
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
