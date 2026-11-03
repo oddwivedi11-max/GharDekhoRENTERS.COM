@@ -15305,13 +15305,7 @@ async function loadOwnerProperties() {
             const {
                 data,
                 error
-            } = await supabaseClient
-                .from("properties")
-                .select("id,title,name,location,address,rent,status,verification_status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description,image_url,latitude,longitude,owner_id")
-                .eq("owner_id", ownerRecord.id)
-                .order("created_at", {
-                    ascending: false
-                });
+            } = await supabaseClient.rpc("get_my_owner_properties");
 
             if (error) {
                 console.error(
