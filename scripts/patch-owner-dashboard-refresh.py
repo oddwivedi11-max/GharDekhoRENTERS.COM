@@ -107,5 +107,42 @@ replace_once(
     "allow owner visit refresh for multi-role accounts"
 )
 
+
+replace_once(
+'''async function loadOwnerProperties() {
+            if (!currentUser || !accountHasRole("owner") || activeRole !== "owner") {
+                return;
+            }''',
+'''async function loadOwnerProperties() {
+            if (!currentUser || !accountHasRole("owner")) {
+                return;
+            }''',
+    "remove active-role gate from owner property inventory"
+)
+
+replace_once(
+'''async function loadOwnerVerificationStatus() {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''async function loadOwnerVerificationStatus() {
+    if (!currentUser || !accountHasRole("owner")) return;''',
+    "remove active-role gate from owner verification"
+)
+
+replace_once(
+'''async function loadOwnerVisits() {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''async function loadOwnerVisits() {
+    if (!currentUser || !accountHasRole("owner")) return;''',
+    "remove active-role gate from owner visits"
+)
+
+replace_once(
+'''async function loadOwnerCurrentRenters(properties) {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''async function loadOwnerCurrentRenters(properties) {
+    if (!currentUser || !accountHasRole("owner")) return;''',
+    "remove active-role gate from owner current renters"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
