@@ -21,6 +21,9 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Apply owner dashboard refresh fix
+        run: python3 scripts/patch-owner-dashboard-refresh.py
+
       - name: Deploy static site with Wrangler
         uses: cloudflare/wrangler-action@v3
         with:
