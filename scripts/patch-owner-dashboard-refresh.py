@@ -78,5 +78,28 @@ replace_once(
     "pending property status label"
 )
 
+
+replace_once(
+'''            if (!currentUser || !accountHasRole("owner") || activeRole !== "owner") {
+                return;
+            }''',
+'''            if (!currentUser || !accountHasRole("owner")) {
+                return;
+            }''',
+    "allow owner inventory refresh for multi-role accounts"
+)
+
+replace_once(
+'''    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''    if (!currentUser || !accountHasRole("owner")) return;''',
+    "allow owner verification refresh for multi-role accounts"
+)
+
+replace_once(
+'''    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''    if (!currentUser || !accountHasRole("owner")) return;''',
+    "allow owner visit refresh for multi-role accounts"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
