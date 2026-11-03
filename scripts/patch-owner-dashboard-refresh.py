@@ -180,5 +180,31 @@ replace_once(
     "show truthful owner verification status on public cards"
 )
 
+
+# Force-fix the exact owner inventory loader guard. Earlier broad replacements
+# could match another owner function first; this targets this function by name.
+import re
+inventory_guard = re.compile(
+    r'(async function loadOwnerProperties\\(\\)\\s*\\{\\s*)'
+    r'if\\s*\\(\\s*!currentUser\\s*\\|\\|\\s*!accountHasRole\\("owner"\\)\\s*'
+    r'\\|\\|\\s*activeRole\\s*!==\\s*"owner"\\s*\\)\\s*\\{\\s*return;\\s*\\}',
+    re.MULTILINE
+)
+source, inventory_guard_count = inventory_guard.subn(
+    r'\\1if (!currentUser || !accountHasRole("owner")) { return; }',
+    source,
+    count=1
+)
+if inventory_guard_count:
+    print("Applied: exact loadOwnerProperties active-role guard")
+elif re.search(
+    r'async function loadOwnerProperties\\(\\)\\s*\\{\\s*if\\s*\\(\\s*!currentUser\\s*\\|\\|\\s*!accountHasRole\\("owner"\\)\\s*\\)\\s*\\{\\s*return;',
+    source,
+    re.MULTILINE
+):
+    print("Already applied: exact loadOwnerProperties active-role guard")
+else:
+    raise SystemExit("Stopped safely: could not locate loadOwnerProperties guard")
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
