@@ -13090,9 +13090,8 @@ async function renderActiveDashboard() {
                 // IMPORTANT: use only columns that exist in the core GharDekho
                 // properties schema. Optional PG/Hostel columns are not queried here.
                 // Public inventory is served through a SECURITY DEFINER RPC.
-                // Only properties belonging to admin-verified owners are public.
-                // Only admin-verified properties owned by verified owners are public.
-                // Pending and rejected listings must never appear in public search.
+                // Verified listings are public; pending listings are visible with
+                // an explicit pending-verification label. Rejected listings stay hidden.
                 const propertyQuery = supabaseClient.rpc("get_public_properties");
 
                 // Prevent the UI from being stuck on "Loading properties..." forever.
@@ -13176,7 +13175,9 @@ async function renderActiveDashboard() {
                             <p>🏠 ${escapeHtml(configuration)} · ${escapeHtml(property.furnishing || "Not specified")}</p>
                             <p class="property-rent">${formatRent(property.rent)}</p>
                             <div class="property-status-wrap" aria-label="Property availability status">
-                                ${property.status === "occupied"
+                                ${property.status === "pending" || property.verification_status === "pending"
+                                ? '<button type="button" class="property-status-button pending" disabled aria-label="Pending verification">● Pending verification</button>'
+                                : property.status === "occupied"
                                 ? '<button type="button" class="property-status-button occupied" disabled aria-label="Property occupied">● Occupied</button>'
                                 : property.status === "soon_available"
                                 ? '<button type="button" class="property-status-button soon" disabled aria-label="Property will be available soon">● Soon Available</button>'
@@ -13184,7 +13185,9 @@ async function renderActiveDashboard() {
                                 ${property.verification_status === "verified"
                                 ? '<span class="owner-badge">✓ Verified Property</span>'
                                 : '<span class="pending-badge">Property verification pending</span>'}
-                                <span class="owner-badge">✓ Verified Owner</span>
+                                ${property.owner_verified
+                                    ? '<span class="owner-badge">✓ Verified Owner</span>'
+                                    : '<span class="pending-badge">Owner verification pending</span>'}
                             </div>
                             <div class="property-actions">
                                 <button type="button" class="view-property-btn" data-id="${escapeHtml(property.id)}">View Details</button>
