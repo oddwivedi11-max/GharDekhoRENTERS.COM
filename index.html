@@ -15246,20 +15246,27 @@ async function loadOwnerProperties() {
                 error: ownerLookupError
             } = await getMyOwnerProfileShared();
 
-            const ownerRecord = Array.isArray(ownerProfile)
+            let ownerRecord = Array.isArray(ownerProfile)
                 ? (ownerProfile[0] || null)
                 : ownerProfile;
 
+            // If the owner-profile RPC is unavailable, use the authenticated
+            // owner's own row as a fallback before giving up on My Properties.
             if (ownerLookupError || !ownerRecord) {
-                console.error(
-                    "Owner lookup error:",
-                    ownerLookupError
-                );
+                console.warn("Owner profile RPC unavailable; trying the owner row directly:", ownerLookupError);
+                const { data: fallbackOwner, error: fallbackError } = await supabaseClient
+                    .from("owners")
+                    .select("id,name,phone,verification_status")
+                    .eq("user_id", currentUser.id)
+                    .maybeSingle();
 
-                container.innerHTML =
-                    "<p>Unable to find your owner profile.</p>";
-
-                return;
+                if (!fallbackError && fallbackOwner) {
+                    ownerRecord = fallbackOwner;
+                } else {
+                    console.error("Owner lookup error:", ownerLookupError, fallbackError);
+                    if (container) container.innerHTML = "<p>Unable to find your owner profile. Please refresh and try again.</p>";
+                    return;
+                }
             }
 
             currentOwnerProfile = ownerRecord;
@@ -15346,7 +15353,10 @@ async function loadOwnerProperties() {
                 data.map(function (property) {
                     let statusLabel = "Vacant";
                     let statusClass = "available";
-                    if (property.status === "occupied") {
+                    if (property.status === "pending" || property.verification_status === "pending") {
+                        statusLabel = "Pending verification";
+                        statusClass = "pending";
+                    } else if (property.status === "occupied") {
                         statusLabel = "Occupied";
                         statusClass = "occupied";
                     } else if (property.status === "soon_available") {
