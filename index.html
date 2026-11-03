@@ -1009,6 +1009,11 @@ body.gd-owner-mode .owner-saved-properties-card {
   min-height: 130px;
 }
 
+.gd-owner-location-actions{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-top:8px}
+.gd-owner-location-actions button{min-height:42px;padding:9px 14px}
+.gd-owner-location-actions small{flex:1 1 220px;color:var(--gd-text-soft);font-size:.82rem}
+#useOwnerCurrentLocationBtn:disabled{opacity:.65;cursor:wait}
+
 #verifyLocationBtn {
   background: var(--gd-brand-soft);
   color: var(--gd-brand-dark);
@@ -9921,7 +9926,11 @@ body.gd-owner-explore-mode #propertiesSection {
                             </label>
                             <label class="gd-form-field gd-form-field-wide">
                                 <span>Property address / extra details <b aria-hidden="true">*</b></span>
-                                <input type="text" id="propertyLocation" placeholder="PIN code fills area, district and state — add house, street or landmark" maxlength="300" autocomplete="off" spellcheck="false" required>
+                                <input type="text" id="propertyLocation" placeholder="Enter or select the exact property address" maxlength="300" autocomplete="off" spellcheck="false" required>
+                                <div class="gd-owner-location-actions">
+                                    <button type="button" id="useOwnerCurrentLocationBtn" class="secondary-action-btn">📍 Use Current Location</button>
+                                    <small>Stand at the property and allow location access. Exact coordinates will be saved with this listing.</small>
+                                </div>
                             </label>
                             <label class="gd-form-field" id="propertyBhkField">
                                 <span>BHK <em>(Home / Flat)</em></span>
@@ -14464,8 +14473,75 @@ async function refreshSaveButtons(propertyId) {
             }
         }
 
+        async function useOwnerCurrentLocation() {
+            const button = document.getElementById("useOwnerCurrentLocationBtn");
+            const addressInput = document.getElementById("propertyLocation");
+            const pinInput = document.getElementById("propertyPincode");
+            const message = document.getElementById("verificationMessage");
+            if (!navigator.geolocation) {
+                showMessage("verificationMessage","This browser does not support device location. Enter the address manually and use Verify Property Location.","error");
+                return;
+            }
+            if (button) { button.disabled = true; button.textContent = "Getting location…"; }
+            if (message) message.textContent = "Allow location access. Make sure you are standing at the property.";
+            try {
+                const position = await new Promise((resolve,reject) => {
+                    navigator.geolocation.getCurrentPosition(resolve,reject,{
+                        enableHighAccuracy:true, timeout:20000, maximumAge:0
+                    });
+                });
+                const latitude = Number(position.coords.latitude);
+                const longitude = Number(position.coords.longitude);
+                if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) throw new Error("Your device returned invalid coordinates.");
+                let displayAddress = "";
+                let postalCode = "";
+                try {
+                    const reverseUrl = "https://photon.komoot.io/reverse?lon=" +
+                        encodeURIComponent(longitude) + "&lat=" + encodeURIComponent(latitude) + "&lang=en";
+                    const response = await fetch(reverseUrl,{headers:{Accept:"application/json"}});
+                    if (response.ok) {
+                        const payload = await response.json();
+                        const feature = Array.isArray(payload.features) ? payload.features[0] : null;
+                        const p = feature?.properties || {};
+                        displayAddress = [p.name,p.street,p.locality,p.district,p.city,p.state,p.country]
+                            .filter(Boolean).filter((v,i,a)=>a.indexOf(v)===i).join(", ");
+                        postalCode = String(p.postcode || "").replace(/\D/g,"").slice(0,6);
+                    }
+                } catch (reverseError) {
+                    console.warn("Reverse geocoding unavailable; keeping coordinates only.",reverseError);
+                }
+                if (!displayAddress) displayAddress = "Current location (" + latitude.toFixed(6) + ", " + longitude.toFixed(6) + ")";
+                if (addressInput) {
+                    addressInput.value = displayAddress;
+                    addressInput.dataset.gdSelectedLat = String(latitude);
+                    addressInput.dataset.gdSelectedLng = String(longitude);
+                    addressInput.dataset.gdSelectedDisplayName = displayAddress;
+                    addressInput.dataset.gdLocationSelected = "1";
+                    addressInput.dispatchEvent(new Event("input",{bubbles:true}));
+                    addressInput.dispatchEvent(new Event("change",{bubbles:true}));
+                }
+                if (postalCode && pinInput && /^\d{6}$/.test(postalCode)) {
+                    pinInput.value = postalCode;
+                    pinInput.dataset.gdrVerifiedPin = postalCode;
+                }
+                verifiedPropertyLocation = {address:displayAddress,latitude,longitude};
+                if (message) message.textContent = "✓ Exact device location captured. Check the address and PIN code before submitting.";
+                const verifyButton = document.getElementById("verifyLocationBtn");
+                if (verifyButton) verifyButton.textContent = "✓ Location Captured";
+            } catch (error) {
+                const reason = error?.code === 1 ? "Location permission was denied. Allow location access in your browser." :
+                    error?.code === 2 ? "Your device could not determine its location. Try again or enter the address manually." :
+                    error?.code === 3 ? "Location request timed out. Try again." :
+                    (error?.message || "Unable to get your current location.");
+                if (message) message.textContent = "❌ " + reason;
+            } finally {
+                if (button) { button.disabled = false; button.textContent = "📍 Use Current Location"; }
+            }
+        }
+
         // Expose the same verified handler for mobile/modal event delegation.
         window.verifyPropertyLocation = verifyPropertyLocation;
+        window.useOwnerCurrentLocation = useOwnerCurrentLocation;
 
         /* =========================================================
            OWNER - PROPERTY IMAGE GALLERY UPLOAD
@@ -16552,6 +16628,11 @@ function updateStayTypeFields() {
             if (bookVisitBtn) bookVisitBtn.addEventListener("click", bookVisit);
             if (addPropertyForm) addPropertyForm.addEventListener("submit", addProperty);
             if (verifyLocationBtn) verifyLocationBtn.addEventListener("click", verifyPropertyLocation);
+            const useOwnerCurrentLocationBtn = document.getElementById("useOwnerCurrentLocationBtn");
+            if (useOwnerCurrentLocationBtn && useOwnerCurrentLocationBtn.dataset.gdLocationBound !== "1") {
+                useOwnerCurrentLocationBtn.dataset.gdLocationBound = "1";
+                useOwnerCurrentLocationBtn.addEventListener("click", useOwnerCurrentLocation);
+            }
             const choosePropertyImageBtn = document.getElementById("choosePropertyImageBtn");
             const propertyImageFile = document.getElementById("propertyImageFile");
             const removePropertyImageBtn = document.getElementById("removePropertyImageBtn");
