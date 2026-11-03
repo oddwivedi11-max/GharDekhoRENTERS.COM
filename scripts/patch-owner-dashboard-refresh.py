@@ -181,17 +181,6 @@ replace_once(
 )
 
 
-# Confirm the owner inventory loader no longer depends on the active UI role.
-import re
-loader_match = re.search(r'async function loadOwnerProperties\\(\\)\\s*\\{\\s*if\\s*\\(([^)]*)\\)\\s*\\{\\s*return;\\s*\\}', source, re.MULTILINE)
-if not loader_match:
-    raise SystemExit("Stopped safely: loadOwnerProperties guard not found")
-if "activeRole" in loader_match.group(1):
-    source = source[:loader_match.start(1)] + '!currentUser || !accountHasRole("owner")' + source[loader_match.end(1):]
-    print("Applied: remove active-role condition from loadOwnerProperties")
-else:
-    print("Already applied: loadOwnerProperties is not gated by activeRole")
-
 replace_once(
 '''            const {
                 data,
