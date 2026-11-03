@@ -5,12 +5,14 @@ source = path.read_text(encoding="utf-8")
 
 def replace_once(old, new, label):
     global source
-    if new in source:
-        print(f"Already applied: {label}")
-        return
     count = source.count(old)
+    if count == 0:
+        if new in source:
+            print(f"Already applied: {label}")
+            return
+        raise SystemExit(f"Stopped safely for {label}: original and corrected text not found")
     if count != 1:
-        raise SystemExit(f"Stopped safely for {label}: expected 1 match, found {count}")
+        raise SystemExit(f"Stopped safely for {label}: expected 1 original match, found {count}")
     source = source.replace(old, new, 1)
     print(f"Applied: {label}")
 
