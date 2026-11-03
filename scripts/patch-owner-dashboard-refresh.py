@@ -199,5 +199,43 @@ replace_once(
     "load My Properties through authenticated owner RPC"
 )
 
+
+# Function-scoped guard repair: the earlier literal replacement could miss
+# whitespace variants. Remove only the active-role gate from these owner loaders.
+import re
+
+def remove_owner_active_role_gate(function_name):
+    global source
+    pattern = re.compile(
+        r'(async function ' + re.escape(function_name) + r'\\([^)]*\\)\\s*\\{\\s*)'
+        r'if\\s*\\(\\s*!currentUser\\s*\\|\\|\\s*!accountHasRole\\("owner"\\)\\s*'
+        r'\\|\\|\\s*activeRole\\s*!==\\s*"owner"\\s*\\)\\s*\\{\\s*return;\\s*\\}',
+        re.MULTILINE
+    )
+    updated, count = pattern.subn(
+        r'\\1if (!currentUser || !accountHasRole("owner")) return;',
+        source,
+        count=1
+    )
+    if count:
+        source = updated
+        print("Applied: remove activeRole guard from " + function_name)
+        return
+    # If the function already has the safe guard, leave it unchanged.
+    safe = re.search(
+        r'async function ' + re.escape(function_name) + r'\\([^)]*\\)\\s*\\{\\s*'
+        r'if\\s*\\(\\s*!currentUser\\s*\\|\\|\\s*!accountHasRole\\("owner"\\)\\s*\\)',
+        source,
+        re.MULTILINE
+    )
+    if safe:
+        print("Already applied: " + function_name)
+        return
+    raise SystemExit("Stopped safely: could not verify owner guard in " + function_name)
+
+remove_owner_active_role_gate("loadOwnerProperties")
+remove_owner_active_role_gate("loadOwnerVerificationStatus")
+remove_owner_active_role_gate("loadOwnerVisits")
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
