@@ -144,5 +144,41 @@ replace_once(
     "remove active-role gate from owner current renters"
 )
 
+
+replace_once(
+'''                // Public inventory is served through a SECURITY DEFINER RPC.
+                // Only properties belonging to admin-verified owners are public.
+                // Only admin-verified properties owned by verified owners are public.
+                // Pending and rejected listings must never appear in public search.''',
+'''                // Public inventory is served through a SECURITY DEFINER RPC.
+                // Verified listings are public; pending listings are visible with
+                // an explicit pending-verification label. Rejected listings stay hidden.''',
+    "document pending listings as publicly visible"
+)
+
+replace_once(
+'''                                ${property.status === "occupied"
+                                ? '<button type="button" class="property-status-button occupied" disabled aria-label="Property occupied">● Occupied</button>'
+                                : property.status === "soon_available"
+                                ? '<button type="button" class="property-status-button soon" disabled aria-label="Property will be available soon">● Soon Available</button>'
+                                : '<button type="button" class="property-status-button available" disabled aria-label="Property vacant">✓ Vacant</button>'}''',
+'''                                ${property.status === "pending" || property.verification_status === "pending"
+                                ? '<button type="button" class="property-status-button pending" disabled aria-label="Pending verification">● Pending verification</button>'
+                                : property.status === "occupied"
+                                ? '<button type="button" class="property-status-button occupied" disabled aria-label="Property occupied">● Occupied</button>'
+                                : property.status === "soon_available"
+                                ? '<button type="button" class="property-status-button soon" disabled aria-label="Property will be available soon">● Soon Available</button>'
+                                : '<button type="button" class="property-status-button available" disabled aria-label="Property vacant">✓ Vacant</button>'}''',
+    "show pending status on public property cards"
+)
+
+replace_once(
+'''                                <span class="owner-badge">✓ Verified Owner</span>''',
+'''                                ${property.owner_verified
+                                    ? '<span class="owner-badge">✓ Verified Owner</span>'
+                                    : '<span class="pending-badge">Owner verification pending</span>'}''',
+    "show truthful owner verification status on public cards"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
