@@ -90,14 +90,18 @@ replace_once(
 )
 
 replace_once(
-'''    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
-'''    if (!currentUser || !accountHasRole("owner")) return;''',
+'''async function loadOwnerVerificationStatus() {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''async function loadOwnerVerificationStatus() {
+    if (!currentUser || !accountHasRole("owner")) return;''',
     "allow owner verification refresh for multi-role accounts"
 )
 
 replace_once(
-'''    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
-'''    if (!currentUser || !accountHasRole("owner")) return;''',
+'''async function loadOwnerVisits() {
+    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;''',
+'''async function loadOwnerVisits() {
+    if (!currentUser || !accountHasRole("owner")) return;''',
     "allow owner visit refresh for multi-role accounts"
 )
 
