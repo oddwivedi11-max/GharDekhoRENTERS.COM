@@ -15427,7 +15427,7 @@ async function loadOwnerProperties() {
         }
 
 async function loadOwnerCurrentRenters(properties) {
-    if (!currentUser || activeRole !== "owner" || !accountHasRole("owner")) return;
+    if (!currentUser || !accountHasRole("owner")) return;
     const container = document.getElementById("ownerOccupancyContainer");
     if (!container) return;
 
