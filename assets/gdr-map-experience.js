@@ -316,7 +316,7 @@
   function ownerNearbyOverlay(){
     if(ownerNearby.overlay)return ownerNearby.overlay;
     const el=document.createElement("section");el.id="gdrOwnerNearbyExperience";el.className="gdr-owner-nearby";el.hidden=true;
-    el.innerHTML='<div class="gdr-on-shell"><header class="gdr-on-header"><div class="gdr-on-heading"><div class="gdr-on-brand"><img src="/assets/gdr-mark.svg" alt="GharDekho"><span>GharDekho</span><small>OWNER MAP</small></div><span class="gdr-on-kicker">OWNER WORKSPACE · NEARBY DISCOVERY</span><h1>Nearby Properties</h1><p id="gdrOnSubheading">Discover available rental homes around your property.</p></div><button type="button" class="gdr-on-back" id="gdrOnBack">← Owner Dashboard</button></header><div class="gdr-on-toolbar"><label class="gdr-on-select-wrap"><span>MY PROPERTY</span><select id="gdrOnPropertySelect" aria-label="Select your property"></select></label><div class="gdr-on-count"><strong id="gdrOnCount">—</strong><span>nearby homes</span></div><label class="gdr-on-radius"><span>SEARCH RADIUS</span><select id="gdrOnRadius"><option value="1">1 KM</option><option value="2">2 KM</option><option value="3">3 KM</option><option value="5" selected>5 KM</option><option value="10">10 KM</option></select></label><button type="button" class="gdr-on-control" id="gdrOnRecenter">◎ My Property</button><button type="button" class="gdr-on-control gdr-on-refresh" id="gdrOnRefresh">↻ Refresh</button></div><div class="gdr-on-map-wrap"><div id="gdrOwnerNearbyMapCanvas" role="application" aria-label="Nearby rental properties map"></div><div class="gdr-on-map-chip" id="gdrOnMapChip">5 KM radius</div><div class="gdr-on-map-loading" id="gdrOnLoading"><span class="gdr-on-spinner"></span><b>Finding nearby homes…</b><small>Checking real property locations</small></div><article class="gdr-on-preview" id="gdrOnPreview" hidden></article><div class="gdr-on-empty" id="gdrOnEmpty" hidden></div></div><p class="gdr-on-footnote" id="gdrOnStatus" aria-live="polite">Loading your property locations…</p></div>';
+    el.innerHTML='<div class="gdr-on-shell"><header class="gdr-on-header"><div class="gdr-on-heading"><div class="gdr-on-brand"><img src="/assets/gdr-mark.svg" alt="GharDekho"><span>GharDekho</span><small>OWNER SPACE</small></div><span class="gdr-on-kicker">NEARBY HOMES · SOCIETY VIEW</span><h1>Homes around your property</h1><p id="gdrOnSubheading">See your property and nearby rental homes in one place.</p></div><button type="button" class="gdr-on-back" id="gdrOnBack">← Owner Dashboard</button></header><div class="gdr-on-toolbar"><label class="gdr-on-select-wrap"><span>MY PROPERTY</span><select id="gdrOnPropertySelect" aria-label="Select your property"></select></label><div class="gdr-on-count"><strong id="gdrOnCount">—</strong><span>nearby homes</span></div><label class="gdr-on-radius"><span>SEARCH RADIUS</span><select id="gdrOnRadius"><option value="1">1 KM</option><option value="2">2 KM</option><option value="3">3 KM</option><option value="5" selected>5 KM</option><option value="10">10 KM</option></select></label><button type="button" class="gdr-on-control" id="gdrOnRecenter">⌂ My Property</button><button type="button" class="gdr-on-control gdr-on-refresh" id="gdrOnRefresh">↻ Refresh</button></div><section class="gdr-on-society-panel"><div class="gdr-on-society-top"><div><span class="gdr-on-kicker">3D NEIGHBOURHOOD</span><h2>Your home & nearby society</h2><p>Real GharDekho listings placed around your selected property.</p></div><span class="gdr-on-radius-chip" id="gdrOnMapChip">WITHIN 5 KM</span></div><div class="gdr-on-map-loading" id="gdrOnLoading"><span class="gdr-on-spinner"></span><b>Finding nearby homes…</b><small>Checking real property locations</small></div><div class="gdr-on-society-scene" id="gdrOnSocietyScene" aria-live="polite"></div><div class="gdr-on-empty" id="gdrOnEmpty" hidden></div><article class="gdr-on-preview" id="gdrOnPreview" hidden></article></section><p class="gdr-on-footnote" id="gdrOnStatus" aria-live="polite">Loading your property locations…</p></div>';
     document.body.appendChild(el);ownerNearby.overlay=el;
     $("gdrOnBack").addEventListener("click",closeOwnerNearbyMap);
     $("gdrOnPropertySelect").addEventListener("change",()=>{const p=ownerNearby.properties.find(x=>String(x.id)===$("gdrOnPropertySelect").value);if(p){ownerNearby.selected=p;focusOwnerNearbyProperty();loadOwnerNearbyHomes();}});
@@ -358,36 +358,48 @@
     const action=node("button","gdr-on-details","View Details →");action.type="button";action.onclick=()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(p.id);else if(typeof window.openPropertyDetailsModal==="function")window.openPropertyDetailsModal(p.id);else ownerNearbyStatus("Property details action is not available on this page.");};
     body.append(action);n.append(image,body);n.hidden=false;
   }
-  function ownerNearbyMyHomeIcon(){
-    return window.L.divIcon({className:"gdr-on-myhome-wrap",html:'<span class="gdr-on-myhome-marker"><i>⌂</i><b>MY HOME</b></span>',iconSize:[112,48],iconAnchor:[56,42]});
+  function ownerNearbyBuilding(){
+    const art=node("span","gdr-on-building","");art.setAttribute("aria-hidden","true");
+    art.append(node("span","gdr-on-building-roof",""),node("span","gdr-on-building-wall",""),node("span","gdr-on-building-door",""),node("span","gdr-on-building-window gdr-on-window-one",""),node("span","gdr-on-building-window gdr-on-window-two",""),node("span","gdr-on-building-window gdr-on-window-three",""));
+    return art;
+  }
+  function ownerNearbyHomeCard(p,isOwn){
+    const card=node("button",isOwn?"gdr-on-home-card gdr-on-home-card-own":"gdr-on-home-card");
+    card.type="button";card.setAttribute("aria-label",(p.title||p.name||"Property")+" · "+(isOwn?"Your property":(Number(p.gdrDistanceKm)||0).toFixed(2)+" kilometres away"));
+    const art=node("span","gdr-on-home-art");art.append(ownerNearbyBuilding(),node("span","gdr-on-home-garden",""));
+    const top=node("span","gdr-on-home-top"),kind=node("span","gdr-on-home-kind",isOwn?"MY HOME":String(p.listing_type||"HOME").replaceAll("_"," ").toUpperCase());
+    const distance=node("span","gdr-on-home-distance",isOwn?"OWNER PROPERTY":(p.gdrDistanceKm<1?Math.round(p.gdrDistanceKm*1000)+" m away":p.gdrDistanceKm.toFixed(2)+" km away"));
+    top.append(kind,distance);
+    const title=node("strong","gdr-on-home-title",p.title||p.name||"Rental home");
+    const rent=node("span","gdr-on-home-rent",money(p.rent)+" / month");
+    const address=node("span","gdr-on-home-address",[p.location,p.address].filter(Boolean).join(" · ")||"Address not available");
+    const meta=node("span","gdr-on-home-meta",[p.bhk?p.bhk+" BHK":"",p.furnishing||"",String(p.status||"Available").replaceAll("_"," ")].filter(Boolean).join(" · "));
+    card.append(art,top,title,rent,address,meta);
+    card.addEventListener("click",()=>ownerNearbyPreview(isOwn?{...p,gdrDistanceKm:0,gdrIsOwnerProperty:true}:p));
+    return card;
   }
   function renderOwnerNearbyHomes(rows,center){
-    if(!ownerNearby.map||!ownerNearby.layer)return;
-    ownerNearby.layer.clearLayers();if(ownerNearby.circle)ownerNearby.map.removeLayer(ownerNearby.circle);
-    if(ownerNearby.ownerMarker){ownerNearby.map.removeLayer(ownerNearby.ownerMarker);ownerNearby.ownerMarker=null;}
-    ownerNearby.circle=window.L.circle(center,{radius:ownerNearby.radius*1000,color:"#168477",weight:2,opacity:.78,fillColor:"#80cbb8",fillOpacity:.12,dashArray:"7 7"}).addTo(ownerNearby.map);
-    rows.forEach(p=>{const m=window.L.marker([Number(p.latitude),Number(p.longitude)],{icon:ownerNearbyHouseIcon(p),riseOnHover:true});m.on("click",()=>ownerNearbyPreview(p));ownerNearby.layer.addLayer(m);});
+    const scene=$("gdrOnSocietyScene");if(!scene)return;
+    scene.replaceChildren();
     const own=ownerNearby.selected;
-    if(own&&validPoint(own.latitude,own.longitude)){
-      const ownPoint={...own,gdrDistanceKm:0,gdrIsOwnerProperty:true};
-      ownerNearby.ownerMarker=window.L.marker([Number(own.latitude),Number(own.longitude)],{icon:ownerNearbyMyHomeIcon(),riseOnHover:true,zIndexOffset:1500,keyboard:true,title:"Your property"}).addTo(ownerNearby.map);
-      ownerNearby.ownerMarker.on("click",()=>ownerNearbyPreview(ownPoint));
+    if(own&&validPoint(own.latitude,own.longitude))scene.append(ownerNearbyHomeCard(own,true));
+    rows.forEach(p=>scene.append(ownerNearbyHomeCard(p,false)));
+    ownerNearby.visible=rows;
+    const count=$("gdrOnCount");if(count)count.textContent=String(rows.length);
+    const empty=$("gdrOnEmpty");
+    if(empty){
+      empty.hidden=rows.length>0;
+      empty.textContent=rows.length?"":"No other GharDekho listings with saved coordinates were found within "+ownerNearby.radius+" KM. Your property is shown above. Increase the radius to check a wider area.";
     }
-    ownerNearby.visible=rows;const count=$("gdrOnCount");if(count)count.textContent=String(rows.length);
-    const empty=$("gdrOnEmpty");if(empty){empty.hidden=rows.length>0;empty.textContent=rows.length?"":"No nearby homes found within "+ownerNearby.radius+" KM. Your MY HOME pin is still shown on the map.";}
     if(!rows.length){const preview=$("gdrOnPreview");if(preview)preview.hidden=true;}
-    ownerNearbyStatus(rows.length+" available homes found within "+ownerNearby.radius+" KM. Your property is marked as MY HOME.");
+    ownerNearbyStatus(rows.length+" nearby listings found within "+ownerNearby.radius+" KM. Showing your property and "+rows.length+" nearby homes.");
   }
   function focusOwnerNearbyProperty(){
-    const p=ownerNearby.selected;if(!p||!ownerNearby.map)return;
-    const lat=asNumber(p.latitude),lng=asNumber(p.longitude);
-    if(lat===null||lng===null){ownerNearbyStatus("This property has no saved map coordinates. Edit the property and place its exact pin using the property location picker.");return;}
-    ownerNearby.map.flyTo([lat,lng],16,{duration:.65});
-    if(ownerNearby.circle){ownerNearby.circle.setLatLng([lat,lng]);ownerNearby.circle.setRadius(ownerNearby.radius*1000);}
-    const ownPoint={...p,gdrDistanceKm:0,gdrIsOwnerProperty:true};
-    if(ownerNearby.ownerMarker)ownerNearby.ownerMarker.setZIndexOffset(1800);
-    ownerNearbyPreview(ownPoint);
-    ownerNearbyStatus("Showing your property pin on the map.");
+    const p=ownerNearby.selected;if(!p)return;
+    const card=$("gdrOnSocietyScene")?.querySelector(".gdr-on-home-card-own");
+    card?.scrollIntoView({behavior:"smooth",block:"center",inline:"center"});
+    ownerNearbyPreview({...p,gdrDistanceKm:0,gdrIsOwnerProperty:true});
+    ownerNearbyStatus("Your property is highlighted in the society view.");
   }
   async function loadOwnerNearbyHomes(){
     if(ownerNearby.loading||!ownerNearby.selected)return;
@@ -403,16 +415,15 @@
       // eligible pending listings without weakening table RLS or requiring
       // an extra admin-verification gate for this discovery map.
       const inventory=(Array.isArray(result.data)?result.data:[]).map(p=>({...p,name:p.name||p.title,address:p.address||p.location}));
-      const rows=inventory.filter(p=>String(p.id)!==selectedId&&validPoint(p.latitude,p.longitude)&&ownerNearbyAvailable(p)).map(p=>({...p,gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=ownerNearby.radius).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
+      const rows=inventory.filter(p=>String(p.id)!==selectedId&&validPoint(p.latitude,p.longitude)).map(p=>({...p,gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=ownerNearby.radius).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
       renderOwnerNearbyHomes(rows,center);
     }catch(error){console.error("Owner Nearby Properties query failed:",error);ownerNearbyStatus(error.message||"Nearby properties could not be loaded. Check your connection and permissions.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent="Could not load nearby homes. Please refresh and try again.";}}
     finally{ownerNearby.loading=false;ownerNearbyLoading(false);}
   }
   async function openOwnerNearbyMap(){
-    const overlay=ownerNearbyOverlay();overlay.hidden=false;document.body.classList.add("gdr-owner-nearby-open");hideOwnerNearbyBackground();
+    const overlay=ownerNearbyOverlay();overlay.hidden=false;document.body.classList.add("gdr-owner-nearby-open");hideOwnerNearbyBackground();overlay.scrollTop=0;window.scrollTo(0,0);
     ownerNearby.radius=5;$("gdrOnRadius").value="5";$("gdrOnMapChip").textContent="5 KM radius";$("gdrOnCount").textContent="…";ownerNearbyLoading(true);
     try{
-      await ensureLeaflet();
       const client=db();if(!client)throw new Error("Account service is not ready. Refresh and sign in again.");
       const auth=await client.auth.getUser();if(auth.error||!auth.data?.user)throw new Error("Please sign in again to open your owner workspace.");
       const profile=await client.from("owners").select("id,name").eq("user_id",auth.data.user.id).maybeSingle();if(profile.error||!profile.data)throw new Error("Your owner profile could not be loaded.");
@@ -424,30 +435,6 @@
       ownerNearby.properties.forEach(p=>{const opt=document.createElement("option");opt.value=p.id;opt.textContent=(p.title||p.name||"My property")+" · "+(p.location||p.address||"Location");selector.append(opt);});
       ownerNearby.selected=ownerNearby.properties[0];selector.value=ownerNearby.selected.id;
       const sub=$("gdrOnSubheading");if(sub)sub.textContent=(ownerNearby.selected.location||ownerNearby.selected.address||ownerNearby.selected.title||"Your property")+" · Search within 5 KM";
-      const canvas=$("gdrOwnerNearbyMapCanvas");
-      if(!ownerNearby.map){
-        // Leaflet needs an initial view before tiles, markers or flyTo can render.
-        // Start at the selected owner's saved coordinates, never browser GPS.
-        const initialCenter=[Number(ownerNearby.selected.latitude),Number(ownerNearby.selected.longitude)];
-        ownerNearby.map=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true}).setView(initialCenter,14);
-        let tileErrors=0;
-        const useOsmFallback=()=>{
-          if(ownerNearby.tileFallback)return;
-          ownerNearby.tileFallback=true;
-          if(ownerNearby.tileLayer)ownerNearby.map.removeLayer(ownerNearby.tileLayer);
-          ownerNearby.tileLayer=window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
-          ownerNearby.tileLayer.on("tileerror",()=>ownerNearbyStatus("Map tiles are temporarily unavailable. Check your connection and try Refresh."));
-          ownerNearby.tileLayer.addTo(ownerNearby.map);
-        };
-        // Register error listeners BEFORE adding the layer, otherwise the first
-        // batch of failed tiles can be missed and the map stays blank.
-        ownerNearby.tileLayer=window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:20,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'});
-        ownerNearby.tileLayer.on("tileerror",()=>{tileErrors++;if(tileErrors>=2)useOsmFallback();});
-        ownerNearby.tileLayer.addTo(ownerNearby.map);
-        window.L.control.zoom({position:"bottomright"}).addTo(ownerNearby.map);
-        ownerNearby.layer=makeLayer(ownerNearby.map);
-      }
-      requestAnimationFrame(()=>{ownerNearby.map.invalidateSize();focusOwnerNearbyProperty();});
       await loadOwnerNearbyHomes();
     }catch(error){console.error("Owner Nearby map failed:",error);ownerNearbyLoading(false);ownerNearbyStatus(error.message||"Nearby map could not be opened.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent=error.message||"Nearby map could not be opened.";}}
   }
