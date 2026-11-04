@@ -35,3 +35,13 @@ test("PIN 486889's two real listings are both eligible under Home + All properti
   assert.equal(rows.length, 2);
   assert.deepEqual(rows.map(p => p.title), ["DON789", "DWIVEDI HOUSE"]);
 });
+
+test("renter map clusters show a 3D house instead of numeric count bubbles",()=>{
+ const map=fs.readFileSync(path.join(root,"assets/gdr-map-experience.js"),"utf8");
+ const css=fs.readFileSync(path.join(root,"assets/gdr-map-experience.css"),"utf8");
+ assert.match(map,/iconCreateFunction:function\(\)/);
+ assert.match(map,/gdr-home-3d-cluster/);
+ assert.match(map,/A clustered group of nearby listings is represented by the same 3D GharDekho house motif/);
+ assert.match(css,/\.gdr-home-3d-cluster-wrap/);
+ assert.match(css,/\.gdr-home-3d-cluster-back/);
+});
