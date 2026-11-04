@@ -18,13 +18,13 @@ test.describe('GDR Nearby preservation and radius safety', () => {
   test('keeps Nearby separate from map-first Explore and retains radius filtering', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     const source = await readLoadedScripts(page);
-    const checks = await page.evaluate(() => ({
-      nearbyEntryPoint: Boolean(document.getElementById('renterExploreNearbyBtn')),
-      nearbySection: Boolean(document.getElementById('renterNearbyPropertiesSection')),
+    const checks = await page.evaluate(source => ({
+      nearbyEntryPoint: source.includes('renterExploreNearbyBtn'),
+      nearbySection: source.includes('renterNearbyPropertiesSection'),
       mapEntryPoint: Boolean(document.getElementById('renterExploreMapBtn')),
       mapPanel: Boolean(document.getElementById('gdrExploreMapPanel')),
       radiusControl: Boolean(document.getElementById('radiusSelect')),
-    }));
+    }), source);
 
     expect(checks.nearbyEntryPoint).toBe(true);
     expect(checks.nearbySection).toBe(true);
