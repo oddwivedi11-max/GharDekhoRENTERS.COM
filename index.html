@@ -20914,7 +20914,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     document.body.classList.add("gd-renter-find-page-open");
     const p=JSON.parse(localStorage.getItem("gdrRenterSearchPreferences")||"null");
     if(p){
-      $("renterSearchLocation").value=p.location||"";
+      $("renterSearchLocation").value=p.location||"Patel Nagar, Bhopal, Madhya Pradesh 462022";
       setRenterBudgetValue("min", p.minBudget ?? "");
       setRenterBudgetValue("max", p.maxBudget ?? "");
       $("renterStayType").value=p.stayType||"";
@@ -20926,6 +20926,10 @@ body.gd-renter-find-page-open #renterFindHomeSection{
       $("renterFoodPreference").value=p.food||"";
       /* Nearby radius is now controlled exclusively by Live Nearby on the renter dashboard. */
       updateRenterSharedFields();
+    }else{
+      // Helpful first-use default for the Bhopal renter flow; users can freely
+      // replace it with any city, locality, district or PIN code.
+      $("renterSearchLocation").value="Patel Nagar, Bhopal, Madhya Pradesh 462022";
     }
     window.scrollTo({top:0,behavior:"smooth"});
   };
