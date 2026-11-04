@@ -4,7 +4,7 @@
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = v => "₹" + new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).format(Number(v||0));
   const dateText = v => { if(!v) return "Not set"; const d=new Date(v+"T00:00:00"); return Number.isNaN(d.getTime())?"Not set":d.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}); };
-  let currentId = null, page = null, priorTitle = document.title, loading = false;
+  let currentId = null, page = null, priorTitle = document.title, loading = false, editingChargeId = null;
   const client = () => window.__gdrSupabaseClient || window.supabaseClient || null;
   const rowFor = id => (window.__gdCurrentRenters||[]).find(r=>String(r.id)===String(id));
   function ensureStyles(){
@@ -83,6 +83,12 @@
     $("gdrRpDatesForm").addEventListener("submit",e=>saveMoveOut(e,row));
     $("gdrRpContactForm").addEventListener("submit",e=>saveContact(e,row));
     $("gdrRpChargeForm").addEventListener("submit",e=>saveCharge(e,row));
+    $("gdrRpCharges").addEventListener("click",e=>{
+      const edit=e.target.closest("[data-charge-edit]");
+      const disable=e.target.closest("[data-charge-disable]");
+      if(edit){const charge=(window.__gdrRenterCharges||[]).find(x=>String(x.id)===edit.dataset.chargeEdit);if(!charge)return;editingChargeId=charge.id;const f=$("gdrRpChargeForm");f.elements.title.value=charge.title;f.elements.amount.value=charge.amount;f.elements.frequency.value=charge.frequency;f.elements.due_day.value=charge.due_day||"";f.hidden=false;f.querySelector('[type="submit"]').textContent="Save changes";$("gdrRpAddCharge").textContent="Cancel edit";}
+      if(disable)deactivateCharge(disable.dataset.chargeDisable,row);
+    });
     $("gdrRpRelease").addEventListener("click",()=>release(row));
     document.title="Renter profile | GharDekho";
     loadMoveOut(row);loadCharges(row);
@@ -115,17 +121,29 @@
     const r=await c.from("occupancy_charges").select("id,title,amount,frequency,due_day,is_active").eq("occupancy_id",row.id).eq("is_active",true).order("created_at",{ascending:false});
     const target=$("gdrRpCharges");if(!target)return;
     if(r.error){target.innerHTML='<p class="gdr-rp-note">Additional charge management will become available after the owner renter-management database migration is applied. Base rent remains available above.</p>';$("gdrRpAddCharge").disabled=true;return;}
+    window.__gdrRenterCharges=Array.isArray(r.data)?r.data:[];
     if(!r.data?.length){target.innerHTML='<p class="gdr-rp-note">No additional charges have been added.</p>';return;}
-    target.innerHTML=r.data.map(x=>'<div class="gdr-rp-charge"><div><strong>'+esc(x.title)+'</strong><small>'+(x.frequency==="monthly"?"Monthly":"One-time")+(x.due_day?" · Due day "+x.due_day:"")+'</small></div><strong>'+money(x.amount)+'</strong></div>').join("");
+    target.innerHTML=r.data.map(x=>'<div class="gdr-rp-charge"><div><strong>'+esc(x.title)+'</strong><small>'+(x.frequency==="monthly"?"Monthly":"One-time")+(x.due_day?" · Due day "+x.due_day:"")+'</small></div><div style="text-align:right"><strong>'+money(x.amount)+'</strong><div class="gdr-rp-actions"><button class="gdr-rp-btn" type="button" data-charge-edit="'+esc(x.id)+'">Edit</button><button class="gdr-rp-btn danger" type="button" data-charge-disable="'+esc(x.id)+'">Remove</button></div></div></div>').join("");
   }
   async function saveCharge(e,row){
     e.preventDefault();const c=client(),f=e.currentTarget;
     const title=f.elements.title.value.trim(),amount=Number(f.elements.amount.value),frequency=f.elements.frequency.value,due=f.elements.due_day.value?Number(f.elements.due_day.value):null;
     if(title.length<2||!Number.isFinite(amount)||amount<=0||due!==null&&(!Number.isInteger(due)||due<1||due>28)){message("Check the charge name, amount and due day.");return;}
-    const ownerLookup=await c.from("property_occupancies").select("owner_id").eq("id",row.id).maybeSingle();if(ownerLookup.error||!ownerLookup.data?.owner_id){message("Could not verify the property owner for this renter.");return;}
-    const r=await c.from("occupancy_charges").insert({occupancy_id:row.id,owner_id:ownerLookup.data.owner_id,title,amount,frequency,due_day:frequency==="monthly"?due:null});
+    let r;
+    if(editingChargeId){
+      r=await c.from("occupancy_charges").update({title,amount,frequency,due_day:frequency==="monthly"?due:null}).eq("id",editingChargeId).eq("occupancy_id",row.id);
+    }else{
+      const ownerLookup=await c.from("property_occupancies").select("owner_id").eq("id",row.id).maybeSingle();if(ownerLookup.error||!ownerLookup.data?.owner_id){message("Could not verify the property owner for this renter.");return;}
+      r=await c.from("occupancy_charges").insert({occupancy_id:row.id,owner_id:ownerLookup.data.owner_id,title,amount,frequency,due_day:frequency==="monthly"?due:null});
+    }
     if(r.error){message("Could not save charge. Confirm the database migration has been applied.");return;}
-    f.reset();f.hidden=true;await loadCharges(row);message("Charge added.");
+    editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";await loadCharges(row);message("Charge saved.");
+  }
+  async function deactivateCharge(id,row){
+    if(!confirm("Remove this additional charge from future monthly totals?"))return;
+    const r=await client().from("occupancy_charges").update({is_active:false}).eq("id",id).eq("occupancy_id",row.id);
+    if(r.error){message("Could not remove this charge.");return;}
+    await loadCharges(row);message("Charge removed from active charges.");
   }
   async function release(row){
     if(!confirm("Release this renter and mark the property available again?"))return;
