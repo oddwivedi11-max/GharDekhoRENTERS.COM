@@ -21,6 +21,21 @@ test.describe('GDR map-first experience structure', () => {
     await expect(page.locator('#gdrConfirmOwnerMapLocation')).toHaveCount(1);
   });
 
+  test('map/list control switches the list panel without changing Nearby controls', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.evaluate(() => {
+      document.getElementById('dashboardSection').style.display = 'block';
+      document.getElementById('renterDashboard').style.display = 'block';
+      document.getElementById('gdrExploreMapPanel').hidden = false;
+    });
+    await page.locator('#gdrMapListToggle').click({ force: true });
+    await expect(page.locator('#gdrMapLayout')).toHaveClass(/gdr-list-mode/);
+    await expect(page.locator('#gdrMapListPanel')).toBeVisible();
+    await page.locator('#gdrMapViewToggle').click({ force: true });
+    await expect(page.locator('#gdrMapLayout')).not.toHaveClass(/gdr-list-mode/);
+    await expect(page.locator('#gdrMapListPanel')).toBeHidden();
+  });
+
   test('map entry does not remove existing Nearby controls', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await expect(page.locator('#renterDashboard')).toHaveCount(1);
