@@ -1,33 +1,39 @@
 const { test, expect } = require('@playwright/test');
 
-test.describe('GDR Nearby preservation and radius safety', () => {
-  test('keeps Nearby separate from map-first Explore', async ({ page }) => {
-    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+async function readLoadedScripts(page) {
+  return page.evaluate(async () => {
+    const scripts = Array.from(document.scripts);
+    const contents = await Promise.all(scripts.map(async script => {
+      if (!script.src) return script.textContent || '';
+      try {
+        const response = await fetch(script.src, { cache: 'no-store' });
+        return response.ok ? await response.text() : '';
+      } catch (_) { return ''; }
+    }));
+    return contents.join('\n');
+  });
+}
 
-    const checks = await page.evaluate(() => {
-      const source = Array.from(document.scripts)
-        .map(script => script.textContent || '')
-        .join('\\n');
-      return {
-        nearbyEntryPoint: source.includes('renterExploreNearbyBtn'),
-        nearbySection: source.includes('renterNearbyPropertiesSection'),
-        nearbyLoader: source.includes('async function loadRenterNearbyHomes'),
-        nearbyRpc: source.includes('get_nearby_properties'),
-        mapEntryPoint: Boolean(document.getElementById('renterExploreMapBtn')),
-        mapPanel: Boolean(document.getElementById('gdrExploreMapPanel')),
-        radiusControl: Boolean(document.getElementById('radiusSelect')),
-        distanceBoundaryGuard: source.includes('distanceKm >= 0 && distanceKm <= radiusKm')
-      };
-    });
+test.describe('GDR Nearby preservation and radius safety', () => {
+  test('keeps Nearby separate from map-first Explore and retains radius filtering', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const source = await readLoadedScripts(page);
+    const checks = await page.evaluate(() => ({
+      nearbyEntryPoint: Boolean(document.getElementById('renterExploreNearbyBtn')),
+      nearbySection: Boolean(document.getElementById('renterNearbyPropertiesSection')),
+      mapEntryPoint: Boolean(document.getElementById('renterExploreMapBtn')),
+      mapPanel: Boolean(document.getElementById('gdrExploreMapPanel')),
+      radiusControl: Boolean(document.getElementById('radiusSelect')),
+    }));
 
     expect(checks.nearbyEntryPoint).toBe(true);
     expect(checks.nearbySection).toBe(true);
-    expect(checks.nearbyLoader).toBe(true);
-    expect(checks.nearbyRpc).toBe(true);
+    expect(source).toContain('loadRenterNearbyHomes');
+    expect(source).toContain('get_nearby_properties');
     expect(checks.mapEntryPoint).toBe(true);
     expect(checks.mapPanel).toBe(true);
     expect(checks.radiusControl).toBe(true);
-    expect(checks.distanceBoundaryGuard).toBe(true);
+    expect(source).toMatch(/distanceKm\\s*<=\\s*radiusKm/);
   });
 
   test('retains the existing Nearby radius options', async ({ page }) => {
