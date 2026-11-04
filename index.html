@@ -11129,33 +11129,20 @@ function setRoleSpecificUI(role) {
 async function openOwnerNearbyHomes() {
     if (!currentUser || !accountHasRole("owner")) { openLoginAs("owner"); return; }
 
-    // Owners use the same one-shot nearby search and property result cards as
-    // renters. Never leave the renter dashboard's separate Live Nearby panel
-    // open when switching to the shared property search surface.
-    document.getElementById("renterLiveNearbyStopBtn")?.click();
-    const renterLivePanel = document.getElementById("renterLiveNearbyPanel");
-    if (renterLivePanel) renterLivePanel.hidden = true;
-    const renterDashboard = document.getElementById("renterDashboard");
-    if (renterDashboard) {
-        renterDashboard.classList.remove("active");
-        renterDashboard.style.display = "none";
-        renterDashboard.setAttribute("aria-hidden", "true");
-    }
-
-    ownerExploreMode = true;
+    // All owner Nearby Properties entry points must open the dedicated owner
+    // map. Never route owners through the renter Find Homes / Near Me form.
+    ownerExploreMode = false;
     setRoleSpecificUI("owner");
 
-    // Use the shared search form + standard property results. Find Near Me
-    // asks for location permission only after the owner explicitly clicks.
-    document.getElementById("homeSection")?.scrollIntoView({behavior:"smooth",block:"start"});
-    showMessage("backendMessage","Getting your location to find nearby rental properties…","success");
-
-    if (typeof findPropertiesNearMe === "function") {
-        await findPropertiesNearMe();
-    } else {
-        const status = document.getElementById("locationStatus");
-        if (status) status.textContent = "Nearby search is still loading. Please refresh and try again.";
+    if (window.GDRMapExperience &&
+        typeof window.GDRMapExperience.openOwnerNearbyMap === "function") {
+        await window.GDRMapExperience.openOwnerNearbyMap();
+        return;
     }
+
+    showMessage("backendMessage",
+        "Owner Nearby map is loading. Please refresh once and try again.",
+        "error");
 }
 function exitOwnerExploreMode() {
     ownerExploreMode = false;
