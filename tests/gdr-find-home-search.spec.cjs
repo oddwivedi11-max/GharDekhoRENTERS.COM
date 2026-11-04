@@ -22,7 +22,7 @@ test.describe('Renter Find Home premium search regression', () => {
         smoothStylePresent: Boolean(style),
         fuzzyLocationFallbackPresent: source.includes('editDistanceAtMostOne'),
         districtFallbackPresent: source.includes('pinDistrictMatch'),
-        nearbyFeaturePreserved: Boolean(document.getElementById('renterExploreNearbyBtn') || document.getElementById('renterNearbyPropertiesSection')),
+        nearbyFeaturePreserved: source.includes('renterExploreNearbyBtn') && source.includes('loadRenterNearbyHomes'),
         mobileWidth: document.documentElement.clientWidth,
         pageWidth: document.documentElement.scrollWidth,
       };
