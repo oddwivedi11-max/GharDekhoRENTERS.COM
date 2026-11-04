@@ -12,8 +12,10 @@ test("owner map uses high-accuracy, fresh GPS and reports measured accuracy",()=
 });
 test("owner can edit only the current renter contact snapshot through scoped RPC",()=>{
  assert.match(editor,/update_my_current_renter_contact/);
- assert.match(migration,/security invoker/i);\n assert.match(migration,/property_occupancies_owner_update_contact/);\n assert.match(migration,/o\\.user_id = \\(select auth\\.uid\\(\\)\\)/);
- assert.match(migration,/po\.released_at is null/);
- assert.match(migration,/auth\.uid\(\)/);
+ assert.match(migration,/security invoker/i);
+ assert.match(migration,/property_occupancies_owner_update_contact/);
+ assert.ok(migration.includes("o.user_id = (select auth.uid())"));
+ assert.match(migration,/po\\.released_at is null/);
+ assert.match(migration,/auth\\.uid\\(\\)/);
  assert.match(migration,/revoke all on function/);
 });
