@@ -303,6 +303,98 @@
       updateOwnerStatus(message);
     },{enableHighAccuracy:true,timeout:25000,maximumAge:0});
   }
+
+  // Dedicated owner Nearby Properties map. This is intentionally independent
+  // from the renter's Find Homes/Explore map and never requests browser GPS.
+  const ownerNearby={map:null,layer:null,circle:null,overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false};
+  const OWNER_NEARBY_FIELDS="id,owner_id,title,name,location,address,latitude,longitude,rent,status,verification_status,bhk,furnishing,image_url,listing_type,available_beds,total_beds";
+  function ownerNearbyAvailable(p){
+    const type=String(p.listing_type||"home").toLowerCase();
+    if(type==="pg"||type==="hostel")return Number(p.available_beds||0)>0;
+    return String(p.status||"").toLowerCase()!=="occupied"&&String(p.status||"").toLowerCase()!=="rejected";
+  }
+  function ownerNearbyOverlay(){
+    if(ownerNearby.overlay)return ownerNearby.overlay;
+    const el=document.createElement("section");el.id="gdrOwnerNearbyExperience";el.className="gdr-owner-nearby";el.hidden=true;
+    el.innerHTML='<div class="gdr-on-shell"><header class="gdr-on-header"><div><span class="gdr-on-kicker">GHARDEKHO · OWNER WORKSPACE</span><h1>Nearby Properties</h1><p id="gdrOnSubheading">Discover available rental homes around your property.</p></div><button type="button" class="gdr-on-back" id="gdrOnBack">← Owner Dashboard</button></header><div class="gdr-on-toolbar"><label class="gdr-on-select-wrap"><span>MY PROPERTY</span><select id="gdrOnPropertySelect" aria-label="Select your property"></select></label><div class="gdr-on-count"><strong id="gdrOnCount">—</strong><span>nearby homes</span></div><label class="gdr-on-radius"><span>SEARCH RADIUS</span><select id="gdrOnRadius"><option value="1">1 KM</option><option value="2">2 KM</option><option value="3">3 KM</option><option value="5" selected>5 KM</option><option value="10">10 KM</option></select></label><button type="button" class="gdr-on-control" id="gdrOnRecenter">◎ My Property</button><button type="button" class="gdr-on-control gdr-on-refresh" id="gdrOnRefresh">↻ Refresh</button></div><div class="gdr-on-map-wrap"><div id="gdrOwnerNearbyMapCanvas" role="application" aria-label="Nearby rental properties map"></div><div class="gdr-on-map-chip" id="gdrOnMapChip">5 KM radius</div><div class="gdr-on-map-loading" id="gdrOnLoading"><span class="gdr-on-spinner"></span><b>Finding nearby homes…</b><small>Checking real property locations</small></div><article class="gdr-on-preview" id="gdrOnPreview" hidden></article><div class="gdr-on-empty" id="gdrOnEmpty" hidden></div></div><p class="gdr-on-footnote" id="gdrOnStatus" aria-live="polite">Loading your property locations…</p></div>';
+    document.body.appendChild(el);ownerNearby.overlay=el;
+    $("gdrOnBack").addEventListener("click",closeOwnerNearbyMap);
+    $("gdrOnPropertySelect").addEventListener("change",()=>{const p=ownerNearby.properties.find(x=>String(x.id)===$("gdrOnPropertySelect").value);if(p){ownerNearby.selected=p;focusOwnerNearbyProperty();loadOwnerNearbyHomes();}});
+    $("gdrOnRadius").addEventListener("change",()=>{ownerNearby.radius=Math.max(1,Math.min(10,Number($("gdrOnRadius").value)||5));$("gdrOnMapChip").textContent=ownerNearby.radius+" KM radius";loadOwnerNearbyHomes();});
+    $("gdrOnRecenter").addEventListener("click",focusOwnerNearbyProperty);
+    $("gdrOnRefresh").addEventListener("click",loadOwnerNearbyHomes);
+    return el;
+  }
+  function ownerNearbyStatus(message){const n=$("gdrOnStatus");if(n)n.textContent=message||"";}
+  function ownerNearbyLoading(on){const n=$("gdrOnLoading");if(n)n.hidden=!on;}
+  function closeOwnerNearbyMap(){if(ownerNearby.overlay)ownerNearby.overlay.hidden=true;document.body.classList.remove("gdr-owner-nearby-open");}
+  function ownerNearbyHouseIcon(p){
+    const rent=Number(p.rent||0),short=rent>=100000?"₹"+(rent/100000).toFixed(1)+"L":rent>=1000?"₹"+(rent/1000).toFixed(rent%1000?1:0)+"k":money(rent);
+    return window.L.divIcon({className:"gdr-on-house-wrap",html:'<span class="gdr-on-house-marker"><i>⌂</i><b>'+short+'</b></span>',iconSize:[86,48],iconAnchor:[43,42]});
+  }
+  function ownerNearbyPreview(p){
+    const n=$("gdrOnPreview");if(!n)return;n.replaceChildren();
+    const image=document.createElement("img");image.className="gdr-on-preview-image";image.alt="Property photograph";image.loading="lazy";image.src=safeImage(p.image_url)||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='220'%3E%3Crect width='100%25' height='100%25' fill='%23eaf3ef'/%3E%3Ctext x='50%25' y='52%25' text-anchor='middle' fill='%23758b82' font-size='44'%3E%E2%8C%82%3C/text%3E%3C/svg%3E";
+    const body=node("div","gdr-on-preview-body"),top=node("div","gdr-on-preview-top"),title=node("h3","",p.title||p.name||"Rental home"),close=node("button","gdr-on-preview-close","×");close.type="button";close.setAttribute("aria-label","Close property preview");close.onclick=()=>{n.hidden=true;n.replaceChildren();};top.append(title,close);
+    body.append(top,node("strong","gdr-on-preview-rent",money(p.rent)+" / month"),node("p","gdr-on-preview-address",[p.location,p.address].filter(Boolean).join(" · ")||"Address not available"),node("p","gdr-on-preview-meta",[p.bhk?p.bhk+" BHK":"",p.furnishing||"",String(p.listing_type||"Home").toUpperCase(),Number.isFinite(p.gdrDistanceKm)?(p.gdrDistanceKm<1?Math.round(p.gdrDistanceKm*1000)+" m away":p.gdrDistanceKm.toFixed(2)+" km away"):""].filter(Boolean).join(" · ")),node("span","gdr-on-preview-status",String(p.status||"Available").replaceAll("_"," ")));
+    const action=node("button","gdr-on-details","View Details →");action.type="button";action.onclick=()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(p.id);else if(typeof window.openPropertyDetailsModal==="function")window.openPropertyDetailsModal(p.id);else ownerNearbyStatus("Property details action is not available on this page.");};
+    body.append(action);n.append(image,body);n.hidden=false;
+  }
+  function renderOwnerNearbyHomes(rows,center){
+    if(!ownerNearby.map||!ownerNearby.layer)return;
+    ownerNearby.layer.clearLayers();if(ownerNearby.circle)ownerNearby.map.removeLayer(ownerNearby.circle);
+    ownerNearby.circle=window.L.circle(center,{radius:ownerNearby.radius*1000,color:"#168477",weight:2,opacity:.78,fillColor:"#80cbb8",fillOpacity:.12,dashArray:"7 7"}).addTo(ownerNearby.map);
+    rows.forEach(p=>{const m=window.L.marker([Number(p.latitude),Number(p.longitude)],{icon:ownerNearbyHouseIcon(p),riseOnHover:true});m.on("click",()=>ownerNearbyPreview(p));ownerNearby.layer.addLayer(m);});
+    ownerNearby.visible=rows;const count=$("gdrOnCount");if(count)count.textContent=String(rows.length);
+    const empty=$("gdrOnEmpty");if(empty){empty.hidden=rows.length>0;empty.textContent=rows.length?"":"No nearby homes found within "+ownerNearby.radius+" KM. Try expanding the radius.";}
+    if(!rows.length){const preview=$("gdrOnPreview");if(preview)preview.hidden=true;}
+    ownerNearbyStatus(rows.length+" available homes found within "+ownerNearby.radius+" KM of "+(ownerNearby.selected.title||ownerNearby.selected.name||"your property")+".");
+  }
+  function focusOwnerNearbyProperty(){
+    const p=ownerNearby.selected;if(!p||!ownerNearby.map)return;
+    const lat=asNumber(p.latitude),lng=asNumber(p.longitude);
+    if(lat===null||lng===null){ownerNearbyStatus("This property has no saved map coordinates. Edit the property and place its exact pin using the property location picker.");return;}
+    ownerNearby.map.flyTo([lat,lng],14,{duration:.65});
+    if(ownerNearby.circle){ownerNearby.circle.setLatLng([lat,lng]);ownerNearby.circle.setRadius(ownerNearby.radius*1000);}
+  }
+  async function loadOwnerNearbyHomes(){
+    if(ownerNearby.loading||!ownerNearby.selected)return;
+    const center=[asNumber(ownerNearby.selected.latitude),asNumber(ownerNearby.selected.longitude)];
+    if(center.some(v=>v===null)){ownerNearbyStatus("This property is missing exact latitude/longitude. Please update its location pin first.");ownerNearbyLoading(false);return;}
+    ownerNearby.loading=true;ownerNearbyLoading(true);ownerNearbyStatus("Searching real listings within "+ownerNearby.radius+" KM…");
+    try{
+      const client=db();if(!client)throw new Error("Account service is not ready. Refresh and sign in again.");
+      const result=await client.from("properties").select(OWNER_NEARBY_FIELDS).not("latitude","is",null).not("longitude","is",null).order("created_at",{ascending:false});
+      if(result.error)throw result.error;
+      const selectedId=String(ownerNearby.selected.id);
+      const rows=(Array.isArray(result.data)?result.data:[]).filter(p=>String(p.id)!==selectedId&&validPoint(p.latitude,p.longitude)&&ownerNearbyAvailable(p)).map(p=>({...p,gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=ownerNearby.radius).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
+      renderOwnerNearbyHomes(rows,center);
+    }catch(error){console.error("Owner Nearby Properties query failed:",error);ownerNearbyStatus(error.message||"Nearby properties could not be loaded. Check your connection and permissions.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent="Could not load nearby homes. Please refresh and try again.";}}
+    finally{ownerNearby.loading=false;ownerNearbyLoading(false);}
+  }
+  async function openOwnerNearbyMap(){
+    const overlay=ownerNearbyOverlay();overlay.hidden=false;document.body.classList.add("gdr-owner-nearby-open");
+    ownerNearby.radius=5;$("gdrOnRadius").value="5";$("gdrOnMapChip").textContent="5 KM radius";$("gdrOnCount").textContent="…";ownerNearbyLoading(true);
+    try{
+      await ensureLeaflet();
+      const client=db();if(!client)throw new Error("Account service is not ready. Refresh and sign in again.");
+      const auth=await client.auth.getUser();if(auth.error||!auth.data?.user)throw new Error("Please sign in again to open your owner workspace.");
+      const profile=await client.from("owners").select("id,name").eq("user_id",auth.data.user.id).maybeSingle();if(profile.error||!profile.data)throw new Error("Your owner profile could not be loaded.");
+      ownerNearby.owner=profile.data;
+      const own=await client.from("properties").select(OWNER_NEARBY_FIELDS).eq("owner_id",profile.data.id).order("created_at",{ascending:false});if(own.error)throw own.error;
+      ownerNearby.properties=(Array.isArray(own.data)?own.data:[]).filter(p=>validPoint(p.latitude,p.longitude));
+      if(!ownerNearby.properties.length)throw new Error("No property with saved map coordinates was found. Edit your property and save its exact location pin first.");
+      const selector=$("gdrOnPropertySelect");selector.replaceChildren();
+      ownerNearby.properties.forEach(p=>{const opt=document.createElement("option");opt.value=p.id;opt.textContent=(p.title||p.name||"My property")+" · "+(p.location||p.address||"Location");selector.append(opt);});
+      ownerNearby.selected=ownerNearby.properties[0];selector.value=ownerNearby.selected.id;
+      const sub=$("gdrOnSubheading");if(sub)sub.textContent=(ownerNearby.selected.location||ownerNearby.selected.address||ownerNearby.selected.title||"Your property")+" · Search within 5 KM";
+      const canvas=$("gdrOwnerNearbyMapCanvas");
+      if(!ownerNearby.map){ownerNearby.map=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(ownerNearby.map);window.L.control.zoom({position:"bottomright"}).addTo(ownerNearby.map);ownerNearby.layer=makeLayer(ownerNearby.map);}
+      requestAnimationFrame(()=>{ownerNearby.map.invalidateSize();focusOwnerNearbyProperty();});
+      await loadOwnerNearbyHomes();
+    }catch(error){console.error("Owner Nearby map failed:",error);ownerNearbyLoading(false);ownerNearbyStatus(error.message||"Nearby map could not be opened.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent=error.message||"Nearby map could not be opened.";}}
+  }
+
   function bind(){
     $("renterExploreMapBtn")?.addEventListener("click",openRenterMap);$("gdrMapBackBtn")?.addEventListener("click",closeRenterMap);
     $("gdrMapSearchAreaBtn")?.addEventListener("click",searchTypedMapLocation);$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
@@ -336,5 +428,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,usePreciseOwnerLocation};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap};
 })();
