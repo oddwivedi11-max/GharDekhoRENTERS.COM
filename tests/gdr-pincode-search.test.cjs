@@ -41,7 +41,7 @@ test("renter map clusters show a 3D house instead of numeric count bubbles",()=>
  const css=fs.readFileSync(path.join(__dirname,"..","assets","gdr-map-experience.css"),"utf8");
  assert.match(map,/iconCreateFunction:function\(\)/);
  assert.match(map,/gdr-home-3d-cluster/);
- assert.match(map,/A clustered group of nearby listings is represented by the same 3D GharDekho house motif/);
+ assert.match(map,/nearby listings is represented by the same 3D GharDekho house motif/);
  assert.match(css,/\.gdr-home-3d-cluster-wrap/);
  assert.match(css,/\.gdr-home-3d-cluster-back/);
 });
