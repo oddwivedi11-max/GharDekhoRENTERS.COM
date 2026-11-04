@@ -7,6 +7,7 @@ on:
       - "feature/gdr-master-platform-20261104"
       - "fix/find-home-pin-search-smooth-20261104"
       - "fix/gdr-nearby-radius-guard-20261104"
+      - "codex/ghardekho-rental-management"
   workflow_dispatch:
 
 permissions:
@@ -79,6 +80,9 @@ jobs:
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
           node --check assets/gdr-owner-renter-editor.js
+          node --check assets/gdr-owner-renter-page.js
+          node --check tests/gdr-owner-renter-page.test.cjs
+          node --test tests/gdr-owner-renter-page.test.cjs
           node --check tests/gdr-owner-renter-map.spec.cjs
           node --test tests/gdr-owner-renter-map.spec.cjs
           node --check tests/gdr-map-experience.spec.cjs

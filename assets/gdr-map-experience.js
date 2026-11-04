@@ -4,7 +4,7 @@
   const $ = id => document.getElementById(id);
   const state = {
     renterMap:null, ownerMap:null, renterLayer:null, radiusCircle:null,
-    ownerMarker:null, ownerSelection:null, inventory:[], boundsRows:[], visible:[],
+    ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, inventory:[], boundsRows:[], visible:[],
     searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false,
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null
@@ -142,18 +142,19 @@
     document.addEventListener("click",e=>{if(!panel.contains(e.target)&&e.target!==input)panel.classList.remove("gdr-open");});
   }
   function updateOwnerStatus(message){const n=$("gdrOwnerMapSelectionStatus");if(n)n.textContent=message||"";}
-  function setOwnerPin(point,label){
+  function setOwnerPin(point,label,manualConfirmation){
     if(!state.ownerMap||!validPoint(point.lat,point.lng))return;
     state.ownerSelection={lat:Number(point.lat),lng:Number(point.lng),label:String(label||"")};
+    state.ownerPinManuallyConfirmed=manualConfirmation===true;
     if(state.ownerMarker)state.ownerMap.removeLayer(state.ownerMarker);
     state.ownerMarker=window.L.marker([point.lat,point.lng],{draggable:true}).addTo(state.ownerMap);
-    state.ownerMarker.on("dragend",()=>{const p=state.ownerMarker.getLatLng();state.ownerSelection={lat:p.lat,lng:p.lng,label:""};updateOwnerStatus("Pin moved. Confirm to save these coordinates.");});
+    state.ownerMarker.on("dragend",()=>{const p=state.ownerMarker.getLatLng();state.ownerSelection={lat:p.lat,lng:p.lng,label:""};state.ownerPinManuallyConfirmed=true;updateOwnerStatus("Exact pin position manually adjusted. Confirm to save these coordinates.");});
     updateOwnerStatus((label?label+" · ":"")+"Pin: "+point.lat.toFixed(5)+", "+point.lng.toFixed(5)+". Drag to adjust.");
   }
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
     state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
-    state.ownerMap.setView([23.2599,77.4126],12);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,""));
+    state.ownerMap.setView([23.2599,77.4126],12);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
   }
   async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
@@ -174,7 +175,8 @@
   }
   function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true;}
   function confirmOwnerMapLocation(){
-    if(!state.ownerSelection){updateOwnerStatus("Tap the map or search for a locality to place the property pin.");return;}
+    if(!state.ownerSelection){updateOwnerStatus("Tap the map or use GPS to place the property pin.");return;}
+    if(!state.ownerPinManuallyConfirmed){updateOwnerStatus("This is only an approximate locality-search pin, not a verified property location. Zoom in and tap the exact building/entrance or drag the marker, or use high-accuracy GPS, before confirming.");return;}
     const input=$("propertyLocation"),typed=String(input&&input.value||"").trim(),address=typed||state.ownerSelection.label;
     if(!address){updateOwnerStatus("Enter the full property address before confirming the pin.");if(input)input.focus();return;}
     if(typeof window.__gdrSetPropertyLocation!=="function"||!window.__gdrSetPropertyLocation(address,state.ownerSelection.lat,state.ownerSelection.lng)){updateOwnerStatus("Property form is still initializing. Try again.");return;}
@@ -188,7 +190,7 @@
       const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),accuracy=Number(pos.coords.accuracy);
       if(!validPoint(lat,lng)){updateOwnerStatus("The device returned an invalid location. Search or place the pin manually.");return;}
       state.ownerMap.setView([lat,lng],18,{animate:true});
-      setOwnerPin({lat,lng},"Device GPS");
+      setOwnerPin({lat,lng},"Device GPS",true);
       if(state.ownerAccuracyCircle)state.ownerMap.removeLayer(state.ownerAccuracyCircle);
       state.ownerAccuracyCircle=window.L.circle([lat,lng],{radius:Math.max(accuracy||0,1),color:"#0f766e",weight:1,fillColor:"#14b8a6",fillOpacity:.12}).addTo(state.ownerMap);
       const accuracyText=Number.isFinite(accuracy)?"±"+Math.round(accuracy)+" m":"accuracy unavailable";
@@ -214,16 +216,25 @@
     $("gdrMapViewToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;l.classList.remove("gdr-list-mode");if(panel)panel.hidden=true;$("gdrMapListToggle").setAttribute("aria-pressed","false");$("gdrMapViewToggle").setAttribute("aria-pressed","true");if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
     $("gdrOpenOwnerMapPickerBtn")?.addEventListener("click",openOwnerMapPicker);$("gdrCloseOwnerMapPickerBtn")?.addEventListener("click",closeOwnerMapPicker);$("gdrConfirmOwnerMapLocation")?.addEventListener("click",confirmOwnerMapLocation);
     setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{state.searchCenter=[r.lat,r.lng];if(state.renterMap){state.renterMap.flyTo(state.searchCenter,14,{duration:.6});searchRenterArea();}},"renter");
-    setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label);}},"owner");
+    setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label,false);updateOwnerStatus("Approximate locality found. Zoom in and tap the exact building/entrance or drag the pin; search results are not exact property coordinates.");}},"owner");
   }
   function loadOwnerRenterEditor(){
-    if(document.querySelector("script[data-gdr-owner-renter-editor]"))return;
-    const script=document.createElement("script");
-    script.src="/assets/gdr-owner-renter-editor.js";
-    script.defer=true;
-    script.dataset.gdrOwnerRenterEditor="true";
-    script.onerror=()=>console.warn("Owner renter editor could not be loaded.");
-    document.head.appendChild(script);
+    if(!document.querySelector("script[data-gdr-owner-renter-editor]")){
+      const script=document.createElement("script");
+      script.src="/assets/gdr-owner-renter-editor.js";
+      script.defer=true;
+      script.dataset.gdrOwnerRenterEditor="true";
+      script.onerror=()=>console.warn("Owner renter editor could not be loaded.");
+      document.head.appendChild(script);
+    }
+    if(!document.querySelector("script[data-gdr-owner-renter-page]")){
+      const pageScript=document.createElement("script");
+      pageScript.src="/assets/gdr-owner-renter-page.js";
+      pageScript.defer=true;
+      pageScript.dataset.gdrOwnerRenterPage="true";
+      pageScript.onerror=()=>console.warn("Dedicated renter profile page could not be loaded.");
+      document.head.appendChild(pageScript);
+    }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}

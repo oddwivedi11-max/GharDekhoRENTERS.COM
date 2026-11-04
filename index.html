@@ -14227,6 +14227,15 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 return;
             }
 
+            // Pending owner listings are intentionally hidden by public RLS
+            // and must not enter the visit-request flow before verification.
+            if (currentProperty.status === "pending" ||
+                currentProperty.verification_status === "pending") {
+                status.textContent =
+                    "This property is awaiting owner/admin verification. Visit requests will open once the listing is approved.";
+                return;
+            }
+
             const visitName = document.getElementById("visitName").value.trim();
             const visitPhone = normalizePhone(document.getElementById("visitPhone").value);
             const visitDate = document.getElementById("visitDate").value;
@@ -14272,8 +14281,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     propertyError
                 );
 
-                status.textContent =
-                    "Could not find this property.";
+                status.textContent = propertyError
+                    ? "We couldn't verify this listing. It may be pending approval or unavailable. Please refresh the property page or contact the owner."
+                    : "This listing is no longer available. Please refresh and choose another property.";
                 isSubmittingVisit = false;
                 if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
                 return;
@@ -20626,6 +20636,20 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
       const row=document.createElement("div");row.className="gdr-pin-status";row.textContent=message;
       panel.appendChild(row);show();
     }
+    function selectLocationOption(value,meta){
+      input.value=value;
+      if(meta&&Number.isFinite(Number(meta.lat))&&Number.isFinite(Number(meta.lng))){
+        input.dataset.gdSelectedLat=String(meta.lat);
+        input.dataset.gdSelectedLng=String(meta.lng);
+        input.dataset.gdSelectedDisplayName=value;
+      }else{
+        delete input.dataset.gdSelectedLat;delete input.dataset.gdSelectedLng;delete input.dataset.gdSelectedDisplayName;
+      }
+      hide();
+      input.dispatchEvent(new Event("input",{bubbles:true}));
+      input.dispatchEvent(new Event("change",{bubbles:true}));
+      input.focus({preventScroll:true});
+    }
     function addOption(title,detail,value,meta){
       const button=document.createElement("button");
       button.type="button";button.className="gdr-pin-option";
@@ -20634,19 +20658,11 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
       const small=document.createElement("small");small.textContent=detail||"India";
       button.append(strong,small);
       button.addEventListener("mouseenter",()=>{activeIndex=options.findIndex(item=>item.button===button);updateActive();});
-      button.addEventListener("click",()=>{
-        input.value=value;hide();
-        if(meta&&meta.lat&&meta.lng){
-          input.dataset.gdSelectedLat=String(meta.lat);
-          input.dataset.gdSelectedLng=String(meta.lng);
-          input.dataset.gdSelectedDisplayName=value;
-        }else{
-          delete input.dataset.gdSelectedLat;delete input.dataset.gdSelectedLng;delete input.dataset.gdSelectedDisplayName;
-        }
-        input.dispatchEvent(new Event("change",{bubbles:true}));
-        input.focus();
+      button.addEventListener("click",event=>{
+        event.preventDefault();event.stopPropagation();
+        selectLocationOption(value,meta);
       });
-      options.push({button});panel.appendChild(button);
+      options.push({button,value,meta});panel.appendChild(button);
     }
     function updateActive(){
       options.forEach((item,index)=>{
@@ -20733,6 +20749,17 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
         status("Location suggestions are temporarily unavailable. You can still type the location manually.");
       }
     }
+    panel.addEventListener("pointerdown",event=>{
+      const option=event.target.closest(".gdr-pin-option");
+      if(!option)return;
+      event.preventDefault();
+      event.stopPropagation();
+      const selected=options.find(item=>item.button===option);
+      if(selected)selectLocationOption(selected.value,selected.meta);
+    },true);
+    panel.addEventListener("click",event=>{
+      if(event.target.closest(".gdr-pin-option"))event.stopPropagation();
+    },true);
     input.setAttribute("aria-controls",panel.id);input.setAttribute("aria-expanded","false");
     input.addEventListener("input",()=>{
       delete input.dataset.gdSelectedLat;delete input.dataset.gdSelectedLng;delete input.dataset.gdSelectedDisplayName;
