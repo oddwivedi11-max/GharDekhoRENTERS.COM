@@ -88,7 +88,23 @@ async function saveSettings(e){
  }catch(e){toast(e.message||"Could not save settings.",true)}finally{btn.disabled=false;btn.textContent="Save payment settings"}
 }
 async function verify(id,decision,note){var r=await c().rpc("owner_verify_rent_payment",{p_payment_id:id,p_decision:decision,p_note:note||null});if(r.error){toast(r.error.message,true);return}toast(decision==="paid"?"Payment confirmed.":"Payment rejected.");loadOwnerPayments()}
-function boot(){addRenter();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
+function addOwnerNearbyAction(){
+ var root=$("ownerDashboard");if(!root||$("gdrOwnerNearbyCard"))return;
+ var card=document.createElement("section");card.id="gdrOwnerNearbyCard";card.className="dashboard-card gdr-owner-nearby-launch";
+ card.innerHTML='<div class="gdr-owner-nearby-launch-copy"><span class="gdr-owner-nearby-launch-icon">⌂</span><span><b>Nearby Properties</b><small>Explore available rental homes within 5 KM of your property.</small></span></div><button type="button" id="gdrOwnerNearbyOpen">Open nearby map →</button>';
+ var before=root.querySelector(".owner-inventory-card")||root.firstElementChild;
+ if(before)root.insertBefore(card,before);else root.appendChild(card);
+ $("gdrOwnerNearbyOpen").addEventListener("click",function(){if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function")window.GDRMapExperience.openOwnerNearbyMap();else toast("Nearby map is loading. Please try again in a moment.",true);});
+}
+function boot(){addRenter();addOwnerNearbyAction();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
+document.addEventListener("click",function(event){
+ var target=event.target&&event.target.closest?event.target.closest("#ownerDashboard button,#ownerDashboard a,#ownerDashboard [role='button']"):null;
+ if(!target||target.id==="gdrOwnerNearbyOpen")return;
+ if(!/nearby\s+properties|near\s+by\s+properties/i.test(String(target.innerText||target.textContent||"")))return;
+ event.preventDefault();event.stopImmediatePropagation();
+ if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function")window.GDRMapExperience.openOwnerNearbyMap();
+ else toast("Nearby map is loading. Please try again in a moment.",true);
+},true);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
 })();
