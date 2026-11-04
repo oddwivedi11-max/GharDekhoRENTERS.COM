@@ -71,6 +71,17 @@
       .gdr-ocr-list .premium-section-heading .icon,
       .gdr-ocr-list .premium-section-heading [aria-hidden="true"]{display:none!important}
       .gdr-ocr-list .premium-section-heading{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:0!important}
+      /* Remove the redundant pawn emblem from the Current Renters section heading.
+         The dedicated Current Renters dashboard button remains the only entry icon. */
+      .gdr-ocr-list .premium-section-heading > [class*="icon"],
+      .gdr-ocr-list .premium-section-heading > [class*="Icon"],
+      .gdr-ocr-list .premium-section-heading > .owner-section-symbol,
+      .gdr-ocr-list .premium-section-heading > .section-symbol,
+      .gdr-ocr-list .premium-section-heading > span:has(svg),
+      .gdr-ocr-list .premium-section-heading > span:has(img){display:none!important}
+      .gdr-ocr-list .premium-section-heading::before,
+      .gdr-ocr-list .premium-section-heading::after{content:none!important;display:none!important}
+
 
       .gdr-ocr-list #ownerOccupancyContainer{margin-top:12px}
       .gdr-ocr-list .gd-current-renter-card{margin:10px 0!important}
@@ -100,6 +111,16 @@
       }
     `;
     document.head.appendChild(style);
+  }
+
+
+  function removeRedundantHeadingIcon() {
+    const heading=document.querySelector("#ownerDashboard .owner-occupancy-card .premium-section-heading");
+    if(!heading)return;
+    heading.querySelectorAll(":scope > span,:scope > i,:scope > div,:scope > svg").forEach(function(el){
+      const value=(el.textContent||"").trim();
+      if(/^[♙♟♜♞♝♛♚♔♕♖♗♘♙🏠🏡♟️]+$/.test(value) || el.matches("svg,img,[class*='icon'],[class*='Icon']")) el.remove();
+    });
   }
 
   function addEntryCard() {
@@ -149,6 +170,7 @@
     if (!section) return;
     busy = true;
     styles();
+    removeRedundantHeadingIcon();
     returnScroll = window.scrollY;
     if (!page) {
       page = document.createElement("section");
