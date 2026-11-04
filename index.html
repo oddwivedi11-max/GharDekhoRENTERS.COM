@@ -12394,60 +12394,66 @@ function closeRenterProfileEditor(){
 async function saveRenterProfile(e){
     e.preventDefault();
     if(!currentUser||!["renter","tenant"].includes(String(activeRole||"").toLowerCase())) return;
-    const name=document.getElementById("renterProfileEditName").value.trim();
-    const email=document.getElementById("renterProfileEditEmail").value.trim().toLowerCase();
-    const phone=normalizePhone(document.getElementById("renterProfileEditPhone").value);
+    const name=document.getElementById("renterProfileEditName")?.value.trim()||"";
+    const email=document.getElementById("renterProfileEditEmail")?.value.trim().toLowerCase()||"";
+    const phone=normalizePhone(document.getElementById("renterProfileEditPhone")?.value||"");
     const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
+    const message=document.getElementById("renterProfileMessage");
 
-    if(!name||!email){showMessage("backendMessage","Please enter your name and contact email.","error");return;}
+    if(!name||!email){
+        if(message){message.hidden=false;message.textContent="Please enter your name and contact email.";}
+        showMessage("backendMessage","Please enter your name and contact email.","error");
+        return;
+    }
     const phoneError=gharDekhoPhoneError(phone);
-    if(phoneError){showMessage("backendMessage",phoneError,"error");document.getElementById("renterProfileEditPhone")?.focus();return;}
+    if(phoneError){
+        if(message){message.hidden=false;message.textContent=phoneError;}
+        showMessage("backendMessage",phoneError,"error");
+        document.getElementById("renterProfileEditPhone")?.focus();
+        return;
+    }
 
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
+    if(message){message.hidden=false;message.textContent="Saving your renter details…";}
     try{
-        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone});
-        if(error){
-            console.error("Renter profile update failed:",error);
-            const raw=String(error?.message||"").toLowerCase();
-            const message="Unable to save renter details with the supplied information. Please check the details and try again.";
-            showMessage("backendMessage",message,"error");
-            return;
-        }
+        // This authenticated RPC performs the complete write to public.users.
+        // A second client-side UPDATE can be blocked by table RLS after the RPC
+        // has already saved the profile, making a successful save look like failure.
+        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{
+            p_name:name,p_email:email,p_phone:phone
+        });
+        if(error) throw error;
+        const saved=(data&&typeof data==="object")?data:{};
+        if(saved.success===false) throw new Error(saved.message||"The profile update was not confirmed by the server.");
+        if(saved.user_id&&saved.user_id!==currentUser.id) throw new Error("The saved profile did not match the signed-in account.");
 
-        /*
-         * The mandatory-phone login gate reads public.users.phone. Keep that
-         * row synchronized with the successful profile RPC so a phone saved
-         * by the editor is not treated as missing on the next login.
-         */
-        const { data: persistedProfile, error: persistError } = await supabaseClient
-            .from("users")
-            .update({ name, email, phone })
-            .eq("id", currentUser.id)
-            .select("id,name,email,phone,role,roles")
-            .maybeSingle();
-
-        if (persistError || !persistedProfile || !isValidGharDekhoPhone(normalizePhone(persistedProfile.phone))) {
-            console.error("Renter profile was accepted by RPC but users.phone could not be verified:", persistError || persistedProfile);
-            showMessage("backendMessage","Your details were submitted, but we could not verify the saved phone in your profile. Please try again; if it repeats, contact support.","error");
-            return;
-        }
-
-        currentProfile={...(currentProfile||{}),...(data||{}),...persistedProfile,name,email,phone};
+        currentProfile={
+            ...(currentProfile||{}),...saved,id:currentUser.id,
+            name:saved.name||name,email:saved.email||email,phone:saved.phone||phone
+        };
         updateDashboardProfile();
         try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
         const renterEditor=document.getElementById("renterProfileEditor");
         if(renterEditor)renterEditor.dataset.requiredPhone="0";
+        if(message){message.hidden=false;message.textContent="Renter details saved successfully.";}
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
         closeRenterProfileEditor();
         window.__gdAuthRequested=false;
-        const renterLoginSection=document.getElementById("loginSection");
-        const renterLanding=document.getElementById("loggedOutLanding");
-        if(renterLoginSection)renterLoginSection.style.display="none";
-        if(renterLanding)renterLanding.style.display="none";
+        const loginSection=document.getElementById("loginSection");
+        const landing=document.getElementById("loggedOutLanding");
+        if(loginSection)loginSection.style.display="none";
+        if(landing)landing.style.display="none";
         await updateAuthUI();
     }catch(error){
-        console.error("Renter profile update exception:",error);
-        showMessage("backendMessage","Could not save renter details. Please try again.","error");
+        console.error("Renter profile update failed:",error);
+        const raw=String(error?.message||error?.details||"");
+        const messageText=/already registered|already used|duplicate|unique/i.test(raw)
+            ? raw
+            : /invalid phone|phone number/i.test(raw)
+                ? raw
+                : "Could not save renter details. Please check your details and try again.";
+        if(message){message.hidden=false;message.textContent=messageText;}
+        showMessage("backendMessage",messageText,"error");
     }finally{
         if(saveButton){saveButton.disabled=false;saveButton.textContent="Save details";}
     }
