@@ -364,10 +364,14 @@
     ownerNearby.loading=true;ownerNearbyLoading(true);ownerNearbyStatus("Searching real listings within "+ownerNearby.radius+" KM…");
     try{
       const client=db();if(!client)throw new Error("Account service is not ready. Refresh and sign in again.");
-      const result=await client.from("properties").select(OWNER_NEARBY_FIELDS).not("latitude","is",null).not("longitude","is",null).order("created_at",{ascending:false});
+      const result=await client.rpc("get_public_properties");
       if(result.error)throw result.error;
       const selectedId=String(ownerNearby.selected.id);
-      const rows=(Array.isArray(result.data)?result.data:[]).filter(p=>String(p.id)!==selectedId&&validPoint(p.latitude,p.longitude)&&ownerNearbyAvailable(p)).map(p=>({...p,gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=ownerNearby.radius).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
+      // Reuse the platform public-inventory RPC: it intentionally includes
+      // eligible pending listings without weakening table RLS or requiring
+      // an extra admin-verification gate for this discovery map.
+      const inventory=(Array.isArray(result.data)?result.data:[]).map(p=>({...p,name:p.name||p.title,address:p.address||p.location}));
+      const rows=inventory.filter(p=>String(p.id)!==selectedId&&validPoint(p.latitude,p.longitude)&&ownerNearbyAvailable(p)).map(p=>({...p,gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=ownerNearby.radius).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
       renderOwnerNearbyHomes(rows,center);
     }catch(error){console.error("Owner Nearby Properties query failed:",error);ownerNearbyStatus(error.message||"Nearby properties could not be loaded. Check your connection and permissions.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent="Could not load nearby homes. Please refresh and try again.";}}
     finally{ownerNearby.loading=false;ownerNearbyLoading(false);}
