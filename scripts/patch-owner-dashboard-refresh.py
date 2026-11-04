@@ -239,5 +239,28 @@ replace_once(
     "prefer direct RLS owner property query with RPC fallback"
 )
 
+replace_once(
+'''        const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";''',
+'''        const requestedRadiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        // Preserve the existing Nearby radius options while rejecting malformed values.
+        const radiusKm = Number.isFinite(requestedRadiusKm)
+            ? Math.min(20, Math.max(1, requestedRadiusKm))
+            : 3;
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";''',
+    "validate selected Nearby radius"
+)
+
+replace_once(
+'''                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                return distanceKm <= radiusKm ? {...property,distanceKm} : null;''',
+'''                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                // Defense in depth: never render a property outside the selected radius.
+                return Number.isFinite(distanceKm) && distanceKm >= 0 && distanceKm <= radiusKm
+                    ? {...property,distanceKm}
+                    : null;''',
+    "enforce exact Nearby distance boundary"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
