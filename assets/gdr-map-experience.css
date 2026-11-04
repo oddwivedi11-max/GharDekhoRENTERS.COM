@@ -61,7 +61,7 @@
 .gdr-map-suggestion{display:block;width:100%;padding:10px;border:0;border-radius:9px;background:#fff;text-align:left;color:var(--gdr-map-ink);font-size:13px;line-height:1.35}
 .gdr-map-suggestion:hover,.gdr-map-suggestion:focus{background:#eaf5f1}
 .gdr-map-search-wrap{position:relative;min-width:0}
-#gdrExploreMapPanel[hidden],#gdrOwnerMapPicker[hidden]{display:none!important}
+#gdrExploreMapPanel[hidden],#gdrOwnerMapPicker[hidden],#gdrMapListPanel[hidden]{display:none!important}
 #renterDashboard.gdr-map-mode> :not(#gdrExploreMapPanel){display:none!important}
 @media(max-width:900px){
  .gdr-map-toolbar{grid-template-columns:minmax(0,1fr) minmax(120px,.65fr);align-items:end}
