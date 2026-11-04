@@ -8,6 +8,7 @@ on:
       - "fix/find-home-pin-search-smooth-20261104"
       - "fix/gdr-nearby-radius-guard-20261104"
       - "codex/ghardekho-rental-management"
+      - "codex/fix-property-card-actions"
   workflow_dispatch:
 
 permissions:
@@ -83,6 +84,8 @@ jobs:
           node --check assets/gdr-owner-renter-page.js
           node --check tests/gdr-owner-renter-page.test.cjs
           node --test tests/gdr-owner-renter-page.test.cjs
+          node --check tests/gdr-property-workflows.test.cjs
+          node --test tests/gdr-property-workflows.test.cjs
           node --check tests/gdr-owner-renter-map.spec.cjs
           node --test tests/gdr-owner-renter-map.spec.cjs
           node --check tests/gdr-map-experience.spec.cjs
