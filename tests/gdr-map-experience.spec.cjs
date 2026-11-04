@@ -151,4 +151,12 @@ test.describe('GDR map-first experience structure', () => {
     await expect(page.locator('#liveNearbyBtn')).toHaveCount(1);
     await expect(page.locator('#renterExploreMapBtn')).toHaveAttribute('type', 'button');
   });
+
+  test('Saved Properties stays hidden until its dashboard shortcut is clicked', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const section = page.locator('#renterSavedPropertiesSection');
+    await expect(section).toHaveCSS('display', 'none');
+    await page.locator('#renterSavedPropertiesBtn').click();
+    await expect(section).toBeVisible();
+  });
 });
