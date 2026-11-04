@@ -11,6 +11,7 @@ on:
       - "codex/fix-property-card-actions"
       - "codex/fix-saved-card-native-handlers"
       - "codex/fix-details-nearby-property-rpc"
+      - "codex/allow-visit-before-admin-verification"
     paths:
       - "index.html"
       - "admin/**"

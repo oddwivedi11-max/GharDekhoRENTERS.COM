@@ -14231,15 +14231,8 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 return;
             }
 
-            // Pending owner listings are intentionally hidden by public RLS
-            // and must not enter the visit-request flow before verification.
-            if (currentProperty.status === "pending" ||
-                currentProperty.verification_status === "pending") {
-                status.textContent =
-                    "This property is awaiting owner/admin verification. Visit requests will open once the listing is approved.";
-                return;
-            }
-
+            // Admin/property verification is not a prerequisite for requesting a visit.
+            // The database RPC validates that the listing can receive a request.
             const visitName = document.getElementById("visitName").value.trim();
             const visitPhone = normalizePhone(document.getElementById("visitPhone").value);
             const visitDate = document.getElementById("visitDate").value;
@@ -14270,88 +14263,20 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
             status.textContent = "Booking visit...";
 
-            const {
-                data: property,
-                error: propertyError
-            } = await supabaseClient
-                .from("properties")
-                .select("id,owner_id,status,verification_status")
-                .eq("id", currentProperty.id)
-                .maybeSingle();
-
-            if (propertyError || !property) {
-                console.error(
-                    "Property lookup error:",
-                    propertyError
-                );
-
-                status.textContent = propertyError
-                    ? "We couldn't verify this listing. It may be pending approval or unavailable. Please refresh the property page or contact the owner."
-                    : "This listing is no longer available. Please refresh and choose another property.";
-                isSubmittingVisit = false;
-                if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
-                return;
-            }
-
-            // Never allow an Owner to request a visit on their own listing.
-            // The database RLS also enforces this, but blocking it here gives
-            // the user a clear message instead of a generic permission error.
-            if (activeRole === "owner") {
-                let ownOwnerId = currentOwnerProfile?.id || null;
-                if (!ownOwnerId) {
-                    const { data: ownOwnerProfile, error: ownOwnerError } =
-                        await getMyOwnerProfileShared();
-                    if (!ownOwnerError) {
-                        const ownRecord = Array.isArray(ownOwnerProfile)
-                            ? (ownOwnerProfile[0] || null)
-                            : ownOwnerProfile;
-                        ownOwnerId = ownRecord?.id || null;
-                        if (ownRecord) currentOwnerProfile = ownRecord;
-                    }
-                }
-                if (ownOwnerId && String(ownOwnerId) === String(property.owner_id)) {
-                    status.textContent = "You cannot request a visit for your own property.";
-                    isSubmittingVisit = false;
-                    if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
-                    return;
-                }
-            }
-
-            if (property.verification_status !== "verified" || !["verified","occupied","soon_available"].includes(property.status)) {
-                status.textContent =
-                    "This property is not currently available for booking.";
-                isSubmittingVisit = false;
-                if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
-                return;
-            }
-
-            /*
-             * visit_requests.message is not present in the current
-             * database schema, so it is intentionally not inserted.
-             */
-            const {
-                error
-            } = await supabaseClient
-                .from("visit_requests")
-                .insert({
-                    property_id: property.id,
-                    tenant_id: currentUser.id,
-                    name: visitName,
-                    phone: visitPhone,
-                    owner_id: property.owner_id,
-                    visit_date: visitDate,
-                    visit_time: visitTime,
-                    status: "pending"
-                });
+            const { error } = await supabaseClient.rpc("request_property_visit", {
+                p_property_id: currentProperty.id,
+                p_name: visitName,
+                p_phone: visitPhone,
+                p_visit_date: visitDate,
+                p_visit_time: visitTime
+            });
 
             if (error) {
-                console.error(
-                    "Visit booking error:",
-                    error
+                console.error("Visit booking error:", error);
+                status.textContent = getSafeErrorMessage(
+                    error,
+                    "Unable to submit the visit request right now. Please try again."
                 );
-
-                status.textContent =
-                    getSafeErrorMessage(error, "Unable to submit the visit request right now.");
                 isSubmittingVisit = false;
                 if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
                 return;
