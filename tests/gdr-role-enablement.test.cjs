@@ -62,3 +62,28 @@ test('role persistence preserves the existing role when enabling the second mode
   assert.match(source, /update\(\{ roles: roleValues \}\)/);
   assert.doesNotMatch(source, /update\(\{[^}]*role:\s*normalized/);
 });
+
+test('dashboard renderer fails closed without an authenticated user and loaded profile', () => {
+  const source = functionSource(
+    'async function renderActiveDashboard()',
+    '\\n        /* =========================================================\\n           ADMIN CONTROL CENTER'
+  );
+
+  assert.match(source, /if \(!currentUser \|\| !currentProfile\)/);
+  assert.match(source, /renter\.style\.display = "none"/);
+  assert.match(source, /owner\.style\.display = "none"/);
+  assert.match(source, /dashboard\.setAttribute\("aria-hidden", "true"\)/);
+});
+
+test('failed Renter role persistence never creates Renter access in browser memory', () => {
+  const source = functionSource(
+    'if (selectedLoginRole === "renter") {',
+    '// Lock the destination to the role selected on this login.'
+  );
+
+  assert.match(source, /renterRoleAlreadyEnabled/);
+  assert.match(source, /persistedRoles\.includes\("owner"\)/);
+  assert.match(source, /selectedLoginRole = "owner"/);
+  assert.doesNotMatch(source, /currentProfile\.roles\s*=|currentProfile\.role\s*=/);
+  assert.match(source, /supabaseClient\.auth\.signOut\(\)/);
+});
