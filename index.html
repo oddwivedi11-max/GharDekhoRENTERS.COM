@@ -22077,15 +22077,14 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
   function emptyState(radiusKm){
     const container=byId("renterLiveNearbyContainer");
     if(!container) return;
-    container.innerHTML='<div class="renter-live-empty-state gdr-live-empty-state"><span>⌖</span><strong>No properties found within '+radiusKm+' km. Increase your KM radius to discover more homes.</strong><p>No eligible, location-verified homes are available within the selected radius.</p><button type="button" class="gdr-increase-radius-btn" id="gdrIncreaseNearbyRadius">Increase Radius</button></div>';
+    const atMaximum=Number(radiusKm)>=10;
+    container.innerHTML='<div class="renter-live-empty-state gdr-live-empty-state" role="status" aria-live="polite"><span aria-hidden="true">⌖</span><strong>No properties found within '+radiusKm+' km.</strong><p>No eligible, location-verified homes are available within this search radius.'+(atMaximum?' You have reached the maximum search radius.':' Try expanding your search radius to discover more homes.')+'</p>'+(atMaximum?'<button type="button" class="gdr-increase-radius-btn" disabled aria-disabled="true">Maximum Radius Reached</button>':'<button type="button" class="gdr-increase-radius-btn" id="gdrIncreaseNearbyRadius">Increase Radius</button>')+'</div>';
+    if(atMaximum) return;
     byId("gdrIncreaseNearbyRadius")?.addEventListener("click",()=>{
       const select=byId("renterLiveNearbyRadius");
       if(!select) return;
       const next=Math.min(10,selectedRadiusKm()+1);
-      if(next===selectedRadiusKm()){
-        updateLiveText("You are already searching the maximum radius of <strong>10 km</strong>.");
-        return;
-      }
+      if(next===selectedRadiusKm()) return;
       select.value=String(next);
       select.dispatchEvent(new Event("change",{bubbles:true}));
     },{once:true});
@@ -22114,6 +22113,10 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     if(token!==sessionToken) return false;
     const radiusKm=selectedRadiusKm();
     updateLiveText('Searching verified rental homes within <strong>'+radiusKm+' km</strong> of your current location…');
+    const inventory=byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
+    const container=byId("renterLiveNearbyContainer");
+    if(inventory) inventory.hidden=true;
+    if(container) container.innerHTML='<div class="renter-live-empty-state" role="status" aria-live="polite"><span>⌖</span><strong>Searching nearby homes…</strong><p>We will show matching properties or a no-properties message when the search finishes.</p></div>';
     const result=await fetchNearbyPropertiesFromBackend(latitude,longitude,radiusKm);
     if(token!==sessionToken) return false;
     if(!result||!Array.isArray(result.rows)) throw new Error("Nearby property service returned an invalid response.");
