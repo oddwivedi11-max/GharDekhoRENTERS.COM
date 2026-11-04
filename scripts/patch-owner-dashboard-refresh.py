@@ -278,6 +278,66 @@ replace_once(
     "activate the selected dashboard after successful role switch"
 )
 
+
+# Replace the duplicated owner Nearby discovery shortcut with a dedicated
+# Current Renters entry point beside Add Property. The renter-side discovery
+# and the shared map modules remain untouched.
+replace_once(
+'''                <div class="owner-dashboard-overview owner-dashboard-quick-grid">
+                    <div class="dashboard-card owner-quick-card">
+                        <div>
+                            <span class="dashboard-section-kicker">LIST YOUR PROPERTY</span>
+                            <h3>Add a Property</h3>
+                            <p class="dashboard-muted">List a rental, confirm its location and start receiving visit requests.</p>
+                        </div>
+                        <button type="button" class="dashboard-primary-action" id="ownerAddPropertyBtn">＋ Add Property</button>
+                    </div>
+                    <div class="dashboard-card owner-quick-card owner-explore-card">
+                        <div>
+                            <span class="dashboard-section-kicker">LOOKING FOR A HOME TOO?</span>
+                            <h3>Explore Near Me</h3>
+                            <p class="dashboard-muted">Use nearby discovery, save properties and request visits without leaving your Owner account.</p>
+                        </div>
+                        <div class="owner-quick-actions">
+                            <button type="button" class="dashboard-primary-action owner-explore-btn" id="ownerExploreNearbyBtn">📍 Explore Near Property by Me</button>
+                            <button type="button" class="dashboard-secondary-action" id="ownerSavedPropertiesBtn">❤️ Saved Properties</button>
+                        </div>
+                    </div>
+                </div>''',
+'''                <div class="owner-dashboard-overview owner-dashboard-quick-grid gdr-owner-entry-grid">
+                    <div class="dashboard-card owner-quick-card gdr-owner-entry-card">
+                        <div>
+                            <span class="dashboard-section-kicker">LIST YOUR PROPERTY</span>
+                            <h3>Add a Property</h3>
+                            <p class="dashboard-muted">List a rental, confirm its location and start receiving visit requests.</p>
+                        </div>
+                        <button type="button" class="dashboard-primary-action" id="ownerAddPropertyBtn">＋ Add Property</button>
+                    </div>
+                    <div class="dashboard-card owner-quick-card gdr-owner-entry-card gdr-current-renters-entry">
+                        <div>
+                            <span class="dashboard-section-kicker">TENANCY MANAGEMENT</span>
+                            <h3>Current Renters</h3>
+                            <p class="dashboard-muted">Manage active tenants, rental details and monthly rent records.</p>
+                        </div>
+                        <button type="button" class="gdr-current-renters-open" id="ownerCurrentRentersBtn">
+                            <span class="gdr-current-renters-open-icon" aria-hidden="true">♙</span>
+                            <span>Current Renters</span>
+                            <span class="gdr-current-renters-open-arrow" aria-hidden="true">→</span>
+                        </button>
+                    </div>
+                </div>''',
+    "replace owner Nearby shortcut with Current Renters dashboard entry"
+)
+
+# Load the standalone Current Renters dashboard controller after the existing
+# renter profile controller; no map or renter-side Find Home scripts are removed.
+if 'gdr-owner-current-renters-dashboard.js' not in source:
+    script_tag = '<script src="/assets/gdr-owner-current-renters-dashboard.js" defer></script>\\n'
+    if "</body>" not in source:
+        raise SystemExit("Stopped safely: </body> not found for Current Renters dashboard loader")
+    source = source.replace("</body>", script_tag + "</body>", 1)
+    print("Added Current Renters dashboard controller.")
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
 
