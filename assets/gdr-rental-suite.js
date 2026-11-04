@@ -5,6 +5,25 @@ var esc=function(v){return String(v==null?"":v).replace(/[&<>"']/g,function(x){r
 var money=function(v){return "₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).format(Number(v||0))};
 var date=function(v){return v?new Date(String(v).slice(0,10)+"T00:00:00").toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"}):"—"};
 var owner=null,props=[],settings=null,rental=null;
+
+/* Keep the Saved Properties panel contextual: it stays open while the renter
+   interacts with its contents, but closes as soon as another action is chosen. */
+function dismissSavedPropertiesOnOtherAction(event){
+ var panel=$("renterSavedPropertiesSection");
+ if(!panel||panel.hidden||!panel.isConnected)return;
+ var target=event.target&&event.target.closest?event.target:null;
+ if(!target)return;
+ var savedToggle=target.closest("#renterSavedPropertiesBtn,[data-open-saved-properties]");
+ if(savedToggle)return;
+ if(panel.contains(target))return;
+ var action=target.closest("button,a,[role='button'],input[type='submit'],input[type='button'],[data-dashboard-action]");
+ if(!action)return;
+ panel.hidden=true;
+ var toggle=$("renterSavedPropertiesBtn");
+ if(toggle)toggle.setAttribute("aria-expanded","false");
+}
+document.addEventListener("click",dismissSavedPropertiesOnOtherAction,true);
+
 function toast(msg,bad){var n=$("gdrRentalToast");if(!n){n=document.createElement("div");n.id="gdrRentalToast";n.className="gdr-rental-toast";document.body.appendChild(n)}n.textContent=msg;n.dataset.error=bad?"1":"0";n.classList.add("show");setTimeout(function(){n.classList.remove("show")},3500)}
 function row(k,v){return '<div class="gdr-rental-data-row"><span>'+esc(k)+'</span><strong>'+esc(v)+'</strong></div>'}
 function addRenter(){
@@ -14,7 +33,7 @@ function addRenter(){
  $("gdrRenterHomeAction").onclick=function(){openRenter("home")};$("gdrRenterPaymentsAction").onclick=function(){openRenter("payments")};
  root.querySelectorAll("[data-rental-close]").forEach(function(b){b.onclick=closeRenter});
 }
-function openRenter(which){$("gdrRenterHomePanel").hidden=which!=="home";$("gdrRenterPaymentsPanel").hidden=which!=="payments";if($("renterSavedPropertiesSection"))$("renterSavedPropertiesSection").hidden=true;if($("renterLiveNearbyPanel"))$("renterLiveNearbyPanel").hidden=true;if(which==="home")loadHome();else loadPayments();$("gdrRenter"+(which==="home"?"Home":"Payments")+"Panel").scrollIntoView({behavior:"smooth",block:"start"})}
+function openRenter(which){$("gdrRenterHomePanel").hidden=which!=="home";$("gdrRenterPaymentsPanel").hidden=which!=="payments";if($("renterSavedPropertiesSection"))$("renterSavedPropertiesSection").hidden=true;if($("renterLiveNearbyPanel"))$("renterLiveNearbyPanel").hidden=true;var toggle=$("renterSavedPropertiesBtn");if(toggle)toggle.setAttribute("aria-expanded","false");if(which==="home")loadHome();else loadPayments();$("gdrRenter"+(which==="home"?"Home":"Payments")+"Panel").scrollIntoView({behavior:"smooth",block:"start"})}
 function closeRenter(){["gdrRenterHomePanel","gdrRenterPaymentsPanel"].forEach(function(id){if($(id))$(id).hidden=true});if($("renterSavedPropertiesSection"))$("renterSavedPropertiesSection").hidden=false}
 async function getRental(){var r=await c().rpc("get_my_current_rental_details");if(r.error)throw r.error;return Array.isArray(r.data)?r.data[0]:r.data}
 async function loadHome(){
@@ -53,7 +72,7 @@ async function loadOwnerPayments(){
  try{var auth=await c().auth.getUser();if(!auth.data.user)throw new Error("Sign in again.");var o=await c().from("owners").select("id").eq("user_id",auth.data.user.id).maybeSingle();if(o.error)throw o.error;if(!o.data)throw new Error("Owner profile not found.");owner=o.data;
  var p=await c().from("properties").select("id,title,name,rent").eq("owner_id",owner.id);if(p.error)throw p.error;props=p.data||[];if(!props.length){target.textContent="Add a property to configure rent collection.";return}
  target.innerHTML='<form id="gdrOwnerPaymentForm" class="gdr-rental-form"><label>Property<select name="property">'+props.map(function(x){return '<option value="'+esc(x.id)+'">'+esc(x.title||x.name||"Property")+' · '+money(x.rent)+'</option>'}).join("")+'</select></label><div id="gdrOwnerQrPreview" class="gdr-owner-qr-preview"></div><label>Upload UPI QR<input type="file" name="qr" accept="image/png,image/jpeg,image/webp"></label><label>UPI ID (optional)<input name="upi" maxlength="120" placeholder="name@upi"></label><label>Payee name<input name="payee" maxlength="120"></label><label>Payment instructions<textarea name="instructions" rows="3" maxlength="500"></textarea></label><div class="gdr-rental-field-grid"><label>Due day<input name="due" type="number" min="1" max="28" value="5"></label><label>Late fee ₹<input name="late" type="number" min="0" max="100000" step=".01" value="0"></label><label>Grace days<input name="grace" type="number" min="0" max="30" value="0"></label></div><button class="gdr-rental-primary" type="submit">Save payment settings</button><p class="gdr-rental-help">Static QR payments remain pending until you confirm receipt.</p></form>';
- async function loadSettings(){var f=$("gdrOwnerPaymentForm"),id=f.elements.property.value,s=await c().from("owner_payment_settings").select("*").eq("property_id",id).maybeSingle();if(s.error)throw s.error;settings=s.data||null;f.elements.upi.value=settings?.upi_id||"";f.elements.payee.value=settings?.payee_name||"";f.elements.instructions.value=settings?.instructions||"";f.elements.due.value=settings?.due_day||5;f.elements.late.value=settings?.late_fee_amount||0;f.elements.grace.value=settings?.late_fee_grace_days||0;$("gdrOwnerQrPreview").innerHTML=settings?.upi_qr_path?'<img src="'+esc(qrUrl(settings.upi_qr_path))+'" alt="Saved QR"><button type="button" class="gdr-rental-secondary" id="gdrRemoveOwnerQr">Remove QR</button>':'No QR uploaded yet';var remove=$("gdrRemoveOwnerQr");if(remove)remove.onclick=async function(){var d=await c().from("owner_payment_settings").update({upi_qr_path:null}).eq("property_id",id);if(d.error){toast(d.error.message,true);return}settings={...settings,upi_qr_path:null};await loadSettings();toast("QR removed.")}}
+ async function loadSettings(){var f=$("gdrOwnerPaymentForm"),id=f.elements.property.value,s=await c().from("owner_payment_settings").select("*").eq("property_id",id).maybeSingle();if(s.error)throw s.error;settings=s.data||null;f.elements.upi.value=settings?.upi_id||"";f.elements.payee.value=settings?.payee_name||"";f.elements.instructions.value=settings?.instructions||"";f.elements.due.value=settings?.due_day||5;f.elements.late.value=settings?.late_fee_amount||0;f.elements.grace.value=settings?.late_fee_grace_days||0;$("gdrOwnerQrPreview").innerHTML=settings?.upi_qr_path?'<img src="'+esc(qrUrl(settings.upi_qr_path))+'" alt="Saved QR"><button type="button" class="gdr-rental-secondary" id="gdrRemoveOwnerQr">Remove QR</button>':"No QR uploaded yet";var remove=$("gdrRemoveOwnerQr");if(remove)remove.onclick=async function(){var d=await c().from("owner_payment_settings").update({upi_qr_path:null}).eq("property_id",id);if(d.error){toast(d.error.message,true);return}settings={...settings,upi_qr_path:null};await loadSettings();toast("QR removed.")}}
  $("gdrOwnerPaymentForm").elements.property.onchange=loadSettings;await loadSettings();$("gdrOwnerPaymentForm").onsubmit=saveSettings;
  var q=await c().from("rent_payment_records").select("id,billing_period,total_amount,status,utr,created_at,occupancy_id,property_occupancies(renter_name,properties(title,name))").eq("owner_id",owner.id).order("created_at",{ascending:false}).limit(30);if(q.error)throw q.error;
  activity.innerHTML=q.data.length?q.data.map(function(p){return '<article class="gdr-owner-payment-row"><div><strong>'+esc(p.property_occupancies?.renter_name||"Renter")+"</strong><small>"+esc(p.property_occupancies?.properties?.title||p.property_occupancies?.properties?.name||"Property")+" · "+date(p.billing_period)+" · "+esc(p.utr)+'</small></div><strong>'+money(p.total_amount)+'</strong><span class="gdr-payment-badge '+(p.status==="paid"?"paid":p.status==="rejected"?"rejected":"pending")+'">'+esc(p.status.replaceAll("_"," "))+'</span>'+(p.status==="pending_verification"?'<div class="gdr-owner-payment-actions"><button class="gdr-rental-primary" data-verify="'+esc(p.id)+'">Confirm received</button><button class="gdr-rental-secondary" data-reject="'+esc(p.id)+'">Reject</button></div>':"")+'</article>'}).join(""):'<p class="gdr-rental-help">No renter payment submissions yet.</p>';
