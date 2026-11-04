@@ -7,9 +7,15 @@ const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 
 test("PIN search falls back to exact PIN inventory when optional preferences hide all matches", () => {
   assert.match(html, /if \(!finalResults\.length && pinTerms\.length\)/);
-  assert.match(html, /const exactPinMatch = pinSearchText\.includes\(pin\)/);
-  assert.match(html, /const pinOnlyMatches = pinInventoryMatches\\.filter/);\n  assert.match(html, /return stayTypeMatch && vacancyMatch/);
+  assert.match(html, /const pinInventoryMatches = pinTerms\.length \? allProperties\.filter/);
+  assert.match(html, /const pinOnlyMatches = pinInventoryMatches\.filter/);
+  assert.match(html, /return stayTypeMatch && vacancyMatch/);
   assert.match(html, /Your selected budget, BHK or furnishing filters were hiding them/);
+});
+
+test("PIN inventory is checked before the optional India Post service", () => {
+  assert.match(html, /if \(pinTerms\.length && !pinInventoryMatches\.length\)/);
+  assert.match(html, /India Post PIN lookup unavailable; continuing with live inventory matches/);
 });
 
 test("PIN fallback preserves explicit stay type and Vacant-only filters", () => {
