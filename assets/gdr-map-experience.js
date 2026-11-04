@@ -121,7 +121,7 @@
       const points=rows.map(p=>[Number(p.latitude),Number(p.longitude)]);
       if(points.length===1)state.renterMap.flyTo(points[0],17,{duration:.8});
       else state.renterMap.flyToBounds(window.L.latLngBounds(points),{padding:[70,70],maxZoom:16,duration:.8});
-      setStatus(rows.length+" GharDekho "+(rows.length===1?"home":"homes")+" found. The map is focused on the homes; select a 3D home to view its details.");
+      setStatus(rows.length+" GharDekho "+(rows.length===1?"home":"homes")+" found in this area.");
     }else{clearPreview();setStatus("No GharDekho homes found in this area. Search another locality or increase the radius.");}
   }
   function radiusBounds(center){
@@ -221,7 +221,7 @@
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
     state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView([23.2599,77.4126],12);
     state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");});
-    state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent=state.visible.length+" GharDekho "+(state.visible.length===1?"home":"homes")+" shown. Select a 3D home to view details.";});
+    state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent=state.visible.length+" GharDekho "+(state.visible.length===1?"home":"homes")+" shown.";});
   }
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
