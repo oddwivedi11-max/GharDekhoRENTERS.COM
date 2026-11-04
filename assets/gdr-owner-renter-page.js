@@ -79,7 +79,7 @@
     page.querySelectorAll("[data-cancel-form]").forEach(b=>b.addEventListener("click",()=>{const f=b.closest("form");if(f)f.hidden=true;}));
     $("gdrRpEditDates").addEventListener("click",()=>{$("gdrRpDatesForm").hidden=false;});
     $("gdrRpEditContact").addEventListener("click",()=>{$("gdrRpContactForm").hidden=false;});
-    $("gdrRpAddCharge").addEventListener("click",()=>{$("gdrRpChargeForm").hidden=false;});
+    $("gdrRpAddCharge").addEventListener("click",()=>{const f=$("gdrRpChargeForm");if(editingChargeId){editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";}else f.hidden=false;});
     $("gdrRpDatesForm").addEventListener("submit",e=>saveMoveOut(e,row));
     $("gdrRpContactForm").addEventListener("submit",e=>saveContact(e,row));
     $("gdrRpChargeForm").addEventListener("submit",e=>saveCharge(e,row));
