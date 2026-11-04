@@ -11454,12 +11454,20 @@ async function updateAuthUI() {
         // already registered as Owners (including dual renter+owner accounts)
         // may enter/switch to the Owner dashboard.
         if (!roles.includes("owner")) {
+            // A stale Owner preference can survive a role switch in browser
+            // storage. Restore the default Renter experience silently instead
+            // of leaving an Owner-only error banner on every public page.
             activeRole = "renter";
             pendingLoginRole = "renter";
             sessionStorage.setItem("gd_active_role", "renter");
             sessionStorage.setItem("gd_pending_login_role", "renter");
+            localStorage.setItem("gd_preferred_role", "renter");
+            const backendMessage = document.getElementById("backendMessage");
+            if (backendMessage) {
+                backendMessage.textContent = "";
+                backendMessage.className = "backend-message";
+            }
             setRoleSpecificUI("renter");
-            showMessage("backendMessage", "This account is not registered as an Owner. Use Renter login or create an Owner account.", "error");
             await renderActiveDashboard();
             return;
         }
