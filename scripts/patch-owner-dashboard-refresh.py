@@ -262,8 +262,6 @@ replace_once(
     "enforce exact Nearby distance boundary"
 )
 
-path.write_text(source, encoding="utf-8")
-print("Updated index.html successfully.")
 
 
 replace_once(
@@ -279,4 +277,7 @@ replace_once(
     updateDashboardProfile();''',
     "activate the selected dashboard after successful role switch"
 )
+
+path.write_text(source, encoding="utf-8")
+print("Updated index.html successfully.")
 
