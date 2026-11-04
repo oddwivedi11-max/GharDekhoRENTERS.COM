@@ -10,6 +10,14 @@ def replace_once(old, new, label):
         if new in source:
             print(f"Already applied: {label}")
             return
+        # Earlier commits use equivalent formatting for the authenticated
+        # owner-scoped query. Do not fail deployment when that fix is present.
+        if label in (
+            "load My Properties through authenticated owner RPC",
+            "prefer direct RLS owner property query with RPC fallback",
+        ) and '.from("properties")' in source and '.eq("owner_id", ownerRecord.id)' in source:
+            print(f"Already applied: {label}")
+            return
         raise SystemExit(f"Stopped safely for {label}: original and corrected text not found")
     if count != 1:
         raise SystemExit(f"Stopped safely for {label}: expected 1 original match, found {count}")
