@@ -58,3 +58,14 @@ test("owner society branding and mobile layout avoid overlap",()=>{
  assert.match(style,/@media\(max-width:760px\)/);
  assert.match(map,/overlay\.scrollTop=0/);
 });
+
+test("renter PIN search uses live exact inventory before optional India Post lookup",()=>{
+ const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+ const start=html.indexOf("const pinInventoryMatches = pinTerms.length ? allProperties.filter");
+ const postal=html.indexOf('fetch("https://api.postalpincode.in/pincode/"',start);
+ const catchAt=html.indexOf('console.warn("India Post PIN lookup unavailable; continuing with live inventory matches."',postal);
+ assert.ok(start>=0&&postal>start&&catchAt>postal);
+ assert.ok(html.indexOf("if (pinTerms.length && !pinInventoryMatches.length)")>start);
+ assert.match(html,/const pinOnlyMatches = pinInventoryMatches\.filter/);
+ assert.match(html,/if \(!finalResults\.length && pinTerms\.length\)/);
+});
