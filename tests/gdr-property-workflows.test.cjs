@@ -66,3 +66,12 @@ test('property details from Nearby and map results resolve through the public in
   assert.match(source, /Owner-only\/private rows are resolved from ownerPropertiesCache/);
   assert.doesNotMatch(source, /\.from\(["']properties["']\)/);
 });
+
+
+test('visit requests do not require property/admin verification and use the secure visit RPC', () => {
+  const source = sourceBetween('async function bookVisit()', '/* =========================================================\n           FAVORITES');
+  assert.match(source, /rpc\(["']request_property_visit["']\)/);
+  assert.doesNotMatch(source, /Visit requests will open once the listing is approved/);
+  assert.doesNotMatch(source, /verification_status !== ["']verified["']/);
+  assert.doesNotMatch(source, /\.from\(["']properties["']\)/);
+});
