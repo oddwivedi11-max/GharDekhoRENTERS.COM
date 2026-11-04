@@ -25,6 +25,22 @@
   function db(){return window.__gdrSupabaseClient||null;}
   function setStatus(message){const n=$("gdrMapStatus");if(n)n.textContent=message||"";}
   function photonLabel(p){p=p||{};return [p.name,p.street,p.locality,p.district,p.city,p.state,p.postcode,p.country].filter(Boolean).map(String).filter((v,i,a)=>a.indexOf(v)===i).join(", ");}
+  function loadScript(url){
+    return new Promise((resolve,reject)=>{
+      const existing=[...document.querySelectorAll("script[data-gdr-map-lib]")].find(s=>s.dataset.gdrMapLib===url);
+      if(existing){if(window.L)return resolve();existing.addEventListener("load",resolve,{once:true});existing.addEventListener("error",reject,{once:true});return;}
+      const script=document.createElement("script");script.src=url;script.async=true;script.dataset.gdrMapLib=url;
+      script.onload=resolve;script.onerror=()=>reject(new Error("Map library could not be loaded."));document.head.appendChild(script);
+    });
+  }
+  async function ensureLeaflet(){
+    if(!window.L)await loadScript("https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js");
+    if(!window.L)throw new Error("Map library is unavailable.");
+    if(!window.L.markerClusterGroup){
+      try{await loadScript("https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js");}
+      catch(error){console.warn("Marker clustering unavailable; standard markers will be used.",error);}
+    }
+  }
   function addTiles(map){window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(map);}
   function makeLayer(map){return window.L.markerClusterGroup?window.L.markerClusterGroup({showCoverageOnHover:false,spiderfyOnMaxZoom:true,maxClusterRadius:48}).addTo(map):window.L.layerGroup().addTo(map);}
   async function fetchInventory(){const client=db();if(!client)throw new Error("Property service is still loading.");const r=await client.rpc("get_public_properties");if(r.error)throw r.error;state.inventory=(Array.isArray(r.data)?r.data:[]).filter(p=>validPoint(p.latitude,p.longitude));state.loadedOnce=true;return state.inventory;}
@@ -99,7 +115,7 @@
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
     dashboard.classList.add("gdr-map-mode");panel.hidden=false;
-    try{if(!window.L)throw new Error("Map library is unavailable.");initRenterMap();requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
+    try{await ensureLeaflet();initRenterMap();requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
       if(!state.loadedOnce){setStatus("Loading rental inventory…");await fetchInventory();const first=state.inventory[0];if(first)state.renterMap.setView([Number(first.latitude),Number(first.longitude)],12);}
       if(!state.geolocationAttempted){state.geolocationAttempted=true;locateRenter();}else await searchRenterArea();
     }catch(error){console.error("GDR map initialization failed:",error);setStatus("The interactive map could not load. Check your connection and try again.");}
@@ -139,13 +155,14 @@
     state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
     state.ownerMap.setView([23.2599,77.4126],12);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,""));
   }
-  function openOwnerMapPicker(){
+  async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
-    if(!window.L){updateOwnerStatus("Map library unavailable. Use address suggestions or current location.");return;}
-    panel.hidden=false;initOwnerMap();requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
-    const input=$("propertyLocation"),lat=asNumber(input&&input.dataset.gdSelectedLat),lng=asNumber(input&&input.dataset.gdSelectedLng);
-    if(lat!==null&&lng!==null){state.ownerMap.setView([lat,lng],16);setOwnerPin({lat,lng},input.dataset.gdSelectedDisplayName||input.value);}
-    else if(!state.ownerSelection){const c=state.ownerMap.getCenter();setOwnerPin(c,"Choose the exact property location");}
+    try{
+      await ensureLeaflet();panel.hidden=false;initOwnerMap();requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
+      const input=$("propertyLocation"),lat=asNumber(input&&input.dataset.gdSelectedLat),lng=asNumber(input&&input.dataset.gdSelectedLng);
+      if(lat!==null&&lng!==null){state.ownerMap.setView([lat,lng],16);setOwnerPin({lat,lng},input.dataset.gdSelectedDisplayName||input.value);}
+      else if(!state.ownerSelection){const c=state.ownerMap.getCenter();setOwnerPin(c,"Choose the exact property location");}
+    }catch(error){console.error("Owner map picker failed:",error);updateOwnerStatus("The map could not load. Use address suggestions or current location instead.");}
   }
   function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true;}
   function confirmOwnerMapLocation(){
