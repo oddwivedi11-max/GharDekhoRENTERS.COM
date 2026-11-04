@@ -60,7 +60,7 @@ test('saved property cards retain their own details and unsave click handlers', 
 });
 
 test('property details from Nearby and map results resolve through the public inventory RPC', () => {
-  const source = sourceBetween('async function openPropertyDetails(propertyId)', 'function sharePropertyToGharDekhoWhatsApp');
+  const source = sourceBetween('async function openPropertyDetails(propertyId)', '            currentProperty = property;');
   assert.match(source, /rpc\(["']get_public_properties["']\)/);
   assert.match(source, /String\(item\.id\) === propertyId/);
   assert.match(source, /Owner-only\/private rows are resolved from ownerPropertiesCache/);
