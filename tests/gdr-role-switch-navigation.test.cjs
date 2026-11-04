@@ -6,9 +6,9 @@ const html = fs.readFileSync('index.html', 'utf8');
 
 function functionSource(signature, nextSignature) {
   const start = html.indexOf(signature);
-  assert.notEqual(start, -1, \`Missing function: \${signature}\`);
+  assert.notEqual(start, -1, "Missing function: " + signature);
   const end = html.indexOf(nextSignature, start);
-  assert.notEqual(end, -1, \`Could not find end marker for: \${signature}\`);
+  assert.notEqual(end, -1, "Could not find end marker for: " + signature);
   return html.slice(start, end);
 }
 
