@@ -22127,8 +22127,6 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       return {...row,listing_type:row.listing_type||"home",distanceKm};
     }).filter(row=>Number.isFinite(row.distanceKm)&&row.distanceKm>=0&&row.distanceKm<=radiusKm)
       .sort((a,b)=>a.distanceKm-b.distanceKm);
-    const inventory=byId("renterLiveNearbyPanel")?.querySelector(".renter-live-results-card");
-    const container=byId("renterLiveNearbyContainer");
     if(nearby.length){
       renderProperties(nearby,"renterLiveNearbyContainer","renterLiveNearbyPagination",false);
     }else{
