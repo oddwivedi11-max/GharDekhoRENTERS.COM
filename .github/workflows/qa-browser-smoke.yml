@@ -10,6 +10,7 @@ on:
       - "codex/ghardekho-rental-management"
       - "codex/fix-property-card-actions"
       - "codex/fix-saved-card-native-handlers"
+      - "codex/fix-details-nearby-property-rpc"
     paths:
       - "index.html"
       - "admin/**"
