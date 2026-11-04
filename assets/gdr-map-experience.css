@@ -46,6 +46,9 @@
 .gdr-price-marker{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:30px;padding:0 9px;border:2px solid #fff;border-radius:10px;background:#143f3b;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;box-shadow:0 4px 13px rgba(0,0,0,.24);transform:translateY(0);transition:transform .16s ease,background .16s ease}
 .gdr-price-marker:hover{transform:translateY(-3px);background:#c99245}
 .gdr-price-marker.gdr-marker-pending{background:#8a6431}
+.gdr-owner-map-row,.gdr-owner-map-picker{grid-column:1/-1}
+.gdr-map-preview{animation:gdrMapSheetIn .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes gdrMapSheetIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
 .gdr-owner-map-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px}
 #gdrOpenOwnerMapPickerBtn{min-height:42px;padding:0 14px;border:1px solid #bdd6ce;border-radius:12px;background:#edf7f3;color:#15574f;font-weight:850}
 #gdrOwnerMapSelectionStatus{font-size:12px;color:#657874}
@@ -92,4 +95,4 @@
  .gdr-owner-map-toolbar{grid-template-columns:1fr}
  .gdr-owner-map-canvas{height:300px}
 }
-@media(prefers-reduced-motion:reduce){.gdr-price-marker{transition:none}}
+@media(prefers-reduced-motion:reduce){.gdr-price-marker{transition:none}.gdr-map-preview{animation:none}}
