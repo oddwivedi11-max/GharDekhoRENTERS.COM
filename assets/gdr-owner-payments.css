@@ -55,3 +55,16 @@ body.gdr-pay-lock{overflow:hidden}
 .gdr-pay-launch-copy{display:grid;gap:3px;flex:1}.gdr-pay-launch-copy b{font-size:16px;font-weight:950}.gdr-pay-launch-copy small{font-size:11px;color:#4e7fa2}.gdr-pay-launch-arrow{font-size:24px;font-weight:900}
 @media(max-width:760px){.gdr-pay-shell{padding:18px 13px 40px}.gdr-pay-stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gdr-pay-property-grid{grid-template-columns:1fr}.gdr-pay-settings-grid{grid-template-columns:1fr}.gdr-pay-panel-highlight{align-items:flex-start;flex-direction:column}.gdr-pay-filters{grid-template-columns:1fr}.gdr-pay-record-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.gdr-pay-header{align-items:flex-start}.gdr-pay-close{padding:0 11px}.gdr-pay-close span{display:none}}
 @media(max-width:480px){.gdr-pay-shell{padding:14px 10px 30px}.gdr-pay-panel{padding:16px;border-radius:18px}.gdr-pay-stat{padding:13px;gap:10px;min-height:100px}.gdr-pay-stat-icon{width:38px;height:38px;flex-basis:38px;border-radius:13px}.gdr-pay-stat strong{font-size:19px}.gdr-pay-form{grid-template-columns:1fr}.gdr-pay-form label:has(textarea),.gdr-pay-upload{grid-column:auto}.gdr-pay-upload{grid-template-columns:1fr}.gdr-pay-record-actions{display:grid;grid-template-columns:1fr}.gdr-pay-launch{padding:14px 13px}.gdr-pay-launch-copy small{font-size:10px}}
+
+/* Keep the global GharDekho brand mark from overlapping the finance workspace.
+   The payment page is a focused full-screen workspace; hide only brand/logo elements
+   outside this page while it is open. */
+body.gdr-pay-lock :is(a,div,span,svg,img):is([class*="logo" i],[id*="logo" i],[class*="brand" i],[id*="brand" i]):not(#gdrPaymentsPage):not(#gdrPaymentsPage *){display:none!important}
+#gdrPaymentsPage .gdr-pay-shell{padding-top:30px}
+#gdrPaymentsPage .gdr-pay-header{position:relative;isolation:isolate;min-height:76px;padding:10px 0 14px}
+#gdrPaymentsPage .gdr-pay-header>div{min-width:0;max-width:calc(100% - 170px)}
+#gdrPaymentsPage .gdr-pay-eyebrow{display:block;line-height:1.5;overflow-wrap:anywhere}
+@media(max-width:480px){
+ #gdrPaymentsPage .gdr-pay-header{gap:10px}
+ #gdrPaymentsPage .gdr-pay-header>div{max-width:calc(100% - 58px)}
+}
