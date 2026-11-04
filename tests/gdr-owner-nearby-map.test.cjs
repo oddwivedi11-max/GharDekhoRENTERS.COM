@@ -14,6 +14,7 @@ test("owner Nearby opens a separate map and never calls renter search or browser
  assert.match(map,/client\.from\("owners"\)/);
  assert.match(map,/client\.from\("properties"\)\.select\(OWNER_NEARBY_FIELDS\)/);
  assert.match(map,/p\.gdrDistanceKm<=ownerNearby\.radius/);
+ assert.match(map,/client\.rpc\("get_public_properties"\)/);
  assert.match(map,/makeLayer\(ownerNearby\.map\)/);
  assert.doesNotMatch(map.slice(map.indexOf("async function openOwnerNearbyMap()"),map.indexOf("function bind()")),/locateRenter\(|navigator\.geolocation/);
 });
