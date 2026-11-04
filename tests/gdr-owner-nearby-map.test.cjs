@@ -45,3 +45,14 @@ test("owner map branding is separated from the title and avoids old logo overlap
  assert.match(style,/\.gdr-on-brand/);
  assert.match(style,/gdr-owner-nearby-open \.gdr-header-brand/);
 });
+
+test("owner map initializes Leaflet at the saved property coordinates before loading tiles",()=>{
+ assert.match(map,/\.setView\(initialCenter,14\)/);
+ assert.ok(map.indexOf("setView(initialCenter,14)")<map.indexOf("ownerNearby.tileLayer.addTo(ownerNearby.map)"));
+ assert.match(map,/tileLayer\.on\("tileerror"/);
+});
+test("owner map hides and restores the dashboard background while open",()=>{
+ assert.match(map,/hideOwnerNearbyBackground\(\)/);
+ assert.match(map,/restoreOwnerNearbyBackground\(\)/);
+ assert.match(map,/setProperty\("display","none","important"\)/);
+});
