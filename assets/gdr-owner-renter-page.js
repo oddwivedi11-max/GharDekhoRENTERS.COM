@@ -169,4 +169,5 @@
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restoreDirectRoute);else restoreDirectRoute();
   const observer=new MutationObserver(()=>{if(new URL(location.href).searchParams.has("ownerRenter")&&!page)restoreDirectRoute();});
   observer.observe(document.body,{childList:true,subtree:true});
+  const ledgerScript=document.createElement("script"); ledgerScript.src="/assets/gdr-owner-renter-ledger.js"; ledgerScript.defer=true; document.head.appendChild(ledgerScript);
 })();
