@@ -10169,7 +10169,7 @@ body.gd-owner-explore-mode #propertiesSection {
         // The promise is cleared after completion so later explicit refreshes stay fresh.
         function getMyOwnerProfileShared() {
             if (!gdOwnerProfileRequest) {
-                gdOwnerProfileRequest = supabaseClient.rpc("get_my_owner_profile")
+                gdOwnerProfileRequest = Promise.resolve(supabaseClient.rpc("get_my_owner_profile"))
                     .finally(() => { gdOwnerProfileRequest = null; });
             }
             return gdOwnerProfileRequest;
