@@ -22013,9 +22013,27 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       menu.hidden=true;
       trigger.setAttribute("aria-expanded","false");
     }
+    function positionMenu(){
+      const rect=trigger.getBoundingClientRect();
+      const margin=12;
+      const availableBelow=window.innerHeight-rect.bottom-margin;
+      const availableAbove=rect.top-margin;
+      const openAbove=availableBelow<190&&availableAbove>availableBelow;
+      const maxHeight=Math.max(120,Math.min(320,openAbove?availableAbove:availableBelow));
+      menu.style.position="fixed";
+      menu.style.left=Math.max(margin,Math.min(rect.left,window.innerWidth-rect.width-margin))+"px";
+      menu.style.width=Math.min(rect.width,window.innerWidth-margin*2)+"px";
+      menu.style.maxHeight=maxHeight+"px";
+      menu.style.top=openAbove?"auto":(rect.bottom+8)+"px";
+      menu.style.bottom=openAbove?(window.innerHeight-rect.top+8)+"px":"auto";
+      menu.style.overflowY="auto";
+      menu.style.webkitOverflowScrolling="touch";
+    }
     function openMenu(){
+      document.body.appendChild(menu);
       menu.hidden=false;
       trigger.setAttribute("aria-expanded","true");
+      positionMenu();
       const chosen=menu.querySelector(".is-selected");
       chosen?.focus({preventScroll:true});
     }
@@ -22035,7 +22053,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       else if(event.key==="End"){event.preventDefault();options[options.length-1]?.focus();}
     });
     document.addEventListener("click",event=>{
-      if(!wrap.contains(event.target)&&event.target!==trigger) closeMenu();
+      if(!wrap.contains(event.target)&&!menu.contains(event.target)&&event.target!==trigger) closeMenu();
     });
     select.addEventListener("change",sync);
     if(label) label.htmlFor=trigger.id;
@@ -22043,7 +22061,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     select.setAttribute("aria-hidden","true");
     select.tabIndex=-1;
     select.insertAdjacentElement("afterend",wrap);
-    wrap.append(trigger,menu);
+    wrap.append(trigger);
     sync();
   }
 
@@ -22337,7 +22355,7 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     .gdr-live-radius-trigger:focus-visible,.gdr-live-radius-option:focus-visible{outline:3px solid #9ff5e1;outline-offset:3px}
     .gdr-radius-chevron{font-size:20px;transition:transform .18s ease}
     .gdr-live-radius-trigger[aria-expanded="true"] .gdr-radius-chevron{transform:rotate(180deg)}
-    .gdr-live-radius-menu{position:absolute;top:calc(100% + 8px);left:0;right:0;z-index:10030;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:min(300px,42vh);overflow-y:auto;overscroll-behavior:contain;padding:10px;border:1px solid rgba(150,232,213,.55);border-radius:18px;background:linear-gradient(145deg,#073e39,#0b5d54);box-shadow:0 20px 45px rgba(0,20,18,.38),inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(16px)}
+    .gdr-live-radius-menu{position:fixed;z-index:2147483000;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:7px;max-height:min(320px,calc(100vh - 24px));overflow-y:auto;overflow-x:hidden;overscroll-behavior:contain;padding:10px;border:1px solid rgba(150,232,213,.55);border-radius:18px;background:linear-gradient(145deg,#073e39,#0b5d54);box-shadow:0 20px 45px rgba(0,20,18,.38),inset 0 1px 0 rgba(255,255,255,.12);backdrop-filter:blur(16px)}
     .gdr-live-radius-menu[hidden]{display:none!important}
     .gdr-live-radius-option{min-width:0;min-height:44px;padding:9px 12px;border:1px solid rgba(196,255,240,.12);border-radius:12px;background:rgba(255,255,255,.07);color:#eafff8;font-family:inherit;font-size:14px;font-weight:750;line-height:1.2;cursor:pointer;text-align:center;transition:background .16s ease,border-color .16s ease,transform .16s ease}
     .gdr-live-radius-option:hover,.gdr-live-radius-option.is-selected{border-color:rgba(164,255,230,.75);background:linear-gradient(145deg,#c8fff0,#8ce4ce);color:#063f38;box-shadow:0 4px 0 rgba(0,26,23,.4)}
