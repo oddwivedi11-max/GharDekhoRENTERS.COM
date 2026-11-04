@@ -117,8 +117,15 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
 .gdr-owner-nearby[hidden]{display:none!important}
 .gdr-owner-nearby{position:fixed;inset:0;z-index:999990;overflow:auto;background:#f4f8f6;color:#153a34;font-family:inherit}
 .gdr-on-shell{width:min(1500px,100%);min-height:100%;margin:0 auto;padding:clamp(14px,2.4vw,30px);display:flex;flex-direction:column;gap:15px}
-.gdr-on-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:4px 2px}
-.gdr-on-kicker{font-size:10px;letter-spacing:.16em;font-weight:950;color:#188477}
+.gdr-on-header{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:8px 2px 12px}
+.gdr-on-heading{min-width:0;display:grid;gap:7px}
+.gdr-on-brand{display:flex;align-items:center;gap:9px;min-height:34px;color:#173f38;font-size:15px;font-weight:950;letter-spacing:-.03em}
+.gdr-on-brand img{display:block;width:32px;height:32px;flex:none;object-fit:contain;border-radius:9px;box-shadow:0 4px 12px #123c3520}
+.gdr-on-brand small{margin-left:3px;padding:4px 7px;border-radius:99px;background:#e4f3ed;color:#168477;font-size:8px;letter-spacing:.13em;font-weight:950}
+.gdr-on-kicker{font-size:9px;letter-spacing:.16em;font-weight:950;color:#188477}
+.gdr-on-header h1{margin:0!important;font-size:clamp(25px,3.2vw,39px);line-height:1.06;letter-spacing:-.045em;color:#153a34}
+.gdr-on-header p{margin:0;color:#6c817a;font-size:13px;line-height:1.45;max-width:900px}
+.gdr-owner-nearby-open .gdr-header-brand,.gdr-owner-nearby-open .gdr-home-logo,.gdr-owner-nearby-open .gd-auth-brand-lock{display:none!important}
 .gdr-on-header h1{margin:5px 0 4px;font-size:clamp(25px,3.2vw,39px);line-height:1.06;letter-spacing:-.045em;color:#153a34}
 .gdr-on-header p{margin:0;color:#6c817a;font-size:13px;line-height:1.4}
 .gdr-on-back{flex:none;min-height:43px;padding:0 16px;border:1px solid #d4e3dd;border-radius:13px;background:#fff;color:#174d45;font-weight:850;box-shadow:0 4px 12px #163c350a}
@@ -189,3 +196,20 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
  .gdr-owner-nearby-launch button{padding:0 10px;font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.gdr-on-spinner{animation:none}.gdr-on-preview{animation:none}.gdr-on-house-marker{transition:none}}
+
+/* Owner's own listing is a first-class map pin; keep branding in its own row. */
+.gdr-on-myhome-wrap{background:transparent!important;border:0!important}
+.gdr-on-myhome-marker{position:relative;display:flex;align-items:center;justify-content:center;gap:5px;min-width:104px;height:40px;padding:0 10px;border:2px solid #fff;border-radius:13px 13px 13px 4px;background:linear-gradient(145deg,#f4a261,#df7432);color:#fff;box-shadow:0 9px 22px #71380d55,inset 0 1px 0 #ffffffa8;transform:translateY(0);animation:gdrOnMyHomePulse 2.4s ease-in-out infinite}
+.gdr-on-myhome-marker:after{content:"";position:absolute;bottom:-6px;left:15px;width:11px;height:11px;background:#df7432;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg);border-radius:0 0 3px 0}
+.gdr-on-myhome-marker i{font-style:normal;font-size:20px;line-height:1;text-shadow:0 1px 2px #71380d}
+.gdr-on-myhome-marker b{font-size:10px;font-weight:1000;letter-spacing:.04em;white-space:nowrap}
+.gdr-on-preview-own-status{background:#fff0e4;color:#a34e1b}
+@keyframes gdrOnMyHomePulse{0%,100%{box-shadow:0 9px 22px #71380d55,0 0 0 0 #e98a4855}50%{box-shadow:0 9px 22px #71380d55,0 0 0 8px #e98a4800}}
+@media(max-width:760px){
+  .gdr-on-header{align-items:flex-start;gap:10px}
+  .gdr-on-brand{font-size:14px}
+  .gdr-on-header h1{font-size:27px}
+  .gdr-on-header p{font-size:11px;max-width:100%}
+  .gdr-on-back{min-height:40px;padding:0 10px;font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.gdr-on-myhome-marker{animation:none}}
