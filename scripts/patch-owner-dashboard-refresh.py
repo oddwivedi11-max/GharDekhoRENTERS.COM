@@ -239,5 +239,135 @@ replace_once(
     "prefer direct RLS owner property query with RPC fallback"
 )
 
+replace_once(
+'''        const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";''',
+'''        const requestedRadiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        // Preserve the existing Nearby radius options while rejecting malformed values.
+        const radiusKm = Number.isFinite(requestedRadiusKm)
+            ? Math.min(20, Math.max(1, requestedRadiusKm))
+            : 3;
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";''',
+    "validate selected Nearby radius"
+)
+
+replace_once(
+'''                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                return distanceKm <= radiusKm ? {...property,distanceKm} : null;''',
+'''                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                // Defense in depth: never render a property outside the selected radius.
+                return Number.isFinite(distanceKm) && distanceKm >= 0 && distanceKm <= radiusKm
+                    ? {...property,distanceKm}
+                    : null;''',
+    "enforce exact Nearby distance boundary"
+)
+
+path.write_text(source, encoding="utf-8")
+print("Updated index.html successfully.")
+
+replace_once(
+'''async function renderActiveDashboard() {
+    const renter = document.getElementById("renterDashboard");
+    const owner = document.getElementById("ownerDashboard");
+    const dashboard = document.getElementById("dashboardSection");''',
+'''async function renderActiveDashboard() {
+    const renter = document.getElementById("renterDashboard");
+    const owner = document.getElementById("ownerDashboard");
+    const dashboard = document.getElementById("dashboardSection");''',
+    "dashboard render entry remains stable"
+)
+
+replace_once(
+'''    if (!renter || !owner || !dashboard) return;
+
+    // Authenticated Renter/Owner dashboards must always expose logout.''',
+'''    if (!renter || !owner || !dashboard) return;
+
+    // Fail closed on direct calls, stale sessions and unhydrated profiles.
+    // A URL or cached activeRole is never sufficient to open a portal.
+    if (!currentUser || !currentProfile) {
+        renter.classList.remove("active");
+        owner.classList.remove("active");
+        renter.style.display = "none";
+        owner.style.display = "none";
+        dashboard.style.display = "none";
+        dashboard.setAttribute("aria-hidden", "true");
+        return;
+    }
+
+    // Authenticated Renter/Owner dashboards must always expose logout.''',
+    "fail closed when dashboard session or profile is missing"
+)
+
+replace_once(
+'''    const selectedLoginRole = document.querySelector('input[name="accountRole"]:checked')?.value === "owner" ? "owner" : "renter";''',
+'''    let selectedLoginRole = document.querySelector('input[name="accountRole"]:checked')?.value === "owner" ? "owner" : "renter";''',
+    "allow safe fallback to an already-authorized portal"
+)
+
+replace_once(
+'''                const renterRoleAlreadyEnabled = getAccountRoles(currentProfile).includes("renter");
+                const renterRoleReady = renterRoleAlreadyEnabled || await withAuthTimeout(
+                    saveActiveAccountRole("renter"),
+                    "Renter access sync",
+                    10000
+                ).catch(error => {
+                    console.warn("Renter access sync timed out:", error);
+                    return false;
+                });
+
+                if (!renterRoleReady) {
+                    // Never fabricate a role in browser memory when Supabase
+                    // rejects the role update. If this is an existing Owner,
+                    // keep the authenticated session in that already-authorized
+                    // portal and explain why Renter mode was not opened.
+                    const persistedRoles = getAccountRoles(currentProfile);
+                    if (persistedRoles.includes("owner")) {
+                        selectedLoginRole = "owner";
+                        authMessage.textContent = "Renter access could not be enabled. Your existing Owner access is unchanged.";
+                    } else {
+                        authMessage.textContent = "Renter access could not be verified. Please try again.";
+                        await supabaseClient.auth.signOut();
+                        currentUser = null;
+                        currentProfile = null;
+                        activeRole = "renter";
+                        pendingLoginRole = "renter";
+                        resetRoleSpecificUI();
+                        return;
+                    }
+                }''',
+'''                const renterRoleAlreadyEnabled = getAccountRoles(currentProfile).includes("renter");
+                const renterRoleReady = renterRoleAlreadyEnabled || await withAuthTimeout(
+                    saveActiveAccountRole("renter"),
+                    "Renter access sync",
+                    10000
+                ).catch(error => {
+                    console.warn("Renter role persistence timed out:", error);
+                    return false;
+                });
+
+                if (!renterRoleReady) {
+                    // Never fabricate a role in browser memory when Supabase
+                    // rejects the role update. If this is an existing Owner,
+                    // keep the authenticated session in that already-authorized
+                    // portal and explain why Renter mode was not opened.
+                    const persistedRoles = getAccountRoles(currentProfile);
+                    if (persistedRoles.includes("owner")) {
+                        selectedLoginRole = "owner";
+                        authMessage.textContent = "Renter access could not be enabled. Your existing Owner access is unchanged.";
+                    } else {
+                        authMessage.textContent = "Renter access could not be verified. Please try again.";
+                        await supabaseClient.auth.signOut();
+                        currentUser = null;
+                        currentProfile = null;
+                        activeRole = "renter";
+                        pendingLoginRole = "renter";
+                        resetRoleSpecificUI();
+                        return;
+                    }
+                }''',
+    "fail closed when renter role persistence fails"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
