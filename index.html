@@ -20759,7 +20759,8 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 .renter-welcome-copy h3{margin:5px 0 5px;font-size:clamp(1.55rem,5vw,2.2rem);line-height:1.05;letter-spacing:-.04em;color:#102d2a}
 .renter-welcome-copy p{margin:0;color:#64716e;max-width:600px}
 .renter-edit-profile-compact{flex:0 0 auto;min-height:44px}
-.renter-dashboard-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.renter-dashboard-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+@media(max-width:1050px){.renter-dashboard-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .renter-dashboard-action{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;min-height:82px;padding:14px 16px;text-align:left;border:1px solid #d6e4df;border-radius:18px;background:#fff;color:#173b36;box-shadow:0 8px 24px rgba(23,74,71,.055);cursor:pointer}
 .renter-dashboard-action:hover{border-color:#a9cbc3;box-shadow:0 12px 28px rgba(23,74,71,.09)}
 .renter-dashboard-action-primary{background:#176b63;border-color:#176b63;color:#fff;box-shadow:0 10px 24px rgba(23,107,99,.2)}
