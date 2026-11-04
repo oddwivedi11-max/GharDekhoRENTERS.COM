@@ -62,6 +62,8 @@
   function setRenterPin(point,label){
     if(!state.renterMap||!validPoint(point.lat,point.lng))return;
     state.searchCenter=[Number(point.lat),Number(point.lng)];state.resolvedQuery=String(label||"");
+    const placeType=String(point.properties&& (point.properties.type||point.properties.osm_value)||"").toLowerCase();
+    if(placeType==="city"){state.radiusKm=10;const radius=$("gdrMapRadius"),radiusLabel=$("gdrMapRadiusValue");if(radius)radius.value="10";if(radiusLabel)radiusLabel.textContent="10 km";}
     if(state.renterPin)state.renterMap.removeLayer(state.renterPin);
     const icon=window.L.divIcon({className:"gdr-renter-pin-wrap",html:"<span class='gdr-renter-pin'><i></i></span>",iconSize:[34,42],iconAnchor:[17,38]});
     state.renterPin=window.L.marker(state.searchCenter,{icon,draggable:true,zIndexOffset:1000}).addTo(state.renterMap);
@@ -164,7 +166,7 @@
       if(!features.length)throw new Error("We could not locate “"+q+"”. Try a nearby locality, city or PIN code.");
     }
     const feature=features[0],coords=feature.geometry.coordinates,props=feature.properties||{};
-    return {lat:Number(coords[1]),lng:Number(coords[0]),label:photonLabel(props)||q,query:q};
+    return {lat:Number(coords[1]),lng:Number(coords[0]),label:photonLabel(props)||q,query:q,properties:props};
   }
   async function searchTypedMapLocation(){
     const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
