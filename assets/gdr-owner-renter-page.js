@@ -152,14 +152,41 @@
     back();await Promise.allSettled([window.loadOwnerProperties?.(),window.loadOwnerVisits?.()]);
   }
   function back(){if(page)page.remove();page=null;document.title=priorTitle;currentId=null;if(new URL(location.href).searchParams.has("ownerRenter")){const u=new URL(location.href);u.searchParams.delete("ownerRenter");history.replaceState({}, "",u);}}
-  function open(id,push){
-    const row=rowFor(id);if(!row){message("Renter details are not loaded yet.");return;}
+  async function resolveRenterRow(id){
+    let row=rowFor(id);
+    if(row)return row;
+    const c=client();
+    if(!c||!id)return null;
+    const result=await c.from("property_occupancies")
+      .select("id,property_id,renter_id,renter_name,renter_phone,occupied_at,released_at,expected_move_out_at")
+      .eq("id",id).maybeSingle();
+    if(result.error||!result.data)return null;
+    const occupancy=result.data;
+    const propertyResult=await c.from("properties")
+      .select("id,title,name,address,location,rent,listing_type")
+      .eq("id",occupancy.property_id).maybeSingle();
+    row={...occupancy,property:propertyResult.data||{}};
+    window.__gdCurrentRenters=Array.isArray(window.__gdCurrentRenters)?window.__gdCurrentRenters:[];
+    const existing=window.__gdCurrentRenters.findIndex(x=>String(x.id)===String(id));
+    if(existing>=0)window.__gdCurrentRenters[existing]=row;else window.__gdCurrentRenters.push(row);
+    return row;
+  }
+  async function open(id,push){
+    if(!id){message("Renter record ID is missing. Refresh the owner dashboard and try again.");return;}
+    let row=rowFor(id);
+    if(!row){
+      try{row=await resolveRenterRow(id);}catch(error){console.error("[GharDekho] renter profile load failed",error);}
+    }
+    if(!row){message("Could not load this renter. Please refresh the owner dashboard and try again.");return;}
     if(push){const u=new URL(location.href);u.searchParams.set("ownerRenter",String(id));history.pushState({ownerRenter:id},"",u);}
     mount(row);
   }
   document.addEventListener("click",e=>{
-    const card=e.target.closest(".gd-current-renter-card");if(!card)return;
-    e.preventDefault();e.stopImmediatePropagation();open(card.dataset.occupancyId,true);
+    const card=e.target.closest(".gd-current-renter-card,[data-occupancy-id],[data-renter-occupancy-id]");
+    if(!card)return;
+    const id=card.dataset.occupancyId||card.dataset.renterOccupancyId||card.getAttribute("data-occupancy-id");
+    if(!id)return;
+    e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open(id,true);
   },true);
   window.addEventListener("popstate",()=>{if(page)back();});
   function restoreDirectRoute(){
