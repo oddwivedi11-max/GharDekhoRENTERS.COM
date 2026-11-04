@@ -172,6 +172,32 @@
     if(typeof window.__gdrSetPropertyLocation!=="function"||!window.__gdrSetPropertyLocation(address,state.ownerSelection.lat,state.ownerSelection.lng)){updateOwnerStatus("Property form is still initializing. Try again.");return;}
     updateOwnerStatus("Location confirmed. Coordinates will be saved with this property.");closeOwnerMapPicker();
   }
+  async function usePreciseOwnerLocation(){
+    if(!state.ownerMap){updateOwnerStatus("Open the map first, then request your precise location.");return;}
+    if(!navigator.geolocation){updateOwnerStatus("This device/browser does not support GPS location. Search the address or place the pin manually.");return;}
+    updateOwnerStatus("Requesting high-accuracy GPS location. Keep location services enabled…");
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),accuracy=Number(pos.coords.accuracy);
+      if(!validPoint(lat,lng)){updateOwnerStatus("The device returned an invalid location. Search or place the pin manually.");return;}
+      state.ownerMap.setView([lat,lng],18,{animate:true});
+      setOwnerPin({lat,lng},"Device GPS");
+      if(state.ownerAccuracyCircle)state.ownerMap.removeLayer(state.ownerAccuracyCircle);
+      state.ownerAccuracyCircle=window.L.circle([lat,lng],{radius:Math.max(accuracy||0,1),color:"#0f766e",weight:1,fillColor:"#14b8a6",fillOpacity:.12}).addTo(state.ownerMap);
+      const accuracyText=Number.isFinite(accuracy)?"±"+Math.round(accuracy)+" m":"accuracy unavailable";
+      updateOwnerStatus("GPS fix received ("+accuracyText+"). Review the pin at street level and drag it to the property entrance if needed.");
+      try{
+        const response=await fetch("https://photon.komoot.io/reverse?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&lang=en",{headers:{Accept:"application/json"}});
+        if(response.ok){
+          const payload=await response.json(),feature=payload&&payload.features&&payload.features[0];
+          const label=photonLabel(feature&&feature.properties);
+          if(label){const input=$("gdrOwnerMapSearch");if(input)input.value=label;state.ownerSelection.label=label;}
+        }
+      }catch(error){console.info("Reverse geocoding unavailable; exact GPS coordinates are retained.",error);}
+    },error=>{
+      const message=error.code===1?"Location permission denied. Allow location access in browser settings, or search/place the pin manually.":error.code===3?"GPS request timed out. Move outdoors or near a window and try again.":"Unable to get a GPS fix. Check device location services and try again.";
+      updateOwnerStatus(message);
+    },{enableHighAccuracy:true,timeout:25000,maximumAge:0});
+  }
   function bind(){
     $("renterExploreMapBtn")?.addEventListener("click",openRenterMap);$("gdrMapBackBtn")?.addEventListener("click",closeRenterMap);
     $("gdrMapSearchAreaBtn")?.addEventListener("click",searchRenterArea);$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
@@ -183,5 +209,5 @@
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label);}},"owner");
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,usePreciseOwnerLocation};
 })();
