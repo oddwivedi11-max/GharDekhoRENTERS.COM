@@ -7,6 +7,7 @@ on:
       - "feature/gdr-master-platform-20261104"
       - "fix/find-home-pin-search-smooth-20261104"
       - "fix/gdr-nearby-radius-guard-20261104"
+      - "codex/ghardekho-rental-management"
     paths:
       - "index.html"
       - "admin/**"
