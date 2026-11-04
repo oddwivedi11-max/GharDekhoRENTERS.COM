@@ -6,6 +6,7 @@ on:
       - "fix/full-qa-20261020"
       - "feature/gdr-master-platform-20261104"
       - "fix/find-home-pin-search-smooth-20261104"
+      - "fix/gdr-nearby-radius-guard-20261104"
     paths:
       - "index.html"
       - "admin/**"
