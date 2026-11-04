@@ -46,7 +46,7 @@ async function submitPayment(e){
 function addOwner(){
  var root=$("ownerDashboard");if(!root||$("gdrOwnerPaymentsCard"))return;var before=root.querySelector(".owner-inventory-card"),card=document.createElement("section");card.className="dashboard-card gdr-rental-panel";card.id="gdrOwnerPaymentsCard";
  card.innerHTML='<div class="gdr-rental-panel-head"><div><span class="gdr-rental-kicker">RENT COLLECTION</span><h3>My Payments</h3><p>Configure your UPI QR and review renter payment submissions.</p></div><span class="gdr-rental-secure">Owner workspace</span></div><div class="gdr-owner-payment-grid"><section class="gdr-rental-card"><h4>Payment settings</h4><div id="gdrOwnerPaymentSettings">Loading properties…</div></section><section class="gdr-rental-card"><h4>Payment activity</h4><div id="gdrOwnerPaymentActivity">Loading activity…</div></section></div>';
- if(before)root.insertBefore(card,before);else root.appendChild(card);loadOwnerPayments()
+ if(before)root.insertBefore(card,before);else root.appendChild(card)
 }
 async function loadOwnerPayments(){
  var target=$("gdrOwnerPaymentSettings");if(!target||!c())return;var activity=$("gdrOwnerPaymentActivity");
@@ -69,7 +69,7 @@ async function saveSettings(e){
  }catch(e){toast(e.message||"Could not save settings.",true)}finally{btn.disabled=false;btn.textContent="Save payment settings"}
 }
 async function verify(id,decision,note){var r=await c().rpc("owner_verify_rent_payment",{p_payment_id:id,p_decision:decision,p_note:note||null});if(r.error){toast(r.error.message,true);return}toast(decision==="paid"?"Payment confirmed.":"Payment rejected.");loadOwnerPayments()}
-function boot(){addRenter();addOwner()}
+function boot(){addRenter();addOwner();var target=$("gdrOwnerPaymentSettings");if(target&&$("ownerDashboard")?.classList.contains("active")&&!target.dataset.loaded&&!target.dataset.loading){target.dataset.loading="1";loadOwnerPayments().finally(function(){target.dataset.loading="";target.dataset.loaded="1"})}}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
 })();
