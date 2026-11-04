@@ -312,3 +312,61 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
  .gdr-on-area-search small{font-size:9px}
  .gdr-on-home-map-pin{top:6px;right:6px;min-height:26px;padding:0 8px;font-size:11px}
 }
+
+/* Fix owner Nearby header stacking: keep brand, section label, title and back
+   action in separate predictable rows instead of inheriting site-wide header rules. */
+.gdr-owner-nearby .gdr-on-shell>.gdr-on-header{
+  position:relative!important;inset:auto!important;z-index:2!important;
+  display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;
+  grid-template-rows:auto!important;align-items:start!important;justify-content:initial!important;
+  gap:9px 18px!important;width:100%!important;height:auto!important;min-height:0!important;
+  max-height:none!important;overflow:visible!important;flex:0 0 auto!important;
+  padding:8px 2px 14px!important;margin:0!important;transform:none!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+.gdr-owner-nearby .gdr-on-header>.gdr-on-heading{
+  position:static!important;display:grid!important;grid-column:1!important;grid-row:1!important;
+  grid-template-columns:minmax(0,1fr)!important;grid-auto-rows:max-content!important;
+  align-content:start!important;align-items:start!important;justify-items:start!important;
+  gap:8px!important;width:100%!important;height:auto!important;min-width:0!important;
+  min-height:0!important;max-height:none!important;overflow:visible!important;
+  margin:0!important;padding:0!important;transform:none!important;
+}
+.gdr-owner-nearby .gdr-on-header .gdr-on-brand{
+  position:static!important;display:flex!important;grid-column:1!important;grid-row:auto!important;
+  align-items:center!important;justify-content:flex-start!important;gap:9px!important;
+  width:auto!important;height:auto!important;min-height:34px!important;margin:0!important;
+  padding:0!important;transform:none!important;white-space:normal!important;line-height:1.2!important;
+}
+.gdr-owner-nearby .gdr-on-header .gdr-on-kicker{
+  position:static!important;display:block!important;grid-column:1!important;grid-row:auto!important;
+  width:auto!important;height:auto!important;margin:2px 0 0!important;padding:0!important;
+  transform:none!important;line-height:1.4!important;white-space:normal!important;
+}
+.gdr-owner-nearby .gdr-on-header h1{
+  position:static!important;display:block!important;grid-column:1!important;grid-row:auto!important;
+  width:auto!important;height:auto!important;min-height:0!important;max-height:none!important;
+  margin:0!important;padding:0!important;transform:none!important;float:none!important;
+  line-height:1.12!important;letter-spacing:-.04em!important;white-space:normal!important;
+  overflow:visible!important;word-break:normal!important;overflow-wrap:anywhere!important;
+}
+.gdr-owner-nearby .gdr-on-header p{
+  position:static!important;display:block!important;grid-column:1!important;grid-row:auto!important;
+  width:auto!important;height:auto!important;min-height:0!important;margin:0!important;padding:0!important;
+  transform:none!important;line-height:1.45!important;white-space:normal!important;
+}
+.gdr-owner-nearby .gdr-on-header>.gdr-on-back{
+  position:static!important;grid-column:2!important;grid-row:1!important;align-self:start!important;
+  justify-self:end!important;display:inline-flex!important;align-items:center!important;
+  width:auto!important;height:auto!important;min-height:43px!important;max-height:none!important;
+  margin:0!important;transform:none!important;white-space:nowrap!important;
+}
+@media(max-width:620px){
+ .gdr-owner-nearby .gdr-on-shell>.gdr-on-header{
+  grid-template-columns:minmax(0,1fr)!important;gap:10px!important;padding:6px 0 12px!important;
+ }
+ .gdr-owner-nearby .gdr-on-header>.gdr-on-heading{grid-column:1!important;grid-row:1!important;gap:7px!important}
+ .gdr-owner-nearby .gdr-on-header>.gdr-on-back{grid-column:1!important;grid-row:2!important;justify-self:start!important;min-height:39px!important}
+ .gdr-owner-nearby .gdr-on-header h1{font-size:clamp(24px,7vw,32px)!important;line-height:1.12!important}
+ .gdr-owner-nearby .gdr-on-header p{font-size:12px!important}
+}
