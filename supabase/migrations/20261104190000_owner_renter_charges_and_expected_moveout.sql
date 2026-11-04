@@ -9,8 +9,8 @@ grant update (expected_move_out_at)
 
 create table if not exists public.occupancy_charges (
   id uuid primary key default gen_random_uuid(),
-  occupancy_id uuid not null references public.property_occupancies(id) on delete cascade,
-  owner_id uuid not null references public.owners(id) on delete cascade,
+  occupancy_id uuid not null references public.property_occupancies(id),
+  owner_id uuid not null references public.owners(id),
   title text not null check (length(btrim(title)) between 2 and 100),
   amount numeric(12,2) not null check (amount > 0 and amount <= 10000000),
   frequency text not null default 'monthly' check (frequency in ('monthly','one_time')),
