@@ -33,7 +33,10 @@ test.describe('GDR Nearby preservation and radius safety', () => {
     expect(checks.mapEntryPoint).toBe(true);
     expect(checks.mapPanel).toBe(true);
     expect(checks.radiusControl).toBe(true);
-    expect(source).toContain('return distanceKm <= radiusKm ?');
+    expect(source).toContain('function fetchNearbyPropertiesFromBackend');
+    expect(source).toContain('Math.min(10, Math.max(1, requestedRadius))');
+    expect(source).toContain('distanceKm <= Number(result.radiusKm)');
+    expect(source).toContain('get_nearby_properties');
   });
 
   test('retains the existing Nearby radius options', async ({ page }) => {
