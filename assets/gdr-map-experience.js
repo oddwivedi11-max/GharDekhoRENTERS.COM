@@ -217,13 +217,22 @@
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label);}},"owner");
   }
   function loadOwnerRenterEditor(){
-    if(document.querySelector("script[data-gdr-owner-renter-editor]"))return;
-    const script=document.createElement("script");
-    script.src="/assets/gdr-owner-renter-editor.js";
-    script.defer=true;
-    script.dataset.gdrOwnerRenterEditor="true";
-    script.onerror=()=>console.warn("Owner renter editor could not be loaded.");
-    document.head.appendChild(script);
+    if(!document.querySelector("script[data-gdr-owner-renter-editor]")){
+      const script=document.createElement("script");
+      script.src="/assets/gdr-owner-renter-editor.js";
+      script.defer=true;
+      script.dataset.gdrOwnerRenterEditor="true";
+      script.onerror=()=>console.warn("Owner renter editor could not be loaded.");
+      document.head.appendChild(script);
+    }
+    if(!document.querySelector("script[data-gdr-owner-renter-page]")){
+      const pageScript=document.createElement("script");
+      pageScript.src="/assets/gdr-owner-renter-page.js";
+      pageScript.defer=true;
+      pageScript.dataset.gdrOwnerRenterPage="true";
+      pageScript.onerror=()=>console.warn("Dedicated renter profile page could not be loaded.");
+      document.head.appendChild(pageScript);
+    }
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
