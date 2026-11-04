@@ -96,3 +96,8 @@
  .gdr-owner-map-canvas{height:300px}
 }
 @media(prefers-reduced-motion:reduce){.gdr-price-marker{transition:none}.gdr-map-preview{animation:none}}
+
+/* Saved Properties is an on-demand dashboard destination: keep it hidden until
+   the renter explicitly opens the Saved Properties shortcut. The click handler
+   sets data-gd-auto-reveal before loading the account-scoped saved-home RPC. */
+#renterSavedPropertiesSection:not([data-gd-auto-reveal="1"]){display:none!important}
