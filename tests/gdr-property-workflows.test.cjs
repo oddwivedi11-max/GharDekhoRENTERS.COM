@@ -47,3 +47,14 @@ test('admin route isolation remains present in the public app', () => {
   assert.match(html, /id=["']gdr-admin-route-hard-isolation["']/);
   assert.match(html, /window\.__gdAdminHardRoute=true/);
 });
+
+test('property card actions use a delegated capture handler and remain tappable', () => {
+  assert.match(html, /gdPropertyActionsBound/);
+  assert.match(html, /document\.addEventListener\(["']click["'],\s*async function\(event\)/);
+  assert.match(html, /\.saved-details-btn, \.saved-unsave-btn/);
+  assert.match(html, /await openPropertyDetails\(propertyId\)/);
+  assert.match(html, /await saveProperty\(propertyId\)/);
+  assert.match(html, /toggle_saved_property/);
+  assert.match(html, /\.saved-property-actions[^{]*\{[^}]*z-index:8/s);
+  assert.match(html, /\.saved-details-btn[^}]*pointer-events:auto/s);
+});
