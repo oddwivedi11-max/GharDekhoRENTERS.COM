@@ -44,3 +44,12 @@ Question feature: intentionally deferred.
 - No secrets or service-role credentials were added.
 - Question feature was not implemented or modified.
 - Review and CI are required before merging; no direct push to main.
+
+
+## Phase 2 — portal access hardening (2026-11-04)
+- Added a fail-closed guard to the dashboard renderer: a stale URL/session role cannot reveal either portal without a loaded authenticated user profile.
+- Changed renter-role synchronization during login so a failed Supabase role update never fabricates Renter access in browser memory. Existing Owner access remains available with a clear message; an account with no verified role is signed out rather than shown an unauthorized portal.
+- Preserved the current multi-role account model and explicit Owner/Renter switch. No destructive single-role migration was attempted because existing production accounts include legitimate dual-role history.
+- Added regression coverage for missing-session dashboard denial and failed role-persistence handling.
+- Corrected Nearby browser assertions to check the actual dynamically bound feature source, and made browser CI apply the same idempotent frontend patch used by deployment.
+- The role change is frontend fail-closed protection, not a substitute for Supabase RLS. Production role grants and policies still require isolated-database review.
