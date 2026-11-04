@@ -101,3 +101,12 @@
    the renter explicitly opens the Saved Properties shortcut. The click handler
    sets data-gd-auto-reveal before loading the account-scoped saved-home RPC. */
 #renterSavedPropertiesSection:not([data-gd-auto-reveal="1"]){display:none!important}
+
+/* Rapido-style renter location pin */
+.gdr-renter-pin-wrap{background:transparent!important;border:0!important}
+.gdr-renter-pin{position:relative;display:block;width:30px;height:30px;border:3px solid #fff;border-radius:50% 50% 50% 4px;background:#f36b45;transform:rotate(-45deg);box-shadow:0 5px 15px rgba(17,42,37,.34);animation:gdrPinDrop .24s cubic-bezier(.2,.8,.2,1)}
+.gdr-renter-pin:before{content:"";position:absolute;inset:6px;border-radius:50%;background:#fff}
+.gdr-renter-pin i{position:absolute;left:50%;top:50%;width:7px;height:7px;border-radius:50%;background:#176b63;transform:translate(-50%,-50%) rotate(45deg);z-index:1}
+@keyframes gdrPinDrop{from{opacity:0;transform:translateY(-12px) rotate(-45deg) scale(.8)}to{opacity:1;transform:translateY(0) rotate(-45deg) scale(1)}}
+.gdr-map-list-card:focus-visible,.gdr-map-suggestion:focus-visible{outline:3px solid #8bb9ad;outline-offset:2px}
+@media(prefers-reduced-motion:reduce){.gdr-renter-pin{animation:none}}
