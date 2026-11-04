@@ -4,7 +4,7 @@
   const $ = id => document.getElementById(id);
   const state = {
     renterMap:null, ownerMap:null, renterLayer:null, radiusCircle:null,
-    ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, inventory:[], boundsRows:[], visible:[],
+    ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, renterPin:null, inventory:[], boundsRows:[], visible:[],
     searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false, resolvedQuery:"",
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null
@@ -55,7 +55,19 @@
     if(!state.loadedOnce)await fetchInventory();
     return state.inventory.filter(p=>bounds.contains([Number(p.latitude),Number(p.longitude)]));
   }
-  function applyRadius(rows,center){return rows.map(p=>Object.assign({},p,{gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=state.radiusKm);}
+  function applyRadius(rows,center){return rows.map(p=>Object.assign({},p,{gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=state.radiusKm).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);}
+  async function reverseGeocodeRenter(lat,lng){
+    try{const response=await fetch(PHOTON+"reverse?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&lang=en",{headers:{Accept:"application/json"}});if(!response.ok)return "";const payload=await response.json(),feature=payload&&payload.features&&payload.features[0];return photonLabel(feature&&feature.properties)||"";}catch(error){console.info("Renter pin reverse geocoding unavailable; exact coordinates are retained.",error);return "";}
+  }
+  function setRenterPin(point,label){
+    if(!state.renterMap||!validPoint(point.lat,point.lng))return;
+    state.searchCenter=[Number(point.lat),Number(point.lng)];state.resolvedQuery=String(label||"");
+    if(state.renterPin)state.renterMap.removeLayer(state.renterPin);
+    const icon=window.L.divIcon({className:"gdr-renter-pin-wrap",html:"<span class='gdr-renter-pin'><i></i></span>",iconSize:[34,42],iconAnchor:[17,38]});
+    state.renterPin=window.L.marker(state.searchCenter,{icon,draggable:true,zIndexOffset:1000}).addTo(state.renterMap);
+    state.renterPin.on("dragend",async()=>{const p=state.renterPin.getLatLng();state.searchCenter=[p.lat,p.lng];state.resolvedQuery=await reverseGeocodeRenter(p.lat,p.lng);setStatus("Pin moved to "+(state.resolvedQuery||p.lat.toFixed(5)+", "+p.lng.toFixed(5))+". Tap Search this area to find homes.");});
+    setStatus((state.resolvedQuery||"Selected map location")+" · Pin "+state.searchCenter[0].toFixed(5)+", "+state.searchCenter[1].toFixed(5)+". Drag the pin or tap the map, then Search this area.");
+  }
   function markerIcon(p){
     const rent=Number(p.rent||0),short=rent>=100000?"₹"+(rent/100000).toFixed(1)+"L":rent>=1000?"₹"+(rent/1000).toFixed(rent%1000?1:0)+"k":money(rent);
     const pending=p.status==="pending"||p.verification_status==="pending";
@@ -81,7 +93,7 @@
     rows.forEach(p=>{
       const b=node("button","gdr-map-list-card","");b.type="button";
       const img=document.createElement("img");img.loading="lazy";img.alt="Property";img.src=safeImage(p.image_url)||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='160'%3E%3Crect width='100%25' height='100%25' fill='%23e9f1ee'/%3E%3C/svg%3E";
-      const copy=node("span","");copy.append(node("strong","",p.title||p.name||"Rental property"),node("small","",[p.location,p.bhk?p.bhk+" BHK":"",p.furnishing||""].filter(Boolean).join(" · ")),node("b","",money(p.rent)+" / month"));
+      const copy=node("span","");copy.append(node("strong","",p.title||p.name||"Rental property"),node("small","",[p.location,p.bhk?p.bhk+" BHK":"",p.furnishing||"",Number.isFinite(p.gdrDistanceKm)?(p.gdrDistanceKm<1?Math.round(p.gdrDistanceKm*1000)+" m away":p.gdrDistanceKm.toFixed(1)+" km away"):""].filter(Boolean).join(" · ")),node("b","",money(p.rent)+" / month"));
       b.append(img,copy);b.addEventListener("click",()=>{state.renterMap.flyTo([Number(p.latitude),Number(p.longitude)],16,{duration:.55});showPreview(p);});panel.append(b);
     });
   }
@@ -160,7 +172,7 @@
     const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Locating…";}
     try{
       const point=await resolveMapQuery(query);
-      state.searchCenter=[point.lat,point.lng];state.resolvedQuery=query;
+      setRenterPin(point,point.label||query);
       state.renterMap.setView(state.searchCenter,14,{animate:false});
       await searchRenterArea();
     }catch(error){console.warn("GDR map location search failed:",error);setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");}
@@ -170,7 +182,7 @@
     if(!state.renterMap)return;const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Searching…";}
     setStatus("Searching homes within "+state.radiusKm+" km of the selected location…");
     try{
-      const c=state.renterMap.getCenter();state.searchCenter=[c.lat,c.lng];
+      if(!state.searchCenter){const c=state.renterMap.getCenter();setRenterPin(c,"");}
       state.boundsRows=await fetchBounds(radiusBounds(state.searchCenter));
       const rows=applyRadius(state.boundsRows,state.searchCenter);renderMarkers(rows,state.searchCenter);
       setStatus(rows.length+" properties within "+state.radiusKm+" km of "+(state.resolvedQuery||"the selected map centre")+".");
@@ -180,14 +192,14 @@
   function locateRenter(){
     if(!navigator.geolocation){setStatus("This browser does not support location. Search for a city or locality instead.");searchRenterArea();return;}
     setStatus("Requesting your location permission…");
-    navigator.geolocation.getCurrentPosition(async pos=>{state.searchCenter=[pos.coords.latitude,pos.coords.longitude];state.renterMap.setView(state.searchCenter,14,{animate:true});await searchRenterArea();},
+    navigator.geolocation.getCurrentPosition(async pos=>{setRenterPin({lat:pos.coords.latitude,lng:pos.coords.longitude},"My location");state.renterMap.setView(state.searchCenter,16,{animate:true});await searchRenterArea();},
       error=>{setStatus(error.code===1?"Location permission was denied. Search for any city or locality instead.":"Could not determine your location. Showing the selected map area.");searchRenterArea();},
       {enableHighAccuracy:true,timeout:12000,maximumAge:60000});
   }
   function initRenterMap(){
     if(state.renterMap)return;const canvas=$("gdrExploreMapCanvas");if(!canvas)return;
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
-    state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView(INDIA_CENTER,5);
+    state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView(INDIA_CENTER,5);state.renterMap.on("click",e=>setRenterPin(e.latlng,""));
     state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent="Map moved. Tap Search this area to refresh properties.";});
   }
   async function openRenterMap(){
@@ -322,5 +334,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,usePreciseOwnerLocation};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,usePreciseOwnerLocation};
 })();
