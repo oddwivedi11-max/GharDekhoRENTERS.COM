@@ -49,13 +49,12 @@ test('admin route isolation remains present in the public app', () => {
 });
 
 test('saved property cards retain their own details and unsave click handlers', () => {
-  const source = sourceBetween('async function loadSavedProperties()', 'async function');
-  assert.match(source, /class="saved-details-btn" data-id=/);
-  assert.match(source, /class="saved-unsave-btn" data-id=/);
-  assert.match(source, /querySelectorAll\(["']\.saved-details-btn["']\)/);
-  assert.match(source, /querySelectorAll\(["']\.saved-unsave-btn["']\)/);
-  assert.match(source, /btn\.addEventListener\(["']click["']/);
-  assert.match(source, /await openPropertyDetails\(propertyId\)/);
-  assert.match(source, /toggle_saved_property/);
+  assert.match(html, /class="saved-details-btn" data-id=/);
+  assert.match(html, /class="saved-unsave-btn" data-id=/);
+  assert.match(html, /container\.querySelectorAll\(["']\.saved-details-btn["']\)/);
+  assert.match(html, /container\.querySelectorAll\(["']\.saved-unsave-btn["']\)/);
+  assert.match(html, /btn\.addEventListener\(["']click["']/);
+  assert.match(html, /await openPropertyDetails\(propertyId\)/);
+  assert.match(html, /toggle_saved_property/);
   assert.doesNotMatch(html, /gdPropertyActionsBound/);
 });
