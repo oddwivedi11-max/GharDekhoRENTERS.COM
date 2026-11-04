@@ -344,6 +344,14 @@ if chr(92) + "n</body>" in source:
     source = source.replace(chr(92) + "n</body>", chr(10) + "</body>", 1)
     print("Cleaned Current Renters loader closing markup.")
 
+# Load the owner Saved Properties on-demand toggle without altering saved data/actions.
+if 'gdr-owner-saved-properties-toggle.js' not in source:
+    tag = '<script src="/assets/gdr-owner-saved-properties-toggle.js" defer></script>' + chr(10)
+    if "</body>" not in source:
+        raise SystemExit("Stopped safely: </body> not found for Saved Properties toggle loader")
+    source = source.replace("</body>", tag + "</body>", 1)
+    print("Added owner Saved Properties toggle controller.")
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
 
