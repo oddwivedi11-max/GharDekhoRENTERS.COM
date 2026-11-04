@@ -11,6 +11,7 @@
     if($("gdr-renter-page-style")) return;
     const style=document.createElement("style");style.id="gdr-renter-page-style";
     style.textContent=`
+      body.gdr-owner-renter-profile-open>header{display:none!important;visibility:hidden!important;pointer-events:none!important}
       #gdrOwnerRenterPage{position:fixed;inset:0;z-index:100000;background:#f5f8f6;overflow:auto;color:#183b35;font-family:inherit}
       #gdrOwnerRenterPage *{box-sizing:border-box}
       .gdr-rp-shell{width:min(100%,1000px);margin:0 auto;padding:20px 18px 56px}
@@ -45,6 +46,7 @@
   }
   function mount(row){
     ensureStyles(); currentId=String(row.id); priorTitle=document.title;
+    document.body.classList.add("gdr-owner-renter-profile-open");
     if(!page){page=document.createElement("section");page.id="gdrOwnerRenterPage";document.body.appendChild(page);}
     const p=row.property||{}, start=row.occupied_at?new Date(row.occupied_at):null;
     const startText=start&&!Number.isNaN(start.getTime())?start.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}):"Not recorded";
@@ -151,7 +153,7 @@
     if(r.error){message(r.error.message||"Unable to release this renter.");return;}
     back();await Promise.allSettled([window.loadOwnerProperties?.(),window.loadOwnerVisits?.()]);
   }
-  function back(){if(page)page.remove();page=null;document.title=priorTitle;currentId=null;if(new URL(location.href).searchParams.has("ownerRenter")){const u=new URL(location.href);u.searchParams.delete("ownerRenter");history.replaceState({}, "",u);}}
+  function back(){if(page)page.remove();page=null;document.body.classList.remove("gdr-owner-renter-profile-open");document.title=priorTitle;currentId=null;if(new URL(location.href).searchParams.has("ownerRenter")){const u=new URL(location.href);u.searchParams.delete("ownerRenter");history.replaceState({}, "",u);}}
   async function resolveRenterRow(id){
     let row=rowFor(id);
     if(row)return row;
