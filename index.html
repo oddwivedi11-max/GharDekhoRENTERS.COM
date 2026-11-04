@@ -2315,7 +2315,7 @@ body.gd-authenticated #seoRentalGuide,
 body.gd-authenticated .gd-seo-rental-guide { display:none !important; }
 body.gd-renter-mode #seoRentalGuide,
 body.gd-renter-mode .gd-seo-rental-guide { display:none !important; }
-</style>
+\n/* Authenticated renter discovery uses the dedicated Find a Home form only. */\nbody.gd-renter-mode.gd-renter-explore-mode #homeSection{display:none!important}\n</style>
 
 
 <style id="ghardekho-logged-out-landing">
@@ -20971,7 +20971,9 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     // Enter renter discovery mode only after the renter submits requirements.
     document.body.classList.add("gd-renter-explore-mode");
     const home=$("homeSection"), properties=$("propertiesSection");
-    if(home) home.style.display="block";
+    // The renter requirements page is the single search frontend. Do not reopen
+    // the older public homepage search panel after preferences are submitted.
+    if(home) home.style.display="none";
     if(properties) properties.style.display="block";
 
     await filterProperties();
