@@ -62,6 +62,16 @@
       .gdr-ocr-list .owner-occupancy-card{display:block!important;width:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
       .gdr-ocr-list .premium-section-heading{margin-bottom:12px}
       .gdr-ocr-list .premium-section-heading .dashboard-mini-badge{display:none}
+      /* The original Owner Dashboard already has a Current Renters entry button.
+         Keep the section title here, but remove its redundant icon and helper pill. */
+      .gdr-ocr-list .premium-section-heading .dashboard-mini-badge,
+      .gdr-ocr-list .premium-section-heading .section-icon,
+      .gdr-ocr-list .premium-section-heading .section-heading-icon,
+      .gdr-ocr-list .premium-section-heading .heading-icon,
+      .gdr-ocr-list .premium-section-heading .icon,
+      .gdr-ocr-list .premium-section-heading [aria-hidden="true"]{display:none!important}
+      .gdr-ocr-list .premium-section-heading{display:flex!important;align-items:center!important;justify-content:flex-start!important;gap:0!important}
+
       .gdr-ocr-list #ownerOccupancyContainer{margin-top:12px}
       .gdr-ocr-list .gd-current-renter-card{margin:10px 0!important}
       @media(max-width:850px){.gdr-ocr-content{grid-template-columns:1fr}.gdr-ocr-side{display:grid;grid-template-columns:1fr 1fr}.gdr-ocr-building{min-height:100px;margin-top:0}}
