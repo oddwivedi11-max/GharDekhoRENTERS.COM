@@ -88,7 +88,7 @@ async function saveSettings(e){
  }catch(e){toast(e.message||"Could not save settings.",true)}finally{btn.disabled=false;btn.textContent="Save payment settings"}
 }
 async function verify(id,decision,note){var r=await c().rpc("owner_verify_rent_payment",{p_payment_id:id,p_decision:decision,p_note:note||null});if(r.error){toast(r.error.message,true);return}toast(decision==="paid"?"Payment confirmed.":"Payment rejected.");loadOwnerPayments()}
-function boot(){addRenter();addOwner();var target=$("gdrOwnerPaymentSettings");if(target&&$("ownerDashboard")?.classList.contains("active")&&!target.dataset.loaded&&!target.dataset.loading){target.dataset.loading="1";loadOwnerPayments().finally(function(){target.dataset.loading="";target.dataset.loaded="1"})}}
+function boot(){addRenter();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
 })();
