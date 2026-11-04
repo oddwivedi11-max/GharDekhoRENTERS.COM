@@ -306,7 +306,7 @@
 
   // Dedicated owner Nearby Properties map. This is intentionally independent
   // from the renter's Find Homes/Explore map and never requests browser GPS.
-  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false};
+  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,hiddenSiblings:[],overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false};
   const OWNER_NEARBY_FIELDS="id,owner_id,title,name,location,address,latitude,longitude,rent,status,verification_status,bhk,furnishing,image_url,listing_type,available_beds,total_beds";
   function ownerNearbyAvailable(p){
     const type=String(p.listing_type||"home").toLowerCase();
@@ -327,7 +327,25 @@
   }
   function ownerNearbyStatus(message){const n=$("gdrOnStatus");if(n)n.textContent=message||"";}
   function ownerNearbyLoading(on){const n=$("gdrOnLoading");if(n)n.hidden=!on;}
-  function closeOwnerNearbyMap(){if(ownerNearby.overlay)ownerNearby.overlay.hidden=true;document.body.classList.remove("gdr-owner-nearby-open");}
+  function hideOwnerNearbyBackground(){
+    if(ownerNearby.hiddenSiblings.length)return;
+    ownerNearby.hiddenSiblings=Array.from(document.body.children).filter(el=>el!==ownerNearby.overlay).map(el=>({
+      el,display:el.style.getPropertyValue("display"),priority:el.style.getPropertyPriority("display")
+    }));
+    ownerNearby.hiddenSiblings.forEach(item=>item.el.style.setProperty("display","none","important"));
+  }
+  function restoreOwnerNearbyBackground(){
+    ownerNearby.hiddenSiblings.forEach(item=>{
+      if(item.display)item.el.style.setProperty("display",item.display,item.priority);
+      else item.el.style.removeProperty("display");
+    });
+    ownerNearby.hiddenSiblings=[];
+  }
+  function closeOwnerNearbyMap(){
+    if(ownerNearby.overlay)ownerNearby.overlay.hidden=true;
+    document.body.classList.remove("gdr-owner-nearby-open");
+    restoreOwnerNearbyBackground();
+  }
   function ownerNearbyHouseIcon(p){
     const rent=Number(p.rent||0),short=rent>=100000?"₹"+(rent/100000).toFixed(1)+"L":rent>=1000?"₹"+(rent/1000).toFixed(rent%1000?1:0)+"k":money(rent);
     return window.L.divIcon({className:"gdr-on-house-wrap",html:'<span class="gdr-on-house-marker"><i>⌂</i><b>'+short+'</b></span>',iconSize:[86,48],iconAnchor:[43,42]});
@@ -391,7 +409,7 @@
     finally{ownerNearby.loading=false;ownerNearbyLoading(false);}
   }
   async function openOwnerNearbyMap(){
-    const overlay=ownerNearbyOverlay();overlay.hidden=false;document.body.classList.add("gdr-owner-nearby-open");
+    const overlay=ownerNearbyOverlay();overlay.hidden=false;document.body.classList.add("gdr-owner-nearby-open");hideOwnerNearbyBackground();
     ownerNearby.radius=5;$("gdrOnRadius").value="5";$("gdrOnMapChip").textContent="5 KM radius";$("gdrOnCount").textContent="…";ownerNearbyLoading(true);
     try{
       await ensureLeaflet();
@@ -408,19 +426,24 @@
       const sub=$("gdrOnSubheading");if(sub)sub.textContent=(ownerNearby.selected.location||ownerNearby.selected.address||ownerNearby.selected.title||"Your property")+" · Search within 5 KM";
       const canvas=$("gdrOwnerNearbyMapCanvas");
       if(!ownerNearby.map){
-        ownerNearby.map=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});
-        // Use a clean, high-contrast basemap for the owner map. If Carto tiles
-        // cannot be reached, automatically fall back to the platform OSM tiles.
-        ownerNearby.tileLayer=window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:20,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(ownerNearby.map);
+        // Leaflet needs an initial view before tiles, markers or flyTo can render.
+        // Start at the selected owner's saved coordinates, never browser GPS.
+        const initialCenter=[Number(ownerNearby.selected.latitude),Number(ownerNearby.selected.longitude)];
+        ownerNearby.map=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true}).setView(initialCenter,14);
         let tileErrors=0;
-        ownerNearby.tileLayer.on("tileerror",()=>{
-          tileErrors++;
-          if(tileErrors>=4&&!ownerNearby.tileFallback){
-            ownerNearby.tileFallback=true;
-            ownerNearby.map.removeLayer(ownerNearby.tileLayer);
-            ownerNearby.tileLayer=window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(ownerNearby.map);
-          }
-        });
+        const useOsmFallback=()=>{
+          if(ownerNearby.tileFallback)return;
+          ownerNearby.tileFallback=true;
+          if(ownerNearby.tileLayer)ownerNearby.map.removeLayer(ownerNearby.tileLayer);
+          ownerNearby.tileLayer=window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
+          ownerNearby.tileLayer.on("tileerror",()=>ownerNearbyStatus("Map tiles are temporarily unavailable. Check your connection and try Refresh."));
+          ownerNearby.tileLayer.addTo(ownerNearby.map);
+        };
+        // Register error listeners BEFORE adding the layer, otherwise the first
+        // batch of failed tiles can be missed and the map stays blank.
+        ownerNearby.tileLayer=window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:20,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'});
+        ownerNearby.tileLayer.on("tileerror",()=>{tileErrors++;if(tileErrors>=2)useOsmFallback();});
+        ownerNearby.tileLayer.addTo(ownerNearby.map);
         window.L.control.zoom({position:"bottomright"}).addTo(ownerNearby.map);
         ownerNearby.layer=makeLayer(ownerNearby.map);
       }
