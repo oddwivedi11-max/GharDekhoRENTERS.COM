@@ -13918,41 +13918,45 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
             }
 
             if (!property) {
-                const baseSelect = "id,title,location,bhk,rent,furnishing,description,image_url,latitude,longitude,status,verification_status,created_at,owner_id";
-                let detailResult = await supabaseClient
-                    .from("properties")
-                    .select(baseSelect)
-                    .eq("id", propertyId)
-                    .maybeSingle();
+                /*
+                 * Search, map and Nearby cards can be rendered from separate
+                 * result sets. A row shown by those SECURITY DEFINER inventory
+                 * RPCs may not be directly selectable from properties under
+                 * renter RLS. Resolve public detail rows through the same
+                 * public inventory RPC instead of bypassing its visibility rules.
+                 * Owner-only/private rows are resolved from ownerPropertiesCache above.
+                 */
+                const { data: publicRows, error: publicRowsError } = await supabaseClient
+                    .rpc("get_public_properties");
 
-                if (detailResult.error) {
-                    detailResult = await supabaseClient
-                        .from("properties")
-                        .select("id,title,location,bhk,rent,furnishing,description,image_url,latitude,longitude,status,created_at")
-                        .eq("id", propertyId)
-                        .maybeSingle();
-                }
-
-                if (detailResult.error || !detailResult.data) {
-                    console.error("Property details error:", detailResult.error);
-                    showMessage("backendMessage", getSafeErrorMessage(detailResult.error, "Property could not be loaded."), "error");
+                if (publicRowsError) {
+                    console.error("Public property details RPC failed:", publicRowsError);
+                    showMessage("backendMessage", getSafeErrorMessage(publicRowsError, "Property details are temporarily unavailable. Please try again."), "error");
                     return;
                 }
 
-                property = { ...detailResult.data, listing_type: "home", room_type: null, gender_preference: null, food_included: null, total_beds: null, available_beds: null };
+                property = (Array.isArray(publicRows) ? publicRows : [])
+                    .find(item => String(item.id) === propertyId) || null;
 
-                const { data: stayData, error: stayError } = await supabaseClient
-                    .from("properties")
-                    .select("id,listing_type,room_type,gender_preference,food_included,total_beds,available_beds")
-                    .eq("id", propertyId)
-                    .maybeSingle();
-                if (!stayError && stayData) {
-                    property = { ...property, ...stayData };
+                if (!property) {
+                    showMessage("backendMessage", "This property is no longer publicly available. Please refresh the search results.", "error");
+                    return;
                 }
 
-                if (!allProperties.some(item => item.id === property.id)) {
+                property = {
+                    ...property,
+                    listing_type: property.listing_type || "home",
+                    room_type: property.room_type || null,
+                    gender_preference: property.gender_preference || null,
+                    food_included: property.food_included ?? null,
+                    total_beds: property.total_beds ?? null,
+                    available_beds: property.available_beds ?? null
+                };
+
+                if (!allProperties.some(item => String(item.id) === propertyId)) {
                     allProperties = [property, ...allProperties];
-                }            }
+                }
+            }
 
             currentProperty = property;
 
