@@ -47,5 +47,7 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).not.toContain('const first=state.inventory[0];if(first)state.renterMap.setView');
     expect(script).toContain('The map will not guess a property location.');
     expect(script).toContain('addEventListener("click",searchTypedMapLocation)');
+    expect(script).toContain('state.renterMap.setView(state.searchCenter,14,{animate:false})');
+    expect(script).toContain('addEventListener("change",()=>{if(state.renterMap)searchRenterArea();})');
   });
 });
