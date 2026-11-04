@@ -166,3 +166,12 @@ User decisions recorded:
 - The viewport RPC migration has not been applied; the fallback path is used until isolated QA validation.
 - No role, payment, rental agreement, charge or 3D media schema changes have been applied.
 - No production database rows, storage files or existing migrations were modified.
+
+
+## Additional read-only audit — role and storage compatibility
+- 46 user profile rows were grouped without exposing email or phone values. Seven have an explicit two-role array. Six more have role=owner while roles=[tenant]; the current frontend adds the primary role to roles, so these are effectively dual-role accounts too. Total accounts requiring a deliberate primary-role decision: 13.
+- users.email has a unique index; users.roles defaults to ['tenant']. The auth-user trigger creates an owner profile when metadata role is owner. The self-role-change trigger protects users.role but does not fully enforce the roles array as a single-role value.
+- A role migration must use users.role as the canonical role only after checking existing owner profiles and preserving all existing occupancy, visit and payment history. No role rows were changed.
+- The existing property-images bucket is public and limited to JPEG, PNG and WEBP, max 5 MB. owner-documents is private. Neither supports GLB/GLTF model uploads as configured.
+- properties(latitude, longitude) already has a composite B-tree index. property_occupancies has occupied_at/released_at and active-row uniqueness constraints, so extend this table for tenancy lifecycle instead of duplicating its history.
+- Production migration ledger contains 51 records; latest version is 20261103162447. Repository migration history is incomplete and must be reconciled before applying any migration.
