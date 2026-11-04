@@ -306,7 +306,7 @@
 
   // Dedicated owner Nearby Properties map. This is intentionally independent
   // from the renter's Find Homes/Explore map and never requests browser GPS.
-  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false};
+  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false};
   const OWNER_NEARBY_FIELDS="id,owner_id,title,name,location,address,latitude,longitude,rent,status,verification_status,bhk,furnishing,image_url,listing_type,available_beds,total_beds";
   function ownerNearbyAvailable(p){
     const type=String(p.listing_type||"home").toLowerCase();
@@ -407,7 +407,23 @@
       ownerNearby.selected=ownerNearby.properties[0];selector.value=ownerNearby.selected.id;
       const sub=$("gdrOnSubheading");if(sub)sub.textContent=(ownerNearby.selected.location||ownerNearby.selected.address||ownerNearby.selected.title||"Your property")+" · Search within 5 KM";
       const canvas=$("gdrOwnerNearbyMapCanvas");
-      if(!ownerNearby.map){ownerNearby.map=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(ownerNearby.map);window.L.control.zoom({position:"bottomright"}).addTo(ownerNearby.map);ownerNearby.layer=makeLayer(ownerNearby.map);}
+      if(!ownerNearby.map){
+        ownerNearby.map=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});
+        // Use a clean, high-contrast basemap for the owner map. If Carto tiles
+        // cannot be reached, automatically fall back to the platform OSM tiles.
+        ownerNearby.tileLayer=window.L.tileLayer("https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png",{subdomains:"abcd",maxZoom:20,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> &copy; <a href="https://carto.com/attributions" target="_blank" rel="noopener">CARTO</a>'}).addTo(ownerNearby.map);
+        let tileErrors=0;
+        ownerNearby.tileLayer.on("tileerror",()=>{
+          tileErrors++;
+          if(tileErrors>=4&&!ownerNearby.tileFallback){
+            ownerNearby.tileFallback=true;
+            ownerNearby.map.removeLayer(ownerNearby.tileLayer);
+            ownerNearby.tileLayer=window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; OpenStreetMap contributors'}).addTo(ownerNearby.map);
+          }
+        });
+        window.L.control.zoom({position:"bottomright"}).addTo(ownerNearby.map);
+        ownerNearby.layer=makeLayer(ownerNearby.map);
+      }
       requestAnimationFrame(()=>{ownerNearby.map.invalidateSize();focusOwnerNearbyProperty();});
       await loadOwnerNearbyHomes();
     }catch(error){console.error("Owner Nearby map failed:",error);ownerNearbyLoading(false);ownerNearbyStatus(error.message||"Nearby map could not be opened.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent=error.message||"Nearby map could not be opened.";}}
