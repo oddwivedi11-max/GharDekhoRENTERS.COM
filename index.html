@@ -13808,10 +13808,45 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 return locationMatch && listingTypeMatch && bhkMatch && budgetMatch && furnishingMatch && propertyStatusMatch && roomTypeMatch && genderMatch && foodMatch;
             });
 
+            // A PIN is an explicit location request. If the renter's saved or
+            // default budget/BHK/furnishing preferences accidentally hide every
+            // listing in that PIN, show the real PIN inventory rather than a
+            // misleading empty state. Preserve the explicit stay-type and
+            // vacancy filters; never turn "Vacant only" into occupied results.
+            let finalResults = filtered;
+            let pinFallbackUsed = false;
+            if (!finalResults.length && pinTerms.length) {
+                const pin = pinTerms[0];
+                const pinOnlyMatches = allProperties.filter(function(property) {
+                    const pinSearchText = normalizeSearchText([
+                        property.title, property.location, property.address,
+                        property.area, property.name
+                    ].filter(value => value !== null && value !== undefined).join(" "));
+                    const exactPinMatch = pinSearchText.includes(pin);
+                    const normalizedStatus = String(property.status || "").toLowerCase().trim();
+                    const stayTypeMatch = !listingType || (property.listing_type || "home") === listingType;
+                    const vacancyMatch = !propertyStatus ||
+                        (propertyStatus === "vacant" &&
+                         (normalizedStatus === "pending" || normalizedStatus === "verified"));
+                    return exactPinMatch && stayTypeMatch && vacancyMatch;
+                });
+                if (pinOnlyMatches.length) {
+                    finalResults = pinOnlyMatches;
+                    pinFallbackUsed = true;
+                }
+            }
+
             currentPropertyPage = 1;
-            renderProperties(filtered);
-            if (!filtered.length && /^\\d{6}$/.test(location)) {
-                showMessage("backendMessage", "No homes are listed for PIN " + location + " yet. Try the locality or district name for a broader match.", "info");
+            renderProperties(finalResults);
+            if (pinFallbackUsed) {
+                showMessage(
+                    "backendMessage",
+                    "Found " + finalResults.length + " properties in PIN " + pinTerms[0] +
+                    ". Your selected budget, BHK or furnishing filters were hiding them, so we are showing the PIN's listings. Check each home's rent, configuration and availability before proceeding.",
+                    "info"
+                );
+            } else if (!finalResults.length && pinTerms.length) {
+                showMessage("backendMessage", "No properties in PIN " + pinTerms[0] + " match the selected stay type and availability. Try All properties or another PIN.", "info");
             }
             scrollToSection("propertiesSection");
         }
