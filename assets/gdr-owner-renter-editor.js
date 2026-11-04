@@ -4,10 +4,10 @@ const $=id=>document.getElementById(id);
 const esc=value=>String(value??"").replace(/[&<>"']/g,ch=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[ch]));
 function currentRow(id){return (window.__gdCurrentRenters||[]).find(row=>String(row.id)===String(id));}
 function attachEditAction(modal){
- if(!modal||!modal.classList.contains("active")||modal.dataset.gdrEditReady==="1")return;
+ if(!modal||!modal.classList.contains("active"))return;
  const dialog=modal.querySelector(".gd-current-renter-dialog");
- if(!dialog)return;
- modal.dataset.gdrEditReady="1";
+ if(!dialog||dialog.dataset.gdrEditReady==="1")return;
+ dialog.dataset.gdrEditReady="1";
  const actions=dialog.querySelector(".gd-renter-modal-actions");
  if(!actions)return;
  const edit=document.createElement("button");edit.type="button";edit.className="secondary-button gd-edit-current-renter-btn";edit.textContent="Edit renter details";
