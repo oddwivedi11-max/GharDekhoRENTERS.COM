@@ -20,6 +20,7 @@
       .gdr-current-renters-open:active{transform:translateY(4px);box-shadow:0 3px 0 #5b3d2b,0 7px 12px rgba(70,43,26,.16)}
       .gdr-current-renters-open-icon{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:rgba(255,255,255,.16);font-size:19px}
       .gdr-current-renters-open-arrow{margin-left:auto;font-size:20px}
+      body.gdr-current-renters-open>header,body.gdr-current-renters-open header{display:none!important;visibility:hidden!important;pointer-events:none!important}
       #gdrOwnerCurrentRentersPage{position:fixed;inset:0;z-index:85000;overflow:auto;background:#f8f5f0;color:#30251e;padding:clamp(14px,3vw,32px)}
       #gdrOwnerCurrentRentersPage *{box-sizing:border-box}
       .gdr-ocr-shell{width:min(1120px,100%);margin:0 auto}
@@ -112,6 +113,7 @@
     const list = $("gdrOcrList");
     list.appendChild(section);
     page.hidden = false;
+    document.body.classList.add("gdr-current-renters-open");
     document.body.style.overflow = "hidden";
     const data = await stats();
     if ($("gdrOcrStats")) {
@@ -129,6 +131,7 @@
       else originalParent.appendChild(occupancySection);
     }
     if (page) page.hidden = true;
+    document.body.classList.remove("gdr-current-renters-open");
     document.body.style.overflow = "";
     window.scrollTo({ top: returnScroll, behavior: "smooth" });
     occupancySection = null;
