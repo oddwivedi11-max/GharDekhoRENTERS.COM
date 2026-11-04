@@ -338,6 +338,12 @@ if 'gdr-owner-current-renters-dashboard.js' not in source:
     source = source.replace("</body>", script_tag + "</body>", 1)
     print("Added Current Renters dashboard controller.")
 
+# Clean up the literal backslash-n emitted by the first idempotent insertion.
+# Keep this repair safe for deployments where the loader is already present.
+if chr(92) + "n</body>" in source:
+    source = source.replace(chr(92) + "n</body>", chr(10) + "</body>", 1)
+    print("Cleaned Current Renters loader closing markup.")
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
 
