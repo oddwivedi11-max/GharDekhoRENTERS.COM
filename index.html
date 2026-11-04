@@ -13616,18 +13616,19 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 return;
             }
 
-            // Public inventory is fetched only after an explicit search.
-            if (!Array.isArray(allProperties) || allProperties.length === 0) {
-                await loadProperties(false);
-            }
+            // Refresh inventory on every explicit search so newly added or edited
+            // owner listings cannot be missed because of a stale in-memory array.
+            await loadProperties(false);
 
-            // A bare six-digit PIN is resolved to its postal district/state before
-            // matching. The app has no dedicated property PIN column, so exact PIN
-            // matching is preferred when present; otherwise use the resolved locality.
-            let resolvedPinLocation = "";
-            if (/^\d{6}$/.test(location)) {
+            // A PIN may map to multiple post offices. Resolve every office and
+            // use the district as a fallback when a listing has no stored PIN.
+            const pinMatch = location.match(/(?:^|\\D)(\\d{6})(?:\\D|$)/);
+            const pinTerms = pinMatch ? [pinMatch[1]] : [];
+            let resolvedPinOfficeNames = [];
+            let resolvedPinDistrict = "";
+            if (pinTerms.length) {
                 try {
-                    const pinResponse = await fetch("https://api.postalpincode.in/pincode/" + encodeURIComponent(location), {
+                    const pinResponse = await fetch("https://api.postalpincode.in/pincode/" + encodeURIComponent(pinTerms[0]), {
                         headers: { Accept: "application/json" }
                     });
                     if (!pinResponse.ok) throw new Error("PIN lookup unavailable");
@@ -13636,58 +13637,50 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     const pinOffices = pinResult && pinResult.Status === "Success" && Array.isArray(pinResult.PostOffice)
                         ? pinResult.PostOffice : [];
                     if (!pinOffices.length) {
-                        showMessage("backendMessage", "PIN " + location + " was not found. Check the six digits and try again.", "error");
+                        showMessage("backendMessage", "PIN " + pinTerms[0] + " was not found. Check the six digits and try again.", "error");
                         return;
                     }
-                    const firstOffice = pinOffices.find(office => office && (office.Name || office.District)) || pinOffices[0];
-                    // Match either the post-office locality or district. Requiring
-                    // both district and state would hide valid listings whose stored
-                    // address omits the state name.
-                    resolvedPinLocation = [firstOffice.Name, firstOffice.District]
-                        .filter(Boolean).join(" ").toLowerCase();
+                    resolvedPinOfficeNames = [...new Set(pinOffices
+                        .map(office => String(office?.Name || office?.Block || "").trim().toLowerCase())
+                        .filter(Boolean))];
+                    resolvedPinDistrict = String(pinOffices.find(office => office?.District)?.District || "").trim().toLowerCase();
                 } catch (pinError) {
                     showMessage("backendMessage", "Could not verify this PIN right now. Please retry or search by city/locality.", "error");
                     return;
                 }
             }
 
+            const normalizeSearchText = value => String(value || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, " ")
+                .replace(/\\s+/g, " ")
+                .trim();
+
             const filtered = allProperties.filter(function(property) {
-                const searchableText = [
+                const searchableText = normalizeSearchText([
                     property.title, property.location, property.address, property.area,
                     property.name, property.description, property.listing_type,
                     property.room_type, property.gender_preference, property.furnishing,
                     property.bhk, property.rent, property.status, property.verification_status
-                ].filter(value => value !== null && value !== undefined).join(" ").toLowerCase();
+                ].filter(value => value !== null && value !== undefined).join(" "));
 
-                // Match city/area terms intelligently when a PIN and city are entered together.
-                // Prefer an exact PIN only when that PIN actually exists in the current inventory;
-                // otherwise fall back to the typed city/area instead of returning a false empty state.
-                const rawLocationTerms = location.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
-                const pinTerms = rawLocationTerms.filter(term => /^\d{6}$/.test(term));
-                const locationSource = resolvedPinLocation || location;
-                const locationParts = locationSource.split(",").map(part => part.trim()).filter(Boolean);
-                const hasPinMarker = /\b(?:pin|pincode|postal code)\b/i.test(location);
-                // Postal suggestions begin with the post-office name. If the full
-                // suggestion includes office, district, state and PIN, match the
-                // district/state rather than requiring the office name in the listing.
-                const locationForMatching = hasPinMarker && locationParts.length >= 4
-                    ? locationParts.slice(1).join(" ")
-                    : locationSource;
-                const locationTerms = locationForMatching.split(/[,\s]+/).map(term => term.trim()).filter(Boolean);
-                const textLocationTerms = locationTerms.filter(term => !/^\d{6}$/.test(term) && !/^(?:pin|pincode|code|postal)$/i.test(term));
-                const exactPinExists = pinTerms.some(pin => allProperties.some(item =>
-                    [item.title, item.location, item.address, item.area, item.name]
-                        .filter(value => value !== null && value !== undefined)
-                        .join(" ").toLowerCase().includes(pin)
+                const pinExistsInInventory = pinTerms.some(pin => allProperties.some(item =>
+                    normalizeSearchText([item.title, item.location, item.address, item.area, item.name].join(" ")).includes(pin)
                 ));
-                const textLocationMatch = resolvedPinLocation
-                    ? textLocationTerms.some(term => searchableText.includes(term))
-                    : textLocationTerms.every(term => searchableText.includes(term));
                 const exactPinMatch = pinTerms.some(pin => searchableText.includes(pin));
-                const locationMatch = !locationTerms.length ||
-                    (textLocationTerms.length > 0
-                        ? textLocationMatch && (!pinTerms.length || !exactPinExists || exactPinMatch)
-                        : pinTerms.length > 0 && exactPinExists && exactPinMatch);
+                const typedLocation = normalizeSearchText(location.replace(/\\b\\d{6}\\b/g, " ").replace(/\\b(?:pin|pincode|postal code)\\b/gi, " "));
+                const typedTerms = typedLocation.split(" ").filter(term =>
+                    term.length > 1 && !["india", "madhya", "pradesh", "district", "state", "pin", "pincode", "postal", "code"].includes(term)
+                );
+                const pinOfficeMatch = resolvedPinOfficeNames.some(office => {
+                    const normalizedOffice = normalizeSearchText(office);
+                    return normalizedOffice && searchableText.includes(normalizedOffice);
+                });
+                const pinDistrictMatch = resolvedPinDistrict && searchableText.includes(normalizeSearchText(resolvedPinDistrict));
+                const typedLocationMatch = typedTerms.some(term => searchableText.includes(term));
+                const locationMatch = pinTerms.length
+                    ? (pinExistsInInventory ? exactPinMatch : (pinOfficeMatch || pinDistrictMatch || typedLocationMatch))
+                    : (!typedTerms.length || typedLocationMatch);
 
                 const propertyBhk = Number(property.bhk);
                 const listingTypeMatch = !listingType || (property.listing_type || "home") === listingType;
@@ -20914,7 +20907,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     document.body.classList.add("gd-renter-find-page-open");
     const p=JSON.parse(localStorage.getItem("gdrRenterSearchPreferences")||"null");
     if(p){
-      $("renterSearchLocation").value=p.location||"Patel Nagar, Bhopal, Madhya Pradesh 462022";
+      $("renterSearchLocation").value=p.location||"Patel Nagar, Bhopal, Madhya Pradesh 462001";
       setRenterBudgetValue("min", p.minBudget ?? "");
       setRenterBudgetValue("max", p.maxBudget ?? "");
       $("renterStayType").value=p.stayType||"";
@@ -20929,7 +20922,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     }else{
       // Helpful first-use default for the Bhopal renter flow; users can freely
       // replace it with any city, locality, district or PIN code.
-      $("renterSearchLocation").value="Patel Nagar, Bhopal, Madhya Pradesh 462022";
+      $("renterSearchLocation").value="Patel Nagar, Bhopal, Madhya Pradesh 462001";
     }
     window.scrollTo({top:0,behavior:"smooth"});
   };
