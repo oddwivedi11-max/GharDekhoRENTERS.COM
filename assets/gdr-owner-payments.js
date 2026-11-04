@@ -111,7 +111,7 @@ async function open(){
  try{await load();render();}catch(e){$("gdrPayContent").innerHTML='<div class="gdr-pay-empty"><b>Payment dashboard could not load</b><small>'+esc(e.message)+'</small><button class="gdr-pay-primary" id="gdrPayRetry">Try again</button></div>';$("gdrPayRetry")?.addEventListener("click",open);}
 }
 function close(){if(root)root.classList.remove("open");document.body.classList.remove("gdr-pay-lock");}
-function boot(){styles();injectButton();const obs=new MutationObserver(()=>injectButton());obs.observe(document.body,{childList:true,subtree:true});}
+function boot(){const obsoleteButton=$("gdrPaymentsOpen");if(obsoleteButton)obsoleteButton.remove();const obsoletePage=$("gdrPaymentsPage");if(obsoletePage)obsoletePage.remove();document.body.classList.remove("gdr-pay-lock");}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 window.GDRPayments={open,close};
 })();
