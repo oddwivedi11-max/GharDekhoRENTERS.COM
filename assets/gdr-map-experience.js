@@ -158,7 +158,15 @@
   async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
     try{
-      await ensureLeaflet();panel.hidden=false;initOwnerMap();requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
+      await ensureLeaflet();panel.hidden=false;initOwnerMap();
+      const toolbar=panel.querySelector(".gdr-owner-map-toolbar");
+      if(toolbar&&!$("gdrOwnerPreciseLocationBtn")){
+        const locate=node("button","gdr-map-toggle-btn","◎ Use my precise location");
+        locate.type="button";locate.id="gdrOwnerPreciseLocationBtn";
+        locate.addEventListener("click",usePreciseOwnerLocation);
+        toolbar.insertBefore(locate,toolbar.lastElementChild||null);
+      }
+      requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
       const input=$("propertyLocation"),lat=asNumber(input&&input.dataset.gdSelectedLat),lng=asNumber(input&&input.dataset.gdSelectedLng);
       if(lat!==null&&lng!==null){state.ownerMap.setView([lat,lng],16);setOwnerPin({lat,lng},input.dataset.gdSelectedDisplayName||input.value);}
       else if(!state.ownerSelection){const c=state.ownerMap.getCenter();setOwnerPin(c,"Choose the exact property location");}
@@ -208,6 +216,16 @@
     setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{state.searchCenter=[r.lat,r.lng];if(state.renterMap){state.renterMap.flyTo(state.searchCenter,14,{duration:.6});searchRenterArea();}},"renter");
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label);}},"owner");
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
+  function loadOwnerRenterEditor(){
+    if(document.querySelector("script[data-gdr-owner-renter-editor]"))return;
+    const script=document.createElement("script");
+    script.src="/assets/gdr-owner-renter-editor.js";
+    script.defer=true;
+    script.dataset.gdrOwnerRenterEditor="true";
+    script.onerror=()=>console.warn("Owner renter editor could not be loaded.");
+    document.head.appendChild(script);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
+  else {bind();loadOwnerRenterEditor();}
   window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,usePreciseOwnerLocation};
 })();
