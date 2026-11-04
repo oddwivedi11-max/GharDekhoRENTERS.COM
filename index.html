@@ -17220,52 +17220,6 @@ function updateStayTypeFields() {
             console.error("Unhandled GharDekho Renters promise rejection:", event.reason);
         });
 
-        // Reliable delegated property-card actions. Delegation survives
-        // cards being re-rendered after saved-state and dashboard refreshes.
-        if (!document.documentElement.dataset.gdPropertyActionsBound) {
-            document.documentElement.dataset.gdPropertyActionsBound = "1";
-            document.addEventListener("click", async function(event) {
-                const button = event.target.closest(
-                    ".saved-details-btn, .saved-unsave-btn, .view-property-btn, .favorite-property-btn, .owner-view-property-btn, #detailsSaveBtn"
-                );
-                if (!button || button.disabled) return;
-                const propertyId = String(button.getAttribute("data-id") || currentProperty?.id || "").trim();
-                if (!propertyId) return;
-                event.preventDefault();
-                event.stopPropagation();
-                event.stopImmediatePropagation();
-                const originalText = button.textContent;
-                button.disabled = true;
-                try {
-                    if (button.matches(".saved-details-btn, .view-property-btn, .owner-view-property-btn")) {
-                        button.textContent = "Opening…";
-                        await openPropertyDetails(propertyId);
-                    } else if (button.matches(".saved-unsave-btn")) {
-                        if (!currentUser) throw new Error("Please login again before removing this saved home.");
-                        button.textContent = "Removing…";
-                        const { data, error } = await supabaseClient.rpc("toggle_saved_property", { p_property_id: propertyId });
-                        if (error) throw error;
-                        const raw = Array.isArray(data) ? data[0]?.saved : (data && typeof data === "object" ? data.saved : data);
-                        const stillSaved = raw === true || raw === 1 || String(raw).toLowerCase() === "true";
-                        if (stillSaved) throw new Error("The property is still saved. Please try again.");
-                        await loadSavedProperties();
-                        showMessage("backendMessage", "Property removed from saved homes.", "success");
-                    } else {
-                        button.textContent = "Saving…";
-                        await saveProperty(propertyId);
-                    }
-                } catch (error) {
-                    console.error("Delegated property action failed:", error);
-                    showMessage("backendMessage", getSafeErrorMessage(error, "This action could not be completed. Please try again."), "error");
-                } finally {
-                    if (button.isConnected) {
-                        button.disabled = false;
-                        button.textContent = originalText;
-                    }
-                }
-            }, true);
-        }
-
         updateStayTypeFields();
         protectAuthInputsFromBrowserAutofill();
         protectSearchInputsFromBrowserAutofill();

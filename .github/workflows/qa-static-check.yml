@@ -9,6 +9,7 @@ on:
       - "fix/gdr-nearby-radius-guard-20261104"
       - "codex/ghardekho-rental-management"
       - "codex/fix-property-card-actions"
+      - "codex/fix-saved-card-native-handlers"
   workflow_dispatch:
 
 permissions:
