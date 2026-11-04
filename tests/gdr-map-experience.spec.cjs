@@ -106,10 +106,12 @@ test.describe('GDR map-first experience structure', () => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.evaluate(() => {
       const center = { lat: 23.2599, lng: 77.4126 };
+      const mapHandlers = {};
+      window.__gdrOwnerMapHandlers = mapHandlers;
       window.L = {
         map: element => ({
           setView() { return this; },
-          on() { return this; },
+          on(name, callback) { mapHandlers[name] = callback; return this; },
           invalidateSize() {},
           getCenter() { return center; },
           flyTo() { return this; },
@@ -126,7 +128,10 @@ test.describe('GDR map-first experience structure', () => {
       document.getElementById('gdrOpenOwnerMapPickerBtn').click();
     });
     await expect.poll(() => page.locator('#gdrOwnerMapPicker').evaluate(element => element.hidden)).toBe(false);
-    await page.evaluate(() => document.getElementById('gdrConfirmOwnerMapLocation').click());
+    await page.evaluate(() => {
+      window.__gdrOwnerMapHandlers.click({ latlng: { lat: 23.2599, lng: 77.4126 } });
+      document.getElementById('gdrConfirmOwnerMapLocation').click();
+    });
     const saved = await page.locator('#propertyLocation').evaluate(element => ({
       value: element.value,
       latitude: element.dataset.gdSelectedLat,
