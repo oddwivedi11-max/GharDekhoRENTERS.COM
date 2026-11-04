@@ -11,7 +11,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569], TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
   const PHOTON="https://photon.komoot.io/api/";
-  const asNumber=v=>Number.isFinite(Number(v))?Number(v):null;
+  const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
   const distanceKm=(a,b)=>{
@@ -20,7 +20,7 @@
     return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));
   };
   function node(tag,cls,value){const n=document.createElement(tag);if(cls)n.className=cls;if(value!==undefined&&value!==null)n.textContent=String(value);return n;}
-  function safeImage(value){try{const u=new URL(String(value||""),location.origin);return u.protocol==="https:"||u.origin===location.origin?u.href:"";}catch(_){return "";}}
+  function safeImage(value){if(!value)return "";try{const u=new URL(String(value),location.origin);return u.protocol==="https:"||u.origin===location.origin?u.href:"";}catch(_){return "";}}
   function statusOf(p){if(p.status==="pending"||p.verification_status==="pending")return "Pending verification";if(p.status==="occupied")return "Occupied";if(p.status==="soon_available")return "Available soon";return "Available";}
   function db(){return window.__gdrSupabaseClient||null;}
   function setStatus(message){const n=$("gdrMapStatus");if(n)n.textContent=message||"";}
