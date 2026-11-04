@@ -113,12 +113,12 @@
       return Array.isArray(coords)&&validPoint(coords[1],coords[0]);
     });
   }
-  function normalizedText(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+  function normalizedText(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
   async function resolveMapQuery(query){
     const q=String(query||"").trim();
     if(!q)throw new Error("Enter a city, locality or six-digit PIN code first.");
     let features=[],expectedDistrict="",expectedState="",pin=q;
-    if(/^\\d{6}$/.test(q)){
+    if(/^\d{6}$/.test(q)){
       setStatus("Verifying PIN "+pin+" with India Post…");
       const response=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"}});
       if(!response.ok)throw new Error("India Post PIN lookup is unavailable. Try the locality or city name.");
