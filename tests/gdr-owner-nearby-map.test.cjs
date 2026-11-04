@@ -32,3 +32,16 @@ test("map uses a light premium palette and 3D-inspired house markers",()=>{
  assert.match(style,/background:#f4f8f6/);
  assert.match(style,/body\.gdr-owner-nearby-open/);
 });
+
+test("owner map renders its own MY HOME pin and My Property recenters to its preview",()=>{
+ assert.match(map,/ownerNearbyMyHomeIcon/);
+ assert.match(map,/MY HOME/);
+ assert.match(map,/ownerNearby\.ownerMarker=.*addTo\(ownerNearby\.map\)/);
+ assert.match(map,/gdrIsOwnerProperty:true/);
+ assert.match(map,/ownerNearbyPreview\(ownPoint\)/);
+});
+test("owner map branding is separated from the title and avoids old logo overlap",()=>{
+ assert.match(map,/gdr-on-brand/);
+ assert.match(style,/\.gdr-on-brand/);
+ assert.match(style,/gdr-owner-nearby-open \.gdr-header-brand/);
+});
