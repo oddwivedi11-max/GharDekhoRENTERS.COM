@@ -8,7 +8,7 @@ const html = fs.readFileSync(path.join(__dirname, "..", "index.html"), "utf8");
 test("PIN search falls back to exact PIN inventory when optional preferences hide all matches", () => {
   assert.match(html, /if \(!finalResults\.length && pinTerms\.length\)/);
   assert.match(html, /const exactPinMatch = pinSearchText\.includes\(pin\)/);
-  assert.match(html, /return exactPinMatch && stayTypeMatch && vacancyMatch/);
+  assert.match(html, /const pinOnlyMatches = pinInventoryMatches\\.filter/);\n  assert.match(html, /return stayTypeMatch && vacancyMatch/);
   assert.match(html, /Your selected budget, BHK or furnishing filters were hiding them/);
 });
 
