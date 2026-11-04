@@ -49,5 +49,12 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).toContain('addEventListener("click",searchTypedMapLocation)');
     expect(script).toContain('state.renterMap.setView(state.searchCenter,14,{animate:false})');
     expect(script).toContain('addEventListener("change",()=>{if(state.renterMap)searchRenterArea();})');
+    expect(script).toContain('state.renterMap.on("click",e=>setRenterPin(e.latlng,""))');
+    expect(script).toContain('draggable:true,zIndexOffset:1000');
+    expect(script).toContain('async function reverseGeocodeRenter(lat,lng)');
+    expect(script).toContain('setRenterPin(point,point.label||query)');
+    expect(script).toContain('fetchBounds(radiusBounds(state.searchCenter))');
+    expect(script).toContain('gdrDistanceKm<=state.radiusKm');
+    expect(script).toContain('sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm)');
   });
 });
