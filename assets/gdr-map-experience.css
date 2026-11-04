@@ -289,3 +289,26 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
  .gdr-on-preview-image{width:84px;height:112px}
 }
 @media(max-width:380px){.gdr-on-society-scene{grid-template-columns:1fr}}
+
+/* Owner Nearby locality search + visible monthly-rent pins on every 3D home. */
+.gdr-on-area-search{display:grid;gap:7px;padding:12px 14px;border:1px solid #d7e8df;border-radius:16px;background:linear-gradient(120deg,#f8fcf9,#fff);box-shadow:0 8px 22px #173b3509}
+.gdr-on-area-search>label{color:#47756a;font-size:9px;font-weight:950;letter-spacing:.15em}
+.gdr-on-area-search>div{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px}
+.gdr-on-area-search input{width:100%;min-width:0;min-height:44px;padding:0 13px;border:1px solid #cfe1d7;border-radius:11px;background:#fff;color:#173d34;font:600 13px inherit;outline:none}
+.gdr-on-area-search input:focus{border-color:#168477;box-shadow:0 0 0 3px #16847720}
+.gdr-on-area-search button{min-height:44px;padding:0 16px;border:1px solid #155f55;border-radius:11px;background:linear-gradient(180deg,#238474,#176b5e);color:#fff;font-size:12px;font-weight:900;box-shadow:0 4px 0 #105447;white-space:nowrap}
+.gdr-on-area-search button:disabled{opacity:.65;cursor:wait}
+.gdr-on-area-search small{color:#7b9187;font-size:10px;line-height:1.4}
+.gdr-on-home-art{overflow:visible!important}
+.gdr-on-home-map-pin{position:absolute;z-index:4;top:8px;right:8px;display:inline-flex;align-items:center;justify-content:center;min-height:29px;padding:0 10px;border:2px solid #fff;border-radius:10px 10px 10px 3px;background:linear-gradient(145deg,#278f7d,#126458);color:#fff;font-size:12px;font-weight:1000;white-space:nowrap;box-shadow:0 5px 13px #123c3540}
+.gdr-on-home-map-pin:after{content:"";position:absolute;right:8px;bottom:-5px;width:8px;height:8px;background:#126458;border-right:2px solid #fff;border-bottom:2px solid #fff;transform:rotate(45deg)}
+.gdr-on-home-card-own .gdr-on-home-map-pin{background:linear-gradient(145deg,#f4a261,#df7432)}
+.gdr-on-home-card-own .gdr-on-home-map-pin:after{background:#df7432}
+@media(max-width:760px){
+ .gdr-on-area-search{padding:10px}
+ .gdr-on-area-search>div{grid-template-columns:minmax(0,1fr) auto;gap:6px}
+ .gdr-on-area-search input{min-height:42px;font-size:12px}
+ .gdr-on-area-search button{min-height:42px;padding:0 10px;font-size:11px}
+ .gdr-on-area-search small{font-size:9px}
+ .gdr-on-home-map-pin{top:6px;right:6px;min-height:26px;padding:0 8px;font-size:11px}
+}
