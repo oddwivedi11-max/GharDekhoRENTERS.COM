@@ -7,7 +7,7 @@ create table if not exists public.owner_payment_settings (
  due_day smallint not null default 5 check(due_day between 1 and 28),
  late_fee_amount numeric(12,2) not null default 0 check(late_fee_amount between 0 and 100000),
  late_fee_grace_days smallint not null default 0 check(late_fee_grace_days between 0 and 30),
- created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
+ created_at timestamptz not null default now(), updated_at timestamptz not null default now()
 );
 create table if not exists public.rent_payment_records (
  id uuid primary key default gen_random_uuid(),
