@@ -13743,10 +13743,32 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     return normalizedOffice && searchableText.includes(normalizedOffice);
                 });
                 const pinDistrictMatch = resolvedPinDistrict && searchableText.includes(normalizeSearchText(resolvedPinDistrict));
-                const typedLocationMatch = typedTerms.some(term => searchableText.includes(term));
+                // Match location by exact tokens first, then by a conservative
+                // one-character typo fallback. This helps real locality spellings
+                // such as "Churkee/Churki" without turning the search into "show all".
+                const searchableWords = searchableText.split(" ").filter(Boolean);
+                const editDistanceAtMostOne = (a, b) => {
+                    if (!a || !b || Math.abs(a.length - b.length) > 1) return false;
+                    if (a === b) return true;
+                    let i = 0, j = 0, edits = 0;
+                    while (i < a.length && j < b.length) {
+                        if (a[i] === b[j]) { i++; j++; continue; }
+                        if (++edits > 1) return false;
+                        if (a.length > b.length) i++;
+                        else if (b.length > a.length) j++;
+                        else { i++; j++; }
+                    }
+                    return edits + ((i < a.length || j < b.length) ? 1 : 0) <= 1;
+                };
+                const typedLocationMatch = typedTerms.some(term =>
+                    searchableText.includes(term) ||
+                    (term.length >= 5 && searchableWords.some(word => editDistanceAtMostOne(term, word)))
+                );
                 const pinLocalityMatch = pinOfficeMatch || typedLocationMatch;
+                // For a PIN, always allow its verified district as a fallback.
+                // For a typed locality/city, match any meaningful location token.
                 const locationMatch = pinTerms.length
-                    ? (exactPinMatch || pinLocalityMatch || (!pinLocalityMatch && pinDistrictMatch))
+                    ? (exactPinMatch || pinLocalityMatch || pinDistrictMatch)
                     : (!typedTerms.length || typedLocationMatch);
 
                 const propertyBhk = Number(property.bhk);
@@ -22780,3 +22802,127 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
 })();
 </script>
 
+
+
+<style id="gdr-find-home-smooth-v4">
+/* Calm, premium Find Home layout — preserve all existing preference fields. */
+#renterFindHomeSection{
+  width:min(960px,calc(100% - 32px))!important;
+  margin:18px auto 64px!important;
+  padding:clamp(16px,2.4vw,30px)!important;
+  border:1px solid rgba(187,216,207,.72)!important;
+  border-radius:30px!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(241,249,246,.96))!important;
+  box-shadow:0 24px 70px rgba(13,61,55,.10),inset 0 1px 0 #fff!important;
+  overflow:visible!important;
+}
+#renterFindHomeSection .renter-find-home-header{
+  display:grid!important;
+  grid-template-columns:minmax(0,1fr)!important;
+  align-items:start!important;
+  gap:0!important;
+  padding:8px 4px 22px!important;
+}
+#renterFindHomeSection .renter-page-back-btn{
+  justify-self:start!important;
+  margin:0 0 20px!important;
+  min-height:44px!important;
+  padding:0 16px!important;
+  border-radius:13px!important;
+  box-shadow:0 4px 0 #0d5c53,0 9px 20px rgba(10,77,69,.12)!important;
+}
+#renterFindHomeSection .dashboard-section-kicker{
+  display:block!important;
+  margin:0 0 8px!important;
+  color:#08796d!important;
+  font-size:10px!important;
+  line-height:1.4!important;
+  font-weight:950!important;
+  letter-spacing:.17em!important;
+}
+#renterFindHomeSection .renter-find-home-header h2{
+  max-width:780px!important;
+  margin:0 0 10px!important;
+  font-size:clamp(2rem,5.2vw,3.55rem)!important;
+  line-height:1.02!important;
+  letter-spacing:-.058em!important;
+  text-wrap:balance;
+}
+#renterFindHomeSection .renter-find-home-header p{
+  max-width:620px!important;
+  font-size:14px!important;
+  line-height:1.6!important;
+}
+#renterFindHomeSection .renter-preference-form{gap:12px!important}
+#renterFindHomeSection .renter-form-section{
+  padding:clamp(16px,2vw,23px)!important;
+  border-radius:22px!important;
+  box-shadow:0 10px 26px rgba(18,70,62,.055),inset 0 1px 0 #fff!important;
+  transition:box-shadow .22s ease,border-color .22s ease,transform .22s ease!important;
+}
+#renterFindHomeSection .renter-form-section:focus-within{
+  border-color:#a8d5ca!important;
+  box-shadow:0 14px 34px rgba(18,70,62,.085),inset 0 1px 0 #fff!important;
+}
+#renterFindHomeSection .renter-form-section-title{margin-bottom:14px!important}
+#renterFindHomeSection .renter-preference-grid{gap:11px!important}
+#renterFindHomeSection .renter-preference-field input,
+#renterFindHomeSection .renter-preference-field select,
+#renterFindHomeSection .renter-budget-select,
+#renterFindHomeSection .renter-budget-custom{
+  min-height:54px!important;
+  border-radius:14px!important;
+  font-size:15px!important;
+  transition:border-color .18s ease,box-shadow .18s ease,background .18s ease!important;
+}
+#renterFindHomeSection #renterSearchLocation{
+  min-height:58px!important;
+  border:1.5px solid #b7d9d0!important;
+  border-radius:16px!important;
+  background:#fff!important;
+  box-shadow:0 5px 16px rgba(14,72,62,.045)!important;
+}
+#renterFindHomeSection .renter-form-actions{
+  bottom:max(8px,env(safe-area-inset-bottom))!important;
+  padding:9px!important;
+  border-radius:17px!important;
+  box-shadow:0 12px 32px rgba(8,35,31,.13)!important;
+}
+#renterFindHomeSection .renter-form-cancel,
+#renterFindHomeSection .renter-form-submit{
+  min-height:52px!important;
+  border-radius:13px!important;
+}
+#gdrRenterPinSuggestions{
+  border-radius:15px!important;
+  box-shadow:0 16px 42px rgba(10,45,40,.16)!important;
+}
+@media(max-width:760px){
+  #renterFindHomeSection{
+    width:calc(100% - 18px)!important;
+    margin:8px auto 34px!important;
+    padding:14px!important;
+    border-radius:22px!important;
+  }
+  #renterFindHomeSection .renter-find-home-header{padding:4px 2px 16px!important}
+  #renterFindHomeSection .renter-page-back-btn{margin-bottom:17px!important}
+  #renterFindHomeSection .renter-find-home-header h2{
+    max-width:100%!important;
+    font-size:clamp(2rem,8.3vw,2.8rem)!important;
+    line-height:1.03!important;
+  }
+  #renterFindHomeSection .renter-find-home-header p{font-size:13px!important}
+  #renterFindHomeSection .renter-form-section{padding:15px!important;border-radius:17px!important}
+  #renterFindHomeSection .renter-preference-grid{grid-template-columns:1fr!important}
+  #renterFindHomeSection .renter-preference-wide{grid-column:auto!important}
+  #renterFindHomeSection .renter-form-actions{grid-template-columns:.82fr 1.55fr!important}
+}
+@media(max-width:390px){
+  #renterFindHomeSection .renter-form-actions{grid-template-columns:1fr!important}
+  #renterFindHomeSection .renter-form-cancel{order:2}
+}
+@media(prefers-reduced-motion:reduce){
+  #renterFindHomeSection *,
+  #gdrRenterPinSuggestions{transition:none!important;animation:none!important;scroll-behavior:auto!important}
+}
+</style>
