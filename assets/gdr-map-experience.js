@@ -161,7 +161,7 @@
     try{
       const point=await resolveMapQuery(query);
       state.searchCenter=[point.lat,point.lng];state.resolvedQuery=query;
-      state.renterMap.flyTo(state.searchCenter,14,{duration:.6});
+      state.renterMap.setView(state.searchCenter,14,{animate:false});
       await searchRenterArea();
     }catch(error){console.warn("GDR map location search failed:",error);setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");}
     finally{if(button){button.disabled=false;button.textContent="Search this area";}}
