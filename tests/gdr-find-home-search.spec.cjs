@@ -30,12 +30,12 @@ test.describe('Renter Find Home premium search regression', () => {
     await expect(page.locator('#renterSearchStatus')).toHaveCount(1);
 
     const source = await readLoadedScripts(page);
-    const checks = await page.evaluate(() => ({
+    const checks = await page.evaluate(source => ({
       smoothStylePresent: Boolean(document.getElementById('gdr-find-home-smooth-v4')),
       nearbyFeaturePreserved: source.includes('renterExploreNearbyBtn') && source.includes('renterNearbyPropertiesSection'),
       mobileWidth: document.documentElement.clientWidth,
       pageWidth: document.documentElement.scrollWidth,
-    }));
+    }), source);
 
     expect(checks.smoothStylePresent).toBe(true);
     expect(source).toContain('editDistanceAtMostOne');
