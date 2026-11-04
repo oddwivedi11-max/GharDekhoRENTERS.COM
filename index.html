@@ -13678,8 +13678,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 });
                 const pinDistrictMatch = resolvedPinDistrict && searchableText.includes(normalizeSearchText(resolvedPinDistrict));
                 const typedLocationMatch = typedTerms.some(term => searchableText.includes(term));
+                const pinLocalityMatch = pinOfficeMatch || typedLocationMatch;
                 const locationMatch = pinTerms.length
-                    ? (pinExistsInInventory ? exactPinMatch : (pinOfficeMatch || pinDistrictMatch || typedLocationMatch))
+                    ? (exactPinMatch || pinLocalityMatch || (!pinLocalityMatch && pinDistrictMatch))
                     : (!typedTerms.length || typedLocationMatch);
 
                 const propertyBhk = Number(property.bhk);
