@@ -78,6 +78,9 @@ jobs:
         run: |
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
+          node --check assets/gdr-owner-renter-editor.js
+          node --check tests/gdr-owner-renter-map.spec.cjs
+          node --test tests/gdr-owner-renter-map.spec.cjs
           node --check tests/gdr-map-experience.spec.cjs
           node --check tests/gdr-nearby-preservation.spec.cjs
           node --check tests/gdr-role-switch-navigation.test.cjs
