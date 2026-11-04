@@ -13690,13 +13690,25 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
             // owner listings cannot be missed because of a stale in-memory array.
             await loadProperties(false);
 
-            // A PIN may map to multiple post offices. Resolve every office and
-            // use the district as a fallback when a listing has no stored PIN.
+            // Resolve exact PIN matches from the live GharDekho inventory FIRST.
+            // India Post is only an optional helper for listings that do not store
+            // the PIN; a postal API outage must never block matching local records.
             const pinMatch = location.match(/(?:^|\D)(\d{6})(?:\D|$)/);
             const pinTerms = pinMatch ? [pinMatch[1]] : [];
+            const normalizeSearchText = value => String(value || "")
+                .toLowerCase()
+                .replace(/[^a-z0-9]+/g, " ")
+                .replace(/\s+/g, " ")
+                .trim();
+            const pinInventoryMatches = pinTerms.length ? allProperties.filter(property => {
+                const inventoryText = normalizeSearchText([
+                    property.title, property.location, property.address, property.area, property.name
+                ].filter(value => value !== null && value !== undefined).join(" "));
+                return pinTerms.some(pin => inventoryText.includes(pin));
+            }) : [];
             let resolvedPinOfficeNames = [];
             let resolvedPinDistrict = "";
-            if (pinTerms.length) {
+            if (pinTerms.length && !pinInventoryMatches.length) {
                 try {
                     const pinResponse = await fetch("https://api.postalpincode.in/pincode/" + encodeURIComponent(pinTerms[0]), {
                         headers: { Accept: "application/json" }
@@ -13706,25 +13718,16 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     const pinResult = Array.isArray(pinPayload) ? pinPayload[0] : null;
                     const pinOffices = pinResult && pinResult.Status === "Success" && Array.isArray(pinResult.PostOffice)
                         ? pinResult.PostOffice : [];
-                    if (!pinOffices.length) {
-                        showMessage("backendMessage", "PIN " + pinTerms[0] + " was not found. Check the six digits and try again.", "error");
-                        return;
+                    if (pinOffices.length) {
+                        resolvedPinOfficeNames = [...new Set(pinOffices
+                            .map(office => String(office?.Name || office?.Block || "").trim().toLowerCase())
+                            .filter(Boolean))];
+                        resolvedPinDistrict = String(pinOffices.find(office => office?.District)?.District || "").trim().toLowerCase();
                     }
-                    resolvedPinOfficeNames = [...new Set(pinOffices
-                        .map(office => String(office?.Name || office?.Block || "").trim().toLowerCase())
-                        .filter(Boolean))];
-                    resolvedPinDistrict = String(pinOffices.find(office => office?.District)?.District || "").trim().toLowerCase();
                 } catch (pinError) {
-                    showMessage("backendMessage", "Could not verify this PIN right now. Please retry or search by city/locality.", "error");
-                    return;
+                    console.warn("India Post PIN lookup unavailable; continuing with live inventory matches.", pinError);
                 }
             }
-
-            const normalizeSearchText = value => String(value || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
 
             const filtered = allProperties.filter(function(property) {
                 const searchableText = normalizeSearchText([
@@ -13817,18 +13820,13 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
             let pinFallbackUsed = false;
             if (!finalResults.length && pinTerms.length) {
                 const pin = pinTerms[0];
-                const pinOnlyMatches = allProperties.filter(function(property) {
-                    const pinSearchText = normalizeSearchText([
-                        property.title, property.location, property.address,
-                        property.area, property.name
-                    ].filter(value => value !== null && value !== undefined).join(" "));
-                    const exactPinMatch = pinSearchText.includes(pin);
+                const pinOnlyMatches = pinInventoryMatches.filter(function(property) {
                     const normalizedStatus = String(property.status || "").toLowerCase().trim();
                     const stayTypeMatch = !listingType || (property.listing_type || "home") === listingType;
                     const vacancyMatch = !propertyStatus ||
                         (propertyStatus === "vacant" &&
                          (normalizedStatus === "pending" || normalizedStatus === "verified"));
-                    return exactPinMatch && stayTypeMatch && vacancyMatch;
+                    return stayTypeMatch && vacancyMatch;
                 });
                 if (pinOnlyMatches.length) {
                     finalResults = pinOnlyMatches;
