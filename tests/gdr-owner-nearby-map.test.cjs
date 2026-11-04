@@ -18,41 +18,43 @@ test("owner Nearby opens a separate map and never calls renter search or browser
  assert.match(map,/makeLayer\(ownerNearby\.map\)/);
  assert.doesNotMatch(map.slice(map.indexOf("async function openOwnerNearbyMap()"),map.indexOf("function bind()")),/locateRenter\(|navigator\.geolocation/);
 });
-test("owner map includes 5 KM default, radius choices, preview details and recenter controls",()=>{
- for(const text of ["1 KM","2 KM","3 KM","5 KM","10 KM","gdrOnRecenter","gdrOnRefresh","View Details","gdrOnCount","available_beds"])assert.ok(map.includes(text),text);
- assert.match(map,/gdrDistanceKm/);
-});
 test("owner dashboard gets its own direct Nearby Properties action",()=>{
  assert.match(suite,/function addOwnerNearbyAction\(\)/);
  assert.match(suite,/gdrOwnerNearbyOpen/);
  assert.match(suite,/openOwnerNearbyMap/);
 });
-test("map uses a light premium palette and 3D-inspired house markers",()=>{
- assert.match(style,/\.gdr-on-house-marker/);
- assert.match(style,/background:#f4f8f6/);
- assert.match(style,/body\.gdr-owner-nearby-open/);
-});
 
-test("owner map renders its own MY HOME pin and My Property recenters to its preview",()=>{
- assert.match(map,/ownerNearbyMyHomeIcon/);
- assert.match(map,/MY HOME/);
- assert.match(map,/ownerNearby\.ownerMarker=.*addTo\(ownerNearby\.map\)/);
- assert.match(map,/gdrIsOwnerProperty:true/);
- assert.match(map,/ownerNearbyPreview\(ownPoint\)/);
-});
 test("owner map branding is separated from the title and avoids old logo overlap",()=>{
  assert.match(map,/gdr-on-brand/);
  assert.match(style,/\.gdr-on-brand/);
  assert.match(style,/gdr-owner-nearby-open \.gdr-header-brand/);
 });
 
-test("owner map initializes Leaflet at the saved property coordinates before loading tiles",()=>{
- assert.match(map,/\.setView\(initialCenter,14\)/);
- assert.ok(map.indexOf("setView(initialCenter,14)")<map.indexOf("ownerNearby.tileLayer.addTo(ownerNearby.map)"));
- assert.match(map,/tileLayer\.on\("tileerror"/);
-});
 test("owner map hides and restores the dashboard background while open",()=>{
  assert.match(map,/hideOwnerNearbyBackground\(\)/);
  assert.match(map,/restoreOwnerNearbyBackground\(\)/);
  assert.match(map,/setProperty\("display","none","important"\)/);
+});
+
+test("owner Nearby is a 3D-inspired society view and does not load a tile map",()=>{
+ assert.match(map,/gdrOnSocietyScene/);
+ assert.match(map,/ownerNearbyHomeCard/);
+ assert.match(map,/gdr-on-building-roof/);
+ assert.doesNotMatch(map.slice(map.indexOf("async function openOwnerNearbyMap()"),map.indexOf("function bind()")),/ensureLeaflet\(|L\.map\(|tileLayer\(/);
+});
+test("owner society view shows all public nearby homes, including occupied/full listings, by exact radius",()=>{
+ assert.match(map,/client\.rpc\("get_public_properties"\)/);
+ assert.match(map,/p\.gdrDistanceKm<=ownerNearby\.radius/);
+ assert.doesNotMatch(map,/inventory\.filter\(p=>String\(p\.id\)!==selectedId&&validPoint\(p\.latitude,p\.longitude\)&&ownerNearbyAvailable\(p\)\)/);
+});
+test("owner society view keeps own property card and functional radius, refresh, details controls",()=>{
+ for(const t of ["gdrOnRecenter","gdrOnRefresh","gdrOnRadius","View Details","gdrIsOwnerProperty","gdrOnCount"])assert.ok(map.includes(t),t);
+ assert.match(map,/gdr-on-home-card-own/);
+});
+test("owner society branding and mobile layout avoid overlap",()=>{
+ assert.match(map,/gdr-on-brand/);
+ assert.match(style,/\.gdr-on-society-scene/);
+ assert.match(style,/\.gdr-on-home-card/);
+ assert.match(style,/@media\(max-width:760px\)/);
+ assert.match(map,/overlay\.scrollTop=0/);
 });
