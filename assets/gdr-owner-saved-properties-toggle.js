@@ -17,7 +17,7 @@
  function ensure(){
   const root=$("#ownerDashboard");if(!root)return;
   const found=findSection();if(!found)return;
-  if(section!==found){section=found;section.hidden=true;section.setAttribute("aria-hidden","true");}
+  if(section!==found){section=found;section.hidden=true;section.style.display="none";section.setAttribute("aria-hidden","true");}
   if(!button||!button.isConnected){
    button=document.createElement("button");
    button.type="button";button.id="gdrOwnerSavedPropertiesToggle";
@@ -28,7 +28,7 @@
    section.id="gdrOwnerSavedPropertiesPanel";
    button.addEventListener("click",function(){
     const opening=section.hidden;
-    section.hidden=!opening;section.setAttribute("aria-hidden",String(!opening));
+    section.hidden=!opening;section.style.display=opening?"":"none";section.setAttribute("aria-hidden",String(!opening));
     button.setAttribute("aria-expanded",String(opening));
     button.textContent=opening?"× Hide Saved Properties":"♡ Saved Properties";
     if(opening)section.scrollIntoView({behavior:"smooth",block:"start"});
