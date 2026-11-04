@@ -306,23 +306,35 @@ replace_once(
 )
 
 replace_once(
-'''                const renterRoleReady = await withAuthTimeout(
+'''                const renterRoleAlreadyEnabled = getAccountRoles(currentProfile).includes("renter");
+                const renterRoleReady = renterRoleAlreadyEnabled || await withAuthTimeout(
                     saveActiveAccountRole("renter"),
                     "Renter access sync",
                     10000
                 ).catch(error => {
-                    console.warn("Renter role persistence timed out:", error);
+                    console.warn("Renter access sync timed out:", error);
                     return false;
                 });
+
                 if (!renterRoleReady) {
-                    /* Authentication itself succeeded. Do not lock the user
-                       out of the dashboard because a secondary role-profile
-                       persistence update failed. Keep the selected role in
-                       the current session and continue. */
-                    console.warn("Renter role persistence failed; continuing with authenticated session.");
-                    const existing = getAccountRoles(currentProfile);
-                    currentProfile.roles = [...new Set([...existing, "renter"])];
-                    currentProfile.role = "tenant";
+                    // Never fabricate a role in browser memory when Supabase
+                    // rejects the role update. If this is an existing Owner,
+                    // keep the authenticated session in that already-authorized
+                    // portal and explain why Renter mode was not opened.
+                    const persistedRoles = getAccountRoles(currentProfile);
+                    if (persistedRoles.includes("owner")) {
+                        selectedLoginRole = "owner";
+                        authMessage.textContent = "Renter access could not be enabled. Your existing Owner access is unchanged.";
+                    } else {
+                        authMessage.textContent = "Renter access could not be verified. Please try again.";
+                        await supabaseClient.auth.signOut();
+                        currentUser = null;
+                        currentProfile = null;
+                        activeRole = "renter";
+                        pendingLoginRole = "renter";
+                        resetRoleSpecificUI();
+                        return;
+                    }
                 }''',
 '''                const renterRoleAlreadyEnabled = getAccountRoles(currentProfile).includes("renter");
                 const renterRoleReady = renterRoleAlreadyEnabled || await withAuthTimeout(
