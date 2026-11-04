@@ -32,7 +32,7 @@ test.describe('Renter Find Home premium search regression', () => {
     const source = await readLoadedScripts(page);
     const checks = await page.evaluate(() => ({
       smoothStylePresent: Boolean(document.getElementById('gdr-find-home-smooth-v4')),
-      nearbyFeaturePreserved: Boolean(document.getElementById('renterExploreNearbyBtn') || document.getElementById('renterNearbyPropertiesSection')),
+      nearbyFeaturePreserved: source.includes('renterExploreNearbyBtn') && source.includes('renterNearbyPropertiesSection'),
       mobileWidth: document.documentElement.clientWidth,
       pageWidth: document.documentElement.scrollWidth,
     }));
