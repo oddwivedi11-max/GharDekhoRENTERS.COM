@@ -65,7 +65,7 @@
           <div class="gdr-rp-stat"><span>Renter phone</span><strong>${esc(row.renter_phone||"Not provided")}</strong></div>
           <div class="gdr-rp-stat"><span>Property type</span><strong>${esc(p.listing_type||"Rental")}</strong></div>
           <div class="gdr-rp-actions"><button class="gdr-rp-btn" type="button" id="gdrRpEditContact">Edit renter details</button></div>
-          <form class="gdr-rp-form" id="gdrRpContactForm" hidden><label>Renter name<input name="name" maxlength="120" required value="${esc(row.renter_name||"")}"></label><label>Phone number<input name="phone" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" value="${esc(String(row.renter_phone||"").replace(/^\\+91\\s*/,""))}"></label><div class="gdr-rp-actions"><button class="gdr-rp-btn primary" type="submit">Save renter details</button><button class="gdr-rp-btn" type="button" data-cancel-form>Cancel</button></div></form>
+          <form class="gdr-rp-form" id="gdrRpContactForm" hidden><label>Renter name<input name="name" maxlength="120" required value="${esc(row.renter_name||"")}"></label><label>Phone number<input name="phone" inputmode="numeric" maxlength="10" pattern="[6-9][0-9]{9}" value="${esc(String(row.renter_phone||"").replace("+91","").trim())}"></label><div class="gdr-rp-actions"><button class="gdr-rp-btn primary" type="submit">Save renter details</button><button class="gdr-rp-btn" type="button" data-cancel-form>Cancel</button></div></form>
         </section>
         <section class="gdr-rp-card gdr-rp-wide"><h2>Monthly charges</h2><div class="gdr-rp-stat"><span>Base monthly rent</span><strong>${money(rent)}</strong></div><div id="gdrRpCharges"><p class="gdr-rp-note">Loading additional charges…</p></div>
           <div class="gdr-rp-actions"><button class="gdr-rp-btn primary" type="button" id="gdrRpAddCharge">+ Add charge</button></div>
@@ -122,8 +122,8 @@
     e.preventDefault();const c=client(),f=e.currentTarget;
     const title=f.elements.title.value.trim(),amount=Number(f.elements.amount.value),frequency=f.elements.frequency.value,due=f.elements.due_day.value?Number(f.elements.due_day.value):null;
     if(title.length<2||!Number.isFinite(amount)||amount<=0||due!==null&&(!Number.isInteger(due)||due<1||due>28)){message("Check the charge name, amount and due day.");return;}
-    const ownerId=row.owner_id;if(!ownerId){message("Owner record is missing from this renter row.");return;}
-    const r=await c.from("occupancy_charges").insert({occupancy_id:row.id,owner_id:ownerId,title,amount,frequency,due_day:frequency==="monthly"?due:null});
+    const ownerLookup=await c.from("property_occupancies").select("owner_id").eq("id",row.id).maybeSingle();if(ownerLookup.error||!ownerLookup.data?.owner_id){message("Could not verify the property owner for this renter.");return;}
+    const r=await c.from("occupancy_charges").insert({occupancy_id:row.id,owner_id:ownerLookup.data.owner_id,title,amount,frequency,due_day:frequency==="monthly"?due:null});
     if(r.error){message("Could not save charge. Confirm the database migration has been applied.");return;}
     f.reset();f.hidden=true;await loadCharges(row);message("Charge added.");
   }
