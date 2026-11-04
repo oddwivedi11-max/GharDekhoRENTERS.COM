@@ -213,3 +213,7 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
   .gdr-on-back{min-height:40px;padding:0 10px;font-size:11px}
 }
 @media(prefers-reduced-motion:reduce){.gdr-on-myhome-marker{animation:none}}
+
+/* Keep the no-nearby-results note away from the owner's own map pin. */
+.gdr-on-empty:not([hidden]){top:auto;left:auto;right:16px;bottom:16px;transform:none;width:min(320px,calc(100% - 32px));}
+@media(max-width:600px){.gdr-on-empty:not([hidden]){right:10px;bottom:10px;width:min(280px,calc(100% - 20px));padding:13px;font-size:11px;}}
