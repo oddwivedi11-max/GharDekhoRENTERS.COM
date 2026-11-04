@@ -332,7 +332,7 @@ replace_once(
 # Load the standalone Current Renters dashboard controller after the existing
 # renter profile controller; no map or renter-side Find Home scripts are removed.
 if 'gdr-owner-current-renters-dashboard.js' not in source:
-    script_tag = '<script src="/assets/gdr-owner-current-renters-dashboard.js" defer></script>\\n'
+    script_tag = '<script src="/assets/gdr-owner-current-renters-dashboard.js" defer></script>' + chr(10)
     if "</body>" not in source:
         raise SystemExit("Stopped safely: </body> not found for Current Renters dashboard loader")
     source = source.replace("</body>", script_tag + "</body>", 1)
