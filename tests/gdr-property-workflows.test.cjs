@@ -48,13 +48,14 @@ test('admin route isolation remains present in the public app', () => {
   assert.match(html, /window\.__gdAdminHardRoute=true/);
 });
 
-test('property card actions use a delegated capture handler and remain tappable', () => {
-  assert.match(html, /gdPropertyActionsBound/);
-  assert.match(html, /document\.addEventListener\(["']click["'],\s*async function\(event\)/);
-  assert.match(html, /\.saved-details-btn, \.saved-unsave-btn/);
-  assert.match(html, /await openPropertyDetails\(propertyId\)/);
-  assert.match(html, /await saveProperty\(propertyId\)/);
-  assert.match(html, /toggle_saved_property/);
-  assert.match(html, /\.saved-property-actions[^{]*\{[^}]*z-index:8/s);
-  assert.match(html, /\.saved-details-btn[^}]*pointer-events:auto/s);
+test('saved property cards retain their own details and unsave click handlers', () => {
+  const source = sourceBetween('async function loadSavedProperties()', 'async function');
+  assert.match(source, /class="saved-details-btn" data-id=/);
+  assert.match(source, /class="saved-unsave-btn" data-id=/);
+  assert.match(source, /querySelectorAll\(["']\.saved-details-btn["']\)/);
+  assert.match(source, /querySelectorAll\(["']\.saved-unsave-btn["']\)/);
+  assert.match(source, /btn\.addEventListener\(["']click["']/);
+  assert.match(source, /await openPropertyDetails\(propertyId\)/);
+  assert.match(source, /toggle_saved_property/);
+  assert.doesNotMatch(html, /gdPropertyActionsBound/);
 });
