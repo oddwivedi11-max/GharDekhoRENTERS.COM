@@ -5,7 +5,7 @@
   const state = {
     renterMap:null, ownerMap:null, renterLayer:null, radiusCircle:null,
     ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, inventory:[], boundsRows:[], visible:[],
-    searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false,
+    searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false, resolvedQuery:"",
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null
   };
@@ -92,11 +92,89 @@
     rows.forEach(p=>{const marker=window.L.marker([Number(p.latitude),Number(p.longitude)],{icon:markerIcon(p)});marker.on("click",()=>showPreview(p));state.renterLayer.addLayer(marker);});
     state.visible=rows;renderList(rows);const count=$("gdrMapCount");if(count)count.textContent=rows.length+(rows.length===1?" home":" homes");if(!rows.length)clearPreview();
   }
+  function radiusBounds(center){
+    const lat=Number(center[0]),lng=Number(center[1]),latDelta=state.radiusKm/111.32;
+    const cos=Math.max(.15,Math.cos(lat*Math.PI/180)),lngDelta=state.radiusKm/(111.32*cos);
+    const south=Math.max(-90,lat-latDelta),north=Math.min(90,lat+latDelta);
+    const west=Math.max(-180,lng-lngDelta),east=Math.min(180,lng+lngDelta);
+    return {
+      getSouthWest:()=>({lat:south,lng:west}),
+      getNorthEast:()=>({lat:north,lng:east}),
+      contains:point=>point[0]>=south&&point[0]<=north&&point[1]>=west&&point[1]<=east
+    };
+  }
+  async function photonGeocode(query){
+    const url=PHOTON+"?limit=8&lang=en&q="+encodeURIComponent(query);
+    const response=await fetch(url,{headers:{Accept:"application/json"}});
+    if(!response.ok)throw new Error("Location search service is unavailable.");
+    const payload=await response.json(),features=Array.isArray(payload.features)?payload.features:[];
+    return features.filter(f=>{
+      const coords=f&&f.geometry&&f.geometry.coordinates;
+      return Array.isArray(coords)&&validPoint(coords[1],coords[0]);
+    });
+  }
+  function normalizedText(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+  async function resolveMapQuery(query){
+    const q=String(query||"").trim();
+    if(!q)throw new Error("Enter a city, locality or six-digit PIN code first.");
+    let features=[],expectedDistrict="",expectedState="",pin=q;
+    if(/^\d{6}$/.test(q)){
+      setStatus("Verifying PIN "+pin+" with India Post…");
+      const response=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"}});
+      if(!response.ok)throw new Error("India Post PIN lookup is unavailable. Try the locality or city name.");
+      const data=await response.json(),record=Array.isArray(data)?data[0]:null;
+      const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice:[];
+      if(!offices.length)throw new Error("PIN "+pin+" was not found. Check the six digits and try again.");
+      const office=offices.find(x=>x&&x.BranchType==="Head Office")||offices.find(x=>x&&x.Name)||offices[0];
+      expectedDistrict=String(office.District||"");
+      expectedState=String(office.State||"");
+      const locality=String(office.Name||expectedDistrict).trim();
+      setStatus("PIN "+pin+" belongs to "+[locality,expectedDistrict,expectedState].filter(Boolean).join(", ")+". Finding its map coordinates…");
+      const queries=[
+        [locality,expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
+        [expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
+        pin+", "+expectedDistrict+", "+expectedState+", India"
+      ];
+      for(const candidate of queries){
+        try{features=await photonGeocode(candidate);if(features.length)break;}catch(error){console.warn("PIN geocoding attempt failed:",error);}
+      }
+      const district=normalizedText(expectedDistrict),stateName=normalizedText(expectedState);
+      features=features.filter(f=>{
+        const p=f.properties||{},pState=normalizedText(p.state),pDistrict=normalizedText(p.district||p.county||p.city||p.name),postcode=normalizedText(p.postcode);
+        if(pState&&stateName&&!pState.includes(stateName)&&!stateName.includes(pState))return false;
+        if(postcode&&postcode!==normalizedText(pin))return false;
+        if(pDistrict&&district&&!pDistrict.includes(district)&&!district.includes(pDistrict)&&!normalizedText(p.city).includes(district))return false;
+        return true;
+      });
+      if(!features.length)throw new Error("PIN "+pin+" belongs to "+[expectedDistrict,expectedState].filter(Boolean).join(", ")+", but map coordinates could not be verified. Search the locality name instead.");
+    }else{
+      features=await photonGeocode(q+", India");
+      if(!features.length)throw new Error("We could not locate “"+q+"”. Try a nearby locality, city or PIN code.");
+    }
+    const feature=features[0],coords=feature.geometry.coordinates,props=feature.properties||{};
+    return {lat:Number(coords[1]),lng:Number(coords[0]),label:photonLabel(props)||q,query:q};
+  }
+  async function searchTypedMapLocation(){
+    const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
+    if(!query){await searchRenterArea();return;}
+    const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Locating…";}
+    try{
+      const point=await resolveMapQuery(query);
+      state.searchCenter=[point.lat,point.lng];state.resolvedQuery=query;
+      state.renterMap.flyTo(state.searchCenter,14,{duration:.6});
+      await searchRenterArea();
+    }catch(error){console.warn("GDR map location search failed:",error);setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");}
+    finally{if(button){button.disabled=false;button.textContent="Search this area";}}
+  }
   async function searchRenterArea(){
     if(!state.renterMap)return;const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Searching…";}
-    setStatus("Searching properties in the visible map area…");
-    try{const c=state.renterMap.getCenter();state.searchCenter=[c.lat,c.lng];state.boundsRows=await fetchBounds(state.renterMap.getBounds());const rows=applyRadius(state.boundsRows,state.searchCenter);renderMarkers(rows,state.searchCenter);setStatus(rows.length+" properties within "+state.radiusKm+" km of the map centre.");}
-    catch(error){console.error("GDR map search failed:",error);setStatus("Properties could not be loaded. Please try again.");}
+    setStatus("Searching homes within "+state.radiusKm+" km of the selected location…");
+    try{
+      const c=state.renterMap.getCenter();state.searchCenter=[c.lat,c.lng];
+      state.boundsRows=await fetchBounds(radiusBounds(state.searchCenter));
+      const rows=applyRadius(state.boundsRows,state.searchCenter);renderMarkers(rows,state.searchCenter);
+      setStatus(rows.length+" properties within "+state.radiusKm+" km of "+(state.resolvedQuery||"the selected map centre")+".");
+    }catch(error){console.error("GDR map search failed:",error);setStatus("Properties could not be loaded. Please try again.");}
     finally{if(button){button.disabled=false;button.textContent="Search this area";}}
   }
   function locateRenter(){
@@ -115,9 +193,12 @@
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
     dashboard.classList.add("gdr-map-mode");panel.hidden=false;
-    try{await ensureLeaflet();initRenterMap();requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
-      if(!state.loadedOnce){setStatus("Loading rental inventory…");await fetchInventory();const first=state.inventory[0];if(first)state.renterMap.setView([Number(first.latitude),Number(first.longitude)],12);}
-      if(!state.geolocationAttempted){state.geolocationAttempted=true;locateRenter();}else await searchRenterArea();
+    try{
+      await ensureLeaflet();initRenterMap();requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
+      if(!state.renterMap._gdrInitialView){state.renterMap.setView(INDIA_CENTER,5);state.renterMap._gdrInitialView=true;}
+      const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
+      if(query)await searchTypedMapLocation();
+      else setStatus("Search any city, locality or PIN code, or choose My location. The map will not guess a property location.");
     }catch(error){console.error("GDR map initialization failed:",error);setStatus("The interactive map could not load. Check your connection and try again.");}
   }
   function closeRenterMap(){const d=$("renterDashboard"),p=$("gdrExploreMapPanel");if(p)p.hidden=true;if(d)d.classList.remove("gdr-map-mode");clearPreview();}
@@ -210,12 +291,14 @@
   }
   function bind(){
     $("renterExploreMapBtn")?.addEventListener("click",openRenterMap);$("gdrMapBackBtn")?.addEventListener("click",closeRenterMap);
-    $("gdrMapSearchAreaBtn")?.addEventListener("click",searchRenterArea);$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
+    $("gdrMapSearchAreaBtn")?.addEventListener("click",searchTypedMapLocation);$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
     $("gdrMapRadius")?.addEventListener("input",e=>{state.radiusKm=Math.max(1,Math.min(10,Number(e.target.value)||5));const label=$("gdrMapRadiusValue");if(label)label.textContent=state.radiusKm+" km";if(state.renterMap&&state.boundsRows.length){const c=state.renterMap.getCenter();state.searchCenter=[c.lat,c.lng];const rows=applyRadius(state.boundsRows,state.searchCenter);renderMarkers(rows,state.searchCenter);setStatus(rows.length+" properties within "+state.radiusKm+" km. Tap Search this area after moving the map.");}});
     $("gdrMapListToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;const on=!l.classList.contains("gdr-list-mode");l.classList.toggle("gdr-list-mode",on);if(panel)panel.hidden=!on;$("gdrMapListToggle").setAttribute("aria-pressed",String(on));$("gdrMapViewToggle").setAttribute("aria-pressed",String(!on));if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
     $("gdrMapViewToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;l.classList.remove("gdr-list-mode");if(panel)panel.hidden=true;$("gdrMapListToggle").setAttribute("aria-pressed","false");$("gdrMapViewToggle").setAttribute("aria-pressed","true");if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
     $("gdrOpenOwnerMapPickerBtn")?.addEventListener("click",openOwnerMapPicker);$("gdrCloseOwnerMapPickerBtn")?.addEventListener("click",closeOwnerMapPicker);$("gdrConfirmOwnerMapLocation")?.addEventListener("click",confirmOwnerMapLocation);
-    setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{state.searchCenter=[r.lat,r.lng];if(state.renterMap){state.renterMap.flyTo(state.searchCenter,14,{duration:.6});searchRenterArea();}},"renter");
+    setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{state.searchCenter=[r.lat,r.lng];state.resolvedQuery=r.label;if(state.renterMap){state.renterMap.flyTo(state.searchCenter,14,{duration:.6});searchRenterArea();}},"renter");
+    $("gdrMapPlaceSearch")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchTypedMapLocation();}});
+    $("gdrMapPlaceSearch")?.addEventListener("change",()=>{state.resolvedQuery="";});
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label,false);updateOwnerStatus("Approximate locality found. Zoom in and tap the exact building/entrance or drag the pin; search results are not exact property coordinates.");}},"owner");
   }
   function loadOwnerRenterEditor(){
@@ -238,5 +321,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,usePreciseOwnerLocation};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,usePreciseOwnerLocation};
 })();
