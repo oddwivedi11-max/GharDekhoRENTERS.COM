@@ -12,12 +12,14 @@ Production baseline: 387cbfc18738449bfcf5c786c5029000881619cb
 - Supabase project gktmaiwqvtusnegevdle is healthy on PostgreSQL 17.6.1.155 in ap-southeast-1.
 - Current public tables include owners, properties, units, visit_requests, saved_properties, users, property_occupancies and admin_users. They contain live records and must be preserved.
 - The current get_nearby_properties RPC uses a bounded 1–10 km Haversine calculation and is used by the existing Nearby UI. It must not be replaced.
+- A composite B-tree index already exists on properties(latitude, longitude); do not add a duplicate index without query-plan evidence.
+- property_occupancies already records occupied_at and released_at and has active-row uniqueness constraints. Rental history should extend this source of truth instead of creating a duplicate history table.
 - The existing public listing RPC returns a maximum of 100 rows. A dedicated viewport RPC is required before map search can scale to a large inventory.
 - The current schema contains no rental agreement, payment, charge, notification, or property-media tables. The requested modules must be added additively after isolated QA and migration-history reconciliation.
-- There are 48 production migration records, while only a subset of historical migrations is in this repository. Do not replay the repository migration folder against production.
+- There are 51 production migration records, while only a subset of historical migrations is in this repository. Do not replay the repository migration folder against production.
 - The security advisor flags 3 anon-executable SECURITY DEFINER functions, including get_my_owner_properties, get_nearby_properties, and get_public_properties. The latter two are intentionally public discovery endpoints; get_my_owner_properties should be authenticated-only. Other SECURITY DEFINER routines need per-function review, not blanket revocation.
 - Auth leaked-password protection is disabled. It is a project-wide Auth setting and must be reviewed separately rather than changed as a side effect of UI work.
-- Existing account schema supports multiple roles in users.roles, and the frontend supports owner/renter switching for multi-role accounts. The new strict one-email/one-role rule needs a compatibility migration plan for existing multi-role accounts before enforcement.
+- Existing account schema supports multiple roles in users.roles, and the frontend supports owner/renter switching for multi-role accounts. Of 46 users rows, 7 have a multi-value roles array; another 6 have role=owner but roles=[tenant], which the current frontend merges into effective owner+renter access. A canonical-role migration must be tested carefully; preserve all owner/renter history while disabling secondary role access only after an explicit mapping.
 
 ## Phase plan
 
