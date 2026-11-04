@@ -14227,6 +14227,15 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 return;
             }
 
+            // Pending owner listings are intentionally hidden by public RLS
+            // and must not enter the visit-request flow before verification.
+            if (currentProperty.status === "pending" ||
+                currentProperty.verification_status === "pending") {
+                status.textContent =
+                    "This property is awaiting owner/admin verification. Visit requests will open once the listing is approved.";
+                return;
+            }
+
             const visitName = document.getElementById("visitName").value.trim();
             const visitPhone = normalizePhone(document.getElementById("visitPhone").value);
             const visitDate = document.getElementById("visitDate").value;
@@ -14272,8 +14281,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     propertyError
                 );
 
-                status.textContent =
-                    "Could not find this property.";
+                status.textContent = propertyError
+                    ? "We couldn't verify this listing. It may be pending approval or unavailable. Please refresh the property page or contact the owner."
+                    : "This listing is no longer available. Please refresh and choose another property.";
                 isSubmittingVisit = false;
                 if (visitButton) { visitButton.disabled = false; visitButton.textContent = "Request Visit"; }
                 return;
