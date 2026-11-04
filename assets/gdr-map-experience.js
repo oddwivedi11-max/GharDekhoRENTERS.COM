@@ -202,7 +202,7 @@
     if(state.renterMap)return;const canvas=$("gdrExploreMapCanvas");if(!canvas)return;
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
     state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView(INDIA_CENTER,5);state.renterMap.on("click",e=>setRenterPin(e.latlng,""));
-    state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent="Map moved. Tap Search this area to refresh properties.";});
+    state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length&&state.searchCenter)s.textContent="Pin selected at "+state.searchCenter[0].toFixed(5)+", "+state.searchCenter[1].toFixed(5)+". Tap Search this area to refresh homes.";});
   }
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
@@ -212,7 +212,7 @@
       if(!state.renterMap._gdrInitialView){state.renterMap.setView(INDIA_CENTER,5);state.renterMap._gdrInitialView=true;}
       const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
       if(query)await searchTypedMapLocation();
-      else setStatus("Search any city, locality or PIN code, or choose My location. The map will not guess a property location.");
+      else setStatus("Search a city, locality or PIN code, tap anywhere on the map to drop a pin, or choose My location. Drag the pin to adjust, then tap Search this area.");
     }catch(error){console.error("GDR map initialization failed:",error);setStatus("The interactive map could not load. Check your connection and try again.");}
   }
   function closeRenterMap(){const d=$("renterDashboard"),p=$("gdrExploreMapPanel");if(p)p.hidden=true;if(d)d.classList.remove("gdr-map-mode");clearPreview();}
