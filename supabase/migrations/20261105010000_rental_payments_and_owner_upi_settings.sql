@@ -8,7 +8,6 @@ create table if not exists public.owner_payment_settings (
  late_fee_amount numeric(12,2) not null default 0 check(late_fee_amount between 0 and 100000),
  late_fee_grace_days smallint not null default 0 check(late_fee_grace_days between 0 and 30),
  created_at timestamptz not null default now(), updated_at timestamptz not null default now(),
- constraint owner_payment_settings_property_owner_fk foreign key(property_id,owner_id) references public.properties(id,owner_id) on delete cascade
 );
 create table if not exists public.rent_payment_records (
  id uuid primary key default gen_random_uuid(),
@@ -24,6 +23,7 @@ create table if not exists public.rent_payment_records (
  proof_path text, owner_note text, created_at timestamptz not null default now(),
  verified_at timestamptz, verified_by uuid references auth.users(id)
 );
+create unique index if not exists rent_payment_records_utr_unique_idx on public.rent_payment_records(upper(utr));
 create index if not exists rent_payment_records_owner_recent_idx on public.rent_payment_records(owner_id,created_at desc);
 create index if not exists rent_payment_records_renter_recent_idx on public.rent_payment_records(renter_id,created_at desc);
 create index if not exists rent_payment_records_occupancy_period_idx on public.rent_payment_records(occupancy_id,billing_period desc);
@@ -36,6 +36,8 @@ with check(owner_id in(select o.id from public.owners o where o.user_id=(select 
 drop policy if exists owner_payment_settings_renter_read on public.owner_payment_settings;
 create policy owner_payment_settings_renter_read on public.owner_payment_settings for select to authenticated
 using(exists(select 1 from public.property_occupancies po where po.property_id=owner_payment_settings.property_id and po.renter_id=(select auth.uid()) and po.released_at is null));
+drop policy if exists occupancy_charges_renter_read on public.occupancy_charges;
+create policy occupancy_charges_renter_read on public.occupancy_charges for select to authenticated using(exists(select 1 from public.property_occupancies po where po.id=occupancy_charges.occupancy_id and po.renter_id=(select auth.uid()) and po.released_at is null));
 drop policy if exists rent_payment_records_owner_read on public.rent_payment_records;
 create policy rent_payment_records_owner_read on public.rent_payment_records for select to authenticated
 using(owner_id in(select o.id from public.owners o where o.user_id=(select auth.uid())));
@@ -54,6 +56,8 @@ values('rent-payment-proofs','rent-payment-proofs',false,5242880,array['image/pn
 on conflict(id) do update set public=false,file_size_limit=5242880,allowed_mime_types=array['image/png','image/jpeg','image/webp'];
 drop policy if exists owner_payment_qr_owner_insert on storage.objects;
 create policy owner_payment_qr_owner_insert on storage.objects for insert to authenticated with check(bucket_id='owner-payment-qr' and exists(select 1 from public.owners o where o.user_id=(select auth.uid()) and o.id::text=(storage.foldername(name))[1]));
+drop policy if exists owner_payment_qr_owner_read on storage.objects;
+create policy owner_payment_qr_owner_read on storage.objects for select to authenticated using(bucket_id='owner-payment-qr' and exists(select 1 from public.owners o where o.user_id=(select auth.uid()) and o.id::text=(storage.foldername(name))[1]));
 drop policy if exists owner_payment_qr_owner_update on storage.objects;
 create policy owner_payment_qr_owner_update on storage.objects for update to authenticated using(bucket_id='owner-payment-qr' and exists(select 1 from public.owners o where o.user_id=(select auth.uid()) and o.id::text=(storage.foldername(name))[1])) with check(bucket_id='owner-payment-qr' and exists(select 1 from public.owners o where o.user_id=(select auth.uid()) and o.id::text=(storage.foldername(name))[1]));
 drop policy if exists owner_payment_qr_owner_delete on storage.objects;
@@ -86,6 +90,7 @@ begin
  select coalesce(jsonb_agg(jsonb_build_object('id',ch.id,'title',ch.title,'amount',ch.amount,'frequency',ch.frequency,'due_day',ch.due_day)),'[]'::jsonb),coalesce(sum(ch.amount),0)
  into v_charges,v_extra from public.occupancy_charges ch where ch.occupancy_id=v_po.id and ch.owner_id=v_po.owner_id and ch.is_active and ch.frequency='monthly';
  v_total:=v_rent+v_extra+v_late; if v_total<=0 then raise exception 'No payable amount is configured'; end if;
+ if exists(select 1 from public.rent_payment_records r where r.occupancy_id=v_po.id and r.billing_period=v_period and r.status in('pending_verification','paid')) then raise exception 'A payment submission already exists for this billing period'; end if;
  insert into public.rent_payment_records(occupancy_id,property_id,owner_id,renter_id,billing_period,base_rent,charge_breakdown,late_fee,total_amount,utr,proof_path,status)
  values(v_po.id,v_po.property_id,v_po.owner_id,v_uid,v_period,v_rent,v_charges,v_late,v_total,upper(p_utr),p_proof_path,'pending_verification') returning id into v_id;
  return v_id;
