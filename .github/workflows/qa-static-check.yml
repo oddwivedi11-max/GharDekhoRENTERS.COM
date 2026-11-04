@@ -6,6 +6,7 @@ on:
       - "fix/full-qa-20261020"
       - "feature/gdr-master-platform-20261104"
       - "fix/find-home-pin-search-smooth-20261104"
+      - "fix/gdr-nearby-radius-guard-20261104"
   workflow_dispatch:
 
 permissions:
@@ -26,6 +27,9 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: "22"
+
+      - name: Apply idempotent frontend safety patches
+        run: python3 scripts/patch-owner-dashboard-refresh.py
 
       - name: Check committed diff formatting
         run: git show --check --oneline HEAD || echo "::warning::Whitespace warnings detected in the latest commit; continuing with JavaScript syntax checks."
@@ -74,4 +78,10 @@ jobs:
         run: |
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
+          node --check assets/gdr-owner-renter-editor.js
+          node --check tests/gdr-owner-renter-map.spec.cjs
+          node --test tests/gdr-owner-renter-map.spec.cjs
           node --check tests/gdr-map-experience.spec.cjs
+          node --check tests/gdr-nearby-preservation.spec.cjs
+          node --check tests/gdr-role-switch-navigation.test.cjs
+          node --test tests/gdr-role-switch-navigation.test.cjs

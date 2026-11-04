@@ -239,5 +239,45 @@ replace_once(
     "prefer direct RLS owner property query with RPC fallback"
 )
 
+replace_once(
+'''        const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";''',
+'''        const requestedRadiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
+        // Preserve the existing Nearby radius options while rejecting malformed values.
+        const radiusKm = Number.isFinite(requestedRadiusKm)
+            ? Math.min(20, Math.max(1, requestedRadiusKm))
+            : 3;
+        const listingType = document.getElementById("listingTypeSelect")?.value || "";''',
+    "validate selected Nearby radius"
+)
+
+replace_once(
+'''                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                return distanceKm <= radiusKm ? {...property,distanceKm} : null;''',
+'''                const distanceKm = calculateDistanceKm(userLatitude,userLongitude,lat,lon);
+                // Defense in depth: never render a property outside the selected radius.
+                return Number.isFinite(distanceKm) && distanceKm >= 0 && distanceKm <= radiusKm
+                    ? {...property,distanceKm}
+                    : null;''',
+    "enforce exact Nearby distance boundary"
+)
+
+
+
+replace_once(
+'''    setRoleSpecificUI(activeRole);
+    updateDashboardProfile();''',
+'''    // Persisted role update succeeded; now activate the selected portal.
+    activeRole = target;
+    pendingLoginRole = target;
+    sessionStorage.setItem("gd_active_role", target);
+    sessionStorage.setItem("gd_pending_login_role", target);
+    localStorage.setItem("gd_preferred_role", target);
+    setRoleSpecificUI(target);
+    updateDashboardProfile();''',
+    "activate the selected dashboard after successful role switch"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
+

@@ -158,7 +158,15 @@
   async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
     try{
-      await ensureLeaflet();panel.hidden=false;initOwnerMap();requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
+      await ensureLeaflet();panel.hidden=false;initOwnerMap();
+      const toolbar=panel.querySelector(".gdr-owner-map-toolbar");
+      if(toolbar&&!$("gdrOwnerPreciseLocationBtn")){
+        const locate=node("button","gdr-map-toggle-btn","◎ Use my precise location");
+        locate.type="button";locate.id="gdrOwnerPreciseLocationBtn";
+        locate.addEventListener("click",usePreciseOwnerLocation);
+        toolbar.insertBefore(locate,toolbar.lastElementChild||null);
+      }
+      requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
       const input=$("propertyLocation"),lat=asNumber(input&&input.dataset.gdSelectedLat),lng=asNumber(input&&input.dataset.gdSelectedLng);
       if(lat!==null&&lng!==null){state.ownerMap.setView([lat,lng],16);setOwnerPin({lat,lng},input.dataset.gdSelectedDisplayName||input.value);}
       else if(!state.ownerSelection){const c=state.ownerMap.getCenter();setOwnerPin(c,"Choose the exact property location");}
@@ -172,6 +180,32 @@
     if(typeof window.__gdrSetPropertyLocation!=="function"||!window.__gdrSetPropertyLocation(address,state.ownerSelection.lat,state.ownerSelection.lng)){updateOwnerStatus("Property form is still initializing. Try again.");return;}
     updateOwnerStatus("Location confirmed. Coordinates will be saved with this property.");closeOwnerMapPicker();
   }
+  async function usePreciseOwnerLocation(){
+    if(!state.ownerMap){updateOwnerStatus("Open the map first, then request your precise location.");return;}
+    if(!navigator.geolocation){updateOwnerStatus("This device/browser does not support GPS location. Search the address or place the pin manually.");return;}
+    updateOwnerStatus("Requesting high-accuracy GPS location. Keep location services enabled…");
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),accuracy=Number(pos.coords.accuracy);
+      if(!validPoint(lat,lng)){updateOwnerStatus("The device returned an invalid location. Search or place the pin manually.");return;}
+      state.ownerMap.setView([lat,lng],18,{animate:true});
+      setOwnerPin({lat,lng},"Device GPS");
+      if(state.ownerAccuracyCircle)state.ownerMap.removeLayer(state.ownerAccuracyCircle);
+      state.ownerAccuracyCircle=window.L.circle([lat,lng],{radius:Math.max(accuracy||0,1),color:"#0f766e",weight:1,fillColor:"#14b8a6",fillOpacity:.12}).addTo(state.ownerMap);
+      const accuracyText=Number.isFinite(accuracy)?"±"+Math.round(accuracy)+" m":"accuracy unavailable";
+      updateOwnerStatus("GPS fix received ("+accuracyText+"). Review the pin at street level and drag it to the property entrance if needed.");
+      try{
+        const response=await fetch("https://photon.komoot.io/reverse?lat="+encodeURIComponent(lat)+"&lon="+encodeURIComponent(lng)+"&lang=en",{headers:{Accept:"application/json"}});
+        if(response.ok){
+          const payload=await response.json(),feature=payload&&payload.features&&payload.features[0];
+          const label=photonLabel(feature&&feature.properties);
+          if(label){const input=$("gdrOwnerMapSearch");if(input)input.value=label;state.ownerSelection.label=label;}
+        }
+      }catch(error){console.info("Reverse geocoding unavailable; exact GPS coordinates are retained.",error);}
+    },error=>{
+      const message=error.code===1?"Location permission denied. Allow location access in browser settings, or search/place the pin manually.":error.code===3?"GPS request timed out. Move outdoors or near a window and try again.":"Unable to get a GPS fix. Check device location services and try again.";
+      updateOwnerStatus(message);
+    },{enableHighAccuracy:true,timeout:25000,maximumAge:0});
+  }
   function bind(){
     $("renterExploreMapBtn")?.addEventListener("click",openRenterMap);$("gdrMapBackBtn")?.addEventListener("click",closeRenterMap);
     $("gdrMapSearchAreaBtn")?.addEventListener("click",searchRenterArea);$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
@@ -182,6 +216,16 @@
     setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{state.searchCenter=[r.lat,r.lng];if(state.renterMap){state.renterMap.flyTo(state.searchCenter,14,{duration:.6});searchRenterArea();}},"renter");
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label);}},"owner");
   }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind,{once:true});else bind();
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea};
+  function loadOwnerRenterEditor(){
+    if(document.querySelector("script[data-gdr-owner-renter-editor]"))return;
+    const script=document.createElement("script");
+    script.src="/assets/gdr-owner-renter-editor.js";
+    script.defer=true;
+    script.dataset.gdrOwnerRenterEditor="true";
+    script.onerror=()=>console.warn("Owner renter editor could not be loaded.");
+    document.head.appendChild(script);
+  }
+  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
+  else {bind();loadOwnerRenterEditor();}
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,usePreciseOwnerLocation};
 })();
