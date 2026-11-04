@@ -12397,66 +12397,44 @@ async function saveRenterProfile(e){
     const name=document.getElementById("renterProfileEditName")?.value.trim()||"";
     const email=document.getElementById("renterProfileEditEmail")?.value.trim().toLowerCase()||"";
     const phone=normalizePhone(document.getElementById("renterProfileEditPhone")?.value||"");
-    const saveButton=document.querySelector("#renterProfileForm button[type='submit']");
-    const message=document.getElementById("renterProfileMessage");
-
-    if(!name||!email){
-        if(message){message.hidden=false;message.textContent="Please enter your name and contact email.";}
-        showMessage("backendMessage","Please enter your name and contact email.","error");
-        return;
-    }
+    const form=document.getElementById("renterProfileForm");
+    const saveButton=form?.querySelector("button[type='submit']");
+    const inlineMessage=document.getElementById("renterProfileMessage");
+    const setInlineMessage=(message,type)=>{
+        if(inlineMessage){inlineMessage.hidden=false;inlineMessage.textContent=message;inlineMessage.style.color=type==="error"?"#b42318":type==="success"?"#087443":"#526b65";}
+    };
+    if(!name||!email){setInlineMessage("Please enter your name and contact email.","error");return;}
     const phoneError=gharDekhoPhoneError(phone);
-    if(phoneError){
-        if(message){message.hidden=false;message.textContent=phoneError;}
-        showMessage("backendMessage",phoneError,"error");
-        document.getElementById("renterProfileEditPhone")?.focus();
-        return;
-    }
-
+    if(phoneError){setInlineMessage(phoneError,"error");document.getElementById("renterProfileEditPhone")?.focus();return;}
     if(saveButton){saveButton.disabled=true;saveButton.textContent="Saving...";}
-    if(message){message.hidden=false;message.textContent="Saving your renter details…";}
+    setInlineMessage("Saving your renter details…","info");
     try{
-        // This authenticated RPC performs the complete write to public.users.
-        // A second client-side UPDATE can be blocked by table RLS after the RPC
-        // has already saved the profile, making a successful save look like failure.
-        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{
-            p_name:name,p_email:email,p_phone:phone
-        });
+        // The SECURITY DEFINER RPC updates public.users atomically. Avoid a
+        // second browser-side table update that can be rejected by renter RLS.
+        const {data,error}=await supabaseClient.rpc("update_my_renter_profile",{p_name:name,p_email:email,p_phone:phone});
         if(error) throw error;
-        const saved=(data&&typeof data==="object")?data:{};
-        if(saved.success===false) throw new Error(saved.message||"The profile update was not confirmed by the server.");
-        if(saved.user_id&&saved.user_id!==currentUser.id) throw new Error("The saved profile did not match the signed-in account.");
-
-        currentProfile={
-            ...(currentProfile||{}),...saved,id:currentUser.id,
-            name:saved.name||name,email:saved.email||email,phone:saved.phone||phone
-        };
+        if(!data||data.success!==true) throw new Error("The profile update was not confirmed by the server.");
+        currentProfile={...(currentProfile||{}),...data,id:currentUser.id,user_id:currentUser.id,name,email,phone};
         updateDashboardProfile();
         try{sessionStorage.removeItem("gd_pending_oauth_phone");}catch(e){}
         const renterEditor=document.getElementById("renterProfileEditor");
         if(renterEditor)renterEditor.dataset.requiredPhone="0";
-        if(message){message.hidden=false;message.textContent="Renter details saved successfully.";}
+        setInlineMessage("Renter details saved successfully. ✓","success");
         showMessage("backendMessage","Renter details saved successfully. ✓","success");
-        closeRenterProfileEditor();
         window.__gdAuthRequested=false;
-        const loginSection=document.getElementById("loginSection");
-        const landing=document.getElementById("loggedOutLanding");
-        if(loginSection)loginSection.style.display="none";
-        if(landing)landing.style.display="none";
+        const renterLoginSection=document.getElementById("loginSection");
+        const renterLanding=document.getElementById("loggedOutLanding");
+        if(renterLoginSection)renterLoginSection.style.display="none";
+        if(renterLanding)renterLanding.style.display="none";
+        closeRenterProfileEditor();
         await updateAuthUI();
     }catch(error){
         console.error("Renter profile update failed:",error);
-        const raw=String(error?.message||error?.details||"");
-        const messageText=/already registered|already used|duplicate|unique/i.test(raw)
-            ? raw
-            : /invalid phone|phone number/i.test(raw)
-                ? raw
-                : "Could not save renter details. Please check your details and try again.";
-        if(message){message.hidden=false;message.textContent=messageText;}
-        showMessage("backendMessage",messageText,"error");
-    }finally{
-        if(saveButton){saveButton.disabled=false;saveButton.textContent="Save details";}
-    }
+        const raw=String(error?.message||"").trim();
+        const message=/already registered|already used|valid 10-digit|repeated|dummy|valid email|name is required|authentication required|renter profile required/i.test(raw)?raw:"Could not save renter details. Please try again.";
+        setInlineMessage(message,"error");
+        showMessage("backendMessage",message,"error");
+    }finally{if(saveButton){saveButton.disabled=false;saveButton.textContent="Save details";}}
 }
 
 function updateOwnerProfileUI(ownerRecord) {
@@ -21083,12 +21061,20 @@ body.gd-renter-find-page-open #renterFindHomeSection{
     e.preventDefault();
     const msg=$("renterFindHomeMessage");
     const location=String($("renterSearchLocation")?.value||"").trim();
+    syncAllRenterBudgets();
     const minRaw=String($("renterMinBudget")?.value||"").trim();
     const maxRaw=String($("renterMaxBudget")?.value||"").trim();
     const min=minRaw===""?null:Number(minRaw), max=maxRaw===""?null:Number(maxRaw);
     if(!location){msg.textContent="Please enter the city, area, district or PIN code."; $("renterSearchLocation")?.focus(); return;}
     if((min!==null && (!Number.isFinite(min)||min<0)) || (max!==null && (!Number.isFinite(max)||max<0))){msg.textContent="Please enter a valid non-negative rent.";return;}
     if(min!==null&&max!==null&&min>max){msg.textContent="Maximum rent must be greater than or equal to minimum rent.";return;}
+    const maxPresetValue=$("renterMaxBudgetPreset")?.value||"";
+    const maxIsExclusivePreset=["5000","10000","15000","20000","30000"].includes(maxPresetValue);
+    if(min!==null&&max!==null&&maxIsExclusivePreset&&min>=max){
+      msg.textContent="Your minimum budget must be lower than the selected maximum. Change one of the budget filters to see matching homes.";
+      $("renterMinBudgetPreset")?.focus();
+      return;
+    }
     msg.textContent="Finding matching homes…";
     const prefs={location,minBudget:minRaw,maxBudget:maxRaw,stayType:$("renterStayType").value,bhk:$("renterSearchBhk").value,furnishing:$("renterSearchFurnishing").value,status:$("renterSearchStatus").value,roomType:$("renterRoomType").value,gender:$("renterGenderPreference").value,food:$("renterFoodPreference").value,radius:(typeof $("renterSearchRadius")!=="undefined" && $("renterSearchRadius")) ? $("renterSearchRadius").value : "3"};
     localStorage.setItem("gdrRenterSearchPreferences",JSON.stringify(prefs));
