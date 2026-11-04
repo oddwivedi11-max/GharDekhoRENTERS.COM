@@ -64,8 +64,10 @@
     state.searchCenter=[Number(point.lat),Number(point.lng)];state.resolvedQuery=String(label||"");
     const placeType=String(point.properties&& (point.properties.type||point.properties.osm_value)||"").toLowerCase();
     if(placeType==="city"){state.radiusKm=10;const radius=$("gdrMapRadius"),radiusLabel=$("gdrMapRadiusValue");if(radius)radius.value="10";if(radiusLabel)radiusLabel.textContent="10 km";}
-    if(state.renterPin){state.renterMap.removeLayer(state.renterPin);state.renterPin=null;}
-    setStatus((state.resolvedQuery||"Selected search area")+" · Search to discover nearby homes.");
+    if(state.renterPin)state.renterMap.removeLayer(state.renterPin);
+    const icon=window.L.divIcon({className:"gdr-renter-pin-wrap",html:"<span class='gdr-renter-pin'><i></i></span>",iconSize:[34,42],iconAnchor:[17,38]});
+    state.renterPin=window.L.marker(state.searchCenter,{icon,keyboard:true,title:"Selected search location",zIndexOffset:1000}).addTo(state.renterMap);
+    setStatus((state.resolvedQuery||"Selected map location")+" · Location selected. Tap Search this area to find homes nearby.");
   }
   function markerIcon(p){
     const rent=Number(p.rent||0),short=rent>=100000?"₹"+(rent/100000).toFixed(1)+"L":rent>=1000?"₹"+(rent/1000).toFixed(rent%1000?1:0)+"k":money(rent);
@@ -204,7 +206,8 @@
   function initRenterMap(){
     if(state.renterMap)return;const canvas=$("gdrExploreMapCanvas");if(!canvas)return;
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
-    state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView(INDIA_CENTER,5);
+    state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView([23.2599,77.4126],12);
+    state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");});
     state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent=state.visible.length+" GharDekho "+(state.visible.length===1?"home":"homes")+" shown. Select a 3D home to view details.";});
   }
   async function openRenterMap(){
@@ -212,10 +215,10 @@
     dashboard.classList.add("gdr-map-mode");panel.hidden=false;
     try{
       await ensureLeaflet();initRenterMap();requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
-      if(!state.renterMap._gdrInitialView){state.renterMap.setView(INDIA_CENTER,5);state.renterMap._gdrInitialView=true;}
+      if(!state.renterMap._gdrInitialView){state.renterMap.setView([23.2599,77.4126],12);state.renterMap._gdrInitialView=true;}
       const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
       if(query)await searchTypedMapLocation();
-      else setStatus("Search a city, locality or PIN code, or choose My location to discover GharDekho homes.");
+      else setStatus("Tap anywhere on the map to place your starting location, then tap Search this area. You can also search a city, locality or PIN code.");
     }catch(error){console.error("GDR map initialization failed:",error);setStatus("The interactive map could not load. Check your connection and try again.");}
   }
   function closeRenterMap(){const d=$("renterDashboard"),p=$("gdrExploreMapPanel");if(p)p.hidden=true;if(d)d.classList.remove("gdr-map-mode");clearPreview();}
