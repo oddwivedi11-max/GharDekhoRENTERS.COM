@@ -370,3 +370,17 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
  .gdr-owner-nearby .gdr-on-header h1{font-size:clamp(24px,7vw,32px)!important;line-height:1.12!important}
  .gdr-owner-nearby .gdr-on-header p{font-size:12px!important}
 }
+
+/* Renter search results: compact 3D GharDekho homes replace draggable location pins. */
+.gdr-home-3d-marker-wrap{background:transparent!important;border:0!important;overflow:visible!important}
+.gdr-home-3d-marker{position:relative;display:block;width:76px;height:78px;filter:drop-shadow(0 7px 6px rgba(21,59,51,.22));transform:translateZ(0);transition:transform .22s ease,filter .22s ease}
+.gdr-home-3d-marker:hover{transform:translateY(-5px) scale(1.08);filter:drop-shadow(0 12px 9px rgba(21,59,51,.28))}
+.gdr-home-3d-roof{position:absolute;left:13px;top:9px;width:0;height:0;border-left:25px solid transparent;border-right:25px solid transparent;border-bottom:22px solid #b96d43;filter:drop-shadow(0 3px 1px #7e472e)}
+.gdr-home-3d-body{position:absolute;left:18px;top:29px;width:40px;height:29px;background:linear-gradient(135deg,#fff0d4,#e9c28b);border:2px solid #fff8e9;box-shadow:inset -5px -3px 0 #d8aa70,3px 4px 0 #a66a43;display:flex;align-items:center;justify-content:space-evenly}
+.gdr-home-3d-body i,.gdr-home-3d-body b{width:8px;height:9px;background:#8dcac0;border:1.5px solid #fff;box-shadow:inset 0 0 0 1px #5d9f94}
+.gdr-home-3d-body em{position:absolute;bottom:0;left:15px;width:9px;height:16px;background:#805337;border-radius:4px 4px 0 0;border:1px solid #fff0d4}
+.gdr-home-3d-base{position:absolute;left:13px;top:60px;width:51px;height:8px;background:#287b6c;transform:skewX(-28deg);border-radius:2px;box-shadow:0 3px 0 #17564d}
+.gdr-home-3d-price{position:absolute;left:50%;top:-1px;transform:translate(-50%,-100%);white-space:nowrap;padding:4px 8px;border:1px solid #d9e9e2;border-radius:999px;background:#fff;color:#174b42;font-size:10px;font-weight:950;box-shadow:0 3px 10px #173f3820}
+.gdr-home-pending .gdr-home-3d-price{background:#fff4e9;border-color:#f0c99f;color:#8b4b22}
+.leaflet-marker-icon.gdr-home-3d-marker-wrap{cursor:pointer}
+@media(prefers-reduced-motion:reduce){.gdr-home-3d-marker{transition:none}}
