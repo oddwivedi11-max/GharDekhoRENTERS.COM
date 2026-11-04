@@ -9134,7 +9134,11 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
 }
 </style><style id="gd-login-method-copy-v1">
 #loginSection .gd-login-method-note{margin:8px 0 0;text-align:center;font-size:12px;line-height:1.45;color:#64746f;font-weight:700}
-</style></head>
+</style><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
+<link rel="stylesheet" href="/assets/gdr-map-experience.css">
+</head>
 
 <body>
 <script id="ghardekho-early-route-bootstrap">
@@ -9675,7 +9679,12 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                 </div>
 
                 <div class="renter-dashboard-actions">
-                    <button type="button" class="renter-dashboard-action renter-dashboard-action-primary" id="renterFindHomeBtn">
+                    <button type="button" class="renter-dashboard-action renter-dashboard-action-primary gdr-map-action" id="renterExploreMapBtn">
+                        <span class="renter-action-icon">⌖</span>
+                        <span><strong>Explore Map</strong><small>Discover homes across any city</small></span>
+                        <span class="renter-action-arrow">↗</span>
+                    </button>
+                    <button type="button" class="renter-dashboard-action" id="renterFindHomeBtn">
                         <span class="renter-action-icon">⌕</span>
                         <span><strong>Find a Home</strong><small>Fill your requirements</small></span>
                         <span class="renter-action-arrow">→</span>
@@ -9700,6 +9709,40 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                         <span class="renter-action-arrow">→</span>
                     </button>
                 </div>
+
+                <section id="gdrExploreMapPanel" class="gdr-map-shell" hidden aria-label="Map-first rental discovery">
+                    <div class="gdr-map-head">
+                        <div>
+                            <span class="gdr-map-kicker">EXPLORE GHARDEKHO</span>
+                            <h3>Find your next home on the map.</h3>
+                            <p id="gdrMapCount">Explore rental homes across India.</p>
+                        </div>
+                        <button type="button" id="gdrMapBackBtn" class="gdr-map-back">← Dashboard</button>
+                    </div>
+                    <div class="gdr-map-toolbar">
+                        <div class="gdr-map-field gdr-map-search-wrap">
+                            <label for="gdrMapPlaceSearch">CITY, LOCALITY OR PIN CODE</label>
+                            <input id="gdrMapPlaceSearch" type="search" placeholder="Search Bhopal, Indore, Delhi…" autocomplete="off">
+                            <div id="gdrMapPlaceSuggestions" class="gdr-map-suggestions" role="listbox" aria-label="Location suggestions"></div>
+                        </div>
+                        <div class="gdr-map-field">
+                            <label for="gdrMapRadius">RADIUS <span id="gdrMapRadiusValue" class="gdr-map-radius-value">5 km</span></label>
+                            <input id="gdrMapRadius" type="range" min="1" max="10" step="1" value="5">
+                        </div>
+                        <button type="button" id="gdrMapLocateBtn" class="gdr-map-locate-btn">◎ My location</button>
+                        <button type="button" id="gdrMapSearchAreaBtn" class="gdr-map-search-btn">Search this area</button>
+                    </div>
+                    <div class="gdr-map-toggle-row">
+                        <button type="button" id="gdrMapViewToggle" class="gdr-map-toggle-btn" aria-pressed="true">Map view</button>
+                        <button type="button" id="gdrMapListToggle" class="gdr-map-toggle-btn" aria-pressed="false">List view</button>
+                    </div>
+                    <div id="gdrMapLayout" class="gdr-map-layout">
+                        <div id="gdrExploreMapCanvas" role="application" aria-label="Interactive rental property map"></div>
+                        <div id="gdrMapListPanel" hidden></div>
+                        <aside id="gdrMapPreview" class="gdr-map-preview" hidden aria-live="polite"></aside>
+                    </div>
+                    <p id="gdrMapStatus" class="gdr-map-status" role="status" aria-live="polite">Map is ready when you are.</p>
+                </section>
 
                 <section class="renter-live-nearby-shell renter-dashboard-panel" id="renterLiveNearbyPanel" hidden aria-live="polite">
                     <div class="renter-live-nearby-card">
@@ -9932,6 +9975,24 @@ body.gd-owner-explore-mode #propertiesSection {
                                     <small>Stand at the property and allow location access. Exact coordinates will be saved with this listing.</small>
                                 </div>
                             </label>
+                            <div class="gdr-owner-map-row">
+                                <button type="button" id="gdrOpenOwnerMapPickerBtn">⌖ Choose exact location on map</button>
+                                <span id="gdrOwnerMapSelectionStatus">Optional: place or adjust the property pin.</span>
+                            </div>
+                            <div id="gdrOwnerMapPicker" class="gdr-owner-map-picker" hidden>
+                                <div class="gdr-owner-map-toolbar">
+                                    <div class="gdr-map-search-wrap">
+                                        <input id="gdrOwnerMapSearch" type="search" placeholder="Search city, locality or PIN code" autocomplete="off" aria-label="Search property location">
+                                        <div id="gdrOwnerMapSuggestions" class="gdr-map-suggestions" role="listbox" aria-label="Property location suggestions"></div>
+                                    </div>
+                                    <button type="button" id="gdrCloseOwnerMapPickerBtn" class="gdr-map-toggle-btn">Close map</button>
+                                </div>
+                                <div id="gdrOwnerMapCanvas" class="gdr-owner-map-canvas" role="application" aria-label="Select property location on map"></div>
+                                <div class="gdr-owner-map-footer">
+                                    <small>Tap the map or drag the pin to the exact property location.</small>
+                                    <button type="button" id="gdrConfirmOwnerMapLocation">Confirm property location</button>
+                                </div>
+                            </div>
                             <label class="gd-form-field" id="propertyBhkField">
                                 <span>BHK <em>(Home / Flat)</em></span>
                                 <input type="number" id="propertyBhk" placeholder="e.g. 2" min="1" max="20" inputmode="numeric">
@@ -10143,6 +10204,7 @@ body.gd-owner-explore-mode #propertiesSection {
                     }
                 }
             );
+        window.__gdrSupabaseClient = supabaseClient;
 
         /* =========================================================
            GLOBAL STATE
@@ -10157,6 +10219,26 @@ body.gd-owner-explore-mode #propertiesSection {
         let userLongitude = null;
 
         let verifiedPropertyLocation = null;
+        window.__gdrSetPropertyLocation = function(address, latitude, longitude) {
+            const input = document.getElementById("propertyLocation");
+            const safeAddress = String(address || input?.value || "").trim();
+            const lat = Number(latitude), lng = Number(longitude);
+            if (!safeAddress || !Number.isFinite(lat) || !Number.isFinite(lng)) return false;
+            if (input) {
+                input.value = safeAddress;
+                input.dispatchEvent(new Event("input", { bubbles: true }));
+                input.dataset.gdSelectedLat = String(lat);
+                input.dataset.gdSelectedLng = String(lng);
+                input.dataset.gdSelectedDisplayName = safeAddress;
+                input.dataset.gdLocationSelected = "1";
+            }
+            verifiedPropertyLocation = { address: safeAddress, latitude: lat, longitude: lng };
+            const status = document.getElementById("verificationMessage");
+            if (status) status.textContent = "✓ Map location confirmed. Coordinates will be saved with this property.";
+            const verify = document.getElementById("verifyLocationBtn");
+            if (verify) verify.textContent = "✓ Location Selected";
+            return true;
+        };
         let isSubmittingProperty = false;
         let selectedPropertyImageFile = null;
         let isSubmittingVisit = false;
@@ -20638,6 +20720,7 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 </script>
+<script src="/assets/gdr-map-experience.js"></script>
 </body>
 
 </html>
@@ -20676,7 +20759,8 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 .renter-welcome-copy h3{margin:5px 0 5px;font-size:clamp(1.55rem,5vw,2.2rem);line-height:1.05;letter-spacing:-.04em;color:#102d2a}
 .renter-welcome-copy p{margin:0;color:#64716e;max-width:600px}
 .renter-edit-profile-compact{flex:0 0 auto;min-height:44px}
-.renter-dashboard-actions{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+.renter-dashboard-actions{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;margin:14px 0 18px}
+@media(max-width:1050px){.renter-dashboard-actions{grid-template-columns:repeat(2,minmax(0,1fr))}}
 .renter-dashboard-action{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:12px;min-height:82px;padding:14px 16px;text-align:left;border:1px solid #d6e4df;border-radius:18px;background:#fff;color:#173b36;box-shadow:0 8px 24px rgba(23,74,71,.055);cursor:pointer}
 .renter-dashboard-action:hover{border-color:#a9cbc3;box-shadow:0 12px 28px rgba(23,74,71,.09)}
 .renter-dashboard-action-primary{background:#176b63;border-color:#176b63;color:#fff;box-shadow:0 10px 24px rgba(23,107,99,.2)}

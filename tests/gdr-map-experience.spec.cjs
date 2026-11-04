@@ -1,0 +1,149 @@
+const { test, expect } = require('@playwright/test');
+
+test.describe('GDR map-first experience structure', () => {
+  test('renter map entry and map controls are present exactly once', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    for (const selector of [
+      '#renterExploreMapBtn', '#gdrExploreMapPanel', '#gdrExploreMapCanvas',
+      '#gdrMapPlaceSearch', '#gdrMapRadius', '#gdrMapSearchAreaBtn',
+      '#gdrMapListToggle', '#gdrMapViewToggle', '#gdrMapPreview'
+    ]) {
+      await expect(page.locator(selector)).toHaveCount(1);
+    }
+  });
+
+  test('owner property form exposes a map pin picker without replacing address entry', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await expect(page.locator('#propertyLocation')).toHaveCount(1);
+    await expect(page.locator('#gdrOpenOwnerMapPickerBtn')).toHaveCount(1);
+    await expect(page.locator('#gdrOwnerMapPicker')).toHaveCount(1);
+    await expect(page.locator('#gdrOwnerMapCanvas')).toHaveCount(1);
+    await expect(page.locator('#gdrConfirmOwnerMapLocation')).toHaveCount(1);
+  });
+
+  test('map/list control switches list state without changing Nearby controls', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const listState = await page.evaluate(() => {
+      document.getElementById('gdrExploreMapPanel').hidden = false;
+      document.getElementById('gdrMapListToggle').click();
+      return {
+        listMode: document.getElementById('gdrMapLayout').classList.contains('gdr-list-mode'),
+        listHidden: document.getElementById('gdrMapListPanel').hidden,
+        mapDisplay: getComputedStyle(document.getElementById('gdrExploreMapCanvas')).display,
+        listDisplay: getComputedStyle(document.getElementById('gdrMapListPanel')).display
+      };
+    });
+    expect(listState.listMode).toBe(true);
+    expect(listState.listHidden).toBe(false);
+    expect(listState.mapDisplay).toBe('none');
+    expect(listState.listDisplay).toBe('grid');
+
+    const mapState = await page.evaluate(() => {
+      document.getElementById('gdrMapViewToggle').click();
+      return {
+        listMode: document.getElementById('gdrMapLayout').classList.contains('gdr-list-mode'),
+        listHidden: document.getElementById('gdrMapListPanel').hidden
+      };
+    });
+    expect(mapState.listMode).toBe(false);
+    expect(mapState.listHidden).toBe(true);
+  });
+
+  test('renter map initializes and falls back to the existing public inventory RPC', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.evaluate(() => {
+      const center = { lat: 23.2599, lng: 77.4126 };
+      const makeMap = element => {
+        element.classList.add('leaflet-container');
+        return {
+          setView() { return this; },
+          on() { return this; },
+          invalidateSize() {},
+          getCenter() { return center; },
+          getBounds() {
+            return {
+              getSouthWest: () => ({ lat: 23.1, lng: 77.2 }),
+              getNorthEast: () => ({ lat: 23.4, lng: 77.6 }),
+              contains: () => true
+            };
+          },
+          flyTo() { return this; },
+          removeLayer() {}
+        };
+      };
+      window.L = {
+        map: element => makeMap(element),
+        tileLayer: () => ({ addTo() { return this; } }),
+        control: { zoom: () => ({ addTo() { return this; } }) },
+        markerClusterGroup: () => ({ addTo() { return this; }, clearLayers() {}, addLayer() {} }),
+        divIcon: () => ({}),
+        marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
+        circle: () => ({ addTo() { return this; } })
+      };
+      window.__gdrRpcCalls = [];
+      window.__gdrSupabaseClient = {
+        rpc: async name => {
+          window.__gdrRpcCalls.push(name);
+          return name === 'get_public_properties'
+            ? { data: [], error: null }
+            : { data: null, error: { code: 'PGRST202', message: 'Viewport RPC not installed in QA fixture' } };
+        }
+      };
+      Object.defineProperty(navigator, 'geolocation', {
+        configurable: true,
+        value: { getCurrentPosition: (_success, failure) => failure({ code: 1 }) }
+      });
+      document.getElementById('renterExploreMapBtn').click();
+    });
+    await expect(page.locator('#gdrExploreMapCanvas')).toHaveClass(/leaflet-container/);
+    await expect(page.locator('#gdrMapStatus')).toContainText('0 properties within 5 km');
+    const calls = await page.evaluate(() => window.__gdrRpcCalls);
+    expect(calls).toContain('get_public_properties');
+    expect(calls).toContain('get_map_properties_in_bounds');
+  });
+
+  test('owner map pin confirms coordinates through the existing property form setter', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.evaluate(() => {
+      const center = { lat: 23.2599, lng: 77.4126 };
+      window.L = {
+        map: element => ({
+          setView() { return this; },
+          on() { return this; },
+          invalidateSize() {},
+          getCenter() { return center; },
+          flyTo() { return this; },
+          removeLayer() {}
+        }),
+        tileLayer: () => ({ addTo() { return this; } }),
+        control: { zoom: () => ({ addTo() { return this; } }) },
+        markerClusterGroup: () => ({ addTo() { return this; }, clearLayers() {}, addLayer() {} }),
+        marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
+        divIcon: () => ({}),
+        circle: () => ({ addTo() { return this; } })
+      };
+      document.getElementById('propertyLocation').value = 'MP Nagar, Bhopal';
+      document.getElementById('gdrOpenOwnerMapPickerBtn').click();
+    });
+    await expect.poll(() => page.locator('#gdrOwnerMapPicker').evaluate(element => element.hidden)).toBe(false);
+    await page.evaluate(() => document.getElementById('gdrConfirmOwnerMapLocation').click());
+    const saved = await page.locator('#propertyLocation').evaluate(element => ({
+      value: element.value,
+      latitude: element.dataset.gdSelectedLat,
+      longitude: element.dataset.gdSelectedLng,
+      pickerHidden: document.getElementById('gdrOwnerMapPicker').hidden
+    }));
+    expect(saved.value).toBe('MP Nagar, Bhopal');
+    expect(saved.latitude).toBe('23.2599');
+    expect(saved.longitude).toBe('77.4126');
+    expect(saved.pickerHidden).toBe(true);
+  });
+
+  test('map entry does not remove existing Nearby controls', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await expect(page.locator('#renterDashboard')).toHaveCount(1);
+    await expect(page.locator('#renterLiveNearbyBtn')).toHaveCount(1);
+    await expect(page.locator('#liveNearbyBtn')).toHaveCount(1);
+    await expect(page.locator('#renterExploreMapBtn')).toHaveAttribute('type', 'button');
+  });
+});

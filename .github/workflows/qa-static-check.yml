@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "fix/full-qa-20261020"
+      - "feature/gdr-master-platform-20261104"
   workflow_dispatch:
 
 permissions:
@@ -68,5 +69,8 @@ jobs:
             node --check "$file"
           done
 
-      - name: Check standalone PIN resolver
-        run: node --check assets/gdr-pincode-search.js
+      - name: Check standalone frontend modules
+        run: |
+          node --check assets/gdr-pincode-search.js
+          node --check assets/gdr-map-experience.js
+          node --check tests/gdr-map-experience.spec.cjs

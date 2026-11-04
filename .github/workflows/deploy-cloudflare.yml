@@ -45,3 +45,14 @@ jobs:
           accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
           wranglerVersion: "4.151.1"
           command: deploy
+
+      - name: Verify deployed production assets
+        shell: bash
+        run: |
+          set -euo pipefail
+          BASE_URL="https://ghardekhorenters-com.od-dwivedi11.workers.dev"
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/" -o /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" | grep -q 'GDRMapExperience'
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" | grep -q 'gdr-map-shell'
+          echo "Cloudflare worker and GDR map assets are responding."

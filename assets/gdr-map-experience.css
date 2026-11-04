@@ -1,0 +1,98 @@
+
+/* GDR Map-first discovery and owner location picker */
+:root{--gdr-map-ink:#102c29;--gdr-map-muted:#657874;--gdr-map-line:#dce8e4;--gdr-map-green:#176b63;--gdr-map-gold:#c99245}
+.gdr-map-action{background:linear-gradient(135deg,#143f3b,#176b63)!important;color:#fff!important}
+.gdr-map-shell{margin:16px 0 28px;padding:clamp(14px,2vw,22px);border:1px solid var(--gdr-map-line);border-radius:24px;background:#f7faf9;box-shadow:0 20px 55px rgba(16,44,41,.09);min-width:0}
+.gdr-map-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:16px}
+.gdr-map-head h3{margin:4px 0;color:var(--gdr-map-ink);font-size:clamp(1.45rem,3vw,2rem);letter-spacing:-.04em}
+.gdr-map-head p{margin:0;color:var(--gdr-map-muted);font-size:.9rem;line-height:1.5}
+.gdr-map-kicker{font-size:10px;font-weight:900;letter-spacing:.15em;color:var(--gdr-map-green)}
+.gdr-map-back{flex:0 0 auto;min-height:40px;padding:0 14px;border:1px solid #cbded8;border-radius:999px;background:#fff;color:var(--gdr-map-ink);font-weight:800}
+.gdr-map-toolbar{display:grid;grid-template-columns:minmax(220px,1.5fr) minmax(150px,.8fr) auto auto;gap:9px;align-items:end;margin-bottom:12px}
+.gdr-map-field{display:grid;gap:6px;min-width:0}
+.gdr-map-field label{font-size:11px;font-weight:850;letter-spacing:.04em;color:#526a65}
+.gdr-map-field input[type=search]{width:100%;height:48px;border:1px solid #cadbd6;border-radius:13px;padding:0 14px;background:#fff;color:var(--gdr-map-ink);font:inherit;min-width:0}
+.gdr-map-field input[type=range]{width:100%;accent-color:var(--gdr-map-green)}
+.gdr-map-radius-value{font-size:12px;font-weight:850;color:var(--gdr-map-green);text-align:right}
+.gdr-map-toolbar button{min-height:48px;border-radius:13px;padding:0 15px;font-weight:850;white-space:nowrap}
+.gdr-map-search-btn{background:#153f3b;color:#fff;border:1px solid #153f3b}
+.gdr-map-locate-btn,.gdr-map-toggle-btn{background:#fff;color:#174a47;border:1px solid #cbded8}
+.gdr-map-toggle-row{display:flex;justify-content:flex-end;gap:7px;margin:0 0 10px}
+.gdr-map-toggle-btn[aria-pressed=true]{background:#e4f2ee;border-color:#8bb9ad;box-shadow:inset 0 0 0 1px #8bb9ad}
+.gdr-map-layout{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(260px,310px);gap:12px;min-width:0}
+.gdr-map-layout.gdr-list-mode{grid-template-columns:1fr}
+.gdr-map-layout.gdr-list-mode #gdrExploreMapCanvas{display:none}
+.gdr-map-layout.gdr-list-mode #gdrMapListPanel{display:grid}
+#gdrExploreMapCanvas{width:100%;height:min(66vh,650px);min-height:430px;border:1px solid #d8e4df;border-radius:19px;overflow:hidden;background:#e8efec;z-index:1}
+#gdrMapListPanel{display:grid;align-content:start;gap:9px;max-height:min(66vh,650px);overflow:auto;padding:3px}
+.gdr-map-list-card{display:grid;grid-template-columns:94px minmax(0,1fr);gap:11px;padding:10px;border:1px solid var(--gdr-map-line);border-radius:15px;background:#fff;text-align:left;color:var(--gdr-map-ink);cursor:pointer}
+.gdr-map-list-card img{width:94px;height:88px;object-fit:cover;border-radius:10px;background:#edf2f0}
+.gdr-map-list-card strong{display:block;font-size:14px;line-height:1.3}
+.gdr-map-list-card small{display:block;margin-top:4px;color:var(--gdr-map-muted);font-size:11px;line-height:1.4}
+.gdr-map-list-card b{display:block;margin-top:7px;color:var(--gdr-map-green);font-size:14px}
+.gdr-map-empty{padding:22px;border:1px dashed #b9cdc6;border-radius:15px;background:#fff;color:var(--gdr-map-muted);text-align:center}
+.gdr-map-preview{position:absolute;z-index:600;left:14px;bottom:14px;width:min(420px,calc(100% - 28px));padding:11px;border:1px solid rgba(255,255,255,.8);border-radius:19px;background:rgba(255,255,255,.97);box-shadow:0 18px 48px rgba(12,40,35,.22);backdrop-filter:blur(14px)}
+.gdr-map-preview-main{display:grid;grid-template-columns:112px minmax(0,1fr);gap:12px}
+.gdr-map-preview img{width:112px;height:112px;object-fit:cover;border-radius:13px;background:#edf2f0}
+.gdr-map-preview h4{margin:2px 0 5px;font-size:15px;color:var(--gdr-map-ink);line-height:1.3}
+.gdr-map-preview p{margin:0 0 5px;color:var(--gdr-map-muted);font-size:12px;line-height:1.4}
+.gdr-map-preview .gdr-map-rent{font-size:17px;font-weight:900;color:var(--gdr-map-green)}
+.gdr-map-preview-actions{display:flex;gap:8px;margin-top:10px}
+.gdr-map-preview-actions button{flex:1;min-height:42px;border-radius:11px;font-weight:850}
+.gdr-map-details-btn{border:0;background:#153f3b;color:#fff}
+.gdr-map-dismiss-btn{border:1px solid #d5e2dd;background:#fff;color:#34544d}
+.gdr-map-status{min-height:20px;margin:8px 2px 0;color:var(--gdr-map-muted);font-size:12px}
+.gdr-price-marker-wrap{background:transparent;border:0}
+.gdr-price-marker{display:inline-flex;align-items:center;justify-content:center;min-width:58px;height:30px;padding:0 9px;border:2px solid #fff;border-radius:10px;background:#143f3b;color:#fff;font-size:11px;font-weight:900;white-space:nowrap;box-shadow:0 4px 13px rgba(0,0,0,.24);transform:translateY(0);transition:transform .16s ease,background .16s ease}
+.gdr-price-marker:hover{transform:translateY(-3px);background:#c99245}
+.gdr-price-marker.gdr-marker-pending{background:#8a6431}
+.gdr-owner-map-row,.gdr-owner-map-picker{grid-column:1/-1}
+.gdr-map-preview{animation:gdrMapSheetIn .22s cubic-bezier(.2,.8,.2,1)}
+@keyframes gdrMapSheetIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.gdr-owner-map-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:9px}
+#gdrOpenOwnerMapPickerBtn{min-height:42px;padding:0 14px;border:1px solid #bdd6ce;border-radius:12px;background:#edf7f3;color:#15574f;font-weight:850}
+#gdrOwnerMapSelectionStatus{font-size:12px;color:#657874}
+.gdr-owner-map-picker{margin-top:12px;padding:13px;border:1px solid #d3e3de;border-radius:17px;background:#f7fbf9}
+.gdr-owner-map-toolbar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;margin-bottom:9px}
+.gdr-owner-map-toolbar input{min-width:0;width:100%;min-height:44px;padding:0 12px;border:1px solid #cbded8;border-radius:11px;background:#fff}
+.gdr-owner-map-canvas{width:100%;height:340px;border-radius:13px;overflow:hidden;background:#e8efec}
+.gdr-owner-map-footer{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:10px}
+.gdr-owner-map-footer small{color:#657874;font-size:12px}
+#gdrConfirmOwnerMapLocation{min-height:42px;padding:0 14px;border:0;border-radius:11px;background:#153f3b;color:#fff;font-weight:850}
+.gdr-map-suggestions{position:absolute;z-index:1200;top:calc(100% + 5px);left:0;right:0;display:none;max-height:260px;overflow:auto;padding:6px;border:1px solid #d3e3de;border-radius:13px;background:#fff;box-shadow:0 15px 36px rgba(16,44,41,.16)}
+.gdr-map-suggestions.gdr-open{display:block}
+.gdr-map-suggestion{display:block;width:100%;padding:10px;border:0;border-radius:9px;background:#fff;text-align:left;color:var(--gdr-map-ink);font-size:13px;line-height:1.35}
+.gdr-map-suggestion:hover,.gdr-map-suggestion:focus{background:#eaf5f1}
+.gdr-map-search-wrap{position:relative;min-width:0}
+#gdrExploreMapPanel[hidden],#gdrOwnerMapPicker[hidden],#gdrMapListPanel[hidden]{display:none!important}
+#renterDashboard.gdr-map-mode> :not(#gdrExploreMapPanel){display:none!important}
+@media(max-width:900px){
+ .gdr-map-toolbar{grid-template-columns:minmax(0,1fr) minmax(120px,.65fr);align-items:end}
+ .gdr-map-toolbar button{width:100%}
+ .gdr-map-layout{grid-template-columns:1fr}
+ #gdrMapListPanel{max-height:none}
+}
+@media(max-width:620px){
+ .gdr-map-shell{margin:10px -2px 20px;padding:12px;border-radius:18px}
+ .gdr-map-head{gap:8px}
+ .gdr-map-head h3{font-size:1.35rem}
+ .gdr-map-head p{font-size:.8rem}
+ .gdr-map-back{min-height:38px;padding:0 10px;font-size:12px}
+ .gdr-map-toolbar{grid-template-columns:1fr 1fr;gap:8px}
+ .gdr-map-search-wrap{grid-column:1/-1}
+ .gdr-map-toolbar button{min-height:44px;padding:0 9px;font-size:12px}
+ .gdr-map-field input[type=search]{height:46px}
+ .gdr-map-toggle-row{justify-content:stretch}
+ .gdr-map-toggle-btn{flex:1;min-height:40px}
+ #gdrExploreMapCanvas{height:58vh;min-height:390px;border-radius:15px}
+ .gdr-map-preview{left:8px;bottom:8px;width:calc(100% - 16px);padding:9px;border-radius:16px}
+ .gdr-map-preview-main{grid-template-columns:88px minmax(0,1fr);gap:9px}
+ .gdr-map-preview img{width:88px;height:96px}
+ .gdr-map-preview h4{font-size:13px}
+ .gdr-map-preview p{font-size:11px}
+ .gdr-map-preview .gdr-map-rent{font-size:15px}
+ .gdr-map-preview-actions button{min-height:40px;font-size:12px}
+ .gdr-owner-map-toolbar{grid-template-columns:1fr}
+ .gdr-owner-map-canvas{height:300px}
+}
+@media(prefers-reduced-motion:reduce){.gdr-price-marker{transition:none}.gdr-map-preview{animation:none}}

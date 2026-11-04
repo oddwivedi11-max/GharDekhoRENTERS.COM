@@ -136,3 +136,42 @@ User decisions recorded:
 - Added a frontend fail-closed check before calling `get_verified_owner_contact`: the signed-in renter must have an `approved` visit request for the exact property. This reduces accidental UI disclosure while the database RPC migration remains unapplied. It is **not a substitute** for enforcing the approval check inside the database RPC; direct RPC calls remain a release blocker until that migration is reviewed/tested/applied with explicit approval.
 - Browser smoke tests passed again on commit `e2e0d860df0b67c124c7daaba0602fdbeda69b52` after the owner-contact UI guard. Static checks passed on the same commit.
 - No production SQL, merge to `main`, or deployment was performed. Authenticated renter/owner/admin E2E, database policy testing, and real PIN-to-listing behavior remain unverified without isolated synthetic test data.
+
+
+## Master prompt execution — 2026-11-04
+
+### Phase 0 audit
+- Confirmed the production app is a static HTML/JavaScript app, not a framework build.
+- Confirmed Cloudflare Workers is the active deployment workflow; the latest deployment (#60) succeeded and printed https://ghardekhorenters-com.od-dwivedi11.workers.dev.
+- Confirmed production Supabase project gktmaiwqvtusnegevdle is healthy on PostgreSQL 17.6.1.155.
+- Confirmed live rows exist in owners (21), properties (11), visit_requests (4), saved_properties (13), users (46), property_occupancies (2), and admin_users (2). No data was changed.
+- Confirmed the current Nearby frontend calls get_nearby_properties and applies a 1–10 km radius. This implementation is preserved.
+- Confirmed no current map library is used in the main application. The owner add-property flow already has geolocation/address selection and a verifiedPropertyLocation object; the new picker feeds that existing submission path.
+- Confirmed there are no current rental agreement, payments, charges, notification or property media tables. Those require additive schema work after isolated QA.
+- Confirmed 48 production migration records while only a subset of historical migrations is tracked in the repository. Production migration history must be reconciled before applying any schema changes.
+- Security advisor reports 3 anon-executable SECURITY DEFINER functions. get_public_properties and get_nearby_properties are public discovery endpoints; get_my_owner_properties is owner-scoped and should be authenticated-only. No blanket function revokes were applied.
+- A Supabase development branch quote is USD $0.01344/hour. Branch creation was not completed because cost confirmation is required.
+
+### Phase 1 frontend changes prepared
+- Added a dedicated renter map-first Explore surface with OpenStreetMap/Leaflet, clustered price markers, city/locality search, map/list toggle, Search this area, current-location centering, 1–10 km radius filtering and a property preview sheet.
+- Added an owner map pin picker that sets coordinates through the existing property-location validation/submission flow. Manual address entry and the existing current-location action remain available.
+- Existing renter Live Nearby and shared Nearby actions are not removed or replaced.
+- The map first attempts get_map_properties_in_bounds; if it is not installed, it falls back to the existing public listing RPC and filters to current map bounds. This keeps the frontend compatible until the additive migration is tested.
+- Added a draft additive SQL migration for get_map_properties_in_bounds and authenticated-only execution of get_my_owner_properties. It is not applied to production.
+- Added a focused Playwright structural test for renter map controls, owner map picker and Nearby preservation.
+- Added a master phase plan and updated QA workflows to run on this feature branch.
+
+### Not yet verified
+- The map feature still needs browser execution against the Cloudflare deployment and real location/geocoder behavior.
+- The viewport RPC migration has not been applied; the fallback path is used until isolated QA validation.
+- No role, payment, rental agreement, charge or 3D media schema changes have been applied.
+- No production database rows, storage files or existing migrations were modified.
+
+
+## Additional read-only audit — role and storage compatibility
+- 46 user profile rows were grouped without exposing email or phone values. Seven have an explicit two-role array. Six more have role=owner while roles=[tenant]; the current frontend adds the primary role to roles, so these are effectively dual-role accounts too. Total accounts requiring a deliberate primary-role decision: 13.
+- users.email has a unique index; users.roles defaults to ['tenant']. The auth-user trigger creates an owner profile when metadata role is owner. The self-role-change trigger protects users.role but does not fully enforce the roles array as a single-role value.
+- A role migration must use users.role as the canonical role only after checking existing owner profiles and preserving all existing occupancy, visit and payment history. No role rows were changed.
+- The existing property-images bucket is public and limited to JPEG, PNG and WEBP, max 5 MB. owner-documents is private. Neither supports GLB/GLTF model uploads as configured.
+- properties(latitude, longitude) already has a composite B-tree index. property_occupancies has occupied_at/released_at and active-row uniqueness constraints, so extend this table for tenancy lifecycle instead of duplicating its history.
+- Production migration ledger contains 51 records; latest version is 20261103162447. Repository migration history is incomplete and must be reconciled before applying any migration.
