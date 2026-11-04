@@ -42,7 +42,20 @@
     }
   }
   function addTiles(map){window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(map);}
-  function makeLayer(map){return window.L.markerClusterGroup?window.L.markerClusterGroup({showCoverageOnHover:false,spiderfyOnMaxZoom:true,maxClusterRadius:48}).addTo(map):window.L.layerGroup().addTo(map);}
+  function makeLayer(map){
+    if(!window.L.markerClusterGroup)return window.L.layerGroup().addTo(map);
+    return window.L.markerClusterGroup({
+      showCoverageOnHover:false,
+      spiderfyOnMaxZoom:true,
+      maxClusterRadius:48,
+      // Never show the numeric "2 / 3 / 4" bubble. A clustered group of
+      // nearby listings is represented by the same 3D GharDekho house motif.
+      iconCreateFunction:function(){
+        const html='<span class="gdr-home-3d-cluster"><span class="gdr-home-3d-cluster-back"></span><span class="gdr-home-3d-roof"></span><span class="gdr-home-3d-body"><i></i><b></b><em></em></span><span class="gdr-home-3d-base"></span></span>';
+        return window.L.divIcon({className:"gdr-home-3d-cluster-wrap",html,iconSize:[76,72],iconAnchor:[38,54]});
+      }
+    }).addTo(map);
+  }
   async function fetchInventory(){const client=db();if(!client)throw new Error("Property service is still loading.");const r=await client.rpc("get_public_properties");if(r.error)throw r.error;state.inventory=(Array.isArray(r.data)?r.data:[]).filter(p=>validPoint(p.latitude,p.longitude));state.loadedOnce=true;return state.inventory;}
   async function fetchBounds(bounds){
     const client=db();if(!client)throw new Error("Property service is not ready.");
