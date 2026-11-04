@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "fix/full-qa-20261020"
+      - "feature/gdr-master-platform-20261104"
   workflow_dispatch:
 
 permissions:
