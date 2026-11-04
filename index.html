@@ -15302,10 +15302,26 @@ async function loadOwnerProperties() {
                         : "Your owner profile is awaiting verification by GharDekho administration.";
             }
 
-            const {
-                data,
-                error
-            } = await supabaseClient.rpc("get_my_owner_properties");
+            // Prefer the authenticated owner's direct RLS-protected property
+            // query. This works with the existing Owners can view own properties
+            // policy and avoids an RPC response/cache mismatch in the dashboard.
+            let { data, error } = await supabaseClient
+                .from("properties")
+                .select("id,title,name,location,address,rent,status,verification_status,created_at,listing_type,room_type,gender_preference,food_included,total_beds,available_beds,bhk,furnishing,description,image_url,latitude,longitude,owner_id")
+                .eq("owner_id", ownerRecord.id)
+                .order("created_at", { ascending: false });
+
+            // Keep the secure authenticated RPC as a fallback if the direct
+            // owner-scoped query is unavailable in a client/schema cache.
+            if (error || !Array.isArray(data) || data.length === 0) {
+                const rpcFallback = await supabaseClient.rpc("get_my_owner_properties");
+                if (!rpcFallback.error && Array.isArray(rpcFallback.data) && rpcFallback.data.length > 0) {
+                    data = rpcFallback.data;
+                    error = null;
+                } else if (error) {
+                    console.error("Direct owner property query failed; RPC fallback also returned no rows:", error, rpcFallback.error);
+                }
+            }
 
             if (error) {
                 console.error(
