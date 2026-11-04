@@ -1,0 +1,155 @@
+(function () {
+  "use strict";
+  const $ = (id, root = document) => root.getElementById(id);
+  const money = value => "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(value || 0));
+  const db = () => window.__gdrSupabaseClient || window.supabaseClient || null;
+  let page = null, occupancySection = null, originalParent = null, originalNext = null, returnScroll = 0, busy = false;
+
+  function styles() {
+    if ($("gdr-owner-renters-dashboard-style")) return;
+    const style = document.createElement("style");
+    style.id = "gdr-owner-renters-dashboard-style";
+    style.textContent = `
+      .gdr-owner-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch}
+      .gdr-owner-entry-card{min-height:184px!important;justify-content:space-between!important;padding:24px!important;border-radius:22px!important}
+      .gdr-current-renters-entry{background:linear-gradient(145deg,#fbf4eb,#f1e4d6)!important;border:1px solid #dfc9b3!important;box-shadow:0 12px 28px rgba(93,62,39,.10),inset 0 1px 0 rgba(255,255,255,.9)!important}
+      .gdr-current-renters-entry h3{color:#493326!important}
+      .gdr-current-renters-entry .dashboard-muted{color:#806b5b!important}
+      .gdr-current-renters-open{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:52px;padding:0 17px;border:1px solid #79553d;border-radius:14px;background:linear-gradient(180deg,#8d674c,#765039);color:#fff;font:850 14px/1.2 inherit;box-shadow:0 7px 0 #5b3d2b,0 12px 22px rgba(70,43,26,.18);cursor:pointer;transition:transform .18s ease,box-shadow .18s ease,filter .18s ease}
+      .gdr-current-renters-open:hover{transform:translateY(-2px);filter:brightness(1.04);box-shadow:0 9px 0 #5b3d2b,0 16px 26px rgba(70,43,26,.2)}
+      .gdr-current-renters-open:active{transform:translateY(4px);box-shadow:0 3px 0 #5b3d2b,0 7px 12px rgba(70,43,26,.16)}
+      .gdr-current-renters-open-icon{display:grid;place-items:center;width:29px;height:29px;border-radius:9px;background:rgba(255,255,255,.16);font-size:19px}
+      .gdr-current-renters-open-arrow{margin-left:auto;font-size:20px}
+      #gdrOwnerCurrentRentersPage{position:fixed;inset:0;z-index:85000;overflow:auto;background:#f8f5f0;color:#30251e;padding:clamp(14px,3vw,32px)}
+      #gdrOwnerCurrentRentersPage *{box-sizing:border-box}
+      .gdr-ocr-shell{width:min(1120px,100%);margin:0 auto}
+      .gdr-ocr-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin:0 0 22px}
+      .gdr-ocr-back{min-height:44px;padding:0 15px;border:1px solid #dfd2c5;border-radius:12px;background:#fff;color:#674a36;font-weight:850;cursor:pointer}
+      .gdr-ocr-kicker{margin:0 0 6px;color:#8b6b53;font-size:11px;font-weight:950;letter-spacing:.16em}
+      .gdr-ocr-title{margin:0;color:#35261d;font-size:clamp(27px,4vw,38px);letter-spacing:-.045em;line-height:1.05}
+      .gdr-ocr-subtitle{margin:8px 0 0;color:#806f63;font-size:14px}
+      .gdr-ocr-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:0 0 18px}
+      .gdr-ocr-stat{padding:18px;border:1px solid #e8ddd2;border-radius:17px;background:linear-gradient(145deg,#fff,#fbf6f0);box-shadow:0 8px 22px rgba(76,51,34,.055)}
+      .gdr-ocr-stat small{display:block;color:#907763;font-size:11px;font-weight:800}
+      .gdr-ocr-stat strong{display:block;margin-top:8px;color:#493326;font-size:clamp(20px,3vw,27px);letter-spacing:-.03em}
+      .gdr-ocr-stat em{display:block;margin-top:4px;color:#9b897b;font-size:11px;font-style:normal}
+      .gdr-ocr-list{padding:clamp(15px,2.5vw,25px);border:1px solid #e7dacf;border-radius:21px;background:#fffdfa;box-shadow:0 14px 34px rgba(76,51,34,.07)}
+      .gdr-ocr-list .owner-occupancy-card{display:block!important;width:100%!important;margin:0!important;padding:0!important;border:0!important;background:transparent!important;box-shadow:none!important}
+      .gdr-ocr-list .premium-section-heading{margin-bottom:12px}
+      .gdr-ocr-list .premium-section-heading .dashboard-mini-badge{display:none}
+      .gdr-ocr-list #ownerOccupancyContainer{margin-top:12px}
+      .gdr-ocr-list .gd-current-renter-card{margin:10px 0!important}
+      @media(max-width:700px){
+        .gdr-owner-entry-grid{grid-template-columns:1fr!important;gap:12px!important}
+        .gdr-owner-entry-card{min-height:150px!important;padding:19px!important}
+        #gdrOwnerCurrentRentersPage{padding:12px}
+        .gdr-ocr-head{align-items:flex-start}
+        .gdr-ocr-stats{grid-template-columns:1fr 1fr;gap:8px}
+        .gdr-ocr-stat{padding:13px}
+        .gdr-ocr-stat:last-child{grid-column:1/-1}
+        .gdr-ocr-list{padding:12px}
+        .gdr-ocr-list .gd-current-renter-card{grid-template-columns:42px minmax(0,1fr) auto!important;gap:10px!important;padding:13px!important}
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function addEntryCard() {
+    const grid = document.querySelector("#ownerDashboard .owner-dashboard-quick-grid");
+    if (!grid || $("ownerCurrentRentersBtn")) return;
+    // The deployment patch creates the button in the HTML. This fallback keeps
+    // the entry point available if a cached or older dashboard shell is loaded.
+    const card = document.createElement("article");
+    card.className = "dashboard-card owner-quick-card gdr-owner-entry-card gdr-current-renters-entry";
+    card.innerHTML = '<div><span class="dashboard-section-kicker">TENANCY MANAGEMENT</span><h3>Current Renters</h3><p class="dashboard-muted">Manage active tenants, rental details and monthly rent records.</p></div><button type="button" class="gdr-current-renters-open" id="ownerCurrentRentersBtn"><span class="gdr-current-renters-open-icon" aria-hidden="true">♙</span><span>Current Renters</span><span class="gdr-current-renters-open-arrow" aria-hidden="true">→</span></button>';
+    grid.appendChild(card);
+    bindButton();
+  }
+
+  async function stats() {
+    const renters = Array.isArray(window.__gdCurrentRenters) ? window.__gdCurrentRenters : [];
+    const expected = renters.reduce((sum, row) => sum + Number(row.property?.rent || 0), 0);
+    let received = null;
+    const client = db();
+    try {
+      if (client) {
+        const auth = await client.auth.getUser();
+        const userId = auth.data?.user?.id;
+        if (userId) {
+          const owner = await client.from("owners").select("id").eq("user_id", userId).maybeSingle();
+          if (!owner.error && owner.data?.id) {
+            const now = new Date();
+            const period = now.getFullYear() + "-" + String(now.getMonth() + 1).padStart(2, "0") + "-01";
+            const payments = await client.from("owner_rent_ledger_entries").select("amount").eq("owner_id", owner.data.id).eq("billing_period", period);
+            if (!payments.error) received = (payments.data || []).reduce((sum, entry) => sum + Number(entry.amount || 0), 0);
+          }
+        }
+      }
+    } catch (error) {
+      console.warn("[GharDekho] Could not load current-month renter receipts", error);
+    }
+    return { renters: renters.length, expected, received };
+  }
+
+  async function open() {
+    if (busy) return;
+    const section = document.querySelector("#ownerDashboard .owner-occupancy-card");
+    if (!section) return;
+    busy = true;
+    styles();
+    returnScroll = window.scrollY;
+    if (!page) {
+      page = document.createElement("section");
+      page.id = "gdrOwnerCurrentRentersPage";
+      page.setAttribute("aria-label", "Current Renters dashboard");
+      page.innerHTML = '<div class="gdr-ocr-shell"><header class="gdr-ocr-head"><div><p class="gdr-ocr-kicker">OWNER WORKSPACE / TENANCY</p><h1 class="gdr-ocr-title">Current Renters</h1><p class="gdr-ocr-subtitle">Your active tenants, rental details and monthly rent overview.</p></div><button type="button" class="gdr-ocr-back" id="gdrOcrBack">← Owner Dashboard</button></header><div class="gdr-ocr-stats" id="gdrOcrStats"><article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>—</strong><em>Loading live records</em></article><article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>—</strong><em>Based on active tenancies</em></article><article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>—</strong><em>Owner-recorded receipts only</em></article></div><div class="gdr-ocr-list" id="gdrOcrList"></div></div>';
+      document.body.appendChild(page);
+      $("gdrOcrBack").addEventListener("click", close);
+    }
+    occupancySection = section;
+    originalParent = section.parentNode;
+    originalNext = section.nextSibling;
+    const list = $("gdrOcrList");
+    list.appendChild(section);
+    page.hidden = false;
+    document.body.style.overflow = "hidden";
+    const data = await stats();
+    if ($("gdrOcrStats")) {
+      $("gdrOcrStats").innerHTML =
+        '<article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>' + data.renters + '</strong><em>Live occupancy records</em></article>' +
+        '<article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>' + money(data.expected) + '</strong><em>Combined base rent for active renters</em></article>' +
+        '<article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>' + (data.received === null ? "—" : money(data.received)) + '</strong><em>' + (data.received === null ? "Receipt summary unavailable" : "Owner-recorded ledger receipts") + '</em></article>';
+    }
+    busy = false;
+  }
+
+  function close() {
+    if (occupancySection && originalParent) {
+      if (originalNext && originalNext.parentNode === originalParent) originalParent.insertBefore(occupancySection, originalNext);
+      else originalParent.appendChild(occupancySection);
+    }
+    if (page) page.hidden = true;
+    document.body.style.overflow = "";
+    window.scrollTo({ top: returnScroll, behavior: "smooth" });
+    occupancySection = null;
+    originalParent = null;
+    originalNext = null;
+  }
+
+  function bindButton() {
+    const button = $("ownerCurrentRentersBtn");
+    if (!button || button.dataset.gdrBound === "1") return;
+    button.dataset.gdrBound = "1";
+    button.addEventListener("click", open);
+  }
+
+  function boot() {
+    styles();
+    addEntryCard();
+    bindButton();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
+  else boot();
+  new MutationObserver(() => { addEntryCard(); bindButton(); }).observe(document.body, { childList: true, subtree: true });
+  window.GDROwnerCurrentRenters = { open, close };
+})();
