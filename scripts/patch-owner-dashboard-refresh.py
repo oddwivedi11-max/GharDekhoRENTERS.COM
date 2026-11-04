@@ -264,3 +264,19 @@ replace_once(
 
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
+
+
+replace_once(
+'''    setRoleSpecificUI(activeRole);
+    updateDashboardProfile();''',
+'''    // Persisted role update succeeded; now activate the selected portal.
+    activeRole = target;
+    pendingLoginRole = target;
+    sessionStorage.setItem("gd_active_role", target);
+    sessionStorage.setItem("gd_pending_login_role", target);
+    localStorage.setItem("gd_preferred_role", target);
+    setRoleSpecificUI(target);
+    updateDashboardProfile();''',
+    "activate the selected dashboard after successful role switch"
+)
+
