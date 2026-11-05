@@ -69,3 +69,36 @@
  #ownerDashboard .gdr-occ-back{width:100%;min-height:46px}
 }
 @media(prefers-reduced-motion:reduce){#ownerDashboard .gdr-occ-card{transition:none}}
+
+/* Monster Hunter-inspired owner workspace: forest green, luminous lime, and distinct action colours. */
+#ownerDashboard{--gdr-hunter:#123c2b;--gdr-hunter-deep:#09291e;--gdr-hunter-lime:#c8f169;--gdr-hunter-mist:#edf6e8}
+#ownerDashboard #gdrOwnerCommandCenterHome{padding:clamp(16px,2.2vw,25px);border:1px solid #c6d9c6;border-radius:24px;background:radial-gradient(circle at 100% 0%,#315d3c 0,transparent 34%),linear-gradient(135deg,#102f24 0%,#174733 58%,#0d2b20 100%);box-shadow:0 14px 0 #0b241b,0 24px 42px #102f2425;color:#f4ffe9}
+#ownerDashboard .gdr-occ-intro{align-items:center;margin:0 0 17px}
+#ownerDashboard .gdr-occ-intro h2{color:#f5ffe9}
+#ownerDashboard .gdr-occ-intro p{color:#c8d9c3}
+#ownerDashboard .gdr-occ-eyebrow{color:#c8f169}
+#ownerDashboard .gdr-occ-live{border-color:#6c8e55;background:#203f2c;color:#d9f5b2}
+#ownerDashboard .gdr-occ-live i{background:#c8f169;box-shadow:0 0 0 4px #c8f16924}
+#ownerDashboard .gdr-occ-card{min-height:112px;border-radius:17px;border-width:1px;box-shadow:0 5px 0 var(--card-shadow),0 12px 22px #061d142c,inset 0 1px #ffffff9c}
+#ownerDashboard .gdr-occ-card:hover{transform:translateY(-3px);filter:brightness(1.04)}
+#ownerDashboard .gdr-occ-card:focus-visible,#ownerDashboard .gdr-occ-back:focus-visible{outline:3px solid #c8f169;outline-offset:4px}
+#ownerDashboard .gdr-occ-pink{--card-shadow:#7d344c;background:linear-gradient(145deg,#ffe9f0,#f8bfd0);border-color:#e8a6bc;color:#682b43}
+#ownerDashboard .gdr-occ-rose{--card-shadow:#8a3c2a;background:linear-gradient(145deg,#ffe6d8,#f6b89a);border-color:#e8a17c;color:#71351f}
+#ownerDashboard .gdr-occ-blue{--card-shadow:#185b89;background:linear-gradient(145deg,#e1f4ff,#a9d8f7);border-color:#83c3e9;color:#16466c}
+#ownerDashboard .gdr-occ-orange{--card-shadow:#89601d;background:linear-gradient(145deg,#fff4c9,#f4d16e);border-color:#e4bd55;color:#65470e}
+#ownerDashboard .gdr-occ-teal{--card-shadow:#49377f;background:linear-gradient(145deg,#eee8ff,#c9baf4);border-color:#b3a1e6;color:#3d2c70}
+#ownerDashboard .gdr-occ-icon{background:#ffffffd9}
+#ownerDashboard #gdrOwnerModuleHeader{border:1px solid #789b73;border-left:7px solid #c8f169;border-radius:19px;background:linear-gradient(120deg,#102f24,#1c4b35);box-shadow:0 10px 0 #0b241b,0 18px 32px #0e30231c}
+#ownerDashboard #gdrOwnerModuleHeader h2{color:#f4ffe9}
+#ownerDashboard #gdrOwnerModuleHeader p{color:#c7d9c2}
+#ownerDashboard .gdr-occ-back{min-height:46px;padding:0 19px;border:1px solid #d4f59b;border-radius:12px;background:linear-gradient(180deg,#d9ff8d,#a9dc4e);color:#163d26;font-size:13px;font-weight:1000;box-shadow:0 5px 0 #5d8d2e,0 10px 18px #081d1438;cursor:pointer}
+#ownerDashboard .gdr-occ-back:hover{filter:brightness(1.04);transform:translateY(-1px)}
+#ownerDashboard .gdr-occ-back:active{transform:translateY(3px);box-shadow:0 2px 0 #5d8d2e}
+#ownerDashboard.gdr-owner-mode-properties>#gdrPaymentsOpen,#ownerDashboard.gdr-owner-mode-properties>#gdrOwnerNearbyCard,#ownerDashboard.gdr-owner-mode-visits>#gdrPaymentsOpen,#ownerDashboard.gdr-owner-mode-visits>#gdrOwnerNearbyCard{display:none!important}
+#gdrPaymentsOpen.gdr-pay-launch{border-radius:18px!important;border-color:#83c3e9!important;box-shadow:0 6px 0 #185b89,0 13px 24px #185b8926!important}
+#gdrOwnerNearbyCard.gdr-owner-nearby-launch{border-radius:18px!important;border-color:#b3a1e6!important;box-shadow:0 6px 0 #49377f,0 13px 24px #49377f20!important}
+#gdrOwnerNearbyOpen{min-height:44px!important;padding:0 17px!important;border:1px solid #49377f!important;border-radius:11px!important;background:linear-gradient(180deg,#8b75d3,#6650ad)!important;color:#fff!important;font-weight:950!important;box-shadow:0 5px 0 #49377f,0 9px 16px #49377f2a!important;cursor:pointer}
+#gdrOwnerNearbyOpen:hover{filter:brightness(1.08);transform:translateY(-1px)}
+#gdrOwnerNearbyOpen:active{transform:translateY(3px);box-shadow:0 2px 0 #49377f!important}
+#gdrPaymentsOpen{color:#16466c!important}
+@media(max-width:760px){#ownerDashboard #gdrOwnerCommandCenterHome{padding:14px;border-radius:18px}#ownerDashboard .gdr-occ-card{min-height:92px;padding:13px}#ownerDashboard .gdr-occ-back{width:100%}}
