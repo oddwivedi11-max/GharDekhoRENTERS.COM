@@ -87,10 +87,15 @@ jobs:
         run: |
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
+          python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
           node --check assets/gdr-owner-renter-editor.js
           node --check assets/gdr-owner-renter-page.js
+          node --check assets/gdr-owner-current-renters-dashboard.js
           node --check assets/gdr-owner-command-center.js
+          node --check assets/gdr-owner-command-center-hotfix.js
           node --check assets/gdr-owner-payments.js
+          node --check tests/gdr-owner-workspace-functional.test.cjs
+          node --test tests/gdr-owner-workspace-functional.test.cjs
           node --check tests/gdr-owner-counter-observer-regression.test.cjs
           node --test tests/gdr-owner-counter-observer-regression.test.cjs
           node --check tests/gdr-owner-renter-page.test.cjs
