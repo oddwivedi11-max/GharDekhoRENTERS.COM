@@ -1,0 +1,30 @@
+const test=require("node:test");
+const assert=require("node:assert/strict");
+const fs=require("node:fs");
+const vm=require("node:vm");
+const source=fs.readFileSync(require("node:path").join(__dirname,"..","assets","gdr-owner-command-center.js"),"utf8");
+
+test("owner counter updates do not rewrite unchanged DOM text",()=>{
+ const match=source.match(/function setTextIfChanged\(node,value\)\s*\{[\s\S]*?\n\}/);
+ assert.ok(match,"guarded text update helper must exist");
+ const helper=vm.runInNewContext(match[0]+"; setTextIfChanged",{});
+ let writes=0,current="7";
+ const node={get textContent(){return current;},set textContent(value){writes++;current=value;}};
+ helper(node,"7");
+ assert.equal(writes,0,"identical counter values must not mutate the DOM");
+ helper(node,"8");
+ assert.equal(writes,1,"a changed counter value should update the DOM once");
+ helper(node,"8");
+ assert.equal(writes,1,"repeated observer callbacks must not cause another write");
+});
+
+test("all owner dashboard counters use the guarded updater",()=>{
+ const start=source.indexOf("function updateCounts(dash)");
+ const end=source.indexOf("\nfunction openExternal",start);
+ assert.notEqual(start,-1);assert.notEqual(end,-1);
+ const body=source.slice(start,end);
+ assert.match(body,/setTextIfChanged\(pc,p\)/);
+ assert.match(body,/setTextIfChanged\(rc,renterCount\(\)\)/);
+ assert.match(body,/setTextIfChanged\(vc,v\)/);
+ assert.doesNotMatch(body,/\b(?:pc|rc|vc)\.textContent\s*=/);
+});

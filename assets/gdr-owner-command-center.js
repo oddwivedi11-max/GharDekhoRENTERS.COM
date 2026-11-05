@@ -44,10 +44,17 @@ function setMode(dash,mode){
  }
  if(mode==="home") updateCounts(dash);
 }
+function setTextIfChanged(node,value){
+ if(node && node.textContent!==value)node.textContent=value;
+}
 function updateCounts(dash){
  const p=countText("ownerPropertyCount"),v=countText("ownerPendingVisitCount");
  const pc=$('[data-gdr-count="properties"]',dash),rc=$('[data-gdr-count="renters"]',dash),vc=$('[data-gdr-count="visits"]',dash);
- if(pc)pc.textContent=p;if(rc)rc.textContent=renterCount();if(vc)vc.textContent=v;
+ // Avoid replacing an identical text node: this module observes dashboard mutations,
+ // so unconditional textContent writes can retrigger its own MutationObserver forever.
+ setTextIfChanged(pc,p);
+ setTextIfChanged(rc,renterCount());
+ setTextIfChanged(vc,v);
 }
 function openExternal(dash,module){
  setMode(dash,"home");

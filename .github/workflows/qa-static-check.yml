@@ -14,6 +14,7 @@ on:
       - "codex/fix-details-nearby-property-rpc"
       - "codex/allow-visit-before-admin-verification"
       - "feature/owner-command-center-20261105"
+      - "hotfix/prevent-owner-counter-observer-loop-20261105"
   workflow_dispatch:
 
 permissions:
@@ -89,6 +90,8 @@ jobs:
           node --check assets/gdr-owner-renter-page.js
           node --check assets/gdr-owner-command-center.js
           node --check assets/gdr-owner-payments.js
+          node --check tests/gdr-owner-counter-observer-regression.test.cjs
+          node --test tests/gdr-owner-counter-observer-regression.test.cjs
           node --check tests/gdr-owner-renter-page.test.cjs
           node --test tests/gdr-owner-renter-page.test.cjs
           node --check tests/gdr-property-workflows.test.cjs
