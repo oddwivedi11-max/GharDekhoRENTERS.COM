@@ -368,6 +368,56 @@ if 'gdr-owner-command-center-hotfix.js' not in source:
     source = source.replace("</body>", command_center_tag + "</body>", 1)
     print("Added cache-busted Owner Command Center hotfix controller.")
 
+replace_once(
+'''            container.querySelectorAll(".owner-view-property-btn").forEach(btn => {
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const propertyId = this.dataset.id;
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Opening…";
+                    try { await openPropertyDetails(propertyId); }
+                    catch (err) {
+                        console.error("Owner property details error:", err);
+                        showMessage("backendMessage", "Could not open property details. Please try again.", "error");
+                    }
+                    this.disabled = false;
+                    this.textContent = "◉ View Details";
+                });
+            });
+            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyEditor(btn.dataset.id)));
+            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));''',
+'''            container.querySelectorAll(".owner-view-property-btn").forEach(btn => {
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    const propertyId = this.dataset.id;
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Opening…";
+                    try { await openPropertyDetails(propertyId); }
+                    catch (err) {
+                        console.error("Owner property details error:", err);
+                        showMessage("backendMessage", "Could not open property details. Please try again.", "error");
+                    } finally {
+                        this.disabled = false;
+                        this.textContent = "◉ View Details";
+                    }
+                });
+            });
+            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", function(e) {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                const id = this.dataset.id; if (id) openPropertyEditor(id);
+            }));
+            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", function(e) {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                const id = this.dataset.id; if (id) deleteOwnerProperty(id);
+            }));''',
+    "prevent property action clicks from bubbling into image/file controls"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
 
