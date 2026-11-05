@@ -94,7 +94,30 @@ function addOwnerNearbyAction(){
  card.innerHTML='<div class="gdr-owner-nearby-launch-copy"><span class="gdr-owner-nearby-launch-icon">⌂</span><span><b>Nearby Properties</b><small>Explore available rental homes within 5 KM of your property.</small></span></div><button type="button" id="gdrOwnerNearbyOpen">Open nearby map →</button>';
  var before=root.querySelector(".owner-inventory-card")||root.firstElementChild;
  if(before)root.insertBefore(card,before);else root.appendChild(card);
- $("gdrOwnerNearbyOpen").addEventListener("click",function(){if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function")window.GDRMapExperience.openOwnerNearbyMap();else toast("Nearby map is loading. Please try again in a moment.",true);});
+ $("gdrOwnerNearbyOpen").addEventListener("click",function(){
+  function launch(){
+   var api=window.GDRMapExperience;
+   if(!api||typeof api.openOwnerNearbyMap!=="function")throw new Error("Nearby map module is unavailable.");
+   return api.openOwnerNearbyMap();
+  }
+  try{
+   if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function"){
+    Promise.resolve(launch()).catch(function(error){console.error("Owner nearby map failed:",error);toast(error&&error.message||"Nearby map could not be opened.",true);});
+    return;
+   }
+   if(!window.__gdrMapExperienceLoadPromise){
+    window.__gdrMapExperienceLoadPromise=new Promise(function(resolve,reject){
+     var script=document.createElement("script");
+     script.src="/assets/gdr-map-experience.js?owner-nearby-retry=1";
+     script.async=true;
+     script.onload=resolve;
+     script.onerror=function(){reject(new Error("Nearby map module failed to load."));};
+     document.head.appendChild(script);
+    });
+   }
+   window.__gdrMapExperienceLoadPromise.then(function(){return launch();}).catch(function(error){console.error("Owner nearby map failed:",error);toast(error&&error.message||"Nearby map could not be opened.",true);});
+  }catch(error){console.error("Owner nearby map failed:",error);toast(error&&error.message||"Nearby map could not be opened.",true);}
+ });
 }
 function boot(){addRenter();addOwnerNearbyAction();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
 document.addEventListener("click",function(event){
