@@ -13,6 +13,7 @@ on:
       - "codex/fix-saved-card-native-handlers"
       - "codex/fix-details-nearby-property-rpc"
       - "codex/allow-visit-before-admin-verification"
+      - "feature/owner-command-center-20261105"
   workflow_dispatch:
 
 permissions:
@@ -86,6 +87,8 @@ jobs:
           node --check assets/gdr-map-experience.js
           node --check assets/gdr-owner-renter-editor.js
           node --check assets/gdr-owner-renter-page.js
+          node --check assets/gdr-owner-command-center.js
+          node --check assets/gdr-owner-payments.js
           node --check tests/gdr-owner-renter-page.test.cjs
           node --test tests/gdr-owner-renter-page.test.cjs
           node --check tests/gdr-property-workflows.test.cjs
