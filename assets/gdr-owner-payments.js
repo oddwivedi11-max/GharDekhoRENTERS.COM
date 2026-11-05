@@ -48,7 +48,7 @@ async function load(){
  properties=pr.data||[];occupancies=oc.data||[];settings=se.data||[];payments=pa.data||[];charges=ch.data||[];
  // Attach current renter and property labels without relying on optional PostgREST relationship names.
  payments=payments.map(p=>{const o=occupancies.find(x=>x.id===p.occupancy_id);return {...p,renter_name:o?.renter_name||"Renter",property_name:propName(p.property_id),renter_phone:o?.renter_phone||""};});
- charges=charges.map(x=>{const o=occupancies.find(row=>row.id===x.occupancy_id);return {...x,renter_name:o?.renter_name||"Renter",property_id:o?.property_id||null,property_name:propName(o?.property_id)};});
+ charges=charges.filter(x=>occupancies.some(row=>row.id===x.occupancy_id)).map(x=>{const o=occupancies.find(row=>row.id===x.occupancy_id);return {...x,renter_name:o?.renter_name||"Renter",property_id:o?.property_id||null,property_name:propName(o?.property_id)};});
 }
 function stat(label,value,icon,sub){return '<article class="gdr-pay-stat"><span class="gdr-pay-stat-icon">'+icon+'</span><div><small>'+label+'</small><strong>'+value+'</strong><em>'+sub+'</em></div></article>';}
 function render(){
