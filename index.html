@@ -9139,7 +9139,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <link rel="stylesheet" href="/assets/gdr-map-experience.css">
   <link rel="stylesheet" href="/assets/gdr-rental-suite.css">
-  <link rel="stylesheet" href="/assets/gdr-owner-payments.css">
+  <link rel="stylesheet" href="/assets/gdr-owner-payments.css?v=20261105-workspace2">
 <link rel="stylesheet" href="/assets/gdr-homepage-premium-v1.css">
 </head>
 
@@ -15457,6 +15457,7 @@ async function loadOwnerProperties() {
                 btn.addEventListener("click", async function(e) {
                     e.preventDefault();
                     e.stopPropagation();
+                    e.stopImmediatePropagation();
                     const propertyId = this.dataset.id;
                     if (!propertyId) return;
                     this.disabled = true;
@@ -15465,13 +15466,20 @@ async function loadOwnerProperties() {
                     catch (err) {
                         console.error("Owner property details error:", err);
                         showMessage("backendMessage", "Could not open property details. Please try again.", "error");
+                    } finally {
+                        this.disabled = false;
+                        this.textContent = "◉ View Details";
                     }
-                    this.disabled = false;
-                    this.textContent = "◉ View Details";
                 });
             });
-            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyEditor(btn.dataset.id)));
-            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));
+            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", function(e) {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                const id = this.dataset.id; if (id) openPropertyEditor(id);
+            }));
+            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", function(e) {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                const id = this.dataset.id; if (id) deleteOwnerProperty(id);
+            }));
 
             await loadOwnerCurrentRenters(data);
         }
@@ -20722,12 +20730,12 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 })();
 </script>
 <script src="/assets/gdr-map-experience.js"></script>
-<script src="/assets/gdr-owner-renter-page.js"></script>
+<script src="/assets/gdr-owner-renter-page.js?v=20261105-workspace2"></script>
 <script src="/assets/gdr-rental-suite.js"></script>
-  <script src="/assets/gdr-owner-payments.js" defer></script>
-<script src="/assets/gdr-owner-current-renters-dashboard.js" defer></script>
+  <script src="/assets/gdr-owner-payments.js?v=20261105-workspace2" defer></script>
+<script src="/assets/gdr-owner-current-renters-dashboard.js?v=20261105-workspace2" defer></script>
 <script src="/assets/gdr-owner-saved-properties-cleanup.js" defer></script>
-<script src="/assets/gdr-owner-command-center-hotfix.js" defer></script>
+<script src="/assets/gdr-owner-command-center-hotfix.js?v=20261105-workspace2" defer></script>
 </body>
 
 </html>
