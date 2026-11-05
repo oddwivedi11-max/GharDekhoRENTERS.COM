@@ -40,7 +40,7 @@ jobs:
 
       - name: Validate owner Nearby map modules
         run: |
-          python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
+          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
           node --check assets/gdr-map-experience.js
           node --check assets/gdr-rental-suite.js
           node --check assets/gdr-owner-command-center-hotfix.js
