@@ -87,6 +87,7 @@ function openExternal(dash,module){
 function bindLogout(){
  const button=$("#dashboardLogoutBtn");
  if(!button||button.dataset.gdrLogoutBound==="1")return;
+ if(typeof window.logoutUser!=="function" && typeof logoutUser==="function")window.logoutUser=logoutUser;
  button.dataset.gdrLogoutBound="1";
  button.removeAttribute("onclick");
  button.addEventListener("click",async function(event){
@@ -129,7 +130,7 @@ function bind(dash){
 }
 function styles(){
  if($("#gdrOwnerCommandCenterStyle"))return;
- const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css?v=20261105-workspace2";document.head.appendChild(link);
+ const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css?v=20261105-workspace3";document.head.appendChild(link);
 }
 function init(){
  styles();
