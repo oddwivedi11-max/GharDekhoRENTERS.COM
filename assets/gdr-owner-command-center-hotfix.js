@@ -94,7 +94,7 @@ function bind(dash){
 }
 function styles(){
  if($("#gdrOwnerCommandCenterStyle"))return;
- const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css";document.head.appendChild(link);
+ const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css?v=20261105-workspace2";document.head.appendChild(link);
 }
 function init(){
  styles();
