@@ -10,6 +10,13 @@
     const style = document.createElement("style");
     style.id = "gdr-owner-renters-dashboard-style";
     style.textContent = `
+      /* Keep occupancy records off the long owner dashboard; they move into the dedicated renter workspace when opened. */
+      #ownerDashboard .owner-occupancy-card{display:none!important}
+      .gd-current-renter-card-v2{grid-template-columns:58px minmax(0,1fr) auto!important;align-items:center!important}
+      .gd-current-renter-view-action{display:inline-flex!important;align-items:center!important;justify-content:center!important;min-height:40px!important;padding:0 15px!important;border:1px solid #e94d86!important;border-radius:12px!important;background:linear-gradient(145deg,#ff8db7,#ed4f89)!important;color:#fff!important;font-size:12px!important;font-weight:950!important;letter-spacing:.01em!important;white-space:nowrap!important;box-shadow:0 5px 0 #c93670,0 9px 17px rgba(220,55,116,.2)!important}
+      .gd-current-renter-card-v2 .gd-current-renter-view-action{justify-self:end!important;align-self:center!important}
+      .gd-current-renter-card-v2:hover .gd-current-renter-view-action{transform:translateY(-1px);box-shadow:0 6px 0 #c93670,0 12px 20px rgba(220,55,116,.24)!important}
+      @media(max-width:700px){.gd-current-renter-card-v2{grid-template-columns:42px minmax(0,1fr) auto!important;gap:10px!important}.gd-current-renter-view-action{min-height:35px!important;padding:0 9px!important;font-size:10px!important;border-radius:10px!important}}
       .gdr-owner-entry-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important;align-items:stretch}
       .gdr-owner-entry-card{min-height:184px!important;justify-content:space-between!important;padding:24px!important;border-radius:22px!important}
       .gdr-current-renters-entry{background:linear-gradient(145deg,#fbf4eb,#f1e4d6)!important;border:1px solid #dfc9b3!important;box-shadow:0 12px 28px rgba(93,62,39,.10),inset 0 1px 0 rgba(255,255,255,.9)!important}
@@ -221,13 +228,25 @@
     button.addEventListener("click", open);
   }
 
+  function ensureRenterActions() {
+    document.querySelectorAll("#ownerDashboard .owner-occupancy-card .gd-current-renter-card-v2,#gdrOwnerCurrentRentersPage .gd-current-renter-card-v2").forEach(card => {
+      if (card.querySelector(".gd-current-renter-view-action")) return;
+      const action=document.createElement("span");
+      action.className="gd-current-renter-view-action";
+      action.setAttribute("aria-hidden","true");
+      action.textContent="View Details →";
+      card.appendChild(action);
+    });
+  }
+
   function boot() {
     styles();
     addEntryCard();
     bindButton();
+    ensureRenterActions();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
   else boot();
-  new MutationObserver(() => { addEntryCard(); bindButton(); }).observe(document.body, { childList: true, subtree: true });
+  new MutationObserver(() => { addEntryCard(); bindButton(); ensureRenterActions(); }).observe(document.body, { childList: true, subtree: true });
   window.GDROwnerCurrentRenters = { open, close };
 })();
