@@ -65,4 +65,7 @@ jobs:
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
-          echo "Cloudflare worker and GDR map assets are responding."
+          grep -q 'gdr-owner-command-center-hotfix.js' /tmp/gdr-live-index.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js" -o /tmp/gdr-owner-command-center-hotfix.js
+          grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
+          echo "Cloudflare worker, GDR map assets, and owner dashboard hotfix are responding."
