@@ -29,6 +29,11 @@ function ensureHome(dash){
   header.innerHTML='<div class="gdr-occ-module-copy"><span class="gdr-occ-eyebrow" id="gdrOccModuleEyebrow"></span><h2 id="gdrOccModuleTitle"></h2><p id="gdrOccModuleSubtitle"></p></div><button type="button" class="gdr-occ-back" data-gdr-owner-home>← Back to Dashboard</button>';
   home.insertAdjacentElement("afterend",header);
  }
+ const back=$("[data-gdr-owner-home]",header);
+ if(back && back.dataset.gdrBackBound!=="1"){
+  back.dataset.gdrBackBound="1";
+  back.addEventListener("click",function(event){event.preventDefault();event.stopPropagation();setMode(dash,"home");});
+ }
  return {home,header};
 }
 function setMode(dash,mode){
@@ -65,8 +70,14 @@ function openExternal(dash,module){
   if(window.GDRPayments&&typeof window.GDRPayments.open==="function")window.GDRPayments.open();
   else {const b=$("#gdrPaymentsOpen");if(b)b.click();}
  }else if(module==="nearby"){
-  if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function")window.GDRMapExperience.openOwnerNearbyMap();
-  else {const b=$("#ownerExploreNearbyBtn");if(b)b.click();}
+  const api=window.GDRMapExperience;
+  if(api&&typeof api.openOwnerNearbyMap==="function"){
+   try{Promise.resolve(api.openOwnerNearbyMap()).catch(error=>console.error("Owner nearby map failed to open:",error));}
+   catch(error){console.error("Owner nearby map failed to open:",error);}
+  }else{
+   const b=$("#gdrOwnerNearbyOpen")||$("#ownerExploreNearbyBtn");
+   if(b)b.click();else console.warn("Owner nearby map launcher is not available yet.");
+  }
  }
 }
 function bind(dash){

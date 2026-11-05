@@ -42,6 +42,8 @@ jobs:
         run: |
           node --check assets/gdr-map-experience.js
           node --check assets/gdr-rental-suite.js
+          node --check assets/gdr-owner-command-center-hotfix.js
+          node --test tests/gdr-owner-dashboard-navigation.test.cjs
           node --test tests/gdr-owner-nearby-map.test.cjs
           node --test tests/gdr-pincode-search.test.cjs
           node --test tests/gdr-admin-layout.test.cjs
