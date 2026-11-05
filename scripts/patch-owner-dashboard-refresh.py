@@ -421,11 +421,11 @@ replace_once(
 # Cache-bust the owner workspace modules changed in this release so browsers and
 # the Cloudflare edge cannot keep serving a previous dashboard bundle.
 for old, new in (
-    ('src="/assets/gdr-owner-renter-page.js"', 'src="/assets/gdr-owner-renter-page.js?v=20261105-workspace2"'),
-    ('src="/assets/gdr-owner-payments.js"', 'src="/assets/gdr-owner-payments.js?v=20261105-workspace2"'),
-    ('src="/assets/gdr-owner-current-renters-dashboard.js"', 'src="/assets/gdr-owner-current-renters-dashboard.js?v=20261105-workspace2"'),
-    ('src="/assets/gdr-owner-command-center-hotfix.js"', 'src="/assets/gdr-owner-command-center-hotfix.js?v=20261105-workspace2"'),
-    ('href="/assets/gdr-owner-payments.css"', 'href="/assets/gdr-owner-payments.css?v=20261105-workspace2"'),
+    ('src="/assets/gdr-owner-renter-page.js"', 'src="/assets/gdr-owner-renter-page.js?v=20261105-workspace3"'),
+    ('src="/assets/gdr-owner-payments.js"', 'src="/assets/gdr-owner-payments.js?v=20261105-workspace3"'),
+    ('src="/assets/gdr-owner-current-renters-dashboard.js"', 'src="/assets/gdr-owner-current-renters-dashboard.js?v=20261105-workspace3"'),
+    ('src="/assets/gdr-owner-command-center-hotfix.js"', 'src="/assets/gdr-owner-command-center-hotfix.js?v=20261105-workspace3"'),
+    ('href="/assets/gdr-owner-payments.css"', 'href="/assets/gdr-owner-payments.css?v=20261105-workspace3"'),
 ):
     if old in source:
         source = source.replace(old, new)
