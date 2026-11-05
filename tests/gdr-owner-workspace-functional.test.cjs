@@ -12,7 +12,7 @@ const controller=read("assets/gdr-owner-command-center-hotfix.js");
 const ownerCss=read("assets/gdr-owner-command-center.css");
 const rental=read("assets/gdr-rental-suite.js");
 const patch=read("scripts/patch-owner-dashboard-refresh.py");
-const chargeMigration=read("supabase/migrations/20261105100000_add_occupancy_charge_description.sql");
+const chargeMigration=read("supabase/migrations/20261105170651_add_occupancy_charge_description.sql");
 
 test("My Payments loads owner-scoped active charges and links them to active renter/property records",()=>{
  assert.match(payments,/from\("occupancy_charges"\)/);
