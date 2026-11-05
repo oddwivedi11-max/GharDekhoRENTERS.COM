@@ -87,3 +87,26 @@ body.gdr-pay-lock>header,body.gdr-pay-lock>.site-header,body.gdr-pay-lock>#siteH
  #gdrPaymentsPage .gdr-pay-close{width:100%;justify-content:center}
  #gdrPaymentsPage .gdr-pay-close span{display:inline}
 }
+
+/* Additional-charge workspace: separate from verified payment collection. */
+.gdr-pay-charge-list{display:grid;gap:10px}
+.gdr-pay-charge-row{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:14px 16px;border:1px solid #e0e9e4;border-radius:14px;background:#fbfdfb}
+.gdr-pay-charge-row>div{display:grid;gap:4px;min-width:0}
+.gdr-pay-charge-row b{color:#193a2b;font-size:14px}
+.gdr-pay-charge-row small{color:#667a6d;font-size:11px;line-height:1.4}
+.gdr-pay-charge-row p{margin:2px 0;color:#52665a;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.gdr-pay-charge-row>strong{flex:0 0 auto;color:#174a35;font-size:16px}
+.gdr-pay-charge-modal[hidden]{display:none!important}
+.gdr-pay-charge-modal{position:fixed;inset:0;z-index:1000000;display:grid;place-items:center;padding:18px;background:rgba(7,28,19,.62);backdrop-filter:blur(5px);overflow:auto}
+.gdr-pay-charge-dialog{width:min(620px,100%);max-height:min(90vh,850px);overflow:auto;padding:22px;border:1px solid #cbdccf;border-radius:22px;background:#fbfdf9;color:#172e22;box-shadow:0 25px 80px rgba(0,0,0,.28)}
+.gdr-pay-charge-dialog>header{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;margin-bottom:18px}
+.gdr-pay-charge-dialog h2{margin:5px 0;color:#173c29;font-size:clamp(20px,3vw,26px);line-height:1.15}
+.gdr-pay-charge-dialog p{margin:0;color:#64776a;font-size:12px;line-height:1.5}
+.gdr-pay-charge-dialog .gdr-pay-form{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:13px}
+.gdr-pay-charge-dialog .gdr-pay-form label{display:grid;gap:7px;min-width:0;color:#304c39;font-size:11px;font-weight:900}
+.gdr-pay-charge-dialog .gdr-pay-form label:first-child,.gdr-pay-charge-dialog .gdr-pay-form label:nth-child(2),.gdr-pay-charge-dialog .gdr-pay-form label:nth-child(3){grid-column:1/-1}
+.gdr-pay-charge-dialog input,.gdr-pay-charge-dialog select,.gdr-pay-charge-dialog textarea{width:100%;min-width:0;min-height:44px;padding:11px 12px;border:1px solid #d5e1d7;border-radius:11px;background:#fff;color:#20372a;font:inherit;font-size:13px;box-sizing:border-box}
+.gdr-pay-charge-dialog textarea{min-height:78px;resize:vertical}
+.gdr-pay-charge-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;padding-top:7px}
+.gdr-pay-charge-dialog button:focus-visible{outline:3px solid #b8e76b;outline-offset:3px}
+@media(max-width:560px){.gdr-pay-charge-dialog{padding:16px;border-radius:17px}.gdr-pay-charge-dialog .gdr-pay-form{grid-template-columns:1fr}.gdr-pay-charge-dialog .gdr-pay-form label{grid-column:1/-1}.gdr-pay-charge-actions{flex-direction:column-reverse}.gdr-pay-charge-actions button{width:100%;min-height:46px}}
