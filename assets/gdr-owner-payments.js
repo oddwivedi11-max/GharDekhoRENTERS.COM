@@ -111,7 +111,25 @@ async function open(){
  try{await load();render();}catch(e){$("gdrPayContent").innerHTML='<div class="gdr-pay-empty"><b>Payment dashboard could not load</b><small>'+esc(e.message)+'</small><button class="gdr-pay-primary" id="gdrPayRetry">Try again</button></div>';$("gdrPayRetry")?.addEventListener("click",open);}
 }
 function close(){if(root)root.classList.remove("open");document.body.classList.remove("gdr-pay-lock");}
-function boot(){const obsoleteButton=$("gdrPaymentsOpen");if(obsoleteButton)obsoleteButton.remove();const obsoletePage=$("gdrPaymentsPage");if(obsoletePage)obsoletePage.remove();document.body.classList.remove("gdr-pay-lock");}
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
+function injectButton(){
+ const dash=$("ownerDashboard");if(!dash)return;
+ styles();
+ let btn=$("gdrPaymentsOpen");
+ if(!btn){
+  btn=document.createElement("button");btn.id="gdrPaymentsOpen";btn.type="button";btn.className="gdr-pay-launch";
+  btn.innerHTML='<span class="gdr-pay-launch-icon">₹</span><span class="gdr-pay-launch-copy"><b>My Payments</b><small>Rent collection · UPI settings · payment records</small></span><span class="gdr-pay-launch-arrow">↗</span>';
+  const stats=dash.querySelector(".dashboard-stats-grid");
+  if(stats)stats.insertAdjacentElement("afterend",btn);else dash.prepend(btn);
+ }
+ if(btn.dataset.gdrBound!=="1"){btn.dataset.gdrBound="1";btn.addEventListener("click",open);}
+}
+function boot(){
+ const obsoletePage=$("gdrPaymentsPage");if(obsoletePage)obsoletePage.remove();
+ document.body.classList.remove("gdr-pay-lock");
+ injectButton();
+ const observer=new MutationObserver(()=>injectButton());
+ observer.observe(document.body,{childList:true,subtree:true});
+}
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 window.GDRPayments={open,close};
 })();
