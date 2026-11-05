@@ -3,6 +3,10 @@
   const $ = (id) => document.getElementById(id);
   const esc = (v) => String(v ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
   const money = v => "₹" + new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).format(Number(v||0));
+  const withTimeout=(promise,ms,label)=>new Promise((resolve,reject)=>{
+    const timer=setTimeout(()=>reject(new Error(label||"Request timed out. Please retry.")),ms);
+    Promise.resolve(promise).then(value=>{clearTimeout(timer);resolve(value);},error=>{clearTimeout(timer);reject(error);});
+  });
   const dateText = v => { if(!v) return "Not set"; const d=new Date(v+"T00:00:00"); return Number.isNaN(d.getTime())?"Not set":d.toLocaleDateString("en-IN",{day:"2-digit",month:"long",year:"numeric"}); };
   let currentId = null, page = null, priorTitle = document.title, loading = false, editingChargeId = null;
   const client = () => window.__gdrSupabaseClient || window.supabaseClient || null;
@@ -16,6 +20,15 @@
       #gdrOwnerRenterPage{position:fixed;inset:0;z-index:100000;overflow:auto;color:var(--gdr-pink-ink);font-family:inherit;background:radial-gradient(ellipse at 8% 0%,#fceaf1 0,transparent 36%),radial-gradient(ellipse at 94% 12%,#f8e8ef 0,transparent 32%),linear-gradient(180deg,#fffafd 0%,#fff7fa 48%,#fbf1f5 100%)}
       #gdrOwnerRenterPage *{box-sizing:border-box}
       .gdr-rp-shell{width:min(100%,1120px);margin:0 auto;padding:24px 22px 48px}
+      #gdrOwnerRenterPage{pointer-events:auto!important;overscroll-behavior:contain}
+      #gdrOwnerRenterPage button,#gdrOwnerRenterPage input,#gdrOwnerRenterPage select,#gdrOwnerRenterPage textarea{pointer-events:auto!important;position:relative;z-index:2}
+      #gdrOwnerRenterPage .gdr-rp-card{min-width:0;overflow:visible}
+      #gdrOwnerRenterPage .gdr-rp-form[hidden]{display:none!important}
+      #gdrOwnerRenterPage .gdr-rp-actions{position:relative;z-index:2;display:flex;flex-wrap:wrap;gap:9px}
+      #gdrOwnerRenterPage .gdr-rp-btn{min-height:44px;cursor:pointer;touch-action:manipulation}
+      #gdrOwnerRenterPage .gdr-rp-btn:disabled{opacity:.55;cursor:not-allowed}
+      #gdrOwnerRenterPage .gdr-rp-message{min-height:22px;overflow-wrap:anywhere}
+
       .gdr-rp-top{display:flex;align-items:center;gap:16px;padding:4px 0 20px}
       .gdr-rp-back{min-height:46px;padding:0 17px;border:1px solid #e9cbd8;border-radius:14px;background:rgba(255,255,255,.88);color:#87445f;font-weight:850;box-shadow:0 5px 15px rgba(133,68,95,.06);cursor:pointer;transition:transform .2s,box-shadow .2s}
       .gdr-rp-back:hover{transform:translateY(-2px);box-shadow:0 9px 20px rgba(133,68,95,.12)}
@@ -144,7 +157,7 @@
     value.textContent="Loading…";
     try{
       const c=client();if(!c)throw new Error("Account service is unavailable.");
-      const r=await c.from("property_occupancies").select("expected_move_out_at").eq("id",row.id).maybeSingle();
+      const r=await withTimeout(c.from("property_occupancies").select("expected_move_out_at").eq("id",row.id).maybeSingle(),12000,"Move-out date request timed out. Please refresh and retry.");
       if(r.error)throw r.error;
       value.textContent=dateText(r.data?.expected_move_out_at);
       form.elements.moveout.value=r.data?.expected_move_out_at||"";
@@ -190,7 +203,7 @@
     if(!c){target.innerHTML='<p class="gdr-rp-note">Additional charges are unavailable because the account service is not connected.</p>';if(add)add.disabled=true;return;}
     if(add)add.disabled=false;
     try{
-      const r=await c.from("occupancy_charges").select("id,title,description,amount,frequency,due_day,is_active").eq("occupancy_id",row.id).eq("is_active",true).order("created_at",{ascending:false});
+      const r=await withTimeout(c.from("occupancy_charges").select("id,title,description,amount,frequency,due_day,is_active").eq("occupancy_id",row.id).eq("is_active",true).order("created_at",{ascending:false}),12000,"Additional charges request timed out. Please refresh and retry.");
       if(r.error)throw r.error;
       window.__gdrRenterCharges=Array.isArray(r.data)?r.data:[];
       if(!window.__gdrRenterCharges.length){target.innerHTML='<p class="gdr-rp-note">No additional charges have been added yet.</p>';return;}

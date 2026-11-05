@@ -6,12 +6,9 @@ const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).fo
 const client=()=>window.__gdrSupabaseClient||window.supabaseClient||null;
 let root=null,owner=null,properties=[],occupancies=[],settings=[],payments=[],charges=[],activeProperty="all",filterStatus="all",search="",tab="overview",busy=false,chargeBusy=false;
 function injectButton(){
- const dash=$("ownerDashboard");if(!dash||$("gdrPaymentsOpen"))return;
- const btn=document.createElement("button");btn.id="gdrPaymentsOpen";btn.type="button";btn.className="gdr-pay-launch";
- btn.innerHTML='<span class="gdr-pay-launch-icon">₹</span><span class="gdr-pay-launch-copy"><b>My Payments</b><small>Rent collection · UPI settings · payment records</small></span><span class="gdr-pay-launch-arrow">↗</span>';
- const stats=dash.querySelector(".dashboard-stats-grid");
- if(stats)stats.insertAdjacentElement("afterend",btn);else dash.prepend(btn);
- btn.addEventListener("click",open);
+ // My Payments is already a command-centre tile. Remove the old second launcher.
+ const duplicate=$("gdrPaymentsOpen");
+ if(duplicate)duplicate.remove();
 }
 function styles(){
  if($("gdr-pay-style"))return;
@@ -158,8 +155,7 @@ function boot(){
  const obsoletePage=$("gdrPaymentsPage");if(obsoletePage)obsoletePage.remove();
  document.body.classList.remove("gdr-pay-lock");
  injectButton();
- const observer=new MutationObserver(()=>injectButton());
- observer.observe(document.body,{childList:true,subtree:true});
+ styles();
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot,{once:true});else boot();
 window.GDRPayments={open,close};
