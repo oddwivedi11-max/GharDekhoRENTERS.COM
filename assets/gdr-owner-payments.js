@@ -92,10 +92,9 @@ function bindContent(){
  const pf=$("gdrPayPropertyFilter");if(pf)pf.addEventListener("change",e=>{activeProperty=e.target.value;render();});
  const sf=$("gdrPayStatusFilter");if(sf)sf.addEventListener("change",e=>{filterStatus=e.target.value;render();});
  root.querySelectorAll("[data-verify]").forEach(b=>b.addEventListener("click",()=>verify(b.dataset.verify,b.dataset.decision)));
- $("gdrPayAddCharge")?.addEventListener("click",openChargeForm);
- $("gdrPayChargeCancel")?.addEventListener("click",closeChargeForm);
- $("gdrPayChargeCancelBottom")?.addEventListener("click",closeChargeForm);
- const chargeForm=$("gdrPayChargeForm");if(chargeForm)chargeForm.addEventListener("submit",saveCharge);
+ const addChargeButton=$("gdrPayAddCharge");if(addChargeButton)addChargeButton.addEventListener("click",openChargeForm);
+ ["gdrPayChargeCancel","gdrPayChargeCancelBottom"].forEach(id=>{const button=$(id);if(button&&button.dataset.gdrBound!=="1"){button.dataset.gdrBound="1";button.addEventListener("click",closeChargeForm);}});
+ const chargeForm=$("gdrPayChargeForm");if(chargeForm&&chargeForm.dataset.gdrBound!=="1"){chargeForm.dataset.gdrBound="1";chargeForm.addEventListener("submit",saveCharge);}
  const f=$("gdrPaySettingsForm");if(f){f.elements.property_id.addEventListener("change",e=>{activeProperty=e.target.value;render();});f.addEventListener("submit",saveSettings);$("gdrPayQrFile")?.addEventListener("change",previewQr);}
 }
 function openChargeForm(){
