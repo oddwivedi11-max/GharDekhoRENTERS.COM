@@ -430,6 +430,9 @@ for old, new in (
     if old in source:
         source = source.replace(old, new)
         print("Cache-busted owner workspace asset: " + old)
+    elif new.replace("workspace3", "workspace2") in source:
+        source = source.replace(new.replace("workspace3", "workspace2"), new)
+        print("Upgraded owner workspace cache version: " + old)
     elif new not in source:
         raise SystemExit("Stopped safely: expected owner workspace asset reference not found: " + old)
 
