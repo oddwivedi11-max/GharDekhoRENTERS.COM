@@ -2,7 +2,7 @@ const test=require("node:test");
 const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
-const source=fs.readFileSync(require("node:path").join(__dirname,"..","assets","gdr-owner-command-center.js"),"utf8");
+const source=fs.readFileSync(require("node:path").join(__dirname,"..","assets","gdr-owner-command-center-hotfix.js"),"utf8");
 
 test("owner counter updates do not rewrite unchanged DOM text",()=>{
  const match=source.match(/function setTextIfChanged\(node,value\)\s*\{[\s\S]*?\n\}/);

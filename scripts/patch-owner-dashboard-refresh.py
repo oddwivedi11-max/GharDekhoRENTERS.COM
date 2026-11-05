@@ -354,13 +354,19 @@ if 'gdr-owner-saved-properties-cleanup.js' not in source:
     source = source.replace("</body>", tag + "</body>", 1)
     print("Added owner Saved Properties cleanup controller.")
 
-# Load the premium Owner Command Center after the existing owner modules.
-if 'gdr-owner-command-center.js' not in source:
-    command_center_tag = '<script src="/assets/gdr-owner-command-center.js" defer></script>' + chr(10)
+# Load the cache-busted Owner Command Center hotfix. The versioned filename
+# guarantees Cloudflare publishes the corrected observer guard instead of serving
+# a previously cached dashboard controller.
+source = source.replace(
+    '<script src="/assets/gdr-owner-command-center.js" defer></script>',
+    '<script src="/assets/gdr-owner-command-center-hotfix.js" defer></script>'
+)
+if 'gdr-owner-command-center-hotfix.js' not in source:
+    command_center_tag = '<script src="/assets/gdr-owner-command-center-hotfix.js" defer></script>' + chr(10)
     if "</body>" not in source:
-        raise SystemExit("Stopped safely: </body> not found for Owner Command Center loader")
+        raise SystemExit("Stopped safely: </body> not found for Owner Command Center hotfix loader")
     source = source.replace("</body>", command_center_tag + "</body>", 1)
-    print("Added premium Owner Command Center controller.")
+    print("Added cache-busted Owner Command Center hotfix controller.")
 
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
