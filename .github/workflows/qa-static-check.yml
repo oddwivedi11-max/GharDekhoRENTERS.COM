@@ -88,7 +88,7 @@ jobs:
         run: |
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
-          python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
+          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
           node --check assets/gdr-owner-renter-editor.js
           node --check assets/gdr-owner-renter-page.js
           node --check assets/gdr-owner-current-renters-dashboard.js
