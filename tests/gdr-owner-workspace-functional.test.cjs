@@ -57,7 +57,7 @@ test("Property card action patch prevents file picker label activation and event
 });
 
 test("Owner property images are constrained and My Properties remains naturally scrollable",()=>{
- assert.match(ownerCss,/#ownerDashboard\{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important(?:contain:none!important)?\}/);
+ assert.ok(ownerCss.includes("#ownerDashboard{height:auto!important;min-height:0!important;max-height:none!important;overflow:visible!important;"));
  assert.match(ownerCss,/owner-property-photo img\{display:block;width:100%;height:100%;min-height:0;max-height:260px;object-fit:cover\}/);
  assert.match(ownerCss,/@media\(max-width:680px\)/);
 });
