@@ -261,3 +261,21 @@
   observer.observe(document.body,{childList:true,subtree:true});
   const ledgerScript=document.createElement("script"); ledgerScript.src="/assets/gdr-owner-renter-ledger.js"; ledgerScript.defer=true; document.head.appendChild(ledgerScript);
 })();
+
+/* Renter profile forms stay inside the page scroll area and never sit under dashboard overlays. */
+#gdrOwnerRenterPage{position:fixed;inset:0;z-index:90000;overflow:auto;overscroll-behavior:contain;background:#f4f8f5}
+#gdrOwnerRenterPage .gdr-rp-shell{width:min(1120px,100%);min-height:100%;margin:0 auto;padding:clamp(12px,2.4vw,26px);box-sizing:border-box}
+#gdrOwnerRenterPage .gdr-rp-grid{align-items:start}
+#gdrOwnerRenterPage .gdr-rp-card{min-width:0;overflow:visible}
+#gdrOwnerRenterPage .gdr-rp-form{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+#gdrOwnerRenterPage .gdr-rp-form[hidden]{display:none!important}
+#gdrOwnerRenterPage .gdr-rp-form label{min-width:0}
+#gdrOwnerRenterPage .gdr-rp-form label.gdr-rp-full{grid-column:1/-1}
+#gdrOwnerRenterPage .gdr-rp-form input,#gdrOwnerRenterPage .gdr-rp-form select,#gdrOwnerRenterPage .gdr-rp-form textarea{width:100%;max-width:100%;box-sizing:border-box}
+#gdrOwnerRenterPage .gdr-rp-actions{display:flex;flex-wrap:wrap;gap:9px;align-items:center}
+#gdrOwnerRenterPage .gdr-rp-btn{min-height:44px;touch-action:manipulation;cursor:pointer}
+#gdrOwnerRenterPage .gdr-rp-btn:disabled{opacity:.55;cursor:not-allowed;transform:none}
+#gdrOwnerRenterPage .gdr-rp-charge{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;min-width:0}
+#gdrOwnerRenterPage .gdr-rp-charge>div{min-width:0;overflow-wrap:anywhere}
+#gdrOwnerRenterPage .gdr-rp-charge small{display:block;white-space:normal;overflow-wrap:anywhere}
+@media(max-width:640px){#gdrOwnerRenterPage .gdr-rp-shell{padding:12px}#gdrOwnerRenterPage .gdr-rp-form{grid-template-columns:1fr}#gdrOwnerRenterPage .gdr-rp-form label.gdr-rp-full{grid-column:1}#gdrOwnerRenterPage .gdr-rp-charge{flex-direction:column}#gdrOwnerRenterPage .gdr-rp-actions .gdr-rp-btn{flex:1 1 100%}}
