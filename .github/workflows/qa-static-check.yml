@@ -3,6 +3,7 @@ name: GDR QA Static Checks
 on:
   push:
     branches:
+      - "main"
       - "fix/full-qa-20261020"
       - "feature/gdr-master-platform-20261104"
       - "fix/find-home-pin-search-smooth-20261104"
@@ -91,6 +92,7 @@ jobs:
           node --test tests/gdr-property-workflows.test.cjs
           node --check tests/gdr-owner-renter-map.spec.cjs
           node --test tests/gdr-owner-renter-map.spec.cjs
+          node --test tests/gdr-admin-layout.test.cjs
           node --check tests/gdr-map-experience.spec.cjs
           node --check tests/gdr-nearby-preservation.spec.cjs
           node --check tests/gdr-role-switch-navigation.test.cjs

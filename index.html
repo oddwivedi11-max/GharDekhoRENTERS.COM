@@ -11097,6 +11097,11 @@ function setRoleSpecificUI(role) {
     const isOwner = role === "owner";
     const isRenter = role === "renter";
     const isAdmin = role === "admin";
+    const dashboardSection = document.getElementById("dashboardSection");
+    if (isAdmin && dashboardSection) {
+        dashboardSection.style.display = "none";
+        dashboardSection.setAttribute("aria-hidden", "true");
+    }
     const canExploreHomes = isOwner && ownerExploreMode;
 
     document.body.classList.add("gd-authenticated");
@@ -12727,6 +12732,10 @@ async function renderActiveDashboard() {
     }
 
     if (roles.length === 1 && roles[0] === "admin") {
+        // Admin uses its dedicated dashboard; never show the shared renter/owner shell.
+        dashboard.style.display = "none";
+        dashboard.setAttribute("aria-hidden", "true");
+        if (dashboardLogoutBtn) dashboardLogoutBtn.style.display = "none";
         if (title) title.textContent = "Admin Control Center";
         if (subtitle) subtitle.textContent = "Manage all properties and owner information.";
         if (roleBadge) roleBadge.textContent = "ADMIN";
@@ -12780,8 +12789,8 @@ async function renderActiveDashboard() {
 
             const dashboard=document.getElementById("dashboardSection");
             if(dashboard) {
-                dashboard.style.display="block";
-                dashboard.setAttribute("aria-hidden","false");
+                dashboard.style.display="none";
+                dashboard.setAttribute("aria-hidden","true");
             }
 
             const admin=document.getElementById("adminDashboard");

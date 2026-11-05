@@ -44,6 +44,7 @@ jobs:
           node --check assets/gdr-rental-suite.js
           node --test tests/gdr-owner-nearby-map.test.cjs
           node --test tests/gdr-pincode-search.test.cjs
+          node --test tests/gdr-admin-layout.test.cjs
 
       - name: Deploy static site with Wrangler
         uses: cloudflare/wrangler-action@v3
