@@ -15,6 +15,7 @@ on:
       - "codex/allow-visit-before-admin-verification"
       - "feature/owner-command-center-20261105"
       - "fix/owner-workspace-complete-functional-audit-20261105"
+      - "fix/owner-ui-navigation-visibility-20261105"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
@@ -97,6 +98,8 @@ jobs:
           node --check assets/gdr-owner-payments.js
           node --check tests/gdr-owner-workspace-functional.test.cjs
           node --test tests/gdr-owner-workspace-functional.test.cjs
+          node --check tests/gdr-owner-ui-navigation-regression.test.cjs
+          node --test tests/gdr-owner-ui-navigation-regression.test.cjs
           node --check tests/gdr-owner-counter-observer-regression.test.cjs
           node --test tests/gdr-owner-counter-observer-regression.test.cjs
           node --check tests/gdr-owner-renter-page.test.cjs
