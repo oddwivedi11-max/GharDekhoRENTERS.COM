@@ -18,7 +18,6 @@ function ensureHome(dash){
   '<button type="button" class="gdr-occ-card gdr-occ-rose" data-gdr-module="renters"><span class="gdr-occ-icon" aria-hidden="true">♙</span><span class="gdr-occ-copy"><b>Current Renters</b><small>Manage active tenants and tenancy</small><em><strong data-gdr-count="renters">0</strong> active renters</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
   '<button type="button" class="gdr-occ-card gdr-occ-blue" data-gdr-module="payments"><span class="gdr-occ-icon" aria-hidden="true">₹</span><span class="gdr-occ-copy"><b>My Payments</b><small>Rent collection and UPI records</small><em>Payment management</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
   '<button type="button" class="gdr-occ-card gdr-occ-orange" data-gdr-module="visits"><span class="gdr-occ-icon" aria-hidden="true">▣</span><span class="gdr-occ-copy"><b>Visit Requests</b><small>Review and respond to enquiries</small><em><strong data-gdr-count="visits">0</strong> pending requests</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
-  '<button type="button" class="gdr-occ-card gdr-occ-teal" data-gdr-module="nearby"><span class="gdr-occ-icon" aria-hidden="true">⌖</span><span class="gdr-occ-copy"><b>Nearby Homes</b><small>Explore homes around your property</small><em>Open nearby map</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
   '</div>';
   const stats=$(".dashboard-stats-grid",dash);
   if(stats)stats.insertAdjacentElement("afterend",home);else dash.prepend(home);
@@ -47,7 +46,7 @@ function setMode(dash,mode){
   $("#gdrOccModuleTitle",header).textContent=m.title;
   $("#gdrOccModuleSubtitle",header).textContent=m.subtitle;
  }
- if(mode==="home") updateCounts(dash);
+ if(mode==="home"){updateCounts(dash);dash.scrollIntoView({behavior:"smooth",block:"start"});}
 }
 function setTextIfChanged(node,value){
  if(node && node.textContent!==value)node.textContent=value;
