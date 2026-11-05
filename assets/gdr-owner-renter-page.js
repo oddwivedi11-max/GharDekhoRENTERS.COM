@@ -84,7 +84,7 @@
         </section>
         <section class="gdr-rp-card gdr-rp-wide"><h2>Monthly charges</h2><div class="gdr-rp-stat"><span>Base monthly rent</span><strong>${money(rent)}</strong></div><div id="gdrRpCharges"><p class="gdr-rp-note">Loading additional charges…</p></div>
           <div class="gdr-rp-actions"><button class="gdr-rp-btn primary" type="button" id="gdrRpAddCharge">+ Add charge</button></div>
-          <form class="gdr-rp-form" id="gdrRpChargeForm" hidden><label>Charge name<input name="title" maxlength="100" placeholder="e.g. Maintenance" required></label><label>Amount (₹)<input name="amount" type="number" min="1" max="10000000" step="0.01" required></label><label>Frequency<select name="frequency"><option value="monthly">Every month</option><option value="one_time">One-time</option></select></label><label>Monthly due day (optional)<input name="due_day" type="number" min="1" max="28" placeholder="1–28"></label><div class="gdr-rp-actions"><button class="gdr-rp-btn primary" type="submit">Save charge</button><button class="gdr-rp-btn" type="button" data-cancel-form>Cancel</button></div></form>
+          <form class="gdr-rp-form" id="gdrRpChargeForm" hidden><label>Charge name<input name="title" maxlength="100" placeholder="e.g. Maintenance" required></label><label>Amount (₹)<input name="amount" type="number" min="1" max="10000000" step="0.01" required></label><label>Frequency<select name="frequency"><option value="monthly">Every month</option><option value="one_time">One-time</option></select></label><label>Monthly due day (optional)<input name="due_day" type="number" min="1" max="28" placeholder="1–28"></label><label class="gdr-rp-full">Description (optional)<textarea name="description" maxlength="500" rows="2" placeholder="What is this charge for?"></textarea></label><div class="gdr-rp-actions"><button class="gdr-rp-btn primary" type="submit">Save charge</button><button class="gdr-rp-btn" type="button" data-cancel-form>Cancel</button></div></form>
           <p class="gdr-rp-note">Additional charges are shown separately from base rent. This page does not collect payments or mark invoices as paid.</p>
         </section>
       </div><p class="gdr-rp-message" id="gdrRpMessage" aria-live="polite"></p>
@@ -94,14 +94,14 @@
     page.querySelectorAll("[data-cancel-form]").forEach(b=>b.addEventListener("click",()=>{const f=b.closest("form");if(f)f.hidden=true;}));
     $("gdrRpEditDates").addEventListener("click",()=>{$("gdrRpDatesForm").hidden=false;});
     $("gdrRpEditContact").addEventListener("click",()=>{$("gdrRpContactForm").hidden=false;});
-    $("gdrRpAddCharge").addEventListener("click",()=>{const f=$("gdrRpChargeForm");if(editingChargeId){editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";}else f.hidden=false;});
+    $("gdrRpAddCharge").addEventListener("click",event=>{event.preventDefault();event.stopPropagation();const f=$("gdrRpChargeForm");if(editingChargeId){editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";}else{f.hidden=false;f.scrollIntoView({behavior:"smooth",block:"nearest"});f.elements.title?.focus({preventScroll:true});}});
     $("gdrRpDatesForm").addEventListener("submit",e=>saveMoveOut(e,row));
     $("gdrRpContactForm").addEventListener("submit",e=>saveContact(e,row));
     $("gdrRpChargeForm").addEventListener("submit",e=>saveCharge(e,row));
     $("gdrRpCharges").addEventListener("click",e=>{
       const edit=e.target.closest("[data-charge-edit]");
       const disable=e.target.closest("[data-charge-disable]");
-      if(edit){const charge=(window.__gdrRenterCharges||[]).find(x=>String(x.id)===edit.dataset.chargeEdit);if(!charge)return;editingChargeId=charge.id;const f=$("gdrRpChargeForm");f.elements.title.value=charge.title;f.elements.amount.value=charge.amount;f.elements.frequency.value=charge.frequency;f.elements.due_day.value=charge.due_day||"";f.hidden=false;f.querySelector('[type="submit"]').textContent="Save changes";$("gdrRpAddCharge").textContent="Cancel edit";}
+      if(edit){const charge=(window.__gdrRenterCharges||[]).find(x=>String(x.id)===edit.dataset.chargeEdit);if(!charge)return;editingChargeId=charge.id;const f=$("gdrRpChargeForm");f.elements.title.value=charge.title;f.elements.amount.value=charge.amount;f.elements.frequency.value=charge.frequency;f.elements.due_day.value=charge.due_day||"";f.elements.description.value=charge.description||"";f.hidden=false;f.querySelector('[type="submit"]').textContent="Save changes";$("gdrRpAddCharge").textContent="Cancel edit";}
       if(disable)deactivateCharge(disable.dataset.chargeDisable,row);
     });
     $("gdrRpRelease").addEventListener("click",()=>release(row));
@@ -111,60 +111,108 @@
   function duration(start){const now=new Date();let m=(now.getFullYear()-start.getFullYear())*12+now.getMonth()-start.getMonth();if(now.getDate()<start.getDate())m--;return m>0?m+" month"+(m===1?"":"s"):Math.max(0,Math.floor((now-start)/86400000))+" days";}
   function message(t){const n=$("gdrRpMessage");if(n)n.textContent=t||"";}
   async function loadMoveOut(row){
-    const c=client();if(!c){$("gdrRpMoveOut").textContent="Unavailable";return;}
-    const r=await c.from("property_occupancies").select("expected_move_out_at").eq("id",row.id).maybeSingle();
-    if(r.error){$("gdrRpMoveOut").textContent="Not set";$("gdrRpDatesForm").querySelector("button[type=submit]").disabled=true;$("gdrRpEditDates").disabled=true;return;}
-    $("gdrRpMoveOut").textContent=dateText(r.data?.expected_move_out_at);
-    $("gdrRpDatesForm").elements.moveout.value=r.data?.expected_move_out_at||"";
+    const value=$("gdrRpMoveOut"),form=$("gdrRpDatesForm"),edit=$("gdrRpEditDates");
+    if(!value||!form||!edit)return;
+    value.textContent="Loading…";
+    try{
+      const c=client();if(!c)throw new Error("Account service is unavailable.");
+      const r=await c.from("property_occupancies").select("expected_move_out_at").eq("id",row.id).maybeSingle();
+      if(r.error)throw r.error;
+      value.textContent=dateText(r.data?.expected_move_out_at);
+      form.elements.moveout.value=r.data?.expected_move_out_at||"";
+      form.querySelector("button[type=submit]").disabled=false;edit.disabled=false;
+    }catch(error){
+      console.error("[GharDekho] expected move-out lookup failed",error);
+      value.textContent="Unavailable";
+      form.querySelector("button[type=submit]").disabled=true;edit.disabled=true;
+    }
   }
   async function saveMoveOut(e,row){
-    e.preventDefault();const c=client();if(!c)return;
-    const value=e.currentTarget.elements.moveout.value||null;
-    const r=await c.from("property_occupancies").update({expected_move_out_at:value}).eq("id",row.id).is("released_at",null);
-    if(r.error){message("Could not save the expected move-out date. Apply the owner renter-management database migration first.");return;}
-    $("gdrRpMoveOut").textContent=dateText(value);e.currentTarget.hidden=true;message("Move-out date saved.");
+    e.preventDefault();const c=client(),form=e.currentTarget,button=form.querySelector("button[type=submit]");
+    if(!c){message("Account service is unavailable. Refresh and try again.");return;}
+    const value=form.elements.moveout.value||null;
+    if(value&&Number.isNaN(new Date(value+"T00:00:00").getTime())){message("Choose a valid move-out date.");return;}
+    button.disabled=true;button.textContent="Saving…";
+    try{
+      const r=await c.from("property_occupancies").update({expected_move_out_at:value}).eq("id",row.id).is("released_at",null).select("id").maybeSingle();
+      if(r.error)throw r.error;
+      if(!r.data?.id)throw new Error("No active rental record was updated. Refresh the renter profile and try again.");
+      row.expected_move_out_at=value;
+      $("gdrRpMoveOut").textContent=dateText(value);form.hidden=true;message("Move-out date saved successfully.");
+    }catch(error){console.error("[GharDekho] move-out update failed",error);message(error.message||"Could not save the expected move-out date.");}
+    finally{button.disabled=false;button.textContent="Save date";}
   }
   async function saveContact(e,row){
-    e.preventDefault();const c=client();const f=e.currentTarget,name=f.elements.name.value.trim(),phone=f.elements.phone.value.trim();
+    e.preventDefault();const c=client(),f=e.currentTarget,name=f.elements.name.value.trim(),phone=f.elements.phone.value.trim();
+    if(!c){message("Account service is unavailable. Refresh and try again.");return;}
     if(!name||phone&&!/^[6-9][0-9]{9}$/.test(phone)){message("Enter a valid name and 10-digit Indian mobile number.");return;}
-    const r=await c.rpc("update_my_current_renter_contact",{p_occupancy_id:row.id,p_renter_name:name,p_renter_phone:phone||null});
-    if(r.error){message(r.error.message||"Could not update renter details.");return;}
-    row.renter_name=name;row.renter_phone=phone||null;f.hidden=true;mount(row);message("Renter details updated successfully.");
+    const button=f.querySelector('button[type="submit"]');button.disabled=true;button.textContent="Saving…";
+    try{
+      const r=await c.rpc("update_my_current_renter_contact",{p_occupancy_id:row.id,p_renter_name:name,p_renter_phone:phone||null});
+      if(r.error)throw r.error;
+      row.renter_name=name;row.renter_phone=phone||null;f.hidden=true;mount(row);message("Renter details updated successfully.");
+    }catch(error){console.error("[GharDekho] renter contact update failed",error);message(error.message||"Could not update renter details.");}
+    finally{button.disabled=false;button.textContent="Save renter details";}
   }
   async function loadCharges(row){
-    const c=client();if(!c)return;
-    const r=await c.from("occupancy_charges").select("id,title,amount,frequency,due_day,is_active").eq("occupancy_id",row.id).eq("is_active",true).order("created_at",{ascending:false});
-    const target=$("gdrRpCharges");if(!target)return;
-    if(r.error){target.innerHTML='<p class="gdr-rp-note">Additional charge management will become available after the owner renter-management database migration is applied. Base rent remains available above.</p>';$("gdrRpAddCharge").disabled=true;return;}
-    window.__gdrRenterCharges=Array.isArray(r.data)?r.data:[];
-    if(!r.data?.length){target.innerHTML='<p class="gdr-rp-note">No additional charges have been added.</p>';return;}
-    target.innerHTML=r.data.map(x=>'<div class="gdr-rp-charge"><div><strong>'+esc(x.title)+'</strong><small>'+(x.frequency==="monthly"?"Monthly":"One-time")+(x.due_day?" · Due day "+x.due_day:"")+'</small></div><div style="text-align:right"><strong>'+money(x.amount)+'</strong><div class="gdr-rp-actions"><button class="gdr-rp-btn" type="button" data-charge-edit="'+esc(x.id)+'">Edit</button><button class="gdr-rp-btn danger" type="button" data-charge-disable="'+esc(x.id)+'">Remove</button></div></div></div>').join("");
+    const c=client(),target=$("gdrRpCharges"),add=$("gdrRpAddCharge");
+    if(!target)return;
+    target.innerHTML='<p class="gdr-rp-note">Loading additional charges…</p>';
+    window.__gdrRenterCharges=[];
+    if(!c){target.innerHTML='<p class="gdr-rp-note">Additional charges are unavailable because the account service is not connected.</p>';if(add)add.disabled=true;return;}
+    if(add)add.disabled=false;
+    try{
+      const r=await c.from("occupancy_charges").select("id,title,description,amount,frequency,due_day,is_active").eq("occupancy_id",row.id).eq("is_active",true).order("created_at",{ascending:false});
+      if(r.error)throw r.error;
+      window.__gdrRenterCharges=Array.isArray(r.data)?r.data:[];
+      if(!window.__gdrRenterCharges.length){target.innerHTML='<p class="gdr-rp-note">No additional charges have been added yet.</p>';return;}
+      target.innerHTML=window.__gdrRenterCharges.map(x=>'<div class="gdr-rp-charge"><div><strong>'+esc(x.title)+'</strong>'+(x.description?'<small>'+esc(x.description)+'</small>':'')+'<small>'+(x.frequency==="monthly"?"Monthly":"One-time")+(x.due_day?" · Due day "+x.due_day:"")+'</small></div><div style="text-align:right"><strong>'+money(x.amount)+'</strong><div class="gdr-rp-actions"><button class="gdr-rp-btn" type="button" data-charge-edit="'+esc(x.id)+'">Edit</button><button class="gdr-rp-btn danger" type="button" data-charge-disable="'+esc(x.id)+'">Remove</button></div></div></div>').join("");
+    }catch(error){
+      console.error("[GharDekho] additional charges lookup failed",error);
+      target.innerHTML='<p class="gdr-rp-note">Additional charges could not be loaded. '+esc(error.message||"Please refresh and try again.")+'</p>';
+    }
   }
+  let chargeSaving=false;
   async function saveCharge(e,row){
     e.preventDefault();const c=client(),f=e.currentTarget;
-    const title=f.elements.title.value.trim(),amount=Number(f.elements.amount.value),frequency=f.elements.frequency.value,due=f.elements.due_day.value?Number(f.elements.due_day.value):null;
-    if(title.length<2||!Number.isFinite(amount)||amount<=0||due!==null&&(!Number.isInteger(due)||due<1||due>28)){message("Check the charge name, amount and due day.");return;}
-    let r;
-    if(editingChargeId){
-      r=await c.from("occupancy_charges").update({title,amount,frequency,due_day:frequency==="monthly"?due:null}).eq("id",editingChargeId).eq("occupancy_id",row.id);
-    }else{
-      const ownerLookup=await c.from("property_occupancies").select("owner_id").eq("id",row.id).maybeSingle();if(ownerLookup.error||!ownerLookup.data?.owner_id){message("Could not verify the property owner for this renter.");return;}
-      r=await c.from("occupancy_charges").insert({occupancy_id:row.id,owner_id:ownerLookup.data.owner_id,title,amount,frequency,due_day:frequency==="monthly"?due:null});
-    }
-    if(r.error){message("Could not save charge. Confirm the database migration has been applied.");return;}
-    editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";await loadCharges(row);message("Charge saved.");
+    if(chargeSaving)return;
+    if(!c){message("Account service is unavailable. Refresh and try again.");return;}
+    const title=f.elements.title.value.trim(),description=f.elements.description.value.trim(),amount=Number(f.elements.amount.value),frequency=f.elements.frequency.value,due=f.elements.due_day.value?Number(f.elements.due_day.value):null;
+    if(title.length<2||title.length>100||!Number.isFinite(amount)||amount<=0||amount>10000000||!["monthly","one_time"].includes(frequency)||due!==null&&(!Number.isInteger(due)||due<1||due>28)){message("Check the charge name, amount, frequency and due day.");return;}
+    chargeSaving=true;const button=f.querySelector('button[type="submit"]');button.disabled=true;button.textContent="Saving…";
+    try{
+      let r;
+      if(editingChargeId){
+        r=await c.from("occupancy_charges").update({title,description:description||null,amount,frequency,due_day:frequency==="monthly"?due:null,updated_at:new Date().toISOString()}).eq("id",editingChargeId).eq("occupancy_id",row.id).select("id").maybeSingle();
+      }else{
+        const ownerLookup=await c.from("property_occupancies").select("owner_id").eq("id",row.id).is("released_at",null).maybeSingle();
+        if(ownerLookup.error||!ownerLookup.data?.owner_id)throw new Error("Could not verify the active property owner for this renter.");
+        r=await c.from("occupancy_charges").insert({occupancy_id:row.id,owner_id:ownerLookup.data.owner_id,title,description:description||null,amount,frequency,due_day:frequency==="monthly"?due:null}).select("id").maybeSingle();
+      }
+      if(r.error)throw r.error;
+      if(!r.data?.id)throw new Error("No charge was saved. Check that this renter is still active.");
+      editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";
+      await loadCharges(row);message("Additional charge saved successfully.");
+    }catch(error){console.error("[GharDekho] charge save failed",error);message(error.message||"Could not save the additional charge.");}
+    finally{chargeSaving=false;button.disabled=false;button.textContent="Save charge";}
   }
   async function deactivateCharge(id,row){
     if(!confirm("Remove this additional charge from future monthly totals?"))return;
-    const r=await client().from("occupancy_charges").update({is_active:false}).eq("id",id).eq("occupancy_id",row.id);
-    if(r.error){message("Could not remove this charge.");return;}
-    await loadCharges(row);message("Charge removed from active charges.");
+    try{
+      const c=client();if(!c)throw new Error("Account service is unavailable.");
+      const r=await c.from("occupancy_charges").update({is_active:false,updated_at:new Date().toISOString()}).eq("id",id).eq("occupancy_id",row.id).select("id").maybeSingle();
+      if(r.error)throw r.error;if(!r.data?.id)throw new Error("This charge was not updated. Refresh and try again.");
+      await loadCharges(row);message("Charge removed from future active totals.");
+    }catch(error){console.error("[GharDekho] charge removal failed",error);message(error.message||"Could not remove this charge.");}
   }
   async function release(row){
     if(!confirm("Release this renter and mark the property available again?"))return;
-    const c=client();const r=await c.rpc("release_property_occupancy",{p_property_id:row.property_id});
-    if(r.error){message(r.error.message||"Unable to release this renter.");return;}
-    back();await Promise.allSettled([window.loadOwnerProperties?.(),window.loadOwnerVisits?.()]);
+    try{
+      const c=client();if(!c)throw new Error("Account service is unavailable.");
+      const r=await c.rpc("release_property_occupancy",{p_property_id:row.property_id});
+      if(r.error)throw r.error;
+      back();await Promise.allSettled([window.loadOwnerProperties?.(),window.loadOwnerVisits?.()]);
+    }catch(error){console.error("[GharDekho] renter release failed",error);message(error.message||"Unable to release this renter.");}
   }
   function back(){if(page)page.remove();page=null;document.body.classList.remove("gdr-owner-renter-profile-open");document.title=priorTitle;currentId=null;if(new URL(location.href).searchParams.has("ownerRenter")){const u=new URL(location.href);u.searchParams.delete("ownerRenter");history.replaceState({}, "",u);}}
   async function resolveRenterRow(id){
