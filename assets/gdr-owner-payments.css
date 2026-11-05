@@ -68,3 +68,22 @@ body.gdr-pay-lock :is(a,div,span,svg,img):is([class*="logo" i],[id*="logo" i],[c
  #gdrPaymentsPage .gdr-pay-header{gap:10px}
  #gdrPaymentsPage .gdr-pay-header>div{max-width:calc(100% - 58px)}
 }
+
+/* Finance workspace: isolate scrolling and prevent any global brand/header overlap. */
+html.gdr-pay-lock,body.gdr-pay-lock{height:100%!important;overflow:hidden!important}
+#gdrPaymentsPage{height:100vh;height:100dvh;overflow-x:hidden;overflow-y:auto;overscroll-behavior:contain;box-sizing:border-box;scrollbar-gutter:stable}
+#gdrPaymentsPage *{box-sizing:border-box}
+body.gdr-pay-lock>header,body.gdr-pay-lock>.site-header,body.gdr-pay-lock>#siteHeader,body.gdr-pay-lock>.navbar,body.gdr-pay-lock>#mainHeader{display:none!important}
+#gdrPaymentsPage .gdr-pay-shell{padding-top:26px}
+#gdrPaymentsPage .gdr-pay-header{display:flex;align-items:flex-start;justify-content:space-between;gap:22px;min-height:0;padding:8px 0 18px}
+#gdrPaymentsPage .gdr-pay-header>div{flex:1;min-width:0;max-width:none}
+#gdrPaymentsPage .gdr-pay-header h1{margin:7px 0 6px;line-height:1.05;overflow-wrap:anywhere}
+#gdrPaymentsPage .gdr-pay-header p{max-width:680px}
+#gdrPaymentsPage .gdr-pay-close{flex:0 0 auto;white-space:nowrap}
+@media(max-width:560px){
+ #gdrPaymentsPage .gdr-pay-shell{padding:16px 12px 32px}
+ #gdrPaymentsPage .gdr-pay-header{flex-direction:column;gap:12px}
+ #gdrPaymentsPage .gdr-pay-header>div{width:100%}
+ #gdrPaymentsPage .gdr-pay-close{width:100%;justify-content:center}
+ #gdrPaymentsPage .gdr-pay-close span{display:inline}
+}
