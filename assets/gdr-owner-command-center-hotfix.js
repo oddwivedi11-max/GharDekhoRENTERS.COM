@@ -46,7 +46,12 @@ function setMode(dash,mode){
   $("#gdrOccModuleTitle",header).textContent=m.title;
   $("#gdrOccModuleSubtitle",header).textContent=m.subtitle;
  }
- if(mode==="home"){updateCounts(dash);dash.scrollIntoView({behavior:"smooth",block:"start"});}
+ if(mode==="home"){
+  updateCounts(dash);
+  requestAnimationFrame(()=>window.scrollTo({top:0,behavior:"smooth"}));
+ }else{
+  requestAnimationFrame(()=>header.scrollIntoView({behavior:"smooth",block:"start"}));
+ }
 }
 function setTextIfChanged(node,value){
  if(node && node.textContent!==value)node.textContent=value;
@@ -79,6 +84,36 @@ function openExternal(dash,module){
   }
  }
 }
+function bindLogout(){
+ const button=$("#dashboardLogoutBtn");
+ if(!button||button.dataset.gdrLogoutBound==="1")return;
+ button.dataset.gdrLogoutBound="1";
+ button.removeAttribute("onclick");
+ button.addEventListener("click",async function(event){
+  event.preventDefault();event.stopPropagation();
+  if(button.disabled)return;
+  button.disabled=true;
+  const label=button.querySelector("span:last-child");
+  if(label)label.textContent="Logging out…";
+  try{
+   if(typeof window.logoutUser==="function")await window.logoutUser();
+   else{
+    const client=window.__gdrSupabaseClient||window.supabaseClient;
+    if(!client?.auth?.signOut)throw new Error("Logout service is unavailable. Refresh and try again.");
+    const result=await client.auth.signOut();
+    if(result.error)throw result.error;
+    window.location.assign("/login");
+   }
+  }catch(error){
+   console.error("[GharDekho] dashboard logout failed",error);
+   const status=$("#backendMessage");
+   if(status){status.textContent=error.message||"Logout failed. Please try again.";status.className="backend-message error";}
+  }finally{
+   button.disabled=false;
+   if(label)label.textContent="Log out";
+  }
+ });
+}
 function bind(dash){
  if(dash.dataset.gdrCommandBound==="1")return;
  dash.dataset.gdrCommandBound="1";
@@ -98,6 +133,7 @@ function styles(){
 }
 function init(){
  styles();
+ bindLogout();
  const dash=$("#ownerDashboard");if(!dash)return;
  ensureHome(dash);bind(dash);setMode(dash,"home");updateCounts(dash);
  if(observer)observer.disconnect();
@@ -105,5 +141,13 @@ function init(){
  observer.observe(dash,{childList:true,subtree:true,characterData:true});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+document.addEventListener("click",function(event){
+ const back=event.target.closest("[data-gdr-owner-home]");
+ if(!back)return;
+ const dash=$("#ownerDashboard");
+ if(!dash)return;
+ event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+ setMode(dash,"home");
+},true);
 window.GDROwnerCommandCenter={refresh:init,showHome:function(){const d=$("#ownerDashboard");if(d)setMode(d,"home");}};
 })();
