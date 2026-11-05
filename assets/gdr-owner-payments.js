@@ -4,7 +4,7 @@ const $=(id,root=document)=>root.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).format(Number(v||0));
 const client=()=>window.__gdrSupabaseClient||window.supabaseClient||null;
-let root=null,owner=null,properties=[],occupancies=[],settings=[],payments=[],activeProperty="all",filterStatus="all",search="",tab="overview",busy=false;
+let root=null,owner=null,properties=[],occupancies=[],settings=[],payments=[],charges=[],activeProperty="all",filterStatus="all",search="",tab="overview",busy=false,chargeBusy=false;
 function injectButton(){
  const dash=$("ownerDashboard");if(!dash||$("gdrPaymentsOpen"))return;
  const btn=document.createElement("button");btn.id="gdrPaymentsOpen";btn.type="button";btn.className="gdr-pay-launch";
@@ -25,7 +25,7 @@ function propName(id){const p=properties.find(x=>x.id===id);return p?(p.title||p
 function ensurePage(){
  if(root)return;
  root=document.createElement("section");root.id="gdrPaymentsPage";root.setAttribute("aria-label","Owner payment management");
- root.innerHTML='<div class="gdr-pay-shell"><header class="gdr-pay-header"><div><div class="gdr-pay-eyebrow">GDR FINANCE / OWNER WORKSPACE</div><h1>GDR FINANCE</h1><p>Payment management · Rent collection, UPI settings and payment records.</p></div><button class="gdr-pay-close" id="gdrPayClose" type="button" aria-label="Close payments">← <span>Back to Dashboard</span></button></header><div id="gdrPayNotice" class="gdr-pay-notice" aria-live="polite"></div><div class="gdr-pay-tabs"><button data-tab="overview" class="active">Overview</button><button data-tab="records">Payment activity</button><button data-tab="settings">UPI settings</button></div><div id="gdrPayContent"><div class="gdr-pay-loading"><i></i><i></i><i></i><span>Loading payment workspace…</span></div></div></div>';
+ root.innerHTML='<div class="gdr-pay-shell"><header class="gdr-pay-header"><div><div class="gdr-pay-eyebrow">GDR FINANCE / OWNER WORKSPACE</div><h1>GDR FINANCE</h1><p>Payment management · Rent collection, UPI settings and payment records.</p></div><button class="gdr-pay-close" id="gdrPayClose" type="button" aria-label="Close payments">← <span>Back to Dashboard</span></button></header><div id="gdrPayNotice" class="gdr-pay-notice" aria-live="polite"></div><div class="gdr-pay-tabs"><button data-tab="overview" class="active">Overview</button><button data-tab="records">Payment activity</button><button data-tab="settings">UPI settings</button></div><div id="gdrPayContent"><div class="gdr-pay-loading"><i></i><i></i><i></i><span>Loading payment workspace…</span></div></div><section class="gdr-pay-charge-modal" id="gdrPayChargeModal" hidden aria-label="Add additional rent charge"><div class="gdr-pay-charge-dialog" role="dialog" aria-modal="true" aria-labelledby="gdrPayChargeTitle"><header><div><span class="gdr-pay-eyebrow">RENTAL CHARGES</span><h2 id="gdrPayChargeTitle">Add additional charge</h2><p>Link this charge to one active renter and their property.</p></div><button type="button" id="gdrPayChargeCancel" class="gdr-pay-close">Cancel</button></header><form id="gdrPayChargeForm" class="gdr-pay-form"><label>Applicable renter / property<select name="occupancy_id" required></select></label><label>Charge name<input name="title" maxlength="100" required placeholder="e.g. Maintenance"></label><label>Description (optional)<textarea name="description" maxlength="500" rows="3" placeholder="What is this charge for?"></textarea></label><label>Amount (₹)<input name="amount" type="number" min="1" max="10000000" step="0.01" required></label><label>Billing frequency<select name="frequency"><option value="monthly">Every month</option><option value="one_time">One-time</option></select></label><label>Monthly due day (optional)<input name="due_day" type="number" min="1" max="28" placeholder="1–28"></label><div class="gdr-pay-charge-actions"><button type="button" id="gdrPayChargeCancelBottom" class="gdr-pay-secondary">Cancel</button><button type="submit" class="gdr-pay-primary">Save charge</button></div></form></div></section></div>';
  document.body.appendChild(root);$("gdrPayClose").addEventListener("click",close);
  root.querySelectorAll("[data-tab]").forEach(b=>b.addEventListener("click",()=>{tab=b.dataset.tab;render();}));
 }
@@ -37,17 +37,18 @@ async function load(){
  const own=await c.from("owners").select("id,name").eq("user_id",u.id).maybeSingle();
  if(own.error||!own.data)throw Error("Owner profile could not be found for this account.");
  owner=own.data;
- const [pr,oc,se,pa]=await Promise.all([
+ const [pr,oc,se,pa,ch]=await Promise.all([
   c.from("properties").select("id,title,name,address,rent,status").eq("owner_id",owner.id).order("created_at",{ascending:false}),
-  c.from("property_occupancies").select("id,property_id,renter_id,renter_name,renter_phone,occupied_at,released_at").eq("owner_id",owner.id).is("released_at",null).order("occupied_at",{ascending:false}),
+  c.from("property_occupancies").select("id,property_id,owner_id,renter_id,renter_name,renter_phone,occupied_at,released_at").eq("owner_id",owner.id).is("released_at",null).order("occupied_at",{ascending:false}),
   c.from("owner_payment_settings").select("*").eq("owner_id",owner.id),
-  c.from("rent_payment_records").select("*").eq("owner_id",owner.id).order("created_at",{ascending:false}).limit(250)
+  c.from("rent_payment_records").select("*").eq("owner_id",owner.id).order("created_at",{ascending:false}).limit(250),
+  c.from("occupancy_charges").select("id,occupancy_id,owner_id,title,description,amount,frequency,due_day,is_active,created_at").eq("owner_id",owner.id).eq("is_active",true).order("created_at",{ascending:false})
  ]);
- for(const r of [pr,oc,se,pa])if(r.error)throw Error(r.error.message||"Could not load payment records.");
- properties=pr.data||[];occupancies=oc.data||[];settings=se.data||[];payments=pa.data||[];
- const ids=new Set(occupancies.map(x=>x.id));
+ for(const r of [pr,oc,se,pa,ch])if(r.error)throw Error(r.error.message||"Could not load payment and charge records.");
+ properties=pr.data||[];occupancies=oc.data||[];settings=se.data||[];payments=pa.data||[];charges=ch.data||[];
  // Attach current renter and property labels without relying on optional PostgREST relationship names.
  payments=payments.map(p=>{const o=occupancies.find(x=>x.id===p.occupancy_id);return {...p,renter_name:o?.renter_name||"Renter",property_name:propName(p.property_id),renter_phone:o?.renter_phone||""};});
+ charges=charges.map(x=>{const o=occupancies.find(row=>row.id===x.occupancy_id);return {...x,renter_name:o?.renter_name||"Renter",property_id:o?.property_id||null,property_name:propName(o?.property_id)};});
 }
 function stat(label,value,icon,sub){return '<article class="gdr-pay-stat"><span class="gdr-pay-stat-icon">'+icon+'</span><div><small>'+label+'</small><strong>'+value+'</strong><em>'+sub+'</em></div></article>';}
 function render(){
@@ -60,16 +61,20 @@ function render(){
  bindContent();
 }
 function overview(){
- const expected=occupancies.reduce((n,o)=>n+Number(properties.find(p=>p.id===o.property_id)?.rent||0),0);
+ const baseExpected=occupancies.reduce((n,o)=>n+Number(properties.find(p=>p.id===o.property_id)?.rent||0),0);
+ const additionalExpected=charges.filter(x=>x.frequency==="monthly").reduce((n,x)=>n+Number(x.amount||0),0);
+ const expected=baseExpected+additionalExpected;
  const received=payments.filter(p=>p.status==="paid").reduce((n,p)=>n+Number(p.total_amount||0),0);
  const pending=payments.filter(p=>p.status==="pending_verification").reduce((n,p)=>n+Number(p.total_amount||0),0);
  const rejected=payments.filter(p=>p.status==="rejected").length;
  const paid=payments.filter(p=>p.status==="paid").length;
  const unpaid=payments.filter(p=>p.status==="pending_verification").length;
- return '<div class="gdr-pay-stat-grid">'+stat("Monthly rent expected",money(expected),"⌂",occupancies.length+" active renters")+stat("Rent received",money(received),"✓",paid+" verified payments")+stat("Awaiting verification",money(pending),"◷",unpaid+" submissions")+stat("Rejected submissions",String(rejected),"!", "Review renter resubmissions")+stat("Paid records",String(paid),"↗","Verified by you")+stat("Active renters",String(occupancies.length),"♙","Across your properties")+'</div>'+
+ return '<div class="gdr-pay-stat-grid">'+stat("Base monthly rent",money(baseExpected),"⌂",occupancies.length+" active renters")+stat("Additional monthly charges",money(additionalExpected),"＋",charges.filter(x=>x.frequency==="monthly").length+" active charges")+stat("Total monthly payable",money(expected),"₹","Base rent + monthly charges")+stat("Rent received",money(received),"✓",paid+" verified payments")+stat("Awaiting verification",money(pending),"◷",unpaid+" submissions")+stat("Rejected submissions",String(rejected),"!", "Review renter resubmissions")+'</div>'+
  '<div class="gdr-pay-panel gdr-pay-panel-highlight"><div><span class="gdr-pay-eyebrow">PAYMENT CONTROL CENTRE</span><h2>Keep every rent record organised.</h2><p>Review renter UPI submissions, verify received payments and update the UPI details shown to your renters.</p></div><button class="gdr-pay-primary" data-go-tab="records">Review payment activity <span>→</span></button></div>'+
  '<div class="gdr-pay-panel"><div class="gdr-pay-panel-head"><div><span class="gdr-pay-eyebrow">YOUR PROPERTIES</span><h2>Payment setup by property</h2></div><span class="gdr-pay-count">'+properties.length+' properties</span></div>'+
- (properties.length?'<div class="gdr-pay-property-grid">'+properties.map(p=>{const s=settingFor(p.id);return '<article class="gdr-pay-property"><div class="gdr-pay-property-icon">⌂</div><div class="gdr-pay-property-main"><b>'+esc(p.title||p.name||"Property")+'</b><small>'+esc(p.address||"Address not set")+'</small><span>'+money(p.rent)+' / month</span></div><span class="gdr-pay-setup '+(s.upi_id||s.upi_qr_path?"ready":"missing")+'">'+(s.upi_id||s.upi_qr_path?"UPI configured":"Setup needed")+'</span><button data-edit-setting="'+esc(p.id)+'" class="gdr-pay-small">Edit details</button></article>';}).join("")+'</div>':'<p class="gdr-pay-empty">Add a property first to configure rent payments.</p>')+'</div>';
+ (properties.length?'<div class="gdr-pay-property-grid">'+properties.map(p=>{const s=settingFor(p.id);return '<article class="gdr-pay-property"><div class="gdr-pay-property-icon">⌂</div><div class="gdr-pay-property-main"><b>'+esc(p.title||p.name||"Property")+'</b><small>'+esc(p.address||"Address not set")+'</small><span>'+money(p.rent)+' / month · base rent</span></div><span class="gdr-pay-setup '+(s.upi_id||s.upi_qr_path?"ready":"missing")+'">'+(s.upi_id||s.upi_qr_path?"UPI configured":"Setup needed")+'</span><button type="button" data-edit-setting="'+esc(p.id)+'" class="gdr-pay-small">Edit details</button></article>';}).join("")+'</div>':'<p class="gdr-pay-empty">Add a property first to configure rent payments.</p>')+'</div>'+
+ '<div class="gdr-pay-panel"><div class="gdr-pay-panel-head"><div><span class="gdr-pay-eyebrow">ADDITIONAL CHARGES</span><h2>Charges by active tenancy</h2><p>Every charge is linked to one active renter and property. Charges do not mark a payment as collected.</p></div><button type="button" class="gdr-pay-primary" id="gdrPayAddCharge" '+(occupancies.length?"":"disabled")+'>+ Add Charge</button></div>'+
+ (charges.length?'<div class="gdr-pay-charge-list">'+charges.map(x=>'<article class="gdr-pay-charge-row"><div><b>'+esc(x.title)+'</b><small>'+esc(x.renter_name)+' · '+esc(x.property_name)+'</small>'+(x.description?'<p>'+esc(x.description)+'</p>':'')+'<small>'+(x.frequency==="monthly"?"Monthly recurring":"One-time")+(x.due_day?" · Due day "+x.due_day:"")+'</small></div><strong>'+money(x.amount)+'</strong></article>').join("")+'</div>':'<p class="gdr-pay-empty">'+(occupancies.length?"No additional charges have been added yet.":"Add an active renter before creating a renter-specific charge.")+'</p>')+'</div>';
 }
 function recordsView(){
  return '<div class="gdr-pay-panel"><div class="gdr-pay-panel-head"><div><span class="gdr-pay-eyebrow">RENTER SUBMISSIONS</span><h2>Payment activity</h2><p>Review UTR/reference details and verify payments received directly by you.</p></div><span class="gdr-pay-count">'+payments.length+' records</span></div><div class="gdr-pay-filters"><input id="gdrPaySearch" type="search" placeholder="Search renter, property or UTR…" value="'+esc(search)+'"><select id="gdrPayPropertyFilter"><option value="all">All properties</option>'+properties.map(p=>'<option value="'+esc(p.id)+'" '+(activeProperty===p.id?"selected":"")+'>'+esc(p.title||p.name||"Property")+'</option>').join("")+'</select><select id="gdrPayStatusFilter"><option value="all">All statuses</option><option value="pending_verification" '+(filterStatus==="pending_verification"?"selected":"")+'>Pending verification</option><option value="paid" '+(filterStatus==="paid"?"selected":"")+'>Paid</option><option value="rejected" '+(filterStatus==="rejected"?"selected":"")+'>Rejected</option></select></div>'+
@@ -87,7 +92,34 @@ function bindContent(){
  const pf=$("gdrPayPropertyFilter");if(pf)pf.addEventListener("change",e=>{activeProperty=e.target.value;render();});
  const sf=$("gdrPayStatusFilter");if(sf)sf.addEventListener("change",e=>{filterStatus=e.target.value;render();});
  root.querySelectorAll("[data-verify]").forEach(b=>b.addEventListener("click",()=>verify(b.dataset.verify,b.dataset.decision)));
+ $("gdrPayAddCharge")?.addEventListener("click",openChargeForm);
+ $("gdrPayChargeCancel")?.addEventListener("click",closeChargeForm);
+ $("gdrPayChargeCancelBottom")?.addEventListener("click",closeChargeForm);
+ const chargeForm=$("gdrPayChargeForm");if(chargeForm)chargeForm.addEventListener("submit",saveCharge);
  const f=$("gdrPaySettingsForm");if(f){f.elements.property_id.addEventListener("change",e=>{activeProperty=e.target.value;render();});f.addEventListener("submit",saveSettings);$("gdrPayQrFile")?.addEventListener("change",previewQr);}
+}
+function openChargeForm(){
+ const modal=$("gdrPayChargeModal"),form=$("gdrPayChargeForm");if(!modal||!form)return;
+ if(!occupancies.length){notice("Add an active renter before creating an additional charge.",true);return;}
+ const select=form.elements.occupancy_id;
+ select.innerHTML=occupancies.map(o=>'<option value="'+esc(o.id)+'">'+esc(o.renter_name||"Renter")+' · '+esc(propName(o.property_id))+'</option>').join("");
+ form.reset();modal.hidden=false;document.body.classList.add("gdr-pay-lock");
+ form.elements.title.focus({preventScroll:true});
+}
+function closeChargeForm(){const modal=$("gdrPayChargeModal");if(modal)modal.hidden=true;}
+async function saveCharge(event){
+ event.preventDefault();if(chargeBusy)return;
+ const form=event.currentTarget,c=client(),occupancy=occupancies.find(o=>String(o.id)===String(form.elements.occupancy_id.value));
+ if(!c||!owner||!occupancy){notice("Select a valid active renter and property.",true);return;}
+ const title=form.elements.title.value.trim(),description=form.elements.description.value.trim(),amount=Number(form.elements.amount.value),frequency=form.elements.frequency.value,due=form.elements.due_day.value?Number(form.elements.due_day.value):null;
+ if(title.length<2||title.length>100||description.length>500||!Number.isFinite(amount)||amount<=0||amount>10000000||!["monthly","one_time"].includes(frequency)||due!==null&&(!Number.isInteger(due)||due<1||due>28)){notice("Check charge name, description, amount, frequency and due day.",true);return;}
+ const button=form.querySelector('button[type="submit"]');chargeBusy=true;button.disabled=true;button.textContent="Saving…";
+ try{
+  const result=await c.from("occupancy_charges").insert({occupancy_id:occupancy.id,owner_id:owner.id,title,description:description||null,amount,frequency,due_day:frequency==="monthly"?due:null}).select("id").maybeSingle();
+  if(result.error)throw result.error;if(!result.data?.id)throw new Error("The charge was not saved. Check that this tenancy is still active.");
+  closeChargeForm();await load();render();notice("Additional charge saved for "+(occupancy.renter_name||"the selected renter")+".");
+ }catch(error){console.error("[GharDekho] payment workspace charge save failed",error);notice(error.message||"Could not save the additional charge.",true);}
+ finally{chargeBusy=false;button.disabled=false;button.textContent="Save charge";}
 }
 function previewQr(e){const file=e.target.files?.[0];if(!file)return;if(file.size>5*1024*1024){notice("QR image must be 5 MB or smaller.",true);e.target.value="";return;}if(!/^image\/(png|jpeg|webp)$/.test(file.type)){notice("Choose a PNG, JPG or WEBP image.",true);e.target.value="";return;}const img=document.createElement("img");img.className="gdr-pay-qr-preview";img.alt="New QR preview";img.src=URL.createObjectURL(file);const box=e.target.closest(".gdr-pay-upload");box.querySelector(".gdr-pay-qr-preview,.gdr-pay-qr-empty")?.remove();box.appendChild(img);}
 async function saveSettings(e){
