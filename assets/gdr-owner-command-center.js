@@ -75,7 +75,12 @@ function bind(dash){
   if(e.target.closest("[data-gdr-owner-home]")){e.preventDefault();setMode(dash,"home");}
  });
 }
+function styles(){
+ if($("#gdrOwnerCommandCenterStyle"))return;
+ const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css";document.head.appendChild(link);
+}
 function init(){
+ styles();
  const dash=$("#ownerDashboard");if(!dash)return;
  ensureHome(dash);bind(dash);setMode(dash,"home");updateCounts(dash);
  if(observer)observer.disconnect();
