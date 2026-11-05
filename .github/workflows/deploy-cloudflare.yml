@@ -60,6 +60,8 @@ jobs:
           set -euo pipefail
           BASE_URL="https://ghardekhorenters-com.od-dwivedi11.workers.dev"
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/" -o /tmp/gdr-live-index.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/login" -o /tmp/gdr-live-login.html
+          grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
