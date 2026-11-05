@@ -14,6 +14,7 @@ on:
       - "codex/fix-details-nearby-property-rpc"
       - "codex/allow-visit-before-admin-verification"
       - "feature/owner-command-center-20261105"
+      - "fix/owner-workspace-complete-functional-audit-20261105"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
