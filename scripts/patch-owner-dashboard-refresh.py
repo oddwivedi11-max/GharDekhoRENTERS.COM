@@ -368,6 +368,71 @@ if 'gdr-owner-command-center-hotfix.js' not in source:
     source = source.replace("</body>", command_center_tag + "</body>", 1)
     print("Added cache-busted Owner Command Center hotfix controller.")
 
+replace_once(
+'''            container.querySelectorAll(".owner-view-property-btn").forEach(btn => {
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const propertyId = this.dataset.id;
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Opening…";
+                    try { await openPropertyDetails(propertyId); }
+                    catch (err) {
+                        console.error("Owner property details error:", err);
+                        showMessage("backendMessage", "Could not open property details. Please try again.", "error");
+                    }
+                    this.disabled = false;
+                    this.textContent = "◉ View Details";
+                });
+            });
+            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", () => openPropertyEditor(btn.dataset.id)));
+            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", () => deleteOwnerProperty(btn.dataset.id)));''',
+'''            container.querySelectorAll(".owner-view-property-btn").forEach(btn => {
+                btn.addEventListener("click", async function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    e.stopImmediatePropagation();
+                    const propertyId = this.dataset.id;
+                    if (!propertyId) return;
+                    this.disabled = true;
+                    this.textContent = "Opening…";
+                    try { await openPropertyDetails(propertyId); }
+                    catch (err) {
+                        console.error("Owner property details error:", err);
+                        showMessage("backendMessage", "Could not open property details. Please try again.", "error");
+                    } finally {
+                        this.disabled = false;
+                        this.textContent = "◉ View Details";
+                    }
+                });
+            });
+            container.querySelectorAll(".owner-edit-property-btn").forEach(btn => btn.addEventListener("click", function(e) {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                const id = this.dataset.id; if (id) openPropertyEditor(id);
+            }));
+            container.querySelectorAll(".owner-delete-property-btn").forEach(btn => btn.addEventListener("click", function(e) {
+                e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation();
+                const id = this.dataset.id; if (id) deleteOwnerProperty(id);
+            }));''',
+    "prevent property action clicks from bubbling into image/file controls"
+)
+
+# Cache-bust the owner workspace modules changed in this release so browsers and
+# the Cloudflare edge cannot keep serving a previous dashboard bundle.
+for old, new in (
+    ('src="/assets/gdr-owner-renter-page.js"', 'src="/assets/gdr-owner-renter-page.js?v=20261105-workspace2"'),
+    ('src="/assets/gdr-owner-payments.js"', 'src="/assets/gdr-owner-payments.js?v=20261105-workspace2"'),
+    ('src="/assets/gdr-owner-current-renters-dashboard.js"', 'src="/assets/gdr-owner-current-renters-dashboard.js?v=20261105-workspace2"'),
+    ('src="/assets/gdr-owner-command-center-hotfix.js"', 'src="/assets/gdr-owner-command-center-hotfix.js?v=20261105-workspace2"'),
+    ('href="/assets/gdr-owner-payments.css"', 'href="/assets/gdr-owner-payments.css?v=20261105-workspace2"'),
+):
+    if old in source:
+        source = source.replace(old, new)
+        print("Cache-busted owner workspace asset: " + old)
+    elif new not in source:
+        raise SystemExit("Stopped safely: expected owner workspace asset reference not found: " + old)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
 

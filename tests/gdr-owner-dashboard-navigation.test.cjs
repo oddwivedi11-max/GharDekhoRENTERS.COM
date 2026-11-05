@@ -31,3 +31,10 @@ test("owner shortcuts use distinct colour treatments with a forest-green workspa
  assert.match(styles,/#c8f169/);
 });
 
+
+test("owner Nearby Properties has one launch card, not a second command-centre shortcut",()=>{
+ assert.doesNotMatch(controller,/data-gdr-module="nearby"/);
+ assert.match(rental,/function addOwnerNearbyAction\(\)/);
+ assert.match(styles,/gdr-owner-mode-properties>#gdrOwnerNearbyCard/);
+ assert.match(styles,/gdr-owner-mode-visits>#gdrOwnerNearbyCard/);
+});

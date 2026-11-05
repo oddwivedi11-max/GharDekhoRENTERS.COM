@@ -14,6 +14,7 @@ on:
       - "codex/fix-details-nearby-property-rpc"
       - "codex/allow-visit-before-admin-verification"
       - "feature/owner-command-center-20261105"
+      - "fix/owner-workspace-complete-functional-audit-20261105"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
@@ -87,10 +88,15 @@ jobs:
         run: |
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
+          python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
           node --check assets/gdr-owner-renter-editor.js
           node --check assets/gdr-owner-renter-page.js
+          node --check assets/gdr-owner-current-renters-dashboard.js
           node --check assets/gdr-owner-command-center.js
+          node --check assets/gdr-owner-command-center-hotfix.js
           node --check assets/gdr-owner-payments.js
+          node --check tests/gdr-owner-workspace-functional.test.cjs
+          node --test tests/gdr-owner-workspace-functional.test.cjs
           node --check tests/gdr-owner-counter-observer-regression.test.cjs
           node --test tests/gdr-owner-counter-observer-regression.test.cjs
           node --check tests/gdr-owner-renter-page.test.cjs

@@ -3,7 +3,7 @@
   const $ = (id, root = document) => root.getElementById(id);
   const money = value => "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(value || 0));
   const db = () => window.__gdrSupabaseClient || window.supabaseClient || null;
-  let page = null, occupancySection = null, originalParent = null, originalNext = null, returnScroll = 0, busy = false;
+  let page = null, occupancySection = null, originalParent = null, originalNext = null, returnScroll = 0, previousBodyOverflow = "", busy = false;
 
   function styles() {
     if ($("gdr-owner-renters-dashboard-style")) return;
@@ -176,35 +176,53 @@
     const section = document.querySelector("#ownerDashboard .owner-occupancy-card");
     if (!section) return;
     busy = true;
-    styles();
-    removeRedundantHeadingIcon();
-    returnScroll = window.scrollY;
-    if (!page) {
-      page = document.createElement("section");
-      page.id = "gdrOwnerCurrentRentersPage";
-      page.setAttribute("aria-label", "Current Renters dashboard");
-      page.innerHTML = '<div class="gdr-ocr-shell"><div class="gdr-ocr-brandbar"><div class="gdr-ocr-brand"><span class="gdr-ocr-brandmark">GDR</span><div><p class="gdr-ocr-brandname">GDR RENTERS</p><p class="gdr-ocr-brandtag">Rental operations / owner console</p></div></div><button type="button" class="gdr-ocr-home" id="gdrOcrHome"><span class="gdr-ocr-home-icon" aria-hidden="true">⌂</span><span>Back to Home</span></button></div><header class="gdr-ocr-head"><div><p class="gdr-ocr-kicker">OWNER WORKSPACE / TENANCY</p><h1 class="gdr-ocr-title">Current Renters</h1><p class="gdr-ocr-subtitle">Your active tenants, rental details and monthly rent overview.</p></div></header><div class="gdr-ocr-stats" id="gdrOcrStats"><article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>—</strong><em>Loading live records</em></article><article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>—</strong><em>Based on active tenancies</em></article><article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>—</strong><em>Owner-recorded receipts only</em></article></div><div class="gdr-ocr-content"><div class="gdr-ocr-list" id="gdrOcrList"></div><aside class="gdr-ocr-side"><section class="gdr-ocr-sidecard"><p class="gdr-ocr-side-kicker">TENANCY SNAPSHOT</p><h2>Portfolio at a glance</h2><strong class="gdr-ocr-side-number" id="gdrOcrSideRenters">—</strong><p>Active rental relationships linked to your owner account.</p><strong class="gdr-ocr-side-number" id="gdrOcrSideExpected">—</strong><p>Combined monthly base rent from active properties.</p></section><section class="gdr-ocr-sidecard"><p class="gdr-ocr-side-kicker">QUICK GUIDE</p><h2>Manage with clarity</h2><p>Open any renter card to view their profile, update contact details, manage additional charges, record partial or full rent receipts, and configure due dates and late-fee rules.</p></section><div class="gdr-ocr-building" aria-hidden="true"></div></aside></div><footer class="gdr-ocr-footer"><span>GDR RENTERS · GHARDEKHO</span><span>OWNER MANAGEMENT SPACE</span></footer></div>';
-      document.body.appendChild(page);
-      $("gdrOcrHome").addEventListener("click", close);
+    try {
+      styles();
+      removeRedundantHeadingIcon();
+      returnScroll = window.scrollY;
+      previousBodyOverflow = document.body.style.overflow || "";
+      if (!page) {
+        page = document.createElement("section");
+        page.id = "gdrOwnerCurrentRentersPage";
+        page.setAttribute("aria-label", "Current Renters dashboard");
+        page.innerHTML = '<div class="gdr-ocr-shell"><div class="gdr-ocr-brandbar"><div class="gdr-ocr-brand"><span class="gdr-ocr-brandmark">GDR</span><div><p class="gdr-ocr-brandname">GDR RENTERS</p><p class="gdr-ocr-brandtag">Rental operations / owner console</p></div></div><button type="button" class="gdr-ocr-home" id="gdrOcrHome"><span class="gdr-ocr-home-icon" aria-hidden="true">⌂</span><span>Back to Home</span></button></div><header class="gdr-ocr-head"><div><p class="gdr-ocr-kicker">OWNER WORKSPACE / TENANCY</p><h1 class="gdr-ocr-title">Current Renters</h1><p class="gdr-ocr-subtitle">Your active tenants, rental details and monthly rent overview.</p></div></header><div class="gdr-ocr-stats" id="gdrOcrStats"><article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>—</strong><em>Loading live records</em></article><article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>—</strong><em>Based on active tenancies</em></article><article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>—</strong><em>Owner-recorded receipts only</em></article></div><div class="gdr-ocr-content"><div class="gdr-ocr-list" id="gdrOcrList"></div><aside class="gdr-ocr-side"><section class="gdr-ocr-sidecard"><p class="gdr-ocr-side-kicker">TENANCY SNAPSHOT</p><h2>Portfolio at a glance</h2><strong class="gdr-ocr-side-number" id="gdrOcrSideRenters">—</strong><p>Active rental relationships linked to your owner account.</p><strong class="gdr-ocr-side-number" id="gdrOcrSideExpected">—</strong><p>Combined monthly base rent from active properties.</p></section><section class="gdr-ocr-sidecard"><p class="gdr-ocr-side-kicker">QUICK GUIDE</p><h2>Manage with clarity</h2><p>Open any renter card to view their profile, update contact details, manage additional charges, record partial or full rent receipts, and configure due dates and late-fee rules.</p></section><div class="gdr-ocr-building" aria-hidden="true"></div></aside></div><footer class="gdr-ocr-footer"><span>GDR RENTERS · GHARDEKHO</span><span>OWNER MANAGEMENT SPACE</span></footer></div>';
+        document.body.appendChild(page);
+        $("gdrOcrHome").addEventListener("click", close);
+      }
+      occupancySection = section;
+      originalParent = section.parentNode;
+      originalNext = section.nextSibling;
+      const list = $("gdrOcrList");
+      if (!list) throw new Error("Current Renters list container is unavailable.");
+      list.appendChild(section);
+      page.hidden = false;
+      document.body.classList.add("gdr-current-renters-open");
+      document.body.style.overflow = "hidden";
+      page.scrollTop = 0;
+      const data = await stats();
+      if ($("gdrOcrStats")) {
+        $("gdrOcrStats").innerHTML =
+          '<article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>' + data.renters + '</strong><em>Live occupancy records</em></article>' +
+          '<article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>' + money(data.expected) + '</strong><em>Combined base rent for active renters</em></article>' +
+          '<article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>' + (data.received === null ? "—" : money(data.received)) + '</strong><em>' + (data.received === null ? "Receipt summary unavailable" : "Owner-recorded ledger receipts") + '</em></article>';
+        $("gdrOcrSideRenters").textContent = data.renters;
+        $("gdrOcrSideExpected").textContent = money(data.expected);
+      }
+    } catch (error) {
+      console.error("[GharDekho] Current Renters workspace failed to open", error);
+      if (page) page.hidden = true;
+      document.body.classList.remove("gdr-current-renters-open");
+      document.body.style.overflow = previousBodyOverflow;
+      if (occupancySection && originalParent) {
+        if (originalNext && originalNext.parentNode === originalParent) originalParent.insertBefore(occupancySection, originalNext);
+        else originalParent.appendChild(occupancySection);
+      }
+      occupancySection = null; originalParent = null; originalNext = null;
+      const status = document.getElementById("backendMessage");
+      if (status) { status.textContent = error.message || "Could not open Current Renters. Please try again."; status.className = "backend-message error"; }
+    } finally {
+      busy = false;
     }
-    occupancySection = section;
-    originalParent = section.parentNode;
-    originalNext = section.nextSibling;
-    const list = $("gdrOcrList");
-    list.appendChild(section);
-    page.hidden = false;
-    document.body.classList.add("gdr-current-renters-open");
-    document.body.style.overflow = "hidden";
-    const data = await stats();
-    if ($("gdrOcrStats")) {
-      $("gdrOcrStats").innerHTML =
-        '<article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>' + data.renters + '</strong><em>Live occupancy records</em></article>' +
-        '<article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>' + money(data.expected) + '</strong><em>Combined base rent for active renters</em></article>' +
-        '<article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>' + (data.received === null ? "—" : money(data.received)) + '</strong><em>' + (data.received === null ? "Receipt summary unavailable" : "Owner-recorded ledger receipts") + '</em></article>';
-      $("gdrOcrSideRenters").textContent = data.renters;
-      $("gdrOcrSideExpected").textContent = money(data.expected);
-    }
-    busy = false;
   }
 
   function close() {
@@ -212,9 +230,9 @@
       if (originalNext && originalNext.parentNode === originalParent) originalParent.insertBefore(occupancySection, originalNext);
       else originalParent.appendChild(occupancySection);
     }
-    if (page) page.hidden = true;
+    if (page) { page.hidden = true; page.scrollTop = 0; }
     document.body.classList.remove("gdr-current-renters-open");
-    document.body.style.overflow = "";
+    document.body.style.overflow = previousBodyOverflow;
     window.scrollTo({ top: returnScroll, behavior: "smooth" });
     occupancySection = null;
     originalParent = null;
