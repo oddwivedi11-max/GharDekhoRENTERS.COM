@@ -31,7 +31,12 @@
       #gdrOwnerCurrentRentersPage{position:fixed;inset:0;z-index:85000;overflow:auto;background:#f8f5f0;color:#30251e;padding:clamp(14px,3vw,32px)}
       #gdrOwnerCurrentRentersPage *{box-sizing:border-box}
       .gdr-ocr-shell{width:min(1220px,100%);min-height:calc(100vh - 64px);margin:0 auto;display:flex;flex-direction:column;gap:18px}
-      .gdr-ocr-brandbar{display:flex;align-items:center;justify-content:space-between;gap:16px;padding:18px 22px;border:1px solid #e5d7c9;border-radius:20px;background:linear-gradient(115deg,#fffdfa 0%,#f1e5d9 100%);box-shadow:0 12px 30px rgba(76,51,34,.07)}
+      .gdr-ocr-brandbar{display:flex;align-items:center;justify-content:flex-end;gap:16px;padding:10px 0;border:0;border-radius:0;background:transparent;box-shadow:none}
+      .gdr-ocr-brandbar .gdr-ocr-brand{display:none!important}
+      .gdr-ocr-home{min-height:46px;padding:0 18px;border:1px solid #c8ddd0;border-radius:13px;background:#fff;color:#174a35;font-weight:900;cursor:pointer;pointer-events:auto;position:relative;z-index:3}
+      #gdrOwnerCurrentRentersPage button{pointer-events:auto;touch-action:manipulation}
+      #gdrOwnerCurrentRentersPage{z-index:100100!important}
+      #gdrOwnerCurrentRentersPage .gdr-ocr-shell{gap:14px}
       .gdr-ocr-brand{display:flex;align-items:center;gap:13px;min-width:0}
       .gdr-ocr-brandmark{display:grid;place-items:center;width:48px;height:48px;flex:0 0 48px;border-radius:14px;background:#4b3427;color:#fff;font:950 15px/1 "Arial Black","Orbitron",monospace;letter-spacing:-.08em;box-shadow:0 5px 0 #302117,0 10px 18px rgba(48,33,23,.18)}
       .gdr-ocr-brandname{margin:0;color:#38271d;font-family:"Arial Black","Orbitron",monospace;font-size:clamp(21px,3vw,30px);font-weight:1000;letter-spacing:.075em;line-height:1;text-transform:uppercase;text-shadow:1px 1px 0 #d7c0aa,2px 2px 0 rgba(88,58,38,.12)}
@@ -187,7 +192,7 @@
         page.setAttribute("aria-label", "Current Renters dashboard");
         page.innerHTML = '<div class="gdr-ocr-shell"><div class="gdr-ocr-brandbar"><div class="gdr-ocr-brand"><span class="gdr-ocr-brandmark">GDR</span><div><p class="gdr-ocr-brandname">GDR RENTERS</p><p class="gdr-ocr-brandtag">Rental operations / owner console</p></div></div><button type="button" class="gdr-ocr-home" id="gdrOcrHome"><span class="gdr-ocr-home-icon" aria-hidden="true">⌂</span><span>Back to Home</span></button></div><header class="gdr-ocr-head"><div><p class="gdr-ocr-kicker">OWNER WORKSPACE / TENANCY</p><h1 class="gdr-ocr-title">Current Renters</h1><p class="gdr-ocr-subtitle">Your active tenants, rental details and monthly rent overview.</p></div></header><div class="gdr-ocr-stats" id="gdrOcrStats"><article class="gdr-ocr-stat"><small>ACTIVE RENTERS</small><strong>—</strong><em>Loading live records</em></article><article class="gdr-ocr-stat"><small>MONTHLY RENT EXPECTED</small><strong>—</strong><em>Based on active tenancies</em></article><article class="gdr-ocr-stat"><small>RENT RECEIVED THIS MONTH</small><strong>—</strong><em>Owner-recorded receipts only</em></article></div><div class="gdr-ocr-content"><div class="gdr-ocr-list" id="gdrOcrList"></div><aside class="gdr-ocr-side"><section class="gdr-ocr-sidecard"><p class="gdr-ocr-side-kicker">TENANCY SNAPSHOT</p><h2>Portfolio at a glance</h2><strong class="gdr-ocr-side-number" id="gdrOcrSideRenters">—</strong><p>Active rental relationships linked to your owner account.</p><strong class="gdr-ocr-side-number" id="gdrOcrSideExpected">—</strong><p>Combined monthly base rent from active properties.</p></section><section class="gdr-ocr-sidecard"><p class="gdr-ocr-side-kicker">QUICK GUIDE</p><h2>Manage with clarity</h2><p>Open any renter card to view their profile, update contact details, manage additional charges, record partial or full rent receipts, and configure due dates and late-fee rules.</p></section><div class="gdr-ocr-building" aria-hidden="true"></div></aside></div><footer class="gdr-ocr-footer"><span>GDR RENTERS · GHARDEKHO</span><span>OWNER MANAGEMENT SPACE</span></footer></div>';
         document.body.appendChild(page);
-        $("gdrOcrHome").addEventListener("click", close);
+        $("gdrOcrHome").addEventListener("click", function(event){event.preventDefault();event.stopPropagation();close();});
       }
       occupancySection = section;
       originalParent = section.parentNode;
@@ -233,7 +238,7 @@
     if (page) { page.hidden = true; page.scrollTop = 0; }
     document.body.classList.remove("gdr-current-renters-open");
     document.body.style.overflow = previousBodyOverflow;
-    window.scrollTo({ top: returnScroll, behavior: "smooth" });
+    requestAnimationFrame(()=>window.scrollTo({ top: returnScroll, behavior: "smooth" }));
     occupancySection = null;
     originalParent = null;
     originalNext = null;
