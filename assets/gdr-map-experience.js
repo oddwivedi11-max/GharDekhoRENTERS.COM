@@ -97,7 +97,7 @@
     if(!state.renterMap||!validPoint(point.lat,point.lng))return;
     state.searchCenter=[Number(point.lat),Number(point.lng)];state.resolvedQuery=String(label||"");
     const placeType=String(point.properties&& (point.properties.type||point.properties.osm_value)||"").toLowerCase();
-    if(placeType==="city"){state.radiusKm=10;const radius=$("gdrMapRadius"),radiusLabel=$("gdrMapRadiusValue");if(radius)radius.value="10";if(radiusLabel)radiusLabel.textContent="10 km";}
+    if(placeType==="city"||placeType==="town"||placeType==="administrative"){state.radiusKm=10;const radius=$("gdrMapRadius"),radiusLabel=$("gdrMapRadiusValue");if(radius)radius.value="10";if(radiusLabel)radiusLabel.textContent="10 km";}
     if(state.renterPin)state.renterMap.removeLayer(state.renterPin);
     const icon=window.L.divIcon({className:"gdr-renter-pin-wrap",html:"<span class='gdr-renter-pin'><i></i></span>",iconSize:[34,42],iconAnchor:[17,38]});
     state.renterPin=window.L.marker(state.searchCenter,{icon,keyboard:true,title:"Selected search location",zIndexOffset:1000}).addTo(state.renterMap);
@@ -284,7 +284,9 @@
     try{
       const point=await resolveMapQuery(query);
       setRenterPin(point,point.label||query);
-      state.renterMap.setView(state.searchCenter,14,{animate:false});
+      const kind=String(point.properties&&(point.properties.type||point.properties.osm_value)||"").toLowerCase();
+      const cityLike=["city","town","administrative"].includes(kind);
+      state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false});
       return await searchRenterArea();
     }catch(error){
       console.warn("GDR map location search failed:",error);
