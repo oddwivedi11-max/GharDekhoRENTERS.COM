@@ -116,6 +116,21 @@ if css_ref not in source:
         raise SystemExit("Stopped safely: closing head tag missing.")
     source = source[:head_pos] + css_ref + "\n" + source[head_pos:]
 
+replace_once(
+    '<script src="/assets/gdr-rental-suite.js"></script>',
+    '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>',
+    "cache-bust renter move-out notice controller"
+)
+replace_once(
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">',
+    "cache-bust renter move-out notice styles"
+)
+source = source.replace("● Soon available", "● Vacating Soon")
+source = source.replace("● Soon Available", "● Vacating Soon")
+source = source.replace('"Soon Available"', '"Vacating Soon"')
+source = source.replace('"Soon available"', '"Vacating Soon"')
+
 script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio1" defer></script>'
 if script_ref not in source:
     body_pos = source.rfind("</body>")
