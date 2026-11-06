@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-studio1";
+const VERSION="20261107-studio2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -744,7 +744,7 @@ function showSuccess(property){
 async function init(){
  const mount=$("#gdrPropertyStudioMount");
  if(mount&&!studio()){
-  const response=await fetch("/assets/gdr-property-studio.html?v="+VERSION,{cache:"no-cache"});
+  const response=await fetch("/assets/gdr-property-studio.txt?v="+VERSION,{cache:"no-cache"});
   if(!response.ok)throw new Error("Property Studio layout could not be loaded.");
   mount.innerHTML=await response.text();
  }
