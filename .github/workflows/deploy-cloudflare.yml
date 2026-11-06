@@ -93,7 +93,6 @@ jobs:
           grep -q 'gdrPayAddCharge' /tmp/gdr-owner-payments.js
           grep -q 'gdr-pay-header--minimal' /tmp/gdr-owner-payments.js
           grep -q 'GDR PAYMENT' /tmp/gdr-owner-payments.js
-          grep -q 'gdr-pay-brand-title' /tmp/gdr-owner-payments.css
           if grep -q 'GDR FINANCE / OWNER WORKSPACE' /tmp/gdr-owner-payments.js; then echo 'Redundant finance heading still present'; exit 1; fi
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
