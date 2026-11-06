@@ -167,3 +167,70 @@ body.gdr-pay-lock [data-gdr-owner-brand]{
   z-index:2!important;
   margin:0!important;
 }
+
+
+/* Visible GDR PAYMENT workspace title — aligned with the existing blue dashboard UI. */
+#gdrPaymentsPage .gdr-pay-header--minimal{
+  display:flex!important;
+  flex-direction:row!important;
+  align-items:center!important;
+  justify-content:space-between!important;
+  gap:20px!important;
+  min-height:82px!important;
+  margin:0 0 18px!important;
+  padding:4px 0 16px!important;
+}
+#gdrPaymentsPage .gdr-pay-brand-title{
+  display:grid!important;
+  flex:1 1 auto!important;
+  min-width:0!important;
+  gap:3px!important;
+  max-width:none!important;
+}
+#gdrPaymentsPage .gdr-pay-brand-title .gdr-pay-eyebrow{
+  margin:0!important;
+  color:#5794bd!important;
+  font-size:10px!important;
+  font-weight:950!important;
+  letter-spacing:.18em!important;
+}
+#gdrPaymentsPage .gdr-pay-brand-title h1{
+  margin:0!important;
+  color:#173c5b!important;
+  font-size:clamp(25px,3.2vw,34px)!important;
+  font-weight:950!important;
+  line-height:1.12!important;
+  letter-spacing:-.045em!important;
+}
+#gdrPaymentsPage .gdr-pay-brand-title p{
+  margin:2px 0 0!important;
+  color:#6c8297!important;
+  font-size:12px!important;
+  line-height:1.45!important;
+}
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{
+  flex:0 0 auto!important;
+  margin:0!important;
+}
+@media(max-width:560px){
+  #gdrPaymentsPage .gdr-pay-header--minimal{
+    flex-direction:row!important;
+    align-items:center!important;
+    gap:10px!important;
+    min-height:74px!important;
+    margin-bottom:14px!important;
+  }
+  #gdrPaymentsPage .gdr-pay-brand-title h1{font-size:24px!important}
+  #gdrPaymentsPage .gdr-pay-brand-title p{font-size:10px!important}
+  #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{
+    width:auto!important;
+    min-height:40px!important;
+    padding:0 10px!important;
+  }
+  #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close span{display:inline!important;font-size:10px!important}
+}
+@media(max-width:380px){
+  #gdrPaymentsPage .gdr-pay-header--minimal{align-items:flex-start!important}
+  #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{font-size:10px!important}
+  #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close span{display:none!important}
+}
