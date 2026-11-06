@@ -110,3 +110,24 @@ body.gdr-pay-lock>header,body.gdr-pay-lock>.site-header,body.gdr-pay-lock>#siteH
 .gdr-pay-charge-actions{grid-column:1/-1;display:flex;justify-content:flex-end;gap:10px;padding-top:7px}
 .gdr-pay-charge-dialog button:focus-visible{outline:3px solid #b8e76b;outline-offset:3px}
 @media(max-width:560px){.gdr-pay-charge-dialog{padding:16px;border-radius:17px}.gdr-pay-charge-dialog .gdr-pay-form{grid-template-columns:1fr}.gdr-pay-charge-dialog .gdr-pay-form label{grid-column:1/-1}.gdr-pay-charge-actions{flex-direction:column-reverse}.gdr-pay-charge-actions button{width:100%;min-height:46px}}
+
+/* Finance workspace: remove the redundant logo/title strip and keep only Back. */
+#gdrPaymentsPage .gdr-pay-header--minimal{
+  display:flex!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  min-height:0!important;
+  padding:0!important;
+  margin:0 0 18px!important;
+  background:transparent!important;
+  border:0!important;
+  box-shadow:none!important;
+}
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{
+  position:relative;
+  z-index:2;
+  margin-left:auto;
+}
+@media(max-width:600px){
+  #gdrPaymentsPage .gdr-pay-header--minimal{margin-bottom:12px!important}
+}

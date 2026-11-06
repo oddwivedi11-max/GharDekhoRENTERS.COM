@@ -435,6 +435,8 @@ for old, new in (
         print("Upgraded owner workspace cache version: " + old)
     elif new.replace("20261105-workspace3", "20261107-workspace4") in source:
         print("Owner workspace asset already has the latest cache version: " + old)
+    elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and new.replace("20261105-workspace3", "20261107-finance-clean5") in source:
+        print("Finance asset already has clean header cache version: " + old)
     elif new not in source:
         raise SystemExit("Stopped safely: expected owner workspace asset reference not found: " + old)
 
@@ -517,6 +519,15 @@ for asset in (
             source = source.replace(plain, plain.replace(f"/assets/{asset}", f"/assets/{asset}?v=20261107-workspace4"), 1)
         elif f'/assets/{asset}?v=20261107-workspace4' not in source:
             raise SystemExit("Stopped safely: could not version owner asset " + asset)
+
+# Invalidate cached finance assets after removing the overlapping title strip.
+for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
+    old_ref = f"/assets/{asset}?v=20261107-workspace4"
+    new_ref = f"/assets/{asset}?v=20261107-finance-clean5"
+    if old_ref in source:
+        source = source.replace(old_ref, new_ref)
+    elif new_ref not in source:
+        raise SystemExit("Stopped safely: finance asset reference not found: " + asset)
 
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
