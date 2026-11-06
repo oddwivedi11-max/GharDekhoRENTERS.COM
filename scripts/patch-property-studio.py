@@ -140,14 +140,18 @@ replace_once(
 )
 renter_css_v1 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">'
 renter_css_v2 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">'
-if renter_css_v2 not in source:
-    if renter_css_v1 in source:
-        source = source.replace(renter_css_v1, renter_css_v2, 1)
+renter_css_v3 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout3">'
+if renter_css_v3 not in source:
+    if renter_css_v2 in source:
+        source = source.replace(renter_css_v2, renter_css_v3, 1)
+        print("Updated: cache-bust renter move-out notice styles")
+    elif renter_css_v1 in source:
+        source = source.replace(renter_css_v1, renter_css_v3, 1)
         print("Updated: cache-bust renter move-out notice styles")
     else:
         replace_once(
             '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
-            renter_css_v2,
+            renter_css_v3,
             "cache-bust renter move-out notice styles"
         )
 source = source.replace("● Soon available", "● Vacating Soon")
