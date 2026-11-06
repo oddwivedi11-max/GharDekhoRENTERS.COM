@@ -98,7 +98,8 @@ test("Property Studio uses only free Photon, Leaflet and OpenStreetMap nearby di
   assert.match(studio, /gdr_osm_nearby_v1/);
   assert.match(studio, /86400000/);
   assert.match(studio, /nearbyController\.abort\(\)/);
-  assert.match(studio, /cached\.places\.map\(p=>\(\{\.\.\.p,distance_m:Math\.round\(distanceMeters/);
+  assert.match(studio, /cached\.places\.filter/);
+  assert.match(studio, /distance_m:Math\.round\(distanceMeters/);
   assert.match(studioMarkup, /© OpenStreetMap contributors/);
   assert.match(read("assets/gdr-property-studio.txt"), /© OpenStreetMap contributors/);
   assert.match(studio, /distanceMeters\(lat,lng,placeLat,placeLng\)/);
