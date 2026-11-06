@@ -125,8 +125,8 @@ async function runMapSearch(){
  const prompt=$("gdrxMapPrompt"),status=$("gdrxMapStatus"),go=$("gdrxMapGo");
  if(!prompt||!status||!go)return;
  const p=parseRequest(prompt.value),api=window.GDRMapExperience;
- if(!p.location){status.textContent="Include a city, locality or PIN code (for example, Patel Nagar Bhopal) to locate your map search.";return}
- if(!api||typeof api.searchTypedMapLocation!=="function"){status.textContent="The map is still loading. Close and reopen Explore Map, then try again.";return}
+ if(!p.location&&!p.useMyLocation){status.textContent="Include a city, locality or PIN code, or say “near my location” to use GPS.";return}
+ if(!api||typeof api.searchRenterArea!=="function"||(!p.useMyLocation&&typeof api.searchTypedMapLocation!=="function")){status.textContent="The map is still loading. Close and reopen Explore Map, then try again.";return}
  try{
   go.disabled=true;status.textContent="Locating "+p.location+" and searching real GharDekho listings…";
   const locationInput=$("gdrMapPlaceSearch");if(locationInput)locationInput.value=p.location;
