@@ -400,3 +400,5 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
 /* Release marker: owner module header contrast repair 2026-11-07. */
 
 /* Cloudflare redeploy marker: verify module header contrast. */
+
+/* Deployment trigger: align verification with real asset references. */
