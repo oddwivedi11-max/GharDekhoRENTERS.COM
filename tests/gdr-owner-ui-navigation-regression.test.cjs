@@ -53,6 +53,18 @@ test("Renter profile controls remain clickable and asynchronous loading cannot s
  assert.match(profile,/async function saveCharge/);
 });
 
+test("Back navigation cannot activate the hidden property image file picker",()=>{
+ assert.match(controller,/window\.addEventListener\("click"/);
+ assert.match(controller,/target\.closest\("\#gdrOwnerModuleHeader \[data-gdr-owner-home\]"\)/);
+ assert.match(controller,/event\.stopImmediatePropagation\(\)/);
+ assert.match(css,/#ownerDashboard #gdrOwnerModuleHeader\{[\s\S]*?z-index:100010!important/);
+ const patcher=read("scripts/patch-owner-dashboard-refresh.py");
+ assert.match(patcher,/data-gd-open-property-picker/);
+ assert.match(patcher,/gdPickerAuthorized/);
+ assert.match(patcher,/gdClickGuardBound/);
+ assert.match(patcher,/20261107-workspace4/);
+});
+
 test("Production asset patch references a fresh cache version",()=>{
  assert.match(patch,/20261105-workspace3/);
 });
