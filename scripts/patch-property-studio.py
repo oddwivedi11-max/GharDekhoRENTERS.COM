@@ -133,37 +133,37 @@ if css_ref not in source:
         raise SystemExit("Stopped safely: closing head tag missing.")
     source = source[:head_pos] + css_ref + "\n" + source[head_pos:]
 
-renter_js_v1 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>'
-renter_js_v2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
-renter_js_v3 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
-if renter_js_v3 not in source:
-    if renter_js_v2 in source:
-        source = source.replace(renter_js_v2, renter_js_v3, 1)
-        print("Updated: cache-bust renter move-out notice controller")
-    elif renter_js_v1 in source:
-        source = source.replace(renter_js_v1, renter_js_v3, 1)
-        print("Updated: cache-bust renter move-out notice controller")
+renter_js_old = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
+renter_js_old2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
+renter_js_new = '<script src="/assets/gdr-rental-suite-v2.js?v=20261107-moveout-v2"></script>'
+if renter_js_new not in source:
+    if renter_js_old in source:
+        source = source.replace(renter_js_old, renter_js_new, 1)
+        print("Updated: switch renter move-out controller to a fresh asset path")
+    elif renter_js_old2 in source:
+        source = source.replace(renter_js_old2, renter_js_new, 1)
+        print("Updated: switch renter move-out controller to a fresh asset path")
     else:
         replace_once(
             '<script src="/assets/gdr-rental-suite.js"></script>',
-            renter_js_v3,
-            "cache-bust renter move-out notice controller"
+            renter_js_new,
+            "switch renter move-out controller to a fresh asset path"
         )
-renter_css_v1 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">'
-renter_css_v2 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">'
-renter_css_v3 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout3">'
-if renter_css_v3 not in source:
-    if renter_css_v2 in source:
-        source = source.replace(renter_css_v2, renter_css_v3, 1)
-        print("Updated: cache-bust renter move-out notice styles")
-    elif renter_css_v1 in source:
-        source = source.replace(renter_css_v1, renter_css_v3, 1)
-        print("Updated: cache-bust renter move-out notice styles")
+renter_css_old = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout3">'
+renter_css_old2 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">'
+renter_css_new = '<link rel="stylesheet" href="/assets/gdr-rental-suite-v2.css?v=20261107-moveout-v2">'
+if renter_css_new not in source:
+    if renter_css_old in source:
+        source = source.replace(renter_css_old, renter_css_new, 1)
+        print("Updated: switch renter move-out styles to a fresh asset path")
+    elif renter_css_old2 in source:
+        source = source.replace(renter_css_old2, renter_css_new, 1)
+        print("Updated: switch renter move-out styles to a fresh asset path")
     else:
         replace_once(
             '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
-            renter_css_v3,
-            "cache-bust renter move-out notice styles"
+            renter_css_new,
+            "switch renter move-out styles to a fresh asset path"
         )
 source = source.replace("● Soon available", "● Vacating Soon")
 source = source.replace("● Soon Available", "● Vacating Soon")
