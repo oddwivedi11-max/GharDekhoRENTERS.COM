@@ -70,7 +70,6 @@ test("Property Studio saves drafts, uploads owner-scoped photos and uses the sec
   assert.match(studio, /p_photo_urls/);
   assert.match(studio, /SpeechRecognition/);
   assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
-  assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
   assert.match(studio, /overpass-api\.de\/api\/interpreter/);
   assert.match(studio, /distanceMeters\(lat,lng,placeLat,placeLng\)/);
   assert.match(studio, /Please review and correct every field before continuing/);
