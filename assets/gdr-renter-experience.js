@@ -115,7 +115,7 @@ function startVoice(target,lang){
  if(!API){if(status)status.textContent="Speech recognition is not supported in this browser. Type your request instead.";return}
  try{
   state.recognition?.stop();
-  const chosen=mapMode?($("#gdrxMapLang")?.value||state.lang):(lang||state.lang);
+  const chosen=mapMode?($("gdrxMapLang")?.value||state.lang):(lang||state.lang);
   const r=new API();state.recognition=r;r.lang=chosen;r.interimResults=true;r.maxAlternatives=1;let finalTranscript="";
   mic?.classList.add("listening");if(status)status.textContent=mapMode?"Listening… बोलिए / I'm listening…":"Listening… speak your home requirements.";
   r.onresult=e=>{
