@@ -7,7 +7,8 @@
     ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, renterPin:null, inventory:[], boundsRows:[], visible:[],
     searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false, resolvedQuery:"",
     geolocationAttempted:false, searchTimer:null, searchController:null,
-    ownerSearchTimer:null, ownerSearchController:null
+    ownerSearchTimer:null, ownerSearchController:null,
+    currentPrefs:{}, selectedPropertyId:null, markerById:new Map(), lastSearchBounds:null
   };
   const INDIA_CENTER=[22.9734,78.6569], TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
   const PHOTON="https://photon.komoot.io/api/";
@@ -57,16 +58,36 @@
     }).addTo(map);
   }
   async function fetchInventory(){const client=db();if(!client)throw new Error("Property service is still loading.");const r=await client.rpc("get_public_properties");if(r.error)throw r.error;state.inventory=(Array.isArray(r.data)?r.data:[]).filter(p=>validPoint(p.latitude,p.longitude));state.loadedOnce=true;return state.inventory;}
-  async function fetchBounds(bounds){
+  async function fetchBounds(bounds,center,prefs){
     const client=db();if(!client)throw new Error("Property service is not ready.");
-    const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
-    if(state.viewportRpc!==false){
-      const r=await client.rpc("get_map_properties_in_bounds",{p_south:sw.lat,p_west:sw.lng,p_north:ne.lat,p_east:ne.lng,p_limit:200});
-      if(!r.error){state.viewportRpc=true;return (Array.isArray(r.data)?r.data:[]).filter(p=>validPoint(p.latitude,p.longitude));}
-      state.viewportRpc=false;console.info("Viewport RPC not installed yet; using existing public inventory as a compatibility fallback.");
-    }
-    if(!state.loadedOnce)await fetchInventory();
-    return state.inventory.filter(p=>bounds.contains([Number(p.latitude),Number(p.longitude)]));
+    const sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),p=prefs||{};
+    const args={
+      p_south:Number(sw.lat),p_west:Number(sw.lng),p_north:Number(ne.lat),p_east:Number(ne.lng),
+      p_center_lat:Number(center[0]),p_center_lng:Number(center[1]),p_radius_km:Number(state.radiusKm),
+      p_min_rent:p.minBudget?Number(p.minBudget):null,
+      p_max_rent:p.maxBudget?Number(p.maxBudget):null,
+      p_bhk:p.bhk?Number(p.bhk):null,
+      p_listing_type:p.stayType||null,
+      p_property_type:p.propertyType||null,
+      p_furnishing:p.furnishing||null,
+      p_limit:200
+    };
+    const result=await client.rpc("get_available_map_properties_in_bounds",args);
+    if(result.error){console.error("Available map search RPC failed:",result.error);throw new Error("Live property search is temporarily unavailable. Please retry in a moment.");}
+    const unique=new Map();
+    (Array.isArray(result.data)?result.data:[]).forEach(p=>{
+      if(!p||!p.id||!validPoint(p.latitude,p.longitude))return;
+      const status=String(p.status||"").toLowerCase();
+      if(status!=="verified"&&status!=="pending")return;
+      if(status==="verified"&&(p.verification_status!=="verified"||p.owner_verified!==true))return;
+      if(status==="pending"&&p.verification_status!=="pending")return;
+      if((p.listing_type==="pg"||p.listing_type==="hostel")&&Number(p.available_beds||0)<=0)return;
+      if(unique.has(String(p.id)))return;
+      const distance=distanceKm(center,[Number(p.latitude),Number(p.longitude)]);
+      if(!Number.isFinite(distance)||distance>state.radiusKm||!bounds.contains([Number(p.latitude),Number(p.longitude)]))return;
+      unique.set(String(p.id),Object.assign({},p,{gdrDistanceKm:distance}));
+    });
+    return Array.from(unique.values()).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
   }
   function applyRadius(rows,center){return rows.map(p=>Object.assign({},p,{gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])})).filter(p=>p.gdrDistanceKm<=state.radiusKm).sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);}
   async function reverseGeocodeRenter(lat,lng){
