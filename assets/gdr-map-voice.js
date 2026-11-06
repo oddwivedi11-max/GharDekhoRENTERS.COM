@@ -77,7 +77,7 @@ function startListening(){
  r.onerror=e=>{
   if(session!==state.session)return;
   const fatal=["not-allowed","service-not-allowed","audio-capture","language-not-supported"].includes(e.error);
-  if(fatal){state.active=false;state.recognition=null;setMic(false);status(e.error==="not-allowed"||e.error==="service-not-allowed"?text("Microphone permission blocked है। Browser site settings में अनुमति दें।","Microphone permission is blocked. Allow it in browser site settings."):text("Microphone उपलब्ध नहीं है। Text search इस्तेमाल करें।","Microphone is unavailable. Use text search."),"error");}
+  if(fatal){state.session++;state.active=false;state.recognition=null;setMic(false);status(e.error==="not-allowed"||e.error==="service-not-allowed"?text("Microphone permission blocked है। Browser site settings में अनुमति दें।","Microphone permission is blocked. Allow it in browser site settings."):text("Microphone उपलब्ध नहीं है। Text search इस्तेमाल करें।","Microphone is unavailable. Use text search."),"error");}
   else if(e.error==="network")status(text("Browser speech recognition को network चाहिए। Connection check करें।","Browser speech recognition needs a network connection. Check your connection."),"error");
  };
  r.onend=()=>{if(session!==state.session)return;state.recognition=null;if(state.silenceTimer){clearTimeout(state.silenceTimer);state.silenceTimer=setTimeout(finishTurn,350);}else if(state.finalText.trim()||state.interimText.trim())finishTurn();else{setMic(false);status(text("फिर से बोलने के लिए mic दबाएँ।","Tap the mic to speak again."),"idle");}};
@@ -85,7 +85,7 @@ function startListening(){
 }
 async function runTurn(raw){
  const api=window.GDRMapExperience;if(!api){status("Map search is still loading. Please try again.","error");return;}
- const intent=extractIntent(raw);state.prefs=intent.prefs;
+ const intent=extractIntent(raw);state.prefs={...api.getRenterSearchPreferences(),...intent.prefs};intent.prefs=state.prefs;
  const hasFilters=Object.keys(intent.prefs).length>0;
  api.setRenterSearchPreferences(intent.prefs);
  const city=intent.location||state.city;
@@ -95,7 +95,7 @@ async function runTurn(raw){
  try{
   let rows=[];
   if(intent.nearMe){
-   await new Promise((resolve,reject)=>navigator.geolocation?.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:60000})||reject(new Error("Location permission is unavailable."))).then(async pos=>{state.city="";api.setRenterRadius(5,true);rows=await api.searchAtCoordinates(pos.coords.latitude,pos.coords.longitude,"My location");});
+   await new Promise((resolve,reject)=>{if(!navigator.geolocation){reject(new Error("Location permission is unavailable."));return;}navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:60000});}).then(async pos=>{state.city="";api.setRenterRadius(5,true);rows=await api.searchAtCoordinates(pos.coords.latitude,pos.coords.longitude,"My location");});
   }else if(intent.location){
    status(text("Location verify कर रहा हूँ…","Verifying the requested location…"),"processing");
    const point=await api.resolveMapQuery(intent.location);
