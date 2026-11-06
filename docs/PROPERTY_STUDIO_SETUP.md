@@ -14,7 +14,7 @@
 
 ## Google Maps / Places configuration still required
 
-The repository did not contain a Google Maps browser key or a Google Maps JavaScript API integration. The Studio therefore fails closed: it will not invent or display nearby places. Until a key is configured, Photon search and the existing Leaflet map remain available, but automatic Google Places results and the Google map/autocomplete mode remain unavailable.
+The repository did not contain a Google Maps browser key or a Google Maps JavaScript API integration. The Studio loads its guided markup from a dedicated text-fragment asset so the SPA fallback cannot mask a missing `.html` asset, and it fails closed: it will not invent or display nearby places. Until a key is configured, Photon search and the existing Leaflet map remain available, but automatic Google Places results and the Google map/autocomplete mode remain unavailable.
 
 Create a **browser** API key in Google Cloud Console, enable billing, and enable:
 - Maps JavaScript API
