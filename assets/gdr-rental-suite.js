@@ -37,10 +37,71 @@ function openRenter(which){$("gdrRenterHomePanel").hidden=which!=="home";$("gdrR
 function closeRenter(){["gdrRenterHomePanel","gdrRenterPaymentsPanel"].forEach(function(id){if($(id))$(id).hidden=true});if($("renterSavedPropertiesSection"))$("renterSavedPropertiesSection").hidden=false}
 async function getRental(){var r=await c().rpc("get_my_current_rental_details");if(r.error)throw r.error;return Array.isArray(r.data)?r.data[0]:r.data}
 async function loadHome(){
- var t=$("gdrRenterHomeContent");try{rental=await getRental();if(!rental){t.innerHTML='<div class="gdr-rental-empty"><h4>No active home yet</h4><p>Your home details will appear after an owner confirms your tenancy.</p></div>';return}
- var photo=rental.image_url?'<img src="'+esc(rental.image_url)+'" alt="Your property">':'<div class="gdr-home-placeholder">⌂</div>';
- t.innerHTML='<div class="gdr-home-hero"><div class="gdr-home-photo">'+photo+'</div><div><span class="gdr-rental-status">● Active tenancy</span><h4>'+esc(rental.title||rental.name||"Your home")+'</h4><p>'+esc(rental.address||rental.location||"Address not available")+'</p><div class="gdr-home-tags"><span>'+esc(rental.listing_type||"Home")+'</span>'+(rental.bhk?'<span>'+esc(rental.bhk)+' BHK</span>':"")+(rental.furnishing?'<span>'+esc(rental.furnishing)+'</span>':"")+'</div></div></div><div class="gdr-rental-metrics"><article><small>Monthly base rent</small><strong>'+money(rental.rent)+'</strong></article><article><small>Move-in date</small><strong>'+date(rental.occupied_at)+'</strong></article><article><small>Expected move-out</small><strong>'+date(rental.expected_move_out_at)+'</strong></article></div><div class="gdr-rental-two-col"><section class="gdr-rental-card"><h4>Property details</h4>'+row("Property type",rental.listing_type||"Home")+row("Room type",rental.room_type||"—")+row("BHK",rental.bhk||"—")+row("Furnishing",rental.furnishing||"—")+row("Address",rental.address||rental.location||"—")+'</section><section class="gdr-rental-card"><h4>Your owner</h4><div class="gdr-owner-contact"><span class="gdr-owner-avatar">'+esc((rental.owner_name||"O").slice(0,1).toUpperCase())+'</span><div><strong>'+esc(rental.owner_name||"Property owner")+'</strong><small>Owner / property manager</small></div></div>'+row("Contact",rental.owner_phone||"Not shared")+(rental.owner_phone?'<a class="gdr-rental-secondary" href="tel:'+esc(rental.owner_phone)+'">Call owner</a>':"")+'</section></div>';
- }catch(e){t.innerHTML='<div class="gdr-rental-empty"><h4>Could not load your home</h4><p>'+esc(e.message||"Please try again.")+'</p><button class="gdr-rental-secondary" id="gdrRetryHome">Try again</button></div>';$("gdrRetryHome").onclick=loadHome}
+ var t=$("gdrRenterHomeContent");
+ try{
+  rental=await getRental();
+  if(!rental){t.innerHTML='<div class="gdr-rental-empty"><h4>No active home yet</h4><p>Your home details will appear after an owner confirms your tenancy.</p></div>';return;}
+  var photo=rental.image_url?'<img src="'+esc(rental.image_url)+'" alt="Your property">':'<div class="gdr-home-placeholder">⌂</div>';
+  var localNow=new Date();localNow.setMinutes(localNow.getMinutes()-localNow.getTimezoneOffset());
+  var today=localNow.toISOString().slice(0,10);
+  var noticeExists=!!rental.expected_move_out_at;
+  var noticeText=noticeExists
+   ?"Your move-out notice is recorded. The property will show Vacating Soon until the owner confirms the move-out."
+   :"Tell your owner when you plan to move out. Your tenancy stays active until the owner confirms your move-out.";
+  var noticeCard='<section class="gdr-rental-card gdr-moveout-notice"><div class="gdr-moveout-heading"><div><span class="gdr-moveout-kicker">TENANCY UPDATE</span><h4>Move-out notice</h4></div><span class="gdr-moveout-badge">'+(noticeExists?'Notice submitted':'Active tenancy')+'</span></div>'+
+   '<p id="gdrRenterMoveoutHelp">'+esc(noticeText)+'</p>'+
+   '<form id="gdrRenterMoveoutForm" class="gdr-moveout-form"><label>Expected move-out date<input type="date" name="moveout" min="'+today+'" value="'+esc(rental.expected_move_out_at||"")+'" required></label>'+
+   '<div class="gdr-moveout-actions"><button type="submit" class="gdr-rental-primary">'+(noticeExists?'Update notice':'Submit move-out notice')+'</button>'+
+   (noticeExists?'<button type="button" class="gdr-rental-secondary" id="gdrRenterWithdrawMoveout">Withdraw notice</button>':'')+
+   '</div></form><p id="gdrRenterMoveoutMessage" class="gdr-moveout-message" aria-live="polite"></p></section>';
+  t.innerHTML='<div class="gdr-home-hero"><div class="gdr-home-photo">'+photo+'</div><div><span class="gdr-rental-status">● Active tenancy</span><h4>'+esc(rental.title||rental.name||"Your home")+'</h4><p>'+esc(rental.address||rental.location||"Address not available")+'</p><div class="gdr-home-tags"><span>'+esc(rental.listing_type||"Home")+'</span>'+(rental.bhk?'<span>'+esc(rental.bhk)+' BHK</span>':"")+(rental.furnishing?'<span>'+esc(rental.furnishing)+'</span>':"")+'</div></div></div>'+
+   '<div class="gdr-rental-metrics"><article><small>Monthly base rent</small><strong>'+money(rental.rent)+'</strong></article><article><small>Move-in date</small><strong>'+date(rental.occupied_at)+'</strong></article><article><small>Expected move-out</small><strong id="gdrRenterExpectedMoveOut">'+date(rental.expected_move_out_at)+'</strong></article></div>'+
+   '<div class="gdr-rental-two-col"><section class="gdr-rental-card"><h4>Property details</h4>'+row("Property type",rental.listing_type||"Home")+row("Room type",rental.room_type||"—")+row("BHK",rental.bhk||"—")+row("Furnishing",rental.furnishing||"—")+row("Address",rental.address||rental.location||"—")+'</section>'+
+   '<section class="gdr-rental-card"><h4>Your owner</h4><div class="gdr-owner-contact"><span class="gdr-owner-avatar">'+esc((rental.owner_name||"O").slice(0,1).toUpperCase())+'</span><div><strong>'+esc(rental.owner_name||"Property owner")+'</strong><small>Owner / property manager</small></div></div>'+row("Contact",rental.owner_phone||"Not shared")+(rental.owner_phone?'<a class="gdr-rental-secondary" href="tel:'+esc(rental.owner_phone)+'">Call owner</a>':"")+'</section></div>'+noticeCard;
+  var form=$("gdrRenterMoveoutForm"),messageEl=$("gdrRenterMoveoutMessage");
+  if(form)form.addEventListener("submit",async function(e){
+   e.preventDefault();var button=form.querySelector('button[type="submit"]'),value=form.elements.moveout.value||null;
+   if(!value){if(messageEl)messageEl.textContent="Choose the date you expect to move out.";return;}
+   if(value<today){if(messageEl)messageEl.textContent="Choose today or a future date.";return;}
+   button.disabled=true;button.textContent="Submitting…";
+   try{
+    var result=await c().rpc("renter_submit_move_out_notice",{p_occupancy_id:rental.occupancy_id,p_expected_move_out_at:value});
+    if(result.error)throw result.error;
+    rental.expected_move_out_at=value;
+    var dateEl=$("gdrRenterExpectedMoveOut");if(dateEl)dateEl.textContent=date(value);
+    var help=$("gdrRenterMoveoutHelp");if(help)help.textContent="Your move-out notice is recorded. The property will show Vacating Soon until the owner confirms the move-out.";
+    var badge=$(".gdr-moveout-badge");if(badge)badge.textContent="Notice submitted";
+    button.textContent="Update notice";
+    if(!$("gdrRenterWithdrawMoveout")){
+     var withdraw=document.createElement("button");withdraw.type="button";withdraw.id="gdrRenterWithdrawMoveout";withdraw.className="gdr-rental-secondary";withdraw.textContent="Withdraw notice";form.querySelector(".gdr-moveout-actions").appendChild(withdraw);bindWithdraw();
+    }
+    if(messageEl)messageEl.textContent="Move-out notice sent to your owner. Your tenancy remains active until the owner confirms the move-out.";
+   }catch(error){if(messageEl)messageEl.textContent=error.message||"Could not submit the move-out notice. Please try again.";}
+   finally{button.disabled=false;}
+  });
+  function bindWithdraw(){
+   var withdraw=$("gdrRenterWithdrawMoveout");if(!withdraw||withdraw.dataset.bound==="1")return;withdraw.dataset.bound="1";
+   withdraw.addEventListener("click",async function(){
+    if(!confirm("Withdraw your move-out notice? Your tenancy will remain active until the owner confirms the move-out."))return;
+    withdraw.disabled=true;
+    try{
+     var result=await c().rpc("renter_submit_move_out_notice",{p_occupancy_id:rental.occupancy_id,p_expected_move_out_at:null});
+     if(result.error)throw result.error;
+     rental.expected_move_out_at=null;
+     var dateEl=$("gdrRenterExpectedMoveOut");if(dateEl)dateEl.textContent="Not set";
+     var help=$("gdrRenterMoveoutHelp");if(help)help.textContent="Your move-out notice was withdrawn. Your tenancy remains active until the owner confirms the move-out.";
+     var badge=$(".gdr-moveout-badge");if(badge)badge.textContent="Active tenancy";
+     withdraw.remove();var submit=form.querySelector('button[type="submit"]');if(submit)submit.textContent="Submit move-out notice";
+     if(messageEl)messageEl.textContent="Move-out notice withdrawn.";
+    }catch(error){if(messageEl)messageEl.textContent=error.message||"Could not withdraw the move-out notice.";}
+    finally{withdraw.disabled=false;}
+   });
+  }
+  bindWithdraw();
+ }catch(e){
+  t.innerHTML='<div class="gdr-rental-empty"><h4>Could not load your home</h4><p>'+esc(e.message||"Please try again.")+'</p><button class="gdr-rental-secondary" id="gdrRetryHome">Try again</button></div>';
+  $("gdrRetryHome").onclick=loadHome;
+ }
 }
 function qrUrl(path){return c().storage.from("owner-payment-qr").getPublicUrl(path).data.publicUrl}
 async function loadPayments(){
