@@ -204,26 +204,46 @@
   }
   async function searchTypedMapLocation(){
     const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
-    if(!query){await searchRenterArea();return;}
+    if(!query)return searchRenterArea();
     const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Locating…";}
     try{
       const point=await resolveMapQuery(query);
       setRenterPin(point,point.label||query);
       state.renterMap.setView(state.searchCenter,14,{animate:false});
-      await searchRenterArea();
-    }catch(error){console.warn("GDR map location search failed:",error);setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");}
-    finally{if(button){button.disabled=false;button.textContent="Search this area";}}
+      return await searchRenterArea();
+    }catch(error){
+      console.warn("GDR map location search failed:",error);
+      setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");
+      return false;
+    }finally{if(button){button.disabled=false;button.textContent="Search this area";}}
   }
   async function searchRenterArea(){
-    if(!state.renterMap)return;const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Searching…";}
+    if(!state.renterMap)return false;
+    const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Searching…";}
     setStatus("Searching homes within "+state.radiusKm+" km of the selected location…");
     try{
       if(!state.searchCenter){const c=state.renterMap.getCenter();setRenterPin(c,"");}
-      state.boundsRows=await fetchBounds(radiusBounds(state.searchCenter));
-      const rows=applyRadius(state.boundsRows,state.searchCenter);renderMarkers(rows,state.searchCenter);
+      const bounds=radiusBounds(state.searchCenter);
+      state.boundsRows=await fetchBounds(bounds);
+      const rows=applyRadius(state.boundsRows,state.searchCenter);
+      renderMarkers(rows,state.searchCenter);
       setStatus(rows.length+" properties within "+state.radiusKm+" km of "+(state.resolvedQuery||"the selected map centre")+".");
-    }catch(error){console.error("GDR map search failed:",error);setStatus("Properties could not be loaded. Please try again.");}
-    finally{if(button){button.disabled=false;button.textContent="Search this area";}}
+      return rows;
+    }catch(error){
+      console.error("GDR map search failed:",error);
+      setStatus(error&&error.message?("Properties could not be loaded: "+error.message):"Properties could not be loaded. Please try again.");
+      return false;
+    }finally{if(button){button.disabled=false;button.textContent="Search this area";}}
+  }
+  function setRenterRadius(value,skipSearch){
+    const next=Number(value);
+    if(!Number.isFinite(next)){throw new Error("Choose a valid search radius.");}
+    state.radiusKm=Math.max(.5,Math.min(10,next));
+    const input=$("gdrMapRadius"),label=$("gdrMapRadiusValue");
+    if(input)input.value=String(state.radiusKm);
+    if(label)label.textContent=state.radiusKm<1?Math.round(state.radiusKm*1000)+" m":state.radiusKm+" km";
+    if(!skipSearch&&state.renterMap&&state.searchCenter)return searchRenterArea();
+    return Promise.resolve(state.visible.slice());
   }
   function locateRenter(){
     if(!navigator.geolocation){setStatus("This browser does not support location. Search for a city or locality instead.");searchRenterArea();return;}
