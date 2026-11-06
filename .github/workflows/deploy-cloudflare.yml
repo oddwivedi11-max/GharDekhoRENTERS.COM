@@ -36,7 +36,7 @@ jobs:
           source = path.read_text(encoding="utf-8")
           replacements = {
               "/assets/gdr-renter-experience.js?v=20261107-renter1": "/assets/gdr-renter-experience.js?v=20261107-voice1",
-              "/assets/gdr-renter-experience.js?v=20261107-voice1": "/assets/gdr-renter-experience.js?v=20261107-voice1",
+              "/assets/gdr-renter-experience.js?v=20261107-compare2": "/assets/gdr-renter-experience.js?v=20261107-voice1",
               "/assets/gdr-renter-experience.css?v=20261107-renter1": "/assets/gdr-renter-experience.css?v=20261107-compare2",
           }
           for old, new in replacements.items():
