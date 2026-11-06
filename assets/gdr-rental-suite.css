@@ -29,3 +29,5 @@
 .gdr-moveout-actions button{min-height:44px}
 .gdr-moveout-message{min-height:18px;margin:8px 0 0;color:#37623e;font-size:12px;line-height:1.45}
 @media(max-width:600px){.gdr-moveout-form{display:grid;grid-template-columns:1fr}.gdr-moveout-form label{min-width:0}.gdr-moveout-actions button{width:100%}.gdr-moveout-heading{align-items:flex-start}}
+
+/* Cache release: moveout3 */
