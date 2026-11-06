@@ -22,6 +22,23 @@ def replace_regex(pattern, replacement, label):
         raise SystemExit("Stopped safely for " + label + ": expected one match, found " + str(count))
     print("Applied: " + label)
 
+def replace_once_in_region(start_anchor, end_anchor, old, new, label):
+    global source
+    start = source.find(start_anchor)
+    end = source.find(end_anchor, start + len(start_anchor))
+    if start < 0 or end < 0:
+        raise SystemExit("Stopped safely for " + label + ": function region was not found")
+    region = source[start:end]
+    if new in region:
+        print("Already applied: " + label)
+        return
+    count = region.count(old)
+    if count != 1:
+        raise SystemExit("Stopped safely for " + label + ": expected one match in target function, found " + str(count))
+    region = region.replace(old, new, 1)
+    source = source[:start] + region + source[end:]
+    print("Applied: " + label)
+
 source, switch_count = re.subn(r'<div class="dashboard-role-switch" id="dashboardRoleSwitch"[^>]*>.*?</div>', "", source, count=1, flags=re.S)
 if switch_count:
     print("Removed Owner/Renter dashboard switch UI.")
@@ -159,7 +176,13 @@ image_var_new = '''            const photos = Array.isArray(property.photo_urls)
                     '<button type="button" data-gdr-gallery-src="' + escapeHtml(url) + '" aria-label="View property photo ' + (index + 2) + '"><img src="' + escapeHtml(url) + '" alt="Property photo ' + (index + 2) + '" loading="lazy"></button>'
                   ).join("") + '</div>'
                 : "";'''
-replace_once(image_var, image_var_new, "read multiple uploaded property photos")
+replace_once_in_region(
+    "async function openPropertyDetails(propertyId) {",
+    "\n        function openVisitForm()",
+    image_var,
+    image_var_new,
+    "read multiple uploaded property photos"
+)
 
 dollar = chr(36)
 old_img = '''                    <img
