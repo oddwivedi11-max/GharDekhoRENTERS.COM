@@ -33,7 +33,7 @@ test("Back to Dashboard and Logout controls have explicit, delegated actions",()
  assert.match(controller,/function bindLogout\(\)/);
  assert.match(controller,/button\.removeAttribute\("onclick"\)/);
  assert.match(controller,/window\.logoutUser\(\)/);
- assert.match(controller,/event\.target\.closest\("\[data-gdr-owner-home\]"\)/);
+ assert.match(controller,/target\.closest\("#gdrOwnerModuleHeader \[data-gdr-owner-home\]"\)/);
  assert.match(controller,/window\.scrollTo\(\{top:0,behavior:"smooth"\}\)/);
 });
 
