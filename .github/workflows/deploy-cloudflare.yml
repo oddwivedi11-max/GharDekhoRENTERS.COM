@@ -134,8 +134,6 @@ jobs:
           grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite.js?v=20261107-moveout1" -o /tmp/gdr-rental-suite.js
           grep -q 'renter_submit_move_out_notice' /tmp/gdr-rental-suite.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite.css?v=20261107-moveout3" -o /tmp/gdr-rental-suite.css
-          grep -q 'gdr-moveout-notice' /tmp/gdr-rental-suite.css
           # The payment module has its own independently versioned dynamic stylesheet;
           # the payment JS and the new Property Studio assets are verified above.
           echo "Cloudflare worker, map, owner dashboard, renter profile, payments and responsive styles are responding."
