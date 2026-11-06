@@ -49,57 +49,34 @@ test.describe('GDR map-first experience structure', () => {
     expect(mapState.listHidden).toBe(true);
   });
 
-  test('renter map initializes and falls back to the existing public inventory RPC', async ({ page }) => {
+  test('renter map initializes without guessing a location or requesting GPS', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.evaluate(() => {
       const center = { lat: 23.2599, lng: 77.4126 };
       const makeMap = element => {
         element.classList.add('leaflet-container');
         return {
-          setView() { return this; },
-          on() { return this; },
-          invalidateSize() {},
+          setView() { return this; }, on() { return this; }, invalidateSize() {},
           getCenter() { return center; },
-          getBounds() {
-            return {
-              getSouthWest: () => ({ lat: 23.1, lng: 77.2 }),
-              getNorthEast: () => ({ lat: 23.4, lng: 77.6 }),
-              contains: () => true
-            };
-          },
-          flyTo() { return this; },
-          removeLayer() {}
+          getBounds() { return { getSouthWest: () => ({ lat: 23.1, lng: 77.2 }), getNorthEast: () => ({ lat: 23.4, lng: 77.6 }), contains: () => true }; },
+          flyTo() { return this; }, removeLayer() {}
         };
       };
       window.L = {
-        map: element => makeMap(element),
-        tileLayer: () => ({ addTo() { return this; } }),
+        map: makeMap, tileLayer: () => ({ addTo() { return this; } }),
         control: { zoom: () => ({ addTo() { return this; } }) },
         markerClusterGroup: () => ({ addTo() { return this; }, clearLayers() {}, addLayer() {} }),
-        divIcon: () => ({}),
-        marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
+        divIcon: () => ({}), marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
         circle: () => ({ addTo() { return this; } })
       };
       window.__gdrRpcCalls = [];
-      window.__gdrSupabaseClient = {
-        rpc: async name => {
-          window.__gdrRpcCalls.push(name);
-          return name === 'get_public_properties'
-            ? { data: [], error: null }
-            : { data: null, error: { code: 'PGRST202', message: 'Viewport RPC not installed in QA fixture' } };
-        }
-      };
-      Object.defineProperty(navigator, 'geolocation', {
-        configurable: true,
-        value: { getCurrentPosition: (_success, failure) => failure({ code: 1 }) }
-      });
+      window.__gdrSupabaseClient = { rpc: async name => { window.__gdrRpcCalls.push(name); return { data: [], error: null }; } };
+      Object.defineProperty(navigator, 'geolocation', { configurable: true, value: { getCurrentPosition: () => { throw new Error('GPS must not be requested automatically'); } } });
       document.getElementById('renterExploreMapBtn').click();
     });
     await expect(page.locator('#gdrExploreMapCanvas')).toHaveClass(/leaflet-container/);
-    await expect(page.locator('#gdrMapStatus')).toContainText('0 properties within 5 km');
-    const calls = await page.evaluate(() => window.__gdrRpcCalls);
-    expect(calls).toContain('get_public_properties');
-    expect(calls).toContain('get_map_properties_in_bounds');
+    await expect(page.locator('#gdrMapStatus')).toContainText('Tap anywhere on the map to place your starting location');
+    expect(await page.evaluate(() => window.__gdrRpcCalls)).toEqual([]);
   });
 
   test('owner map pin confirms coordinates through the existing property form setter', async ({ page }) => {
