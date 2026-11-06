@@ -37,6 +37,12 @@ test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
   assert.equal(p.location, 'Patel Nagar Bhopal'); assert.equal(p.maxBudget, '8000'); assert.equal(p.bhk, '2');
   assert.equal(p.furnishing, 'Furnished'); assert.equal(p.stayType, 'home'); assert.equal(p.nearby, 'college');
 });
+
+test('Hindi locality search requires all meaningful locality words, not a generic shared token', () => {
+  assert.match(index, /const typedLocationMatch = typedTerms\.every\(term =>/);
+  assert.match(index, /normalizeSearchText\(value\)/);
+});
+
 test('English assistant extracts location, budget, BHK and furnishing', () => {
   const p = parseRequest('Show me a 1 BHK apartment near Vijay Nagar Indore under 12000, semi furnished');
   assert.equal(p.location, 'Vijay Nagar Indore'); assert.equal(p.maxBudget, '12000'); assert.equal(p.bhk, '1'); assert.equal(p.furnishing, 'Semi-Furnished');
