@@ -9138,9 +9138,10 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <link rel="stylesheet" href="/assets/gdr-map-experience.css">
-  <link rel="stylesheet" href="/assets/gdr-rental-suite.css">
+  <link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">
   <link rel="stylesheet" href="/assets/gdr-owner-payments.css?v=20261107-brandfix1">
 <link rel="stylesheet" href="/assets/gdr-homepage-premium-v1.css">
+<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">
 </head>
 
 <body>
@@ -9624,10 +9625,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
                     <p id="dashboardSubtitle" class="dashboard-subtitle">Your GharDekho Renters account overview.</p>
                 </div>
                 <div class="dashboard-heading-actions">
-                    <div class="dashboard-role-switch" id="dashboardRoleSwitch" style="display:none;" aria-label="Switch dashboard">
-                        <button type="button" data-role-switch="renter">Renter</button>
-                        <button type="button" data-role-switch="owner">Owner</button>
-                    </div>
+                    
                     <div class="dashboard-user-chip">
                         <span class="dashboard-user-dot" aria-hidden="true"></span>
                         <span id="dashboardIdentity">Login to access your account.</span>
@@ -9820,6 +9818,19 @@ body.gd-owner-explore-mode #propertiesSection {
 
 <!-- OWNER DASHBOARD: owner information only -->
             <section id="ownerDashboard" class="dashboard-section owner-dashboard" aria-label="Owner dashboard">
+<section id="gdrListPropertyHero" aria-labelledby="gdrListPropertyHeading">
+  <div class="gdr-list-hero-copy">
+    <span class="gdr-list-eyebrow">✦ YOUR NEXT LISTING STARTS HERE</span>
+    <h2 id="gdrListPropertyHeading">List Your Property</h2>
+    <p>Your property deserves the right tenants. List it in just a few simple steps.</p>
+    <div class="gdr-list-hero-actions">
+      <button type="button" id="gdrListPropertyStart">＋ Start Listing</button>
+      <button type="button" id="gdrListPropertySpeak">♬ List by Speaking</button>
+    </div>
+  </div>
+  <div class="gdr-list-hero-art"><img src="/assets/gdr-list-property-hero.svg" alt="Illustration of a premium rental home" loading="lazy"></div>
+</section>
+
                 <div class="dashboard-stats-grid owner-stats-grid">
                     <article class="dashboard-stat-card owner-stat-card">
                         <span class="dashboard-stat-icon">🏠</span>
@@ -10690,7 +10701,7 @@ function openAdminLogin(){
         }
 
         function getDefaultPropertyImage() {
-            return "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1000&q=80";
+            return "/assets/gdr-property-placeholder.svg";
         }
 
         /* =========================================================
@@ -10983,72 +10994,42 @@ async function saveActiveAccountRole(role) {
 async function switchAccountRole(role) {
     const target = role === "owner" ? "owner" : "renter";
     if (!currentUser || !currentProfile) {
-        showMessage("backendMessage", "Please log in before switching account modes.", "error");
-        return;
+        showMessage("backendMessage", "Please sign in before choosing a portal.", "error");
+        return false;
     }
-
     const availableRoles = getAccountRoles(currentProfile);
-    const isExplicitCrossRoleAction =
-        (target === "owner" && activeRole === "renter") ||
-        (target === "renter" && activeRole === "owner");
-
-    // The dashboard switcher is shown only to existing owners. The explicit
-    // "List a Property" action may add Owner access to a Renter account, and
-    // an Owner may explicitly add Renter access. Persist the role first; never
-    // fake a role in browser memory if the database rejects the update.
-    if (!availableRoles.includes(target) && !isExplicitCrossRoleAction) {
-        showMessage("backendMessage", "This account cannot switch to that mode from the current screen.", "error");
-        updateDashboardRoleSwitcher();
-        return;
+    const explicitOwnerRequest = target === "owner" && activeRole === "renter" && !!document.getElementById("renterBecomeOwnerBtn");
+    if (!availableRoles.includes(target) && !explicitOwnerRequest) {
+        showMessage("backendMessage", "This account is not enabled for that portal.", "error");
+        return false;
     }
-
-    const ok = await saveActiveAccountRole(target);
-    if (!ok) {
-        showMessage(
-            "backendMessage",
-            target === "owner"
-                ? "Owner access could not be enabled. Your Renter account is unchanged; please try again."
-                : "Renter access could not be enabled. Your Owner account is unchanged; please try again.",
-            "error"
-        );
-        updateDashboardRoleSwitcher();
-        return;
+    if (!availableRoles.includes(target)) {
+        const saved = await saveActiveAccountRole(target);
+        if (!saved) {
+            showMessage("backendMessage", "Owner access could not be enabled. Your Renter account is unchanged.", "error");
+            return false;
+        }
     }
-
-    // Persisted role update succeeded; now activate the selected portal.
-    activeRole = target;
-    pendingLoginRole = target;
+    // Never switch dashboards in the same authenticated session. Re-authenticate
+    // and let the existing login role guard open exactly one portal.
     sessionStorage.setItem("gd_active_role", target);
     sessionStorage.setItem("gd_pending_login_role", target);
     localStorage.setItem("gd_preferred_role", target);
-    setRoleSpecificUI(target);
-    updateDashboardProfile();
-    updateDashboardRoleSwitcher();
-    await renderActiveDashboard();
-    scrollToSection("dashboardSection");
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+    return true;
 }
-
 function updateDashboardRoleSwitcher() {
     const switcher = document.getElementById("dashboardRoleSwitch");
-    if (!switcher) return;
-
-    // Only an account that is ALREADY an Owner may switch between its
-    // Renter and Owner dashboards. A normal renter never gets an Owner switch.
-    const hasOwnerRole = !!currentUser && !!currentProfile && accountHasRole("owner");
-    const isRenterOrOwner = activeRole === "renter" || activeRole === "owner";
-    const canSwitch = hasOwnerRole && isRenterOrOwner;
-
-    switcher.style.display = canSwitch ? "flex" : "none";
-    switcher.querySelectorAll("[data-role-switch]").forEach(button => {
-        const role = button.getAttribute("data-role-switch");
-        const allowed = role === "renter" || role === "owner";
-        button.style.display = allowed ? "inline-flex" : "none";
-        button.disabled = role === activeRole;
-        button.classList.toggle("active", role === activeRole);
-        button.setAttribute("aria-pressed", role === activeRole ? "true" : "false");
-    });
+    if (switcher) {
+        switcher.hidden = true;
+        switcher.style.display = "none";
+        switcher.querySelectorAll("[data-role-switch]").forEach(button => {
+            button.disabled = true;
+            button.hidden = true;
+        });
+    }
 }
-
 function setRoleSpecificUI(role) {
     const landing = document.getElementById("loggedOutLanding");
     const homeSection = document.getElementById("homeSection");
@@ -12836,7 +12817,7 @@ async function renderActiveDashboard() {
                     : propertyStatus==="partially_occupied"
                         ? '<span class="status-chip soon">● Partially occupied</span>'
                         : propertyStatus==="soon_available"
-                            ? '<span class="status-chip soon">● Soon available</span>'
+                            ? '<span class="status-chip soon">● Vacating Soon</span>'
                             : propertyStatus==="verified"
                                 ? '<span class="status-chip available">✓ Available</span>'
                                 : '<span class="status-chip pending">'+escapeHtml(propertyStatus||"Pending")+'</span>';
@@ -13229,7 +13210,7 @@ async function renderActiveDashboard() {
                                 : property.status === "occupied"
                                 ? '<button type="button" class="property-status-button occupied" disabled aria-label="Property occupied">● Occupied</button>'
                                 : property.status === "soon_available"
-                                ? '<button type="button" class="property-status-button soon" disabled aria-label="Property will be available soon">● Soon Available</button>'
+                                ? '<button type="button" class="property-status-button soon" disabled aria-label="Property will be available soon">● Vacating Soon</button>'
                                 : '<button type="button" class="property-status-button available" disabled aria-label="Property vacant">✓ Vacant</button>'}
                                 ${property.verification_status === "verified"
                                 ? '<span class="owner-badge">✓ Verified Property</span>'
@@ -13853,7 +13834,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     property?.status === "occupied"
                         ? "Occupied"
                         : property?.status === "soon_available"
-                            ? "Soon Available"
+                            ? "Vacating Soon"
                             : "Available"
                 ),
                 "",
@@ -13968,6 +13949,14 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 }
             }
 
+            // Enrich map/Nearby result rows with renter-safe Property Studio fields.
+            if (property && (!Array.isArray(property.photo_urls) || !Object.prototype.hasOwnProperty.call(property, "nearby_places"))) {
+                const { data: studioRows, error: studioRowsError } = await supabaseClient.rpc("get_public_properties");
+                if (!studioRowsError && Array.isArray(studioRows)) {
+                    const enriched = studioRows.find(item => String(item.id) === propertyId);
+                    if (enriched) property = { ...property, ...enriched };
+                }
+            }
             currentProperty = property;
 
             const details = document.getElementById("propertyDetails");
@@ -14004,7 +13993,15 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 }
             }
 
-            const image = property.image_url || getDefaultPropertyImage();
+            const photos = Array.isArray(property.photo_urls) && property.photo_urls.length
+                ? property.photo_urls.filter(Boolean)
+                : (property.image_url ? [property.image_url] : []);
+            const image = photos[0] || property.image_url || getDefaultPropertyImage();
+            const photoGalleryHtml = photos.length > 1
+                ? '<div class="gdr-property-detail-thumbs">' + photos.slice(1, 8).map((url, index) =>
+                    '<button type="button" data-gdr-gallery-src="' + escapeHtml(url) + '" aria-label="View property photo ' + (index + 2) + '"><img src="' + escapeHtml(url) + '" alt="Property photo ' + (index + 2) + '" loading="lazy"></button>'
+                  ).join("") + '</div>'
+                : "";
 
             const mapsUrl =
                 (Number.isFinite(Number(property.latitude)) &&
@@ -14016,7 +14013,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 property.status === "occupied"
                     ? '<button type="button" class="property-status-button occupied" disabled>● Occupied</button>'
                     : property.status === "soon_available"
-                        ? '<button type="button" class="property-status-button soon" disabled>● Soon Available</button>'
+                        ? '<button type="button" class="property-status-button soon" disabled>● Vacating Soon</button>'
                         : '<button type="button" class="property-status-button available" disabled>✓ Available</button>';
 
             const visitHtml =
@@ -14040,13 +14037,10 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
             content.innerHTML = `
                 <div class="property-detail-card">
-                    <img
-                        class="property-detail-image"
-                        src="${escapeHtml(image)}"
-                        alt="${escapeHtml(property.title || "Rental property")}"
-                        loading="lazy"
-                        onerror="this.src='${getDefaultPropertyImage()}'"
-                    >
+                    <div class="gdr-property-detail-gallery">
+                      <img class="property-detail-image" id="gdrPropertyDetailMainImage" src="${escapeHtml(image)}" alt="${escapeHtml(property.title || "Rental property")}" loading="lazy" onerror="this.src='${getDefaultPropertyImage()}'">
+                      ${photoGalleryHtml}
+                    </div>
 
                     <div class="property-detail-body">
                         <button type="button" id="backToPropertiesBtn" class="secondary-button">← Back to Properties</button>
@@ -14061,11 +14055,11 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                             </div>
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Stay type</span>
-                                <span class="detail-meta-value">${property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}</span>
+                                <span class="detail-meta-value">${property.property_type === "apartment" ? "Apartment / Flat" : property.property_type === "independent_house" ? "Independent House" : property.property_type === "villa" ? "Villa" : property.property_type === "other" ? "Other" : property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}</span>
                             </div>
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Configuration</span>
-                                <span class="detail-meta-value">${property.listing_type === "home" || !property.listing_type ? escapeHtml(property.bhk || "-") + " BHK" : escapeHtml(property.room_type || "Shared stay")}</span>
+                                <span class="detail-meta-value">${property.listing_type === "home" || !property.listing_type ? escapeHtml(property.configuration || (property.bhk ? property.bhk + " BHK" : "-")) : escapeHtml(property.room_type || "Shared stay")}</span>
                             </div>
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Furnishing</span>
@@ -14084,6 +14078,10 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                                 <span class="detail-meta-label">Meals</span>
                                 <span class="detail-meta-value">${property.food_included === true ? "Included" : property.food_included === false ? "Not included" : "Not specified"}</span>
                             </div>` : ""}
+                            <div class="detail-meta-item">
+                                <span class="detail-meta-label">Security deposit</span>
+                                <span class="detail-meta-value">${property.security_deposit !== null && property.security_deposit !== undefined ? "₹" + Number(property.security_deposit).toLocaleString("en-IN") : "Not specified"}</span>
+                            </div>
                             <div class="detail-meta-item">
                                 <span class="detail-meta-label">Status</span>
                                 <span class="detail-meta-value">${statusHtml}</span>
@@ -14109,6 +14107,15 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                         <h3>About this property</h3>
                         <p>${escapeHtml(property.description || "No description provided.")}</p>
 
+                        ${Array.isArray(property.nearby_places) && property.nearby_places.length ? (
+                          '<section class="gdr-property-nearby-public" aria-label="Nearby public places"><h3>Nearby places</h3><div class="gdr-property-nearby-grid">' +
+                          property.nearby_places.slice(0,30).map(place =>
+                            '<div class="gdr-property-nearby-item"><span><strong>' + escapeHtml(place.name || "Nearby place") + '</strong><small>' + escapeHtml(place.category || "Public place") + '</small></span><b>' +
+                            (Number(place.distance_m) < 1000 ? Math.round(Number(place.distance_m)) + " m" : (Number(place.distance_m)/1000).toFixed(1) + " km") +
+                            '</b></div>'
+                          ).join("") + '</div></section>'
+                        ) : ""}
+
                         ${currentUser && activeRole === "renter" ? `
                         <div class="renter-owner-details-card">
                             <div class="renter-owner-details-head">
@@ -14133,6 +14140,12 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 </div>`;
 
             details.style.display = "block";
+            content.querySelectorAll("[data-gdr-gallery-src]").forEach(button => {
+                button.addEventListener("click", () => {
+                    const mainImage = document.getElementById("gdrPropertyDetailMainImage");
+                    if (mainImage) mainImage.src = button.getAttribute("data-gdr-gallery-src");
+                });
+            });
 
             const backButton = document.getElementById("backToPropertiesBtn");
             if (backButton) {
@@ -15410,7 +15423,7 @@ async function loadOwnerProperties() {
                         statusLabel = "Occupied";
                         statusClass = "occupied";
                     } else if (property.status === "soon_available") {
-                        statusLabel = "Soon available";
+                        statusLabel = "Vacating Soon";
                         statusClass = "soon";
                     } else if (property.status === "rejected" || property.verification_status === "rejected") {
                         statusLabel = "Rejected";
@@ -19958,41 +19971,7 @@ body.gd-auth-page #gdAuthFormShell input{
   touch-action:manipulation!important;
 }
 </style>
-<script id="ghardekho-final-role-switch-v11">
-(function(){
-  function bindGharDekhoRoleSwitch(){
-    const switcher=document.getElementById("dashboardRoleSwitch");
-    if(!switcher || switcher.dataset.gdV11Bound==="1") return;
-    switcher.dataset.gdV11Bound="1";
-    switcher.addEventListener("click",function(event){
-      const button=event.target.closest("[data-role-switch]");
-      if(!button) return;
-      event.preventDefault();
-      event.stopPropagation();
-      const role=button.getAttribute("data-role-switch")==="owner" ? "owner" : "renter";
-      if(typeof window.switchAccountRole==="function"){
-        window.switchAccountRole(role);
-      } else if(typeof switchAccountRole==="function"){
-        switchAccountRole(role);
-      }
-    });
-  }
 
-  function exposeRoleSwitcher(){
-    bindGharDekhoRoleSwitch();
-    if(typeof window.updateDashboardRoleSwitcher==="function"){
-      window.updateDashboardRoleSwitcher();
-    }
-  }
-
-  if(document.readyState==="loading"){
-    document.addEventListener("DOMContentLoaded",exposeRoleSwitcher,{once:true});
-  }else{
-    exposeRoleSwitcher();
-  }
-  new MutationObserver(exposeRoleSwitcher).observe(document.body,{childList:true,subtree:true});
-})();
-</script>
 
 
 <section id="gd-contact-section" class="gd-contact-section" aria-label="Contact GharDekho Renters">
@@ -20754,11 +20733,13 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 </script>
 <script src="/assets/gdr-map-experience.js"></script>
 <script src="/assets/gdr-owner-renter-page.js?v=20261107-workspace4"></script>
-<script src="/assets/gdr-rental-suite.js"></script>
+<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>
   <script src="/assets/gdr-owner-payments.js?v=20261107-brandfix1" defer></script>
 <script src="/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" defer></script>
 <script src="/assets/gdr-owner-saved-properties-cleanup.js" defer></script>
 <script src="/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7" defer></script>
+<div id="gdrPropertyStudioMount"></div>
+<script src="/assets/gdr-property-studio.js?v=20261107-studio1" defer></script>
 </body>
 
 </html>
@@ -21267,26 +21248,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
 #loginRoleHint{line-height:1.45}
 @media(max-width:680px){.dashboard-heading-actions{width:100%;justify-content:stretch}.dashboard-role-switch{width:100%}.dashboard-role-switch button{flex:1}}
 </style>
-<script id="ghardekho-dual-role-v1-js">
-(function(){
-  function bindDualRoleSwitch(){
-    document.querySelectorAll("[data-role-switch]").forEach(function(button){
-      if(button.dataset.gdDualRoleBound==="1") return;
-      button.dataset.gdDualRoleBound="1";
-      button.addEventListener("click",function(e){
-        e.preventDefault();
-        const role=button.getAttribute("data-role-switch");
-        if(typeof switchAccountRole==="function") switchAccountRole(role);
-      });
-    });
-    if(typeof updateDashboardRoleSwitcher==="function") updateDashboardRoleSwitcher();
-  }
-  if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bindDualRoleSwitch);
-  else bindDualRoleSwitch();
-  window.addEventListener("load",bindDualRoleSwitch);
-  new MutationObserver(bindDualRoleSwitch).observe(document.body,{childList:true,subtree:true});
-})();
-</script>
+
 
 
 <!-- GHARDEKHO OWNER DASHBOARD STATUS COLOR REPAIR V1 -->
