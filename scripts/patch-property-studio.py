@@ -26,13 +26,33 @@ source, switch_count = re.subn(r'<div class="dashboard-role-switch" id="dashboar
 if switch_count:
     print("Removed Owner/Renter dashboard switch UI.")
 
-switch_new = '''async function switchAccountRole() {
-    const message = document.getElementById("backendMessage");
-    if (message) {
-        message.textContent = "Dashboard switching is disabled. Log out and sign in using the role you need.";
-        message.className = "backend-message info";
+switch_new = '''async function switchAccountRole(role) {
+    const target = role === "owner" ? "owner" : "renter";
+    if (!currentUser || !currentProfile) {
+        showMessage("backendMessage", "Please sign in before choosing a portal.", "error");
+        return false;
     }
-    return false;
+    const availableRoles = getAccountRoles(currentProfile);
+    const explicitOwnerRequest = target === "owner" && activeRole === "renter" && !!document.getElementById("renterBecomeOwnerBtn");
+    if (!availableRoles.includes(target) && !explicitOwnerRequest) {
+        showMessage("backendMessage", "This account is not enabled for that portal.", "error");
+        return false;
+    }
+    if (!availableRoles.includes(target)) {
+        const saved = await saveActiveAccountRole(target);
+        if (!saved) {
+            showMessage("backendMessage", "Owner access could not be enabled. Your Renter account is unchanged.", "error");
+            return false;
+        }
+    }
+    // Never switch dashboards in the same authenticated session. Re-authenticate
+    // and let the existing login role guard open exactly one portal.
+    sessionStorage.setItem("gd_active_role", target);
+    sessionStorage.setItem("gd_pending_login_role", target);
+    localStorage.setItem("gd_preferred_role", target);
+    await supabaseClient.auth.signOut();
+    window.location.reload();
+    return true;
 }
 function updateDashboardRoleSwitcher'''
 if switch_new not in source:
