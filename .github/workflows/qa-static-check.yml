@@ -16,6 +16,7 @@ on:
       - "feature/owner-command-center-20261105"
       - "fix/owner-workspace-complete-functional-audit-20261105"
       - "fix/owner-ui-navigation-visibility-20261105"
+      - "fix/back-dashboard-file-picker-20261107"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
