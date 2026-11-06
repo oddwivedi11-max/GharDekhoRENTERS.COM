@@ -109,7 +109,7 @@ jobs:
           grep -q 'window.addEventListener("click"' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.css?v=20261107-paytitle3" -o /tmp/gdr-owner-payments.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-owner-payments.css?v=20261107-paytitle4&verify=${GITHUB_SHA}" -o /tmp/gdr-owner-payments.css
           grep -q 'gdr-pay-charge-modal' /tmp/gdr-owner-payments.css
           grep -q 'gdr-pay-brand-title' /tmp/gdr-owner-payments.css
           echo "Cloudflare worker, map, owner dashboard, renter profile, payments and responsive styles are responding."
