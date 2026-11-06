@@ -14,3 +14,18 @@
 .gdr-rental-toast{position:fixed;z-index:100001;left:50%;bottom:24px;transform:translate(-50%,16px);max-width:min(92vw,520px);padding:12px 16px;border-radius:13px;background:#123f36;color:white;font-size:13px;font-weight:800;box-shadow:0 12px 35px #102c2940;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}.gdr-rental-toast.show{opacity:1;transform:translate(-50%,0)}.gdr-rental-toast[data-error="1"]{background:#9b3434}
 @media(max-width:700px){.gdr-rental-panel-head{display:grid;grid-template-columns:1fr}.gdr-rental-close{justify-self:start}.gdr-home-hero{grid-template-columns:1fr;gap:14px}.gdr-home-photo{min-height:170px}.gdr-home-photo img{min-height:170px;max-height:210px}.gdr-rental-two-col,.gdr-owner-payment-grid{grid-template-columns:1fr}.gdr-rental-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}.gdr-rental-field-grid{grid-template-columns:1fr}.gdr-payment-history-row,.gdr-owner-payment-row{grid-template-columns:minmax(0,1fr) auto}.gdr-payment-history-row .gdr-payment-badge,.gdr-owner-payment-row .gdr-payment-badge{grid-column:1/-1;justify-self:start}.gdr-owner-payment-actions{grid-column:1/-1}}
 @media(max-width:390px){.gdr-rental-metrics{grid-template-columns:1fr}.gdr-rental-card{padding:14px}.gdr-rental-panel{padding:14px;border-radius:18px}}
+
+/* Renter move-out notice — explicit notice, tenancy remains active until owner release */
+.gdr-moveout-notice{margin-top:18px;border:1px solid #d8e4d6;background:linear-gradient(145deg,#fbfcf7,#f3f7ee)}
+.gdr-moveout-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gdr-moveout-heading h4{margin:4px 0 0;color:#1b432d}
+.gdr-moveout-kicker{color:#9b8051;font-size:9px;font-weight:950;letter-spacing:.18em}
+.gdr-moveout-badge{padding:7px 10px;border:1px solid #d9e6d2;border-radius:999px;background:#edf5e8;color:#416a40;font-size:10px;font-weight:850}
+.gdr-moveout-notice>p{color:#6b7b6d;font-size:12px;line-height:1.55}
+.gdr-moveout-form{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.gdr-moveout-form label{display:grid;gap:6px;min-width:min(100%,260px);color:#45604a;font-size:12px;font-weight:850}
+.gdr-moveout-form input{min-height:46px;padding:0 12px;border:1px solid #d3dfd0;border-radius:10px;background:#fff;color:#1b3928;font:inherit}
+.gdr-moveout-actions{display:flex;flex-wrap:wrap;gap:8px}
+.gdr-moveout-actions button{min-height:44px}
+.gdr-moveout-message{min-height:18px;margin:8px 0 0;color:#37623e;font-size:12px;line-height:1.45}
+@media(max-width:600px){.gdr-moveout-form{display:grid;grid-template-columns:1fr}.gdr-moveout-form label{min-width:0}.gdr-moveout-actions button{width:100%}.gdr-moveout-heading{align-items:flex-start}}
