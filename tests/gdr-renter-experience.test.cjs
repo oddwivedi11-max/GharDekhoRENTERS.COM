@@ -20,6 +20,8 @@ test('Hindi locality searches transliterate into Latin inventory text instead of
   const normalize = vm.runInNewContext(js.slice(start, end) + '; normalizeSearchText');
   assert.equal(normalize('अजय पटेल नगर'), 'ajay patel nagar');
   assert.equal(normalize('सिंगरौली'), 'singrauli');
+  assert.equal(normalize('भोपाल'), 'bhopal');
+  assert.equal(normalize('इंदौर'), 'indore');
   const inventory = normalize('Ajay Patel Nagar, Singrauli, Madhya Pradesh');
   assert.ok(normalize('अजय पटेल नगर').split(' ').every(term => inventory.includes(term)));
 });
