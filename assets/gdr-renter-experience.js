@@ -8,6 +8,36 @@ function toast(s){let n=$("gdrxToast");if(!n){n=document.createElement("div");n.
 function openFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(!f)return;document.body.classList.add("gd-renter-explore-mode");f.hidden=false;f.style.display="block";if(d)d.style.display="none";f.scrollIntoView({behavior:"smooth",block:"start"})}
 function closeFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(f){f.hidden=true;f.style.display="none"}document.body.classList.remove("gd-renter-explore-mode");if(d){d.style.display="block";d.scrollIntoView({behavior:"smooth",block:"start"})}}
 function addSupport(){const root=$("renterDashboard"),actions=root?.querySelector(".renter-dashboard-actions");if(!root||!actions||$("gdrxSupport"))return;const b=document.createElement("button");b.type="button";b.id="gdrxSupport";b.className="renter-dashboard-action gdrx-support";b.innerHTML='<span class="renter-action-icon">✉</span><span><strong>Support</strong><small>We’re here to help with your rental journey</small></span><span class="renter-action-arrow">↗</span>';b.onclick=()=>location.href="/contact.html";actions.appendChild(b)}
+function normalizeSearchText(value){
+ const consonants={"क":"k","ख":"kh","ग":"g","घ":"gh","ङ":"ng","च":"ch","छ":"chh","ज":"j","झ":"jh","ञ":"ny","ट":"t","ठ":"th","ड":"d","ढ":"dh","ण":"n","त":"t","थ":"th","द":"d","ध":"dh","न":"n","प":"p","फ":"ph","ब":"b","भ":"bh","म":"m","य":"y","र":"r","ल":"l","व":"v","श":"sh","ष":"sh","स":"s","ह":"h","क़":"q","ख़":"kh","ग़":"g","ज़":"z","ड़":"r","ढ़":"rh","फ़":"f"};
+ const vowels={"अ":"a","आ":"aa","इ":"i","ई":"ee","उ":"u","ऊ":"oo","ऋ":"ri","ए":"e","ऐ":"ai","ओ":"o","औ":"au"};
+ const matras={"ा":"a","ि":"i","ी":"ee","ु":"u","ू":"oo","ृ":"ri","े":"e","ै":"ai","ो":"o","ौ":"au"};
+ const transliterateWord=word=>{
+  const chars=Array.from(word);let out="",endsInherent=false;
+  for(let i=0;i<chars.length;i++){
+   const ch=chars[i];
+   if(consonants[ch]){
+    out+=consonants[ch];endsInherent=true;
+    const next=chars[i+1];
+    if(matras[next]){out+=matras[next];i++;endsInherent=false;}
+    else if(next==="्"){i++;endsInherent=false;}
+    else if(next==="़"){i++;endsInherent=true;}
+    else out+="a";
+   }else if(vowels[ch]){out+=vowels[ch];endsInherent=false;}
+   else if(ch==="ं"||ch==="ँ"){out+="n";endsInherent=false;}
+   else if(ch==="ः"){out+="h";endsInherent=false;}
+   else if(ch==="़"||ch==="्"){endsInherent=false;}
+   else{out+=ch;endsInherent=false;}
+  }
+  if(endsInherent&&out.endsWith("a"))out=out.slice(0,-1);
+  return out;
+ };
+ const raw=String(value||"").toLowerCase().normalize("NFKC");
+ const latin=raw.replace(/[\u0900-\u097F]+/gu,word=>transliterateWord(word));
+ const normalized=latin.replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
+ return normalized.replace(/\bsingarauli\b/g,"singrauli").replace(/\bindaur\b/g,"indore").replace(/\breeva\b/g,"rewa");
+}
+
 function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
   const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|मुझे|मुझको)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
@@ -286,7 +316,7 @@ function bind(){
  const map=$("gdrExploreMapPanel");if(map&&!map.dataset.gdrx){map.dataset.gdrx="1";new MutationObserver(()=>{if(!map.hidden)mountMapVoice()}).observe(map,{attributes:true,attributeFilter:["hidden","class"]})}
  const mapBtn=$("renterExploreMapBtn");if(mapBtn&&!mapBtn.dataset.gdrx){mapBtn.dataset.gdrx="1";mapBtn.addEventListener("click",()=>setTimeout(mountMapVoice,150))}
 }
-window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,openFindHome:openFind,closeFindHome:closeFind};
+window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,normalizeSearchText,openFindHome:openFind,closeFindHome:closeFind};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();window.addEventListener("load",bind);
 new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
