@@ -38,3 +38,17 @@ test("owner Nearby Properties has one launch card, not a second command-centre s
  assert.match(styles,/gdr-owner-mode-properties>#gdrOwnerNearbyCard/);
  assert.match(styles,/gdr-owner-mode-visits>#gdrOwnerNearbyCard/);
 });
+
+
+test("stylesheet loader replaces an existing unversioned command-centre stylesheet",()=>{
+ assert.match(controller,/querySelector\('link\[rel="stylesheet"\]\[href\*="gdr-owner-command-center\.css"\]'\)/);
+ assert.match(controller,/if\(link\.getAttribute\("href"\)!==href\)link\.setAttribute\("href",href\)/);
+ assert.match(controller,/gdr-owner-command-center\.css\?v=20261107-workspace6/);
+});
+test("workspace heading uses the requested high-contrast premium palette",()=>{
+ assert.match(styles,/#e8d18a/);
+ assert.match(styles,/#e8f0ea/);
+ assert.match(styles,/#b9f36b/);
+ assert.match(styles,/-webkit-text-fill-color:#fff!important/);
+ assert.match(styles,/font-size:clamp\(32px,3\.1vw,38px\)/);
+});
