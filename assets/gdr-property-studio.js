@@ -582,7 +582,7 @@ function detectVoiceLanguage(text){
 function voiceText(hi,en){return state.voice.language==="en"?en:hi;}
 function setVoiceState(label,recording){
  const stateEl=$("#gdrStudioVoiceState"),start=$("#gdrStudioVoiceStart");
- if(stateEl)stateEl.textContent=label;
+ if(stateEl){stateEl.textContent=label;stateEl.dataset.status=label;}
  if(start){start.classList.toggle("is-recording",!!recording);start.textContent=recording?"● Listening…":"Start speaking";}
 }
 function setVoiceReply(text){
