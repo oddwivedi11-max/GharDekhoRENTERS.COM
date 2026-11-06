@@ -23,8 +23,10 @@ jobs:
         with:
           persist-credentials: true
 
-      - name: Apply owner dashboard refresh fix
-        run: python3 scripts/patch-owner-dashboard-refresh.py
+      - name: Apply owner dashboard and Property Studio fixes
+        run: |
+          python3 scripts/patch-owner-dashboard-refresh.py
+          python3 scripts/patch-property-studio.py
 
       - name: Commit corrected index.html back to main
         run: |
@@ -40,7 +42,12 @@ jobs:
 
       - name: Validate owner Nearby map modules
         run: |
-          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py
+          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py
+          node --check assets/gdr-property-studio.js
+          node --test tests/gdr-property-studio.test.cjs
+          node --test tests/gdr-role-portal-switch.spec.cjs
+          node --test tests/gdr-role-switch-navigation.test.cjs
+          node --test tests/gdr-role-enablement.test.cjs
           node --check assets/gdr-map-experience.js
           node --check assets/gdr-rental-suite.js
           node --check assets/gdr-owner-command-center-hotfix.js
@@ -110,6 +117,19 @@ jobs:
           grep -q 'window.addEventListener("click"' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
+          grep -q 'List Your Property' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261107-studio1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.css?v=20261107-studio1' /tmp/gdr-live-index.html
+          if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-studio1" -o /tmp/gdr-property-studio.js
+          grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
+          grep -q 'SpeechRecognition' /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261107-studio1" -o /tmp/gdr-property-studio.css
+          grep -q 'gdr-studio-topbar' /tmp/gdr-property-studio.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.html?v=20261107-studio1" -o /tmp/gdr-property-studio.html
+          grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-placeholder.svg" -o /tmp/gdr-property-placeholder.svg
+          grep -q 'Your property photo will appear here' /tmp/gdr-property-placeholder.svg
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-owner-payments.css?v=20261107-paytitle3&verify=${GITHUB_SHA}" -o /tmp/gdr-owner-payments.css
           grep -q 'gdr-pay-charge-modal' /tmp/gdr-owner-payments.css
           grep -q 'gdr-pay-brand-title' /tmp/gdr-owner-payments.css
