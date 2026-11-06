@@ -507,8 +507,8 @@ for asset in (
     "gdr-owner-payments.css",
 ):
     import re
-    pattern = r'((?:src|href)="(/assets/' + re.escape(asset) + r')\\?v=)20261105-workspace[0-9]+(")'
-    source, count = re.subn(pattern, r'\\g<1>20261107-workspace4\\g<3>', source)
+    pattern = r'((?:src|href)="(/assets/' + re.escape(asset) + r')\?v=)20261105-workspace[0-9]+(")'
+    source, count = re.subn(pattern, r'\g<1>20261107-workspace4\g<3>', source)
     if count == 0:
         plain = f'src="/assets/{asset}"' if asset.endswith(".js") else f'href="/assets/{asset}"'
         if plain in source:
