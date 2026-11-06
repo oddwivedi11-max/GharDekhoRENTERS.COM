@@ -77,6 +77,7 @@
     const unique=new Map();
     (Array.isArray(result.data)?result.data:[]).forEach(p=>{
       if(!p||!p.id||!validPoint(p.latitude,p.longitude))return;
+      if(p.released_at)return;
       const status=String(p.status||"").toLowerCase();
       if(status!=="verified"&&status!=="pending")return;
       if(status==="verified"&&(p.verification_status!=="verified"||p.owner_verified!==true))return;
