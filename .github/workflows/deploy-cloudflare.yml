@@ -117,7 +117,7 @@ jobs:
           grep -q 'GDR_COMPARE_AUTOFILL_V2' /tmp/gdr-renter-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-compare2" -o /tmp/gdr-renter-experience.css
           grep -q 'gdrx-finder' /tmp/gdr-renter-experience.css
-          grep -q 'gdr-renter-experience.js?v=20261107-renter1' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-compare2' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js?v=20261107-workspace4' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261107-brandfix1' /tmp/gdr-live-index.html
