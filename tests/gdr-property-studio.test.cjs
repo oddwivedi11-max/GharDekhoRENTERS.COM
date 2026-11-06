@@ -81,6 +81,13 @@ test("Studio layout is loaded from a separately deployed text fragment asset", (
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
 });
 
+test("renter preview shows actual nearby place names, categories and distances", () => {
+  assert.match(studio, /state\\.nearbyPlaces\\.slice\\(0,8\\)/);
+  assert.match(studio, /escapeHtml\\(place\\.name/);
+  assert.match(studio, /distanceLabel\\(place\\.distance_m\\)/);
+  assert.match(studio, /showSuggestions\\(india\\)/);
+});
+
 test("missing Google Places credentials fail closed instead of inventing nearby places", () => {
   assert.match(studio, /Google Places is not configured yet/);
   assert.match(studio, /if\(!googleKey\(\)\)return/);
