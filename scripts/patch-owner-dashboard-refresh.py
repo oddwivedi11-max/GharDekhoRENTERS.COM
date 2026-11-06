@@ -436,6 +436,86 @@ for old, new in (
     elif new not in source:
         raise SystemExit("Stopped safely: expected owner workspace asset reference not found: " + old)
 
+
+# The property image chooser must only open from its two explicit controls.
+# A label-for association can activate the hidden file input when an unrelated
+# dashboard click is retargeted by a stacked/overlapping element.
+old_picker_label = '<label for="propertyImageFile" class="gd-upload-dropzone owner-upload-label">'
+new_picker_label = '<label data-gd-open-property-picker class="gd-upload-dropzone owner-upload-label">'
+if old_picker_label in source:
+    source = source.replace(old_picker_label, new_picker_label, 1)
+elif new_picker_label not in source:
+    raise SystemExit("Stopped safely: property image upload label was not found.")
+
+old_picker_binding = '''            if (choosePropertyImageBtn && propertyImageFile && choosePropertyImageBtn.dataset.gdImageBound !== "1") {
+                choosePropertyImageBtn.dataset.gdImageBound = "1";
+                choosePropertyImageBtn.addEventListener("click", () => propertyImageFile.click());
+            }
+            if (propertyImageFile && propertyImageFile.dataset.gdImageBound !== "1") {
+                propertyImageFile.dataset.gdImageBound = "1";
+                propertyImageFile.addEventListener("change", handlePropertyImageSelection);
+            }'''
+new_picker_binding = '''            const propertyImageDropzone = document.querySelector("[data-gd-open-property-picker]");
+            if (propertyImageFile && propertyImageFile.dataset.gdClickGuardBound !== "1") {
+                propertyImageFile.dataset.gdClickGuardBound = "1";
+                propertyImageFile.addEventListener("click", function(event) {
+                    if (propertyImageFile.dataset.gdPickerAuthorized !== "1") {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        return;
+                    }
+                    propertyImageFile.dataset.gdPickerAuthorized = "0";
+                }, true);
+            }
+            const openPropertyImagePicker = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (!propertyImageFile) return;
+                propertyImageFile.dataset.gdPickerAuthorized = "1";
+                propertyImageFile.click();
+            };
+            if (choosePropertyImageBtn && propertyImageFile && choosePropertyImageBtn.dataset.gdImageBound !== "1") {
+                choosePropertyImageBtn.dataset.gdImageBound = "1";
+                choosePropertyImageBtn.addEventListener("click", openPropertyImagePicker);
+            }
+            if (propertyImageDropzone && propertyImageFile && propertyImageDropzone.dataset.gdImageBound !== "1") {
+                propertyImageDropzone.dataset.gdImageBound = "1";
+                propertyImageDropzone.addEventListener("click", openPropertyImagePicker);
+            }
+            if (propertyImageFile && propertyImageFile.dataset.gdImageBound !== "1") {
+                propertyImageFile.dataset.gdImageBound = "1";
+                propertyImageFile.addEventListener("change", handlePropertyImageSelection);
+            }'''
+if old_picker_binding in source:
+    source = source.replace(old_picker_binding, new_picker_binding, 1)
+elif new_picker_binding not in source:
+    raise SystemExit("Stopped safely: property image chooser binding was not found.")
+
+# Ensure the module header and its back button sit above dashboard content.
+if "id=\"gdrOwnerModuleHeader\"" not in source and "gdrOwnerModuleHeader" not in source:
+    # The header is created by the external command-centre controller; CSS is
+    # supplied in the versioned stylesheet rather than hard-coded HTML.
+    pass
+
+
+# Bump the workspace asset version after the navigation/file-picker correction.
+for asset in (
+    "gdr-owner-renter-page.js",
+    "gdr-owner-payments.js",
+    "gdr-owner-current-renters-dashboard.js",
+    "gdr-owner-command-center-hotfix.js",
+    "gdr-owner-payments.css",
+):
+    import re
+    pattern = r'((?:src|href)="(/assets/' + re.escape(asset) + r')\?v=)20261105-workspace[0-9]+(")'
+    source, count = re.subn(pattern, r'\g<1>20261107-workspace4\g<3>', source)
+    if count == 0:
+        plain = f'src="/assets/{asset}"' if asset.endswith(".js") else f'href="/assets/{asset}"'
+        if plain in source:
+            source = source.replace(plain, plain.replace(f"/assets/{asset}", f"/assets/{asset}?v=20261107-workspace4"), 1)
+        elif f'/assets/{asset}?v=20261107-workspace4' not in source:
+            raise SystemExit("Stopped safely: could not version owner asset " + asset)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
 

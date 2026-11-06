@@ -130,7 +130,7 @@ function bind(dash){
 }
 function styles(){
  if($("#gdrOwnerCommandCenterStyle"))return;
- const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css?v=20261105-workspace3";document.head.appendChild(link);
+ const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css?v=20261107-workspace4";document.head.appendChild(link);
 }
 function init(){
  styles();
@@ -142,12 +142,15 @@ function init(){
  observer.observe(dash,{childList:true,subtree:true,characterData:true});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
-document.addEventListener("click",function(event){
- const back=event.target.closest("[data-gdr-owner-home]");
+window.addEventListener("click",function(event){
+ const target=event.target;
+ const back=target&&target.closest?target.closest("#gdrOwnerModuleHeader [data-gdr-owner-home]"):null;
  if(!back)return;
  const dash=$("#ownerDashboard");
  if(!dash)return;
- event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+ event.preventDefault();
+ event.stopPropagation();
+ event.stopImmediatePropagation();
  setMode(dash,"home");
 },true);
 window.GDROwnerCommandCenter={refresh:init,showHome:function(){const d=$("#ownerDashboard");if(d)setMode(d,"home");}};
