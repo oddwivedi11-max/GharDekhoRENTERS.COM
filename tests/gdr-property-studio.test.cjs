@@ -72,7 +72,7 @@ test("Property Studio saves drafts, uploads owner-scoped photos and uses the sec
   assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
   assert.match(studio, /PlacesService/);
   assert.match(studio, /GDR_GOOGLE_MAPS_API_KEY/);
-  assert.match(studio, /You must review and correct every field before continuing/);
+  assert.match(studio, /Please review and correct every field before continuing/);
 });
 
 test("missing Google Places credentials fail closed instead of inventing nearby places", () => {
