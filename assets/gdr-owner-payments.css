@@ -234,3 +234,33 @@ body.gdr-pay-lock [data-gdr-owner-brand]{
   #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{font-size:10px!important}
   #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close span{display:none!important}
 }
+
+
+/* Remove the separate GharDekho logo/wordmark from the payment overlay.
+   The payment title itself remains the sole page identity. */
+body.gdr-pay-lock :is(
+  .gdr-logo,.gd-logo,.gdr-logo-mark,.gd-logo-mark,
+  .gdr-brand,.gd-brand,.gdr-brand-lockup,.gd-brand-lockup,
+  .brand-logo,.brand-mark,.brand-lockup,.logo-mark,.logo-icon,
+  .site-logo,.site-brand,.site-branding,.navbar-brand,.header-brand,
+  .auth-brand,.login-brand,.gdr-auth-brand,.gdr-header-brand,
+  #gdrLogo,#gdLogo,#brandLogo,#siteLogo,#logo,[data-brand],[data-logo]
+){
+  display:none!important;
+  visibility:hidden!important;
+  opacity:0!important;
+  pointer-events:none!important;
+}
+#gdrPaymentsPage .gdr-pay-brand-title{
+  margin:0!important;
+  padding:0!important;
+  transform:none!important;
+  text-indent:0!important;
+}
+#gdrPaymentsPage .gdr-pay-brand-title:before,
+#gdrPaymentsPage .gdr-pay-brand-title:after,
+#gdrPaymentsPage .gdr-pay-brand-title h1:before,
+#gdrPaymentsPage .gdr-pay-brand-title h1:after{
+  content:none!important;
+  display:none!important;
+}
