@@ -131,10 +131,25 @@ async function runMapSearch(){
   go.disabled=true;status.textContent="Locating "+p.location+" and searching real GharDekho listings…";
   const locationInput=$("gdrMapPlaceSearch");if(locationInput)locationInput.value=p.location;
   if(p.radiusKm&&typeof api.setRenterRadius==="function")api.setRenterRadius(p.radiusKm,true);
-  const searchResult=await api.searchTypedMapLocation();
-  if(searchResult===false)throw new Error("We could not search that location. Check the locality name or try a nearby PIN code.");
-  if(api.applyRenterFilters)api.applyRenterFilters(p);
-  status.textContent="Map updated with matching GharDekho listings."+(p.nearby?" Nearby "+p.nearby+" preference is noted; distance matching is shown only where verified facility data exists.":"");
+  if(typeof api.setRenterSearchPreferences==="function")api.setRenterSearchPreferences(p);
+  if(p.useMyLocation){
+   const located=await new Promise((resolve,reject)=>{
+    if(!navigator.geolocation)return reject(new Error("Location is not supported. Search for a locality instead."));
+    navigator.geolocation.getCurrentPosition(resolve,err=>reject(new Error(err.code===1?"Location permission was denied. You can type a locality instead.":"Could not get your location. Try typing a locality.")),{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+   });
+   const map=window.GDRMapExperience;
+   if(map&&map.setRenterPin)map.setRenterPin({lat:located.coords.latitude,lng:located.coords.longitude},"My location");
+   const canvas=document.getElementById("gdrExploreMapCanvas");
+   if(canvas&&window.L){const instance=window.L.DomUtil.get(canvas);if(instance&&instance._leaflet_id){/* map is controlled by GDRMapExperience */}}
+   const searchResult=await api.searchRenterArea(p);
+   if(searchResult===false)throw new Error("Could not search around your current location.");
+  }else{
+   const searchResult=await api.searchTypedMapLocation();
+   if(searchResult===false)throw new Error("We could not search that location. Check the locality name or try a nearby PIN code.");
+   if(api.applyRenterFilters)api.applyRenterFilters(p);
+  }
+  const rows=api.getRenterVisibleProperties?api.getRenterVisibleProperties():[];
+  status.textContent=rows.length+" matching GharDekho "+(rows.length===1?"home":"homes")+" found."+(p.nearby?" Nearby "+p.nearby+" preference noted; no unverified nearby-distance claims are used.":"");
  }catch(error){status.textContent=error.message||"Map search failed. Try another locality."}
  finally{go.disabled=false}
 }
