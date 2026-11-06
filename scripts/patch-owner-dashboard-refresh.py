@@ -423,7 +423,6 @@ replace_once(
 for old, new in (
     ('src="/assets/gdr-owner-renter-page.js"', 'src="/assets/gdr-owner-renter-page.js?v=20261105-workspace3"'),
     ('src="/assets/gdr-owner-current-renters-dashboard.js"', 'src="/assets/gdr-owner-current-renters-dashboard.js?v=20261105-workspace3"'),
-    ('src="/assets/gdr-owner-command-center-hotfix.js"', 'src="/assets/gdr-owner-command-center-hotfix.js?v=20261105-workspace3"'),
 ):
     if old in source:
         source = source.replace(old, new)
@@ -433,7 +432,6 @@ for old, new in (
         print("Upgraded owner workspace cache version: " + old)
     elif (
         new.replace("20261105-workspace3", "20261107-workspace4") in source
-        or new.replace("20261105-workspace3", "20261107-workspace7") in source
         or new.replace("20261105-workspace3", "20261107-workspace6") in source
         or new.replace("20261105-workspace3", "20261107-workspace7") in source
     ):
