@@ -129,8 +129,20 @@ function bind(dash){
  });
 }
 function styles(){
- if($("#gdrOwnerCommandCenterStyle"))return;
- const link=document.createElement("link");link.id="gdrOwnerCommandCenterStyle";link.rel="stylesheet";link.href="/assets/gdr-owner-command-center.css?v=20261107-workspace5";document.head.appendChild(link);
+ const href="/assets/gdr-owner-command-center.css?v=20261107-workspace6";
+ let link=$("#gdrOwnerCommandCenterStyle");
+ if(!link){
+  link=document.querySelector('link[rel="stylesheet"][href*="gdr-owner-command-center.css"]');
+ }
+ if(!link){
+  link=document.createElement("link");
+  link.id="gdrOwnerCommandCenterStyle";
+  link.rel="stylesheet";
+  document.head.appendChild(link);
+ }
+ link.id="gdrOwnerCommandCenterStyle";
+ if(link.getAttribute("href")!==href)link.setAttribute("href",href);
+ link.media="all";
 }
 function init(){
  styles();
