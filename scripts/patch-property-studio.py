@@ -160,6 +160,10 @@ new_img = '''                    <div class="gdr-property-detail-gallery">
                     </div>'''.replace("__DOLLAR__", dollar)
 replace_once(old_img, new_img, "render renter-facing property photo gallery")
 
+stay_type_old = '''<span class="detail-meta-value">__DOLLAR__{property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}</span>'''.replace("__DOLLAR__", dollar)
+stay_type_new = '''<span class="detail-meta-value">__DOLLAR__{property.property_type === "apartment" ? "Apartment / Flat" : property.property_type === "independent_house" ? "Independent House" : property.property_type === "villa" ? "Villa" : property.property_type === "other" ? "Other" : property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home"}</span>'''.replace("__DOLLAR__", dollar)
+replace_once(stay_type_old, stay_type_new, "show exact property type to renters")
+
 config_old = '''<span class="detail-meta-value">__DOLLAR__{property.listing_type === "home" || !property.listing_type ? escapeHtml(property.bhk || "-") + " BHK" : escapeHtml(property.room_type || "Shared stay")}</span>'''.replace("__DOLLAR__", dollar)
 config_new = '''<span class="detail-meta-value">__DOLLAR__{property.listing_type === "home" || !property.listing_type ? escapeHtml(property.configuration || (property.bhk ? property.bhk + " BHK" : "-")) : escapeHtml(property.room_type || "Shared stay")}</span>'''.replace("__DOLLAR__", dollar)
 replace_once(config_old, config_new, "display 1 RK and exact configuration")
