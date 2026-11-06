@@ -192,3 +192,20 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
 /* Retire the legacy inline payment card; GDR Finance is the single source of payment controls. */
 #ownerDashboard>#gdrOwnerPaymentsCard{display:none!important}
 #ownerDashboard>#gdrPaymentsOpen{display:none!important}
+
+/* Keep the module navigation above all dashboard content and modal remnants. */
+#ownerDashboard #gdrOwnerModuleHeader{
+  position:relative!important;
+  z-index:100010!important;
+  isolation:isolate!important;
+  pointer-events:auto!important;
+}
+#ownerDashboard #gdrOwnerModuleHeader .gdr-occ-back{
+  position:relative!important;
+  z-index:100011!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+}
+#ownerDashboard .owner-add-property-card:not(.gd-property-modal-open){
+  pointer-events:none!important;
+}
