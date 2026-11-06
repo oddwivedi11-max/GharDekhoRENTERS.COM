@@ -129,7 +129,7 @@ function bind(dash){
  });
 }
 function styles(){
- const href="/assets/gdr-owner-command-center.css?v=20261107-workspace6";
+ const href="/assets/gdr-owner-command-center.css?v=20261107-workspace7";
  let link=$("#gdrOwnerCommandCenterStyle");
  if(!link){
   link=document.querySelector('link[rel="stylesheet"][href*="gdr-owner-command-center.css"]');
