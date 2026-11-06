@@ -23,7 +23,7 @@ test("owner command center keeps dashboard sections in separate modules", async 
   expect(await page.locator("#gdrOwnerNearbyCard").evaluate(el => getComputedStyle(el).display)).not.toBe("none");
   await mode("properties");
   expect(await page.locator("#gdrOwnerNearbyCard").evaluate(el => getComputedStyle(el).display)).toBe("none");
-  await expect(page.locator("#gdrPaymentsOpen")).toHaveCount(0);
+  await expect(page.locator("#gdrOwnerCommandCenterHome")).toBeHidden();
   await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=payments]")).toHaveCount(1);
   expect(await page.locator("#ownerDashboard > .owner-add-property-card").evaluate(el => getComputedStyle(el).display)).not.toBe("none");
   expect(await page.locator("#ownerDashboard > .owner-inventory-card").evaluate(el => getComputedStyle(el).display)).not.toBe("none");
