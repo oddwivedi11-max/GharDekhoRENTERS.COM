@@ -431,7 +431,10 @@ for old, new in (
     elif new.replace("workspace3", "workspace2") in source:
         source = source.replace(new.replace("workspace3", "workspace2"), new)
         print("Upgraded owner workspace cache version: " + old)
-    elif new.replace("20261105-workspace3", "20261107-workspace4") in source:
+    elif (
+        new.replace("20261105-workspace3", "20261107-workspace4") in source
+        or new.replace("20261105-workspace3", "20261107-workspace5") in source
+    ):
         print("Owner workspace asset already has the latest cache version: " + old)
     elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
         new.replace("20261105-workspace3", "20261107-finance-clean5") in source
