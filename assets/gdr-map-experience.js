@@ -330,8 +330,10 @@
   async function searchAtCoordinates(lat,lng,label){
     if(!validPoint(lat,lng)||!state.renterMap)throw new Error("A valid map location is required.");
     setRenterPin({lat:Number(lat),lng:Number(lng)},label||"Selected location");
-    state.renterMap.flyTo([Number(lat),Number(lng)],15,{duration:.65});
-    await new Promise(resolve=>state.renterMap.once("moveend",resolve));
+    const target=window.L.latLng(Number(lat),Number(lng)),current=state.renterMap.getCenter();
+    if(current.distanceTo(target)>25){
+      await new Promise(resolve=>{state.renterMap.once("moveend",resolve);state.renterMap.flyTo(target,15,{duration:.65});});
+    }else state.renterMap.setView(target,Math.max(15,state.renterMap.getZoom()),{animate:false});
     return searchRenterArea();
   }
   function locateRenter(){
