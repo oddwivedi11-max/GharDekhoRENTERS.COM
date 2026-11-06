@@ -439,6 +439,7 @@ for old, new in (
     elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
         new.replace("20261105-workspace3", "20261107-finance-clean5") in source
         or new.replace("20261105-workspace3", "20261107-paytitle3") in source
+        or new.replace("20261105-workspace3", "20261107-paytitle4") in source
     ):
         print("Finance asset already has clean header cache version: " + old)
     elif new not in source:
@@ -529,11 +530,14 @@ for asset in (
 for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
     old_ref = f"/assets/{asset}?v=20261107-workspace4"
     prior_ref = f"/assets/{asset}?v=20261107-finance-clean5"
-    new_ref = f"/assets/{asset}?v=20261107-paytitle3"
+    previous_ref = f"/assets/{asset}?v=20261107-paytitle3"
+    new_ref = f"/assets/{asset}?v=20261107-paytitle4"
     if old_ref in source:
         source = source.replace(old_ref, new_ref)
     elif prior_ref in source:
         source = source.replace(prior_ref, new_ref)
+    elif previous_ref in source:
+        source = source.replace(previous_ref, new_ref)
     elif new_ref not in source:
         # Finance modules can be loaded lazily by their own controller rather than
         # through a static index.html src/href. Do not fail the unrelated dashboard deploy.
