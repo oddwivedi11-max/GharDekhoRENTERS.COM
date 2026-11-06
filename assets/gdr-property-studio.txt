@@ -1,0 +1,83 @@
+<section id="gdrPropertyStudio" hidden aria-label="GharDekho Property Studio">
+  <header class="gdr-studio-topbar">
+    <div class="gdr-studio-brand"><span class="gdr-studio-brand-mark">⌂</span><span><small>GHARDEKHO</small><strong>PROPERTY STUDIO</strong></span></div>
+    <div class="gdr-studio-top-actions"><span id="gdrStudioDraftStatus" class="gdr-studio-draft-status">Your draft saves automatically</span><button type="button" id="gdrStudioClose" class="gdr-studio-close">← Owner Dashboard</button></div>
+  </header>
+  <div class="gdr-studio-progress-wrap">
+    <div class="gdr-studio-stepper" aria-label="Listing progress">
+      <div class="gdr-studio-step is-current" data-gdr-studio-step-indicator="0"><b>1</b><span>Property</span></div>
+      <div class="gdr-studio-step" data-gdr-studio-step-indicator="1"><b>2</b><span>Rent</span></div>
+      <div class="gdr-studio-step" data-gdr-studio-step-indicator="2"><b>3</b><span>Location</span></div>
+      <div class="gdr-studio-step" data-gdr-studio-step-indicator="3"><b>4</b><span>Photos</span></div>
+      <div class="gdr-studio-step" data-gdr-studio-step-indicator="4"><b>5</b><span>Preview</span></div>
+    </div>
+    <div class="gdr-studio-progress-track"><div id="gdrStudioProgressFill"></div></div>
+  </div>
+  <main id="gdrStudioMain" class="gdr-studio-main">
+    <div class="gdr-studio-heading"><span>ONE SIMPLE STEP AT A TIME</span><h1 id="gdrStudioStepTitle">Property type</h1><p>Tell us a little about your property. You can review everything before publishing.</p></div>
+    <section class="gdr-studio-panel" data-gdr-studio-panel="0">
+      <h2 class="gdr-studio-panel-title">What kind of property are you listing?</h2><p class="gdr-studio-panel-subtitle">Choose the option that best describes your property.</p>
+      <div class="gdr-studio-type-grid">
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="apartment" aria-pressed="false"><span class="gdr-studio-choice-icon">🏢</span><strong>Apartment / Flat</strong><small>Residential flat</small></button>
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="independent_house" aria-pressed="false"><span class="gdr-studio-choice-icon">🏠</span><strong>Independent House</strong><small>Separate home</small></button>
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="villa" aria-pressed="false"><span class="gdr-studio-choice-icon">🏡</span><strong>Villa</strong><small>Independent villa</small></button>
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="pg" aria-pressed="false"><span class="gdr-studio-choice-icon">🛏️</span><strong>PG</strong><small>Paying guest</small></button>
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="hostel" aria-pressed="false"><span class="gdr-studio-choice-icon">🏫</span><strong>Hostel</strong><small>Shared accommodation</small></button>
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="other" aria-pressed="false"><span class="gdr-studio-choice-icon">⌂</span><strong>Other</strong><small>Another property type</small></button>
+      </div>
+      <div id="gdrStudioConfigurationWrap" hidden>
+        <h3 id="gdrStudioConfigurationLabel" class="gdr-studio-panel-title" style="margin-top:22px">BHK configuration</h3>
+        <div id="gdrStudioConfigurationOptions" class="gdr-studio-config-grid">
+          <button type="button" data-gdr-configuration="1 RK">1 RK</button><button type="button" data-gdr-configuration="1 BHK">1 BHK</button><button type="button" data-gdr-configuration="2 BHK">2 BHK</button><button type="button" data-gdr-configuration="3 BHK">3 BHK</button><button type="button" data-gdr-configuration="4 BHK">4 BHK</button><button type="button" data-gdr-configuration="5+ BHK">5+ BHK</button>
+        </div>
+        <p id="gdrStudioOtherHint" class="gdr-studio-other-hint" hidden>We'll label this listing as Other. No BHK is required.</p>
+      </div>
+      <div id="gdrStudioPgDetails" class="gdr-studio-pg-details" hidden>
+        <h3 class="gdr-studio-panel-title">A few stay details</h3><p class="gdr-studio-panel-subtitle">These details are needed for PG and Hostel listings.</p>
+        <div class="gdr-studio-field-grid">
+          <label class="gdr-studio-field"><span>Room type</span><select id="gdrStudioRoomType"><option value="">Choose room type</option><option value="Single">Single</option><option value="Double">Double sharing</option><option value="Triple">Triple sharing</option><option value="Shared">Shared room</option></select></label>
+          <label class="gdr-studio-field"><span>Who can stay?</span><select id="gdrStudioGender"><option value="">Choose preference</option><option value="Any">Anyone</option><option value="Male">Male</option><option value="Female">Female</option></select></label>
+          <label class="gdr-studio-field"><span>Total beds</span><input id="gdrStudioTotalBeds" type="number" min="1" max="1000" inputmode="numeric" placeholder="e.g. 10"></label>
+          <label class="gdr-studio-field"><span>Available beds</span><input id="gdrStudioAvailableBeds" type="number" min="0" max="1000" inputmode="numeric" placeholder="e.g. 7"></label>
+          <label class="gdr-studio-field"><span>Meals</span><select id="gdrStudioFoodIncluded"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label>
+        </div>
+      </div>
+      <div class="gdr-studio-voice">
+        <div class="gdr-studio-voice-head"><div><strong>Prefer speaking?</strong><small>Say your property details in Hindi, English or Hinglish.</small></div><span aria-hidden="true">🎙️</span></div>
+        <div class="gdr-studio-voice-controls"><select id="gdrStudioVoiceLanguage" aria-label="Voice language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English</option></select><button type="button" id="gdrStudioVoiceStart">Start speaking</button><button type="button" id="gdrStudioVoiceStop">Stop</button></div>
+        <p id="gdrStudioVoiceStatus" aria-live="polite">Voice details will fill the form. You must review them before publishing.</p>
+        <textarea id="gdrStudioVoiceTranscript" placeholder="Your spoken words will appear here…" aria-label="Voice transcript"></textarea>
+      </div>
+    </section>
+    <section class="gdr-studio-panel" data-gdr-studio-panel="1" hidden>
+      <h2 class="gdr-studio-panel-title">How much rent would you like?</h2><p class="gdr-studio-panel-subtitle">Enter the monthly rent. Security deposit is optional.</p>
+      <div class="gdr-studio-field-grid">
+        <label class="gdr-studio-field"><span>Monthly rent (₹) *</span><input id="gdrStudioRent" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 8000" required><small>Rent expected every month.</small></label>
+        <label class="gdr-studio-field"><span>Security deposit (₹) <small>Optional</small></span><input id="gdrStudioDeposit" type="number" min="0" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 16000"><small>Leave blank if you have not decided.</small></label>
+      </div>
+    </section>
+    <section class="gdr-studio-panel" data-gdr-studio-panel="2" hidden>
+      <h2 class="gdr-studio-panel-title">Where is your property?</h2><p class="gdr-studio-panel-subtitle">Search the address, use GPS or choose the exact point on the map.</p>
+      <div class="gdr-studio-field-grid">
+        <label class="gdr-studio-field gdr-studio-field-wide"><span>Property address / locality *</span><input id="gdrStudioLocation" type="text" maxlength="300" autocomplete="off" placeholder="Search area, locality, city or PIN code"><div id="gdrStudioLocationSuggestions" hidden></div></label>
+        <label class="gdr-studio-field"><span>PIN code <small>Optional</small></span><input id="gdrStudioPincode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit PIN code"></label>
+      </div>
+      <div class="gdr-studio-location-actions"><button type="button" id="gdrStudioUseGps">◎ Use Current Location</button><button type="button" id="gdrStudioOpenMap">⌖ Select on Map</button></div>
+      <p id="gdrStudioLocationStatus" class="gdr-studio-location-status" aria-live="polite">Choose a search result, use GPS or place the pin on the map.</p>
+      <div id="gdrStudioMapHost"></div>
+      <div class="gdr-studio-nearby"><strong>Nearby public places</strong><p id="gdrStudioNearbyStatus">Nearby places are discovered automatically after location confirmation.</p><div id="gdrStudioNearbyList"></div></div>
+    </section>
+    <section class="gdr-studio-panel" data-gdr-studio-panel="3" hidden>
+      <h2 class="gdr-studio-panel-title">Add photos of your property</h2><p class="gdr-studio-panel-subtitle">Use your own genuine property photos. You can add up to 8 photos and choose the cover photo.</p>
+      <div class="gdr-studio-photo-actions"><button type="button" id="gdrStudioChoosePhotos">▧ Upload Photos</button><button type="button" id="gdrStudioTakePhotos">◎ Take Photos</button></div>
+      <input id="gdrStudioPhotoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><input id="gdrStudioCameraFiles" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden>
+      <p class="gdr-studio-photo-note">JPG, PNG or WEBP · Maximum 5 MB each · No stock images or photos of other properties.</p><div id="gdrStudioPhotoPreview" hidden></div>
+      <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
+    </section>
+    <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
+      <h2 class="gdr-studio-panel-title">Review before publishing</h2><p class="gdr-studio-panel-subtitle">Check the details carefully. Your listing will be saved in My Properties and follow the existing verification process.</p><div id="gdrStudioPreview"></div>
+    </section>
+    <div class="gdr-studio-footer"><button type="button" id="gdrStudioBack" hidden>← Back</button><button type="button" id="gdrStudioNext">Continue →</button><button type="button" id="gdrStudioPublish" hidden>Publish My Property</button></div>
+    <p id="gdrStudioMessage" hidden aria-live="polite"></p>
+  </main>
+</section>
