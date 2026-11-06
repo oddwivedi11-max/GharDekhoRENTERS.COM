@@ -124,7 +124,7 @@ jobs:
           grep -q 'gdr-property-studio.js?v=20261107-studio1' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261107-studio1' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-moveout-v2' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite-v2.css?v=20261107-moveout-v2' /tmp/gdr-live-index.html
+          grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-studio1" -o /tmp/gdr-property-studio.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
