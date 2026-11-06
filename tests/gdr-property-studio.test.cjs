@@ -82,9 +82,9 @@ test("Studio layout is loaded from a separately deployed text fragment asset", (
 });
 
 test("renter preview shows actual nearby place names, categories and distances", () => {
-  assert.match(studio, /state\\.nearbyPlaces\\.slice\\(0,8\\)/);
-  assert.match(studio, /escapeHtml\\(place\\.name/);
-  assert.match(studio, /distanceLabel\\(place\\.distance_m\\)/);
+  assert.match(studio, /state\.nearbyPlaces\.slice\(0,8\)/);
+  assert.match(studio, /escapeHtml\(place\.name/);
+  assert.match(studio, /distanceLabel\(place\.distance_m\)/);
   assert.match(studio, /showSuggestions\\(india\\)/);
 });
 
