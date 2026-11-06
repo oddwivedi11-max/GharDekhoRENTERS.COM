@@ -133,11 +133,18 @@ if css_ref not in source:
         raise SystemExit("Stopped safely: closing head tag missing.")
     source = source[:head_pos] + css_ref + "\n" + source[head_pos:]
 
-replace_once(
-    '<script src="/assets/gdr-rental-suite.js"></script>',
-    '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>',
-    "cache-bust renter move-out notice controller"
-)
+renter_js_v1 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>'
+renter_js_v2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
+if renter_js_v2 not in source:
+    if renter_js_v1 in source:
+        source = source.replace(renter_js_v1, renter_js_v2, 1)
+        print("Updated: cache-bust renter move-out notice controller")
+    else:
+        replace_once(
+            '<script src="/assets/gdr-rental-suite.js"></script>',
+            renter_js_v2,
+            "cache-bust renter move-out notice controller"
+        )
 renter_css_v1 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">'
 renter_css_v2 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">'
 renter_css_v3 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout3">'
