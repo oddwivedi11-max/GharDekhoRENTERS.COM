@@ -127,7 +127,7 @@ function startVoice(target,lang){
    mic?.classList.remove("listening");if(state.recognition===r)state.recognition=null;
    const transcript=finalTranscript.trim();if(!transcript)return;
    const field=$(target);if(field){field.value=transcript;field.dispatchEvent(new Event("input",{bubbles:true}));}
-   if(mapMode){state.mapReplyLanguage=detectReplyLanguage(transcript);runMapSearch(transcript);}else review(transcript);
+   if(mapMode){state.mapReplyLanguage=detectReplyLanguage(transcript);if(status)status.textContent="Speech captured. Review or edit the text, then tap Search map.";}else review(transcript);
   };
   r.start();
  }catch(error){mic?.classList.remove("listening");if(status)status.textContent="Could not start the microphone. Check browser microphone permission or use text search.";}
@@ -146,7 +146,7 @@ function mountFinder(){
 function mountMapVoice(){
  const panel=$("gdrExploreMapPanel"),toolbar=panel?.querySelector(".gdr-map-toolbar");if(!panel||!toolbar||$("gdrxMapVoice"))return;
  const w=document.createElement("div");w.id="gdrxMapVoice";w.className="gdrx-map-voice";
- w.innerHTML='<label for="gdrxMapPrompt">TALK TO GDR · MAP SEARCH</label><div><input id="gdrxMapPrompt" autocomplete="off" aria-label="Describe the home you want on the map" placeholder="मुझे सिंगरौली में उपलब्ध घर दिखाओ / Show available homes in Singrauli"><select id="gdrxMapLang" aria-label="Voice input language"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select><button type="button" id="gdrxMapMic" aria-label="Search by voice" title="Search by voice">🎙 Speak</button><button type="button" id="gdrxMapGo">Search map</button></div><p id="gdrxMapStatus" role="status" aria-live="polite">Speak or type naturally. GDR will understand, reply in your language and search real available homes automatically.</p><div id="gdrxMapReply" class="gdrx-map-reply" role="status" aria-live="polite" hidden></div>';
+ w.innerHTML='<label for="gdrxMapPrompt">TALK TO GDR · MAP SEARCH</label><div><input id="gdrxMapPrompt" autocomplete="off" aria-label="Describe the home you want on the map" placeholder="मुझे सिंगरौली में उपलब्ध घर दिखाओ / Show available homes in Singrauli"><select id="gdrxMapLang" aria-label="Voice input language"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select><button type="button" id="gdrxMapMic" aria-label="Search by voice" title="Search by voice">🎙 Speak</button><button type="button" id="gdrxMapGo">Search map</button></div><p id="gdrxMapStatus" role="status" aria-live="polite">Speak or type naturally. GDR will understand, reply in your language and search real available homes automatically.</p><div id="gdrxMapReply" class="gdrx-map-reply" role="status" aria-live="polite" hidden></div>';
  toolbar.appendChild(w);$("gdrxMapGo").onclick=()=>runMapSearch();
  $("gdrxMapMic").onclick=()=>startVoice("gdrxMapPrompt",$("#gdrxMapLang")?.value||state.lang);
  $("gdrxMapLang").onchange=e=>state.lang=e.target.value;
