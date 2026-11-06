@@ -437,7 +437,7 @@ for old, new in (
         print("Owner workspace asset already has the latest cache version: " + old)
     elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
         new.replace("20261105-workspace3", "20261107-finance-clean5") in source
-        or new.replace("20261105-workspace3", "20261107-paytitle1") in source
+        or new.replace("20261105-workspace3", "20261107-paytitle2") in source
     ):
         print("Finance asset already has clean header cache version: " + old)
     elif new not in source:
@@ -530,7 +530,7 @@ for asset in (
 for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
     old_ref = f"/assets/{asset}?v=20261107-workspace4"
     prior_ref = f"/assets/{asset}?v=20261107-finance-clean5"
-    new_ref = f"/assets/{asset}?v=20261107-paytitle1"
+    new_ref = f"/assets/{asset}?v=20261107-paytitle2"
     if old_ref in source:
         source = source.replace(old_ref, new_ref)
     elif prior_ref in source:
