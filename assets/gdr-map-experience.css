@@ -855,3 +855,8 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
     min-height: 40px !important;
   }
 }
+
+/* Selected renter property marker */
+.gdr-home-3d-marker.gdr-home-selected{filter:drop-shadow(0 0 0 #d7b56d) drop-shadow(0 0 10px rgba(194,151,75,.95));transform:translateY(-5px) scale(1.1)}
+.gdr-home-3d-marker.gdr-home-selected .gdr-home-3d-price{background:#f5e7c4;border-color:#c69b55;color:#513d1c;box-shadow:0 0 0 2px rgba(198,155,85,.2),0 5px 15px rgba(24,53,42,.22)}
+@media(prefers-reduced-motion:reduce){.gdr-home-3d-marker.gdr-home-selected{transform:none}}
