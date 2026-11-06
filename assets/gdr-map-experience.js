@@ -119,8 +119,19 @@
     copy.append(node("p","",meta));if(Number.isFinite(Number(p.gdrMatchScore)))copy.append(node("p","gdr-map-match-score",p.gdrMatchScore+"% preference match"));copy.append(node("p","",statusOf(p)+" · "+(p.owner_verified?"Verified owner":"Owner verification pending")+" · Owner contact is shared only through the approved visit flow."));
     main.append(img,copy);
     const actions=node("div","gdr-map-preview-actions"),details=node("button","gdr-map-details-btn","View details"),favorite=node("button","gdr-map-details-btn","♡ Save"),compare=node("button","gdr-map-details-btn","＋ Compare"),close=node("button","gdr-map-dismiss-btn","Close");
-    details.type="button";details.addEventListener("click",()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(p.id);else setStatus("Open this property from the property results to see full details.");});
-    favorite.type="button";favorite.addEventListener("click",()=>{if(typeof window.saveProperty==="function")window.saveProperty(p.id);else setStatus("Sign in as a renter to save this home.");});
+    details.type="button";details.addEventListener("click",()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(p.id);else{const url=new URL("/property.html",location.origin);url.searchParams.set("id",p.id);window.location.assign(url.href);}});
+    favorite.type="button";favorite.addEventListener("click",async()=>{
+      const client=db();if(!client||!client.auth){setStatus("Please sign in as a renter to save this home.");return;}
+      favorite.disabled=true;
+      try{
+        const auth=await client.auth.getUser(),user=auth&&auth.data&&auth.data.user;
+        if(!user){setStatus("Please sign in as a renter to save this home.");return;}
+        const result=await client.from("saved_properties").upsert({user_id:user.id,property_id:p.id},{onConflict:"user_id,property_id",ignoreDuplicates:true});
+        if(result.error)throw result.error;
+        favorite.textContent="✓ Saved";setStatus("Property saved to your account.");
+      }catch(error){console.error("Could not save map property:",error);setStatus("Could not save this home. Please sign in and try again.");}
+      finally{favorite.disabled=false;}
+    });
     compare.type="button";compare.addEventListener("click",()=>{if(window.GDRRenterExperience&&typeof window.GDRRenterExperience.toggleCompare==="function")window.GDRRenterExperience.toggleCompare(p);else setStatus("Comparison tools are loading. Please try again.");});
     close.type="button";close.addEventListener("click",clearPreview);actions.append(details,favorite,compare,close);preview.append(main,actions);preview.hidden=false;
   }
