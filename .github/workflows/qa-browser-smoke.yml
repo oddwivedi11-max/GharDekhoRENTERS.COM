@@ -14,6 +14,7 @@ on:
       - "codex/fix-details-nearby-property-rpc"
       - "codex/allow-visit-before-admin-verification"
       - "feature/owner-command-center-20261105"
+      - "fix/back-dashboard-file-picker-20261107"
     paths:
       - "index.html"
       - "admin/**"
