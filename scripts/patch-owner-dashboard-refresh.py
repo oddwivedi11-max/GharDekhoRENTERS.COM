@@ -435,7 +435,10 @@ for old, new in (
         print("Upgraded owner workspace cache version: " + old)
     elif new.replace("20261105-workspace3", "20261107-workspace4") in source:
         print("Owner workspace asset already has the latest cache version: " + old)
-    elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and new.replace("20261105-workspace3", "20261107-finance-clean5") in source:
+    elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
+        new.replace("20261105-workspace3", "20261107-finance-clean5") in source
+        or new.replace("20261105-workspace3", "20261107-brandfix1") in source
+    ):
         print("Finance asset already has clean header cache version: " + old)
     elif new not in source:
         raise SystemExit("Stopped safely: expected owner workspace asset reference not found: " + old)
