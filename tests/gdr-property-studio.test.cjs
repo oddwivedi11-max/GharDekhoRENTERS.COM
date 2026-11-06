@@ -95,6 +95,7 @@ test("production migration adds only listing metadata and an authenticated owner
 
 test("local property placeholder and responsive Studio styles are present", () => {
   assert.match(html, /gdr-property-placeholder\.svg/);
+  assert.match(html, /property\.property_type === "apartment"/);
   assert.match(studioCss, /@media\(max-width:760px\)/);
   assert.match(studioCss, /gdr-studio-photo-remove/);
   assert.match(studioCss, /gdr-property-nearby-public/);
