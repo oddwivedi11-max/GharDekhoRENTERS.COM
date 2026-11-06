@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-studio6";
+const VERSION="20261107-voiceassistant1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -8,7 +8,7 @@ const state={
   rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
   files:[],coverIndex:0,uploadedPhotos:[],uploadedPaths:[],nearbyPlaces:[],
-  submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null
+  submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null,voice:{active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,turnText:"",finalText:"",interimText:"",pending:{},awaitingConfirmation:false,lastReply:"",lastQuestion:"",lastField:"",muted:false,language:"hi",session:0,permissionBlocked:false,skippedDeposit:false}
 };
 const typeLabels={
  apartment:"Apartment / Flat",independent_house:"Independent House",villa:"Villa",
@@ -571,54 +571,193 @@ function selectedType(type){
 }
 function setConfiguration(value){state.configuration=value;updateConfigurationCards();saveDraft();}
 function setCover(i){state.coverIndex=i;renderPhotos();saveDraft();}
-function parseVoice(text){
- const t=String(text||"").toLowerCase();
- if(/\b(pg|paying guest)\b/.test(t))selectedType("pg");
- else if(/\b(hostel)\b/.test(t))selectedType("hostel");
- else if(/\b(villa)\b/.test(t))selectedType("villa");
- else if(/\b(independent house|standalone house|separate house)\b/.test(t))selectedType("independent_house");
- else if(/\b(flat|apartment)\b/.test(t))selectedType("apartment");
- else if(/\b(other)\b/.test(t))selectedType("other");
- const numberWords={ek:"1",one:"1",do:"2",two:"2",teen:"3",three:"3",char:"4",four:"4",paanch:"5",panch:"5",five:"5"};
- const config=t.match(/\b(1\s*rk|1\s*bhk|2\s*bhk|3\s*bhk|4\s*bhk|5\+\s*bhk)\b/i);
- if(config){setConfiguration(config[1].replace(/\s+/g," ").toUpperCase());}
+function detectVoiceLanguage(text){
+ const value=String(text||"");
+ if(/[ऀ-ॿ]/.test(value))return "hi";
+ const lower=value.toLowerCase();
+ if(/\b(mera|meri|mujhe|chahiye|hai|mein|me|ka|ki|ke|kiraya|ghar|makaan|bhk|rent|flat|furnished|semi furnished)\b/.test(lower))return "hi";
+ return "en";
+}
+function voiceText(hi,en){return state.voice.language==="en"?en:hi;}
+function setVoiceState(label,recording){
+ const stateEl=$("#gdrStudioVoiceState"),start=$("#gdrStudioVoiceStart");
+ if(stateEl)stateEl.textContent=label;
+ if(start){start.classList.toggle("is-recording",!!recording);start.textContent=recording?"● Listening…":"Start speaking";}
+}
+function setVoiceReply(text){
+ const reply=$("#gdrStudioVoiceReply");if(reply)reply.textContent=text;
+ state.voice.lastReply=text;
+}
+function speakVoice(text,after){
+ state.voice.lastReply=text;
+ const reply=$("#gdrStudioVoiceReply");if(reply)reply.textContent=text;
+ if(state.voice.muted||!window.speechSynthesis||!window.SpeechSynthesisUtterance){if(typeof after==="function")after();return;}
+ try{
+  window.speechSynthesis.cancel();state.voice.speaking=true;
+  if(state.recognition){try{state.recognition.stop();}catch(e){}}
+  const utterance=new SpeechSynthesisUtterance(text),language=state.voice.language==="en"?"en-IN":"hi-IN";
+  utterance.lang=language;utterance.rate=.96;utterance.pitch=1;
+  const voices=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
+  const voice=voices.find(v=>String(v.lang||"").toLowerCase()===language.toLowerCase())||voices.find(v=>String(v.lang||"").toLowerCase().startsWith(state.voice.language==="en"?"en":"hi"));
+  if(voice)utterance.voice=voice;
+  utterance.onend=()=>{state.voice.speaking=false;if(typeof after==="function")after();else scheduleVoiceRestart(250);};
+  utterance.onerror=()=>{state.voice.speaking=false;if(typeof after==="function")after();else scheduleVoiceRestart(250);};
+  window.speechSynthesis.speak(utterance);
+ }catch(error){state.voice.speaking=false;if(typeof after==="function")after();else scheduleVoiceRestart(250);}
+}
+function amountFromText(text){
+ const s=String(text||"").toLowerCase().replace(/,/g," ");
+ let m=s.match(/\b(\d+(?:\.\d+)?)\s*(k|thousand|हज़ार|हजार)\b/);
+ if(m)return Math.round(Number(m[1])*1000);
+ m=s.match(/\b(\d{3,8})\b/);if(m)return Number(m[1]);
+ const words={one:1,ek:1,two:2,do:2,three:3,teen:3,four:4,char:4,five:5,paanch:5,ten:10,das:10,fifteen:15,pandrah:15,twenty:20,bees:20,thirty:30,tees:30,fifty:50,pachaas:50};
+ const wordMatch=s.match(/\b(one|ek|two|do|three|teen|four|char|five|paanch|ten|das|fifteen|pandrah|twenty|bees|thirty|tees|fifty|pachaas)\s+(?:thousand|hazaar|hazar)\b/);
+ if(wordMatch&&words[wordMatch[1]])return words[wordMatch[1]]*1000;
+ return null;
+}
+function extractVoiceDetails(text){
+ const raw=String(text||"").trim(),t=raw.toLowerCase(),out={};
+ if(/\b(pg|paying guest)\b/.test(t))out.propertyType="pg";
+ else if(/\b(hostel)\b/.test(t))out.propertyType="hostel";
+ else if(/\b(villa)\b/.test(t))out.propertyType="villa";
+ else if(/\b(independent house|standalone house|separate house)\b/.test(t))out.propertyType="independent_house";
+ else if(/\b(flat|apartment)\b/.test(t)||/फ्लैट|अपार्टमेंट/.test(t))out.propertyType="apartment";
+ else if(/\b(other property|other type)\b/.test(t))out.propertyType="other";
+ let config=t.match(/\b(5\+\s*bhk|[1-4]\s*bhk|1\s*rk)\b/i);
+ if(config)out.configuration=config[1].replace(/\s+/g," ").toUpperCase();
  else{
-  const hindi=t.match(/\b(ek|do|teen|char|paanch|panch|one|two|three|four|five)\s*(?:bhk|bedroom)\b/);
-  if(hindi&&numberWords[hindi[1]])setConfiguration(numberWords[hindi[1]]+" BHK");
+  const wordConfig=t.match(/\b(ek|do|teen|char|paanch|panch|one|two|three|four|five)\s*(?:bhk|bedroom)\b/);
+  const map={ek:"1",one:"1",do:"2",two:"2",teen:"3",three:"3",char:"4",four:"4",paanch:"5",panch:"5",five:"5"};
+  if(wordConfig)out.configuration=map[wordConfig[1]]+" BHK";
+  else if(/\bone\s*rk\b|\bek\s*rk\b|1\s*room\s*kitchen/.test(t))out.configuration="1 RK";
  }
- const rent=t.match(/(?:₹|rs\.?|rupees?|rupee|rupaye|rent|kiraya)\s*(?:is|of|hai|ka|around)?\s*([\d,]{3,})/i);
- if(rent){const val=rent[1].replace(/,/g,"");if(Number(val)>0){state.rent=val;const el=$("#gdrStudioRent");if(el)el.value=val;}}
- const deposit=t.match(/(?:deposit|security)\s*(?:is|of|hai|ka)?\s*(?:₹|rs\.?)?\s*([\d,]{3,})/i);
- if(deposit){state.deposit=deposit[1].replace(/,/g,"");const el=$("#gdrStudioDeposit");if(el)el.value=state.deposit;}
- const hindiLoc=t.match(/(?:mera ghar|mera makaan|property|ghar)\s+(.{3,90}?)\s+(?:mein|me|par)\b/i);
- const englishLoc=t.match(/(?:\bin\s+|\bat\s+)([a-z0-9 ,'-]{3,70}?)(?=\s+(?:is|hai|with|rent|kiraya|monthly|for)\b|[.!?]|$)/i);
- const loc=hindiLoc||englishLoc;
- if(loc){
-  const address=loc[1].trim().replace(/\s+/g," ");
-  if(address.length>=3){const el=$("#gdrStudioLocation");if(el)el.value=address;state.address=address;searchAddress(address);}
+ const furnish=t.match(/\b(semi[\s-]?furnished|fully furnished|furnished|unfurnished)\b/);
+ if(furnish)out.furnishing=/semi/.test(furnish[1])?"Semi-Furnished":/unfurnished/.test(furnish[1])?"Unfurnished":"Furnished";
+ const depIdx=t.search(/security deposit|deposit/),rentIdx=t.search(/rent|kiraya|किराया|monthly/);
+ if(depIdx>=0){const n=amountFromText(raw.slice(depIdx,depIdx+90));if(n!==null)out.deposit=String(n);}
+ if(rentIdx>=0){const n=amountFromText(raw.slice(rentIdx,Math.min(raw.length,rentIdx+100)));if(n!==null)out.rent=String(n);}
+ else{
+  const currency=raw.match(/(?:₹|rs\.?|rupees?|rupee|rupaye)\s*([\d,]+(?:\s*(?:k|thousand))?)/i);
+  if(currency){const n=amountFromText(currency[0]);if(n!==null)out.rent=String(n);}
+  else{const trailing=raw.match(/([\d,]+(?:\s*(?:k|thousand))?)\s*(?:rupees?|rupee|rupaye|रुपये|रुपए)/i);if(trailing){const n=amountFromText(trailing[1]);if(n!==null)out.rent=String(n);}}
  }
- const pin=t.match(/\b([1-9][0-9]{5})\b/);if(pin){state.pincode=pin[1];const el=$("#gdrStudioPincode");if(el)el.value=pin[1];}
- syncFormFromState();saveDraft();
- message("Voice details filled where recognized. Please review and correct every field before continuing.","success");
+ const pin=raw.match(/\b([1-9][0-9]{5})\b/);if(pin)out.pincode=pin[1];
+ const locationPatterns=[
+  /(?:location|address|area)\s*(?:is|:)?\s+(.+?)(?=\s+(?:rent|kiraya|deposit|security|furnished|unfurnished|semi[\s-]?furnished|pin|pincode)\b|[.!?]|$)/i,
+  /(?:in|at)\s+([a-z0-9][a-z0-9 ,'-]{2,75}?)(?=\s+(?:rent|kiraya|deposit|security|furnished|unfurnished|semi[\s-]?furnished|monthly|and rent)\b|[.!?]|$)/i,
+  /([a-z][a-z0-9 ,'-]{2,65}?)\s+(?:mein|me)\b/i,
+  /(?:में|मे)\s*([ऀ-ॿa-zA-Z0-9 ,'-]{3,70}?)(?=\s*(?:है|और|किराया|₹|$))/i
+ ];
+ for(const pattern of locationPatterns){const m=raw.match(pattern);if(m){const address=m[1].trim().replace(/\s+/g," ").replace(/^(mera|meri|my|property|flat|house|home)\s+/i,"").replace(/\s+(hai|is)$/i,"");if(address.length>=3&&!/^(a property|property|flat|apartment)$/i.test(address))out.address=address;break;}}
+ const room=t.match(/\b(single|double|triple|shared)\s*(?:sharing|room)?\b/);if(room)out.roomType=room[1][0].toUpperCase()+room[1].slice(1);
+ const gender=t.match(/\b(male|female|anyone|both)\b/);if(gender)out.gender=gender[1]==="both"||gender[1]==="anyone"?"Any":gender[1][0].toUpperCase()+gender[1].slice(1);
+ const total=t.match(/\btotal\s*beds?\s*(?:is|are|of)?\s*(\d{1,3})\b/);if(total)out.totalBeds=total[1];
+ const available=t.match(/\bavailable\s*beds?\s*(?:is|are|of)?\s*(\d{1,3})\b/);if(available)out.availableBeds=available[1];
+ if(/\b(meals included|food included)\b/.test(t))out.foodIncluded="yes";else if(/\b(no meals|food not included)\b/.test(t))out.foodIncluded="no";
+ return out;
+}
+function voiceFieldLabel(key){return ({propertyType:"Property type",configuration:"Configuration",rent:"Monthly rent",deposit:"Security deposit",furnishing:"Furnishing",address:"Location",pincode:"PIN code",roomType:"Room type",gender:"Guest preference",totalBeds:"Total beds",availableBeds:"Available beds",foodIncluded:"Meals"})[key]||key;}
+function voiceFieldValue(key,value){if(key==="propertyType")return typeLabels[value]||value;if(key==="rent"||key==="deposit")return formatINR(value);if(key==="foodIncluded")return value==="yes"?"Meals included":"No meals";return String(value);}
+function renderVoicePending(){
+ const box=$("#gdrStudioVoicePending"),actions=$("#gdrStudioVoiceConfirmActions");if(!box||!actions)return;
+ const entries=Object.entries(state.voice.pending||{});if(!entries.length){box.hidden=true;actions.hidden=true;return;}
+ box.hidden=false;actions.hidden=false;box.replaceChildren();
+ const heading=document.createElement("strong");heading.textContent=voiceText("मैंने ये जानकारी समझी है:","I understood these details:");box.appendChild(heading);
+ entries.forEach(([key,value])=>{const row=document.createElement("div"),label=document.createElement("span"),val=document.createElement("b");label.textContent=voiceFieldLabel(key);val.textContent=voiceFieldValue(key,value);row.append(label,val);box.appendChild(row);});
+}
+function currentVoiceValue(key){return ({propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,furnishing:state.furnishing,address:state.address,pincode:state.pincode,roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,availableBeds:state.availableBeds,foodIncluded:state.foodIncluded})[key]||"";}
+function applyVoicePending(){
+ const pending={...state.voice.pending};
+ Object.entries(pending).forEach(([key,value])=>{
+  if(key==="propertyType")selectedType(value);
+  else if(key==="configuration")setConfiguration(value);
+  else if(key==="address"){state.address=value;state.lat=null;state.lng=null;const el=$("#gdrStudioLocation");if(el)el.value=value;searchAddress(value);}
+  else if(key==="pincode"){state.pincode=value;const el=$("#gdrStudioPincode");if(el)el.value=value;}
+  else if(["rent","deposit","furnishing","roomType","gender","totalBeds","availableBeds","foodIncluded"].includes(key)){state[key]=value;const ids={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",roomType:"gdrStudioRoomType",gender:"gdrStudioGender",totalBeds:"gdrStudioTotalBeds",availableBeds:"gdrStudioAvailableBeds",foodIncluded:"gdrStudioFoodIncluded"};const el=$("#"+ids[key]);if(el)el.value=value;}
+ });
+ syncFormFromState();saveDraft();state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();
+}
+function nextVoiceQuestion(){
+ const home=["apartment","independent_house","villa","other"].includes(state.propertyType);let field="",question="";
+ if(!state.propertyType){field="propertyType";question=voiceText("आप किस तरह की property list करना चाहते हैं—flat, independent house, villa, PG या hostel?","What kind of property would you like to list: flat, independent house, villa, PG or hostel?");}
+ else if(home&&!state.configuration&&state.propertyType!=="other"){field="configuration";question=voiceText("कितना configuration है—1 RK, 1 BHK, 2 BHK या कुछ और?","What is the configuration: 1 RK, 1 BHK, 2 BHK or something else?");}
+ else if(!state.address){field="address";question=voiceText("Property किस area और city में है?","Which area and city is the property in?");}
+ else if(!state.rent){field="rent";question=voiceText("Monthly rent कितना रखना चाहेंगे?","What monthly rent would you like to set?");}
+ else if(!state.deposit&&!state.voice.skippedDeposit){field="deposit";question=voiceText("Security deposit कितना है? अगर अभी तय नहीं है तो skip बोल सकते हैं।","What is the security deposit? Say skip if you have not decided yet.");}
+ else if(!state.furnishing){field="furnishing";question=voiceText("Property furnished, semi-furnished या unfurnished है?","Is the property furnished, semi-furnished or unfurnished?");}
+ else{field="complete";question=voiceText("बहुत बढ़िया! ज़रूरी details पूरी हो गई हैं। अब photos और बाकी details जोड़कर preview में सब check करें।","Great! The key details are complete. Add photos and the remaining details, then review the preview.");}
+ state.voice.lastField=field;state.voice.lastQuestion=question;speakVoice(question);
+}
+function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sahi|ठीक|हाँ|हां|जी|सही|बिल्कुल|correct hai|that's right)\b/i.test(String(text||"").trim());}
+function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)\b/i.test(String(text||"").trim());}
+function processVoiceTurn(text){
+ const raw=String(text||"").trim();if(!raw)return;state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
+ if(/\b(stop listening|stop microphone|band karo|mic band|रोक दो|बंद करो)\b/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Okay, I stopped listening. Press Start speaking when you want to continue."));return;}
+ if(/\b(repeat|say again|dobara bolo|phir se bolo|फिर से बोलो|दोहराओ)\b/.test(lower)){speakVoice(state.voice.lastQuestion||state.voice.lastReply);return;}
+ if(/\b(show details|details dikhao|meri details|सब दिखाओ|जानकारी दिखाओ)\b/.test(lower)){const keys=["propertyType","configuration","address","rent","deposit","furnishing"];const summary=keys.map(k=>currentVoiceValue(k)?voiceFieldLabel(k)+": "+voiceFieldValue(k,currentVoiceValue(k)):"").filter(Boolean).join(". ");speakVoice(summary||voiceText("अभी कोई detail confirm नहीं हुई है।","No details have been confirmed yet."));return;}
+ if(/\b(submit|publish|list my property|property submit|publish my property)\b/.test(lower)||/सबमिट|पब्लिश/.test(lower)){speakVoice(voiceText("मैं आपकी property अपने आप publish नहीं करूँगा। Preview में details check करके Publish My Property दबाएँ।","I won't publish automatically. Review the preview and press Publish My Property yourself."));return;}
+ if(state.voice.awaitingConfirmation&&isVoiceYes(raw)){applyVoicePending();speakVoice(voiceText("ठीक है, ये details form में confirm कर दी हैं।","Confirmed. I have added these details to the form."),nextVoiceQuestion);return;}
+ if(state.voice.awaitingConfirmation&&isVoiceNo(raw)){state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();speakVoice(voiceText("कोई बात नहीं। सही detail बोलिए, मैं उसे दोबारा check करूँगा।","No problem. Tell me the correct detail and I'll check it again."));return;}
+ if(/\b(skip|chhodo)\b|छोड़ो|स्किप/.test(lower)){if(state.voice.lastField==="deposit"){state.voice.skippedDeposit=true;nextVoiceQuestion();return;}speakVoice(voiceText("ठीक है, इस optional detail को बाद में भर सकते हैं।","Okay, you can fill this optional detail later."));return;}
+ const extracted=extractVoiceDetails(raw);
+ if(!Object.keys(extracted).length){speakVoice(voiceText("मैं आपकी बात पूरी तरह नहीं समझ पाया। कृपया property type, location या rent जैसी detail फिर से बताइए।","I couldn't identify a property detail. Please repeat the property type, location or rent."));return;}
+ state.voice.pending={...state.voice.pending,...extracted};state.voice.awaitingConfirmation=true;renderVoicePending();
+ const summary=Object.entries(state.voice.pending).map(([key,value])=>voiceFieldLabel(key)+" "+voiceFieldValue(key,value)).join(", ");
+ speakVoice(voiceText("मैंने ये details समझी हैं: ","I understood: ")+summary+voiceText(". क्या ये सही हैं? हाँ या नहीं बोलें।",". Are these correct? Say yes or no."));
+}
+function scheduleVoiceTurn(){
+ if(state.voice.turnTimer)clearTimeout(state.voice.turnTimer);
+ state.voice.turnTimer=setTimeout(()=>{const text=state.voice.turnText.trim();state.voice.turnText="";if(text)processVoiceTurn(text);},1100);
+}
+function updateVoiceTranscript(){const area=$("#gdrStudioVoiceTranscript");if(area)area.value=[state.voice.finalText,state.voice.interimText].filter(Boolean).join(" ").trim();}
+function scheduleVoiceRestart(delay){
+ if(!state.voice.active||state.voice.manualStop||state.voice.permissionBlocked||state.voice.speaking)return;
+ if(state.voice.restartTimer)clearTimeout(state.voice.restartTimer);
+ state.voice.restartTimer=setTimeout(()=>{state.voice.restartTimer=null;startVoiceRecognition();},delay||350);
+}
+function startVoiceRecognition(){
+ if(!state.voice.active||state.voice.manualStop||state.voice.speaking||state.recognition)return;
+ const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!Speech){setVoiceState("VOICE INPUT UNAVAILABLE",false);setVoiceReply(voiceText("इस browser में voice recognition उपलब्ध नहीं है। आप नीचे type कर सकते हैं।","Voice recognition is unavailable in this browser. You can type below instead."));return;}
+ const rec=new Speech(),session=++state.voice.session;rec.lang=$("#gdrStudioVoiceLanguage")?.value||"hi-IN";rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=1;state.recognition=rec;
+ rec.onstart=()=>{if(session!==state.voice.session)return;state.recording=true;setVoiceState("LISTENING · SPEAK NATURALLY",true);const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("मैं सुन रहा हूँ। आप आराम से बोलिए; थोड़ी देर pause लेने पर mic बंद नहीं होगा।","I'm listening. Speak naturally; a short pause won't end your session.");};
+ rec.onresult=e=>{
+  if(session!==state.voice.session)return;let interim="";
+  for(let i=e.resultIndex;i<e.results.length;i++){const result=e.results[i],spoken=result[0]&&result[0].transcript||"";if(result.isFinal&&spoken.trim())state.voice.turnText+=(state.voice.turnText?" ":"")+spoken.trim();else interim+=spoken;}
+  state.voice.interimText=interim;updateVoiceTranscript();if(state.voice.turnText.trim())scheduleVoiceTurn();
+ };
+ rec.onerror=e=>{
+  if(session!==state.voice.session)return;const fatal=["not-allowed","service-not-allowed","audio-capture","language-not-supported"].includes(e.error);
+  if(fatal){state.voice.permissionBlocked=true;state.voice.active=false;state.recording=false;setVoiceState("MICROPHONE NEEDS ATTENTION",false);setVoiceReply(e.error==="not-allowed"||e.error==="service-not-allowed"?voiceText("Microphone permission blocked है। Chrome site settings में microphone allow करके दोबारा Start speaking दबाएँ।","Microphone permission is blocked. Allow it in Chrome site settings, then press Start speaking again."):voiceText("Microphone या selected language उपलब्ध नहीं है। Language बदलें या manually type करें।","The microphone or selected language is unavailable. Change the language or type manually."));}
+  else if(e.error==="network")setVoiceReply(voiceText("Browser speech recognition को network access नहीं मिल रहा। Connection check करें; manual typing उपलब्ध है।","Browser speech recognition needs a network connection. Check your connection; manual typing is still available."));
+ };
+ rec.onend=()=>{
+  if(session!==state.voice.session)return;state.recognition=null;state.recording=false;
+  if(state.voice.active&&!state.voice.manualStop&&!state.voice.permissionBlocked&&!state.voice.speaking){setVoiceState("RECONNECTING MICROPHONE…",true);scheduleVoiceRestart(450);}
+  else if(!state.voice.speaking)setVoiceState("READY",false);
+ };
+ try{rec.start();}catch(error){state.recognition=null;state.recording=false;scheduleVoiceRestart(800);}
 }
 function startVoice(){
  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Speech){message("Voice input is not supported in this browser. You can complete the listing by typing.","error");return;}
- stopVoice();
- const lang=$("#gdrStudioVoiceLanguage")?.value||"hi-IN";
- const rec=new Speech();state.recognition=rec;rec.lang=lang;rec.interimResults=false;rec.continuous=false;
- const status=$("#gdrStudioVoiceStatus"),btn=$("#gdrStudioVoiceStart");
- rec.onstart=()=>{state.recording=true;if(status)status.textContent="Listening… Speak naturally in Hindi, English or Hinglish.";if(btn){btn.classList.add("is-recording");btn.textContent="● Listening";}};
- rec.onresult=e=>{
-  const transcript=Array.from(e.results||[]).map(r=>r[0]&&r[0].transcript||"").join(" ");
-  const area=$("#gdrStudioVoiceTranscript");if(area)area.value=transcript;
-  parseVoice(transcript);
- };
- rec.onerror=e=>{if(status)status.textContent=e.error==="not-allowed"?"Microphone permission was denied. Allow microphone access and try again.":"Voice input stopped. You can edit the details manually.";};
- rec.onend=()=>{state.recording=false;if(status&&status.textContent==="Listening… Speak naturally in Hindi, English or Hinglish.")status.textContent="Voice capture finished. Review the details above.";if(btn){btn.classList.remove("is-recording");btn.textContent="Start speaking";}};
- try{rec.start();}catch(e){message("Microphone could not start. Check browser permission and try again.","error");}
+ if(!Speech){setVoiceState("VOICE INPUT UNAVAILABLE",false);setVoiceReply(voiceText("इस browser में voice input नहीं है। आप manually type कर सकते हैं।","Voice input is unavailable in this browser. You can type manually."));return;}
+ if(state.voice.active&&state.recording)return;state.voice.manualStop=false;state.voice.permissionBlocked=false;state.voice.active=true;
+ const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone शुरू हो रहा है…","Starting microphone…");setVoiceState("STARTING",true);startVoiceRecognition();
 }
-function stopVoice(){if(state.recognition){try{state.recognition.stop();}catch(e){}state.recognition=null;}state.recording=false;}
+function stopVoice(){
+ state.voice.active=false;state.voice.manualStop=true;state.recording=false;state.voice.session++;
+ if(state.voice.restartTimer)clearTimeout(state.voice.restartTimer);state.voice.restartTimer=null;
+ if(state.voice.turnTimer)clearTimeout(state.voice.turnTimer);state.voice.turnTimer=null;
+ if(state.recognition){const rec=state.recognition;state.recognition=null;try{rec.stop();}catch(e){}}
+ if(window.speechSynthesis)window.speechSynthesis.cancel();state.voice.speaking=false;setVoiceState("PAUSED",false);
+ const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone रोक दिया गया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Microphone paused. Press Start speaking to continue.");
+}
+function toggleVoiceMute(){
+ state.voice.muted=!state.voice.muted;const btn=$("#gdrStudioVoiceMute");
+ if(btn){btn.textContent=state.voice.muted?"🔇 Voice muted":"🔊 Voice on";btn.setAttribute("aria-pressed",state.voice.muted?"true":"false");}
+ if(state.voice.muted&&window.speechSynthesis)window.speechSynthesis.cancel();
+}
+
 function bindEvents(){
  const root=studio();if(!root||root.dataset.bound==="1")return;root.dataset.bound="1";
  root.addEventListener("click",e=>{
@@ -649,6 +788,11 @@ function bindEvents(){
  $("#gdrStudioTakePhotos")?.addEventListener("click",()=>$("#gdrStudioCameraFiles")?.click());
  $("#gdrStudioVoiceStart")?.addEventListener("click",startVoice);
  $("#gdrStudioVoiceStop")?.addEventListener("click",stopVoice);
+ $("#gdrStudioVoiceMute")?.addEventListener("click",toggleVoiceMute);
+ $("#gdrStudioVoiceConfirm")?.addEventListener("click",()=>{applyVoicePending();speakVoice(voiceText("ठीक है, details confirm कर दी हैं।","Details confirmed."),nextVoiceQuestion);});
+ $("#gdrStudioVoiceEdit")?.addEventListener("click",()=>{state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();speakVoice(voiceText("ठीक है, आप form में manually बदलाव कर सकते हैं।","Okay, you can edit the form manually."));});
+ $("#gdrStudioVoiceLanguage")?.addEventListener("change",e=>{state.voice.language=String(e.target.value||"hi-IN").startsWith("en")?"en":"hi";});
+ $("#gdrStudioVoiceTranscript")?.addEventListener("input",e=>{state.voice.finalText=e.target.value;});
  $("#gdrStudioPublish")?.addEventListener("click",publish);
  document.addEventListener("click",e=>{
   if(e.target.closest("#ownerAddPropertyBtn")){
