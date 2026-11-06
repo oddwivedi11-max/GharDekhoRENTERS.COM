@@ -95,7 +95,7 @@ source, _ = re.subn(r'<script id="ghardekho-dual-role-v1-js">.*?</script>', "", 
 
 replace_once(
 '''function getDefaultPropertyImage() {
-            return "https://images.unsplash.com/photo-1522708323590-d24dbd6b0267?auto=format&fit=crop&w=1000&q=80";
+            return "https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?auto=format&fit=crop&w=1000&q=80";
         }''',
 '''function getDefaultPropertyImage() {
             return "/assets/gdr-property-placeholder.svg";
