@@ -1,0 +1,187 @@
+from pathlib import Path
+import re
+
+path = Path("index.html")
+source = path.read_text(encoding="utf-8")
+
+def replace_once(old, new, label):
+    global source
+    if new in source:
+        print("Already applied: " + label)
+        return
+    count = source.count(old)
+    if count != 1:
+        raise SystemExit("Stopped safely for " + label + ": expected one match, found " + str(count))
+    source = source.replace(old, new, 1)
+    print("Applied: " + label)
+
+def replace_regex(pattern, replacement, label):
+    global source
+    source, count = re.subn(pattern, replacement, source, count=1, flags=re.S)
+    if count != 1:
+        raise SystemExit("Stopped safely for " + label + ": expected one match, found " + str(count))
+    print("Applied: " + label)
+
+source, switch_count = re.subn(r'<div class="dashboard-role-switch" id="dashboardRoleSwitch"[^>]*>.*?</div>', "", source, count=1, flags=re.S)
+if switch_count:
+    print("Removed Owner/Renter dashboard switch UI.")
+
+switch_new = '''async function switchAccountRole() {
+    const message = document.getElementById("backendMessage");
+    if (message) {
+        message.textContent = "Dashboard switching is disabled. Log out and sign in using the role you need.";
+        message.className = "backend-message info";
+    }
+    return false;
+}
+function updateDashboardRoleSwitcher'''
+if switch_new not in source:
+    replace_regex(r'async function switchAccountRole\(role\)\s*\{.*?\n\}\s*\nfunction updateDashboardRoleSwitcher', switch_new, "disable in-session account switching")
+
+update_new = '''function updateDashboardRoleSwitcher() {
+    const switcher = document.getElementById("dashboardRoleSwitch");
+    if (switcher) {
+        switcher.hidden = true;
+        switcher.style.display = "none";
+        switcher.querySelectorAll("[data-role-switch]").forEach(button => {
+            button.disabled = true;
+            button.hidden = true;
+        });
+    }
+}
+function setRoleSpecificUI'''
+if update_new not in source:
+    replace_regex(r'function updateDashboardRoleSwitcher\(\)\s*\{.*?\n\}\s*\nfunction setRoleSpecificUI', update_new, "hide legacy dashboard role switcher")
+
+source, _ = re.subn(r'<script id="ghardekho-final-role-switch-v11">.*?</script>', "", source, flags=re.S)
+source, _ = re.subn(r'<script id="ghardekho-dual-role-v1-js">.*?</script>', "", source, flags=re.S)
+
+replace_once(
+'''function getDefaultPropertyImage() {
+            return "https://images.unsplash.com/photo-1522708323590-d24dbd6b0267?auto=format&fit=crop&w=1000&q=80";
+        }''',
+'''function getDefaultPropertyImage() {
+            return "/assets/gdr-property-placeholder.svg";
+        }''',
+"replace stock fallback with local placeholder"
+)
+
+hero = '''<section id="gdrListPropertyHero" aria-labelledby="gdrListPropertyHeading">
+  <div class="gdr-list-hero-copy">
+    <span class="gdr-list-eyebrow">✦ YOUR NEXT LISTING STARTS HERE</span>
+    <h2 id="gdrListPropertyHeading">List Your Property</h2>
+    <p>Your property deserves the right tenants. List it in just a few simple steps.</p>
+    <div class="gdr-list-hero-actions">
+      <button type="button" id="gdrListPropertyStart">＋ Start Listing</button>
+      <button type="button" id="gdrListPropertySpeak">♬ List by Speaking</button>
+    </div>
+  </div>
+  <div class="gdr-list-hero-art"><img src="/assets/gdr-list-property-hero.svg" alt="Illustration of a premium rental home" loading="lazy"></div>
+</section>
+'''
+owner_open = '<section id="ownerDashboard" class="dashboard-section owner-dashboard" aria-label="Owner dashboard">'
+if 'id="gdrListPropertyHero"' not in source:
+    replace_once(owner_open, owner_open + "\n" + hero, "place List Your Property before owner statistics")
+
+if 'id="gdrPropertyStudioMount"' not in source:
+    body_pos = source.rfind("</body>")
+    if body_pos < 0:
+        raise SystemExit("Stopped safely: closing body tag missing.")
+    source = source[:body_pos] + '<div id="gdrPropertyStudioMount"></div>\n' + source[body_pos:]
+
+css_ref = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">'
+if css_ref not in source:
+    head_pos = source.rfind("</head>")
+    if head_pos < 0:
+        raise SystemExit("Stopped safely: closing head tag missing.")
+    source = source[:head_pos] + css_ref + "\n" + source[head_pos:]
+
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio1" defer></script>'
+if script_ref not in source:
+    body_pos = source.rfind("</body>")
+    if body_pos < 0:
+        raise SystemExit("Stopped safely: closing body tag missing.")
+    source = source[:body_pos] + script_ref + "\n" + source[body_pos:]
+
+enrichment = '''            // Enrich map/Nearby result rows with renter-safe Property Studio fields.
+            if (property && (!Array.isArray(property.photo_urls) || !Object.prototype.hasOwnProperty.call(property, "nearby_places"))) {
+                const { data: studioRows, error: studioRowsError } = await supabaseClient.rpc("get_public_properties");
+                if (!studioRowsError && Array.isArray(studioRows)) {
+                    const enriched = studioRows.find(item => String(item.id) === propertyId);
+                    if (enriched) property = { ...property, ...enriched };
+                }
+            }
+            currentProperty = property;'''
+replace_once("\n            currentProperty = property;", "\n" + enrichment, "enrich renter property details")
+
+image_var = '''            const image = property.image_url || getDefaultPropertyImage();'''
+image_var_new = '''            const photos = Array.isArray(property.photo_urls) && property.photo_urls.length
+                ? property.photo_urls.filter(Boolean)
+                : (property.image_url ? [property.image_url] : []);
+            const image = photos[0] || property.image_url || getDefaultPropertyImage();
+            const photoGalleryHtml = photos.length > 1
+                ? '<div class="gdr-property-detail-thumbs">' + photos.slice(1, 8).map((url, index) =>
+                    '<button type="button" data-gdr-gallery-src="' + escapeHtml(url) + '" aria-label="View property photo ' + (index + 2) + '"><img src="' + escapeHtml(url) + '" alt="Property photo ' + (index + 2) + '" loading="lazy"></button>'
+                  ).join("") + '</div>'
+                : "";'''
+replace_once(image_var, image_var_new, "read multiple uploaded property photos")
+
+dollar = chr(36)
+old_img = '''                    <img
+                        class="property-detail-image"
+                        src="__DOLLAR__{escapeHtml(image)}"
+                        alt="__DOLLAR__{escapeHtml(property.title || "Rental property")}"
+                        loading="lazy"
+                        onerror="this.src='__DOLLAR__{getDefaultPropertyImage()}';"
+                    >'''.replace("__DOLLAR__", dollar)
+new_img = '''                    <div class="gdr-property-detail-gallery">
+                      <img class="property-detail-image" id="gdrPropertyDetailMainImage" src="__DOLLAR__{escapeHtml(image)}" alt="__DOLLAR__{escapeHtml(property.title || "Rental property")}" loading="lazy" onerror="this.src='__DOLLAR__{getDefaultPropertyImage()}'">
+                      __DOLLAR__{photoGalleryHtml}
+                    </div>'''.replace("__DOLLAR__", dollar)
+replace_once(old_img, new_img, "render renter-facing property photo gallery")
+
+config_old = '''<span class="detail-meta-value">__DOLLAR__{property.listing_type === "home" || !property.listing_type ? escapeHtml(property.bhk || "-") + " BHK" : escapeHtml(property.room_type || "Shared stay")}</span>'''.replace("__DOLLAR__", dollar)
+config_new = '''<span class="detail-meta-value">__DOLLAR__{property.listing_type === "home" || !property.listing_type ? escapeHtml(property.configuration || (property.bhk ? property.bhk + " BHK" : "-")) : escapeHtml(property.room_type || "Shared stay")}</span>'''.replace("__DOLLAR__", dollar)
+replace_once(config_old, config_new, "display 1 RK and exact configuration")
+
+deposit_old = '''                            <div class="detail-meta-item">
+                                <span class="detail-meta-label">Status</span>
+                                <span class="detail-meta-value">__DOLLAR__{statusHtml}</span>
+                            </div>'''.replace("__DOLLAR__", dollar)
+deposit_new = '''                            <div class="detail-meta-item">
+                                <span class="detail-meta-label">Security deposit</span>
+                                <span class="detail-meta-value">__DOLLAR__{property.security_deposit !== null && property.security_deposit !== undefined ? "₹" + Number(property.security_deposit).toLocaleString("en-IN") : "Not specified"}</span>
+                            </div>
+                            <div class="detail-meta-item">
+                                <span class="detail-meta-label">Status</span>
+                                <span class="detail-meta-value">__DOLLAR__{statusHtml}</span>
+                            </div>'''.replace("__DOLLAR__", dollar)
+replace_once(deposit_old, deposit_new, "show security deposit to renters")
+
+about_old = '''                        <h3>About this property</h3>
+                        <p>__DOLLAR__{escapeHtml(property.description || "No description provided.")}</p>'''.replace("__DOLLAR__", dollar)
+nearby_new = '''                        <h3>About this property</h3>
+                        <p>__DOLLAR__{escapeHtml(property.description || "No description provided.")}</p>
+
+                        __DOLLAR__{Array.isArray(property.nearby_places) && property.nearby_places.length ? (
+                          '<section class="gdr-property-nearby-public" aria-label="Nearby public places"><h3>Nearby places</h3><div class="gdr-property-nearby-grid">' +
+                          property.nearby_places.slice(0,30).map(place =>
+                            '<div class="gdr-property-nearby-item"><span><strong>' + escapeHtml(place.name || "Nearby place") + '</strong><small>' + escapeHtml(place.category || "Public place") + '</small></span><b>' +
+                            (Number(place.distance_m) < 1000 ? Math.round(Number(place.distance_m)) + " m" : (Number(place.distance_m)/1000).toFixed(1) + " km") +
+                            '</b></div>'
+                          ).join("") + '</div></section>'
+                        ) : ""}'''.replace("__DOLLAR__", dollar)
+replace_once(about_old, nearby_new, "display Google Places results on renter details")
+
+details_old = '''            details.style.display = "block";'''
+details_new = '''            details.style.display = "block";
+            content.querySelectorAll("[data-gdr-gallery-src]").forEach(button => {
+                button.addEventListener("click", () => {
+                    const mainImage = document.getElementById("gdrPropertyDetailMainImage");
+                    if (mainImage) mainImage.src = button.getAttribute("data-gdr-gallery-src");
+                });
+            });'''
+replace_once(details_old, details_new, "bind renter property gallery thumbnails")
+
+path.write_text(source, encoding="utf-8")
+print("Updated index.html successfully with Property Studio, role isolation and renter-facing gallery.")
