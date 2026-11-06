@@ -126,12 +126,17 @@ if 'id="gdrPropertyStudioMount"' not in source:
         raise SystemExit("Stopped safely: closing body tag missing.")
     source = source[:body_pos] + '<div id="gdrPropertyStudioMount"></div>\n' + source[body_pos:]
 
-css_ref = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">'
-if css_ref not in source:
-    head_pos = source.rfind("</head>")
-    if head_pos < 0:
-        raise SystemExit("Stopped safely: closing head tag missing.")
-    source = source[:head_pos] + css_ref + "\n" + source[head_pos:]
+css_ref_v1 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">'
+css_ref_v2 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio2">'
+if css_ref_v2 not in source:
+    if css_ref_v1 in source:
+        source = source.replace(css_ref_v1, css_ref_v2, 1)
+        print("Updated: refresh Property Studio and renter notice stylesheet")
+    else:
+        head_pos = source.rfind("</head>")
+        if head_pos < 0:
+            raise SystemExit("Stopped safely: closing head tag missing.")
+        source = source[:head_pos] + css_ref_v2 + "\n" + source[head_pos:]
 
 renter_js_old = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
 renter_js_old2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
