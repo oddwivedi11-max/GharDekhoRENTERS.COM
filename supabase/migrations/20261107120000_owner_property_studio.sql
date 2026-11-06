@@ -34,7 +34,7 @@ begin
   end if;
   if not exists (select 1 from pg_constraint where conname = 'properties_nearby_places_check' and conrelid = 'public.properties'::regclass) then
     alter table public.properties add constraint properties_nearby_places_check
-      check (jsonb_typeof(nearby_places) = 'array' and jsonb_array_length(nearby_places) <= 50);
+      check (case when jsonb_typeof(nearby_places) = 'array' then jsonb_array_length(nearby_places) <= 50 else false end);
   end if;
 end $$;
 
@@ -106,10 +106,10 @@ begin
     return v_property;
   end if;
 
-  if p_property_type not in ('apartment','independent_house','villa','pg','hostel','other') then
+  if p_property_type is null or p_property_type not in ('apartment','independent_house','villa','pg','hostel','other') then
     raise exception 'Select a valid property type';
   end if;
-  if p_listing_type not in ('home','pg','hostel') then
+  if p_listing_type is null or p_listing_type not in ('home','pg','hostel') then
     raise exception 'Invalid listing type';
   end if;
   if p_security_deposit is not null and (p_security_deposit < 0 or p_security_deposit > 10000000) then
@@ -125,7 +125,7 @@ begin
     raise exception 'Nearby places data is invalid';
   end if;
   if p_property_type in ('apartment','independent_house','villa') and
-     p_configuration not in ('1 RK','1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK') then
+     (p_configuration is null or p_configuration not in ('1 RK','1 BHK','2 BHK','3 BHK','4 BHK','5+ BHK')) then
     raise exception 'Select a valid property configuration';
   end if;
   if p_property_type = 'other' and p_configuration is distinct from 'Other' then
