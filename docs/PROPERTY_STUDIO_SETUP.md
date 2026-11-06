@@ -39,3 +39,8 @@ Then redeploy. The Studio will automatically enable Google Places Autocomplete, 
 ## Database
 
 Migration `20261107120000_owner_property_studio.sql` is additive. It adds listing metadata columns and a restricted publish RPC, preserves existing property/owner/tenancy records, and extends the public property read RPC with the new renter-visible fields. No table is dropped or reset.
+
+
+## Occupancy and move-out notices
+
+A renter can submit, update or withdraw a move-out notice from the current-rental panel. The authenticated RPC verifies that the active occupancy belongs to that renter. The database trigger changes a verified property's status to `soon_available` while an active notice exists; withdrawing the last notice restores the status according to the remaining active occupancy and available-bed count. A notice never ends a tenancy. The existing owner **Release this renter** confirmation remains the source of truth for the actual move-out and tenancy release.
