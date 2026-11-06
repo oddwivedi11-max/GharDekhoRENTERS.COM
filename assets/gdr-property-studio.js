@@ -16,7 +16,7 @@ const typeLabels={
 };
 const configurations=["1 RK","1 BHK","2 BHK","3 BHK","4 BHK","5+ BHK"];
 const allowedTypes=["image/jpeg","image/png","image/webp"];
-let searchTimer=null,searchController=null,nearbyRun=0;
+let searchTimer=null,searchController=null,nearbyRun=0,nearbyController=null;
 function client(){return window.__gdrSupabaseClient||null;}
 function studio(){return $("#gdrPropertyStudio");}
 function message(text,tone){
@@ -280,10 +280,11 @@ function renderNearby(){
   const dist=document.createElement("b");dist.textContent=distanceLabel(place.distance_m);
   row.append(left,dist);box.appendChild(row);
  });
- status.textContent=state.nearbyPlaces.length+" named nearby places found from OpenStreetMap data.";
+ status.textContent=state.nearbyPlaces.length+" named nearby places found · © OpenStreetMap contributors.";
 }
 async function loadNearbyPlaces(){
  const run=++nearbyRun;
+ if(nearbyController){nearbyController.abort();nearbyController=null;}
  state.nearbyPlaces=[];
  const status=$("#gdrStudioNearbyStatus");
  if(status)status.textContent="Searching OpenStreetMap for nearby public facilities…";
@@ -292,10 +293,22 @@ async function loadNearbyPlaces(){
  const lat=Number(state.lat),lng=Number(state.lng);
  if(!Number.isFinite(lat)||!Number.isFinite(lng))return;
  const radius=5000;
+ // Cache nearby results for 24 hours per rounded location to avoid repeat public API calls.
+ const cacheKey="gdr_osm_nearby_v1:"+lat.toFixed(4)+":"+lng.toFixed(4);
+ try{
+  const cached=JSON.parse(localStorage.getItem(cacheKey)||"null");
+  if(cached&&Number.isFinite(cached.savedAt)&&Date.now()-cached.savedAt<86400000&&Array.isArray(cached.places)){
+   state.nearbyPlaces=cached.places.filter(p=>Number.isFinite(Number(p.latitude))&&Number.isFinite(Number(p.longitude))).map(p=>({...p,distance_m:Math.round(distanceMeters(lat,lng,Number(p.latitude),Number(p.longitude)))})).sort((a,b)=>a.distance_m-b.distance_m).slice(0,30);
+   renderNearby();saveDraft();
+   if(!state.nearbyPlaces.length&&status)status.textContent="No named public facilities were found within 5 km. Source: © OpenStreetMap contributors.";
+   return;
+  }
+ }catch(e){console.warn("OpenStreetMap nearby cache could not be read",e);}
  const query=`[out:json][timeout:20];
 (
  nwr(around:${radius},${lat},${lng})[railway=station];
  nwr(around:${radius},${lat},${lng})[public_transport=station];
+ nwr(around:${radius},${lat},${lng})[amenity=bus_station];
  nwr(around:${radius},${lat},${lng})[highway=bus_stop];
  nwr(around:${radius},${lat},${lng})[amenity=hospital];
  nwr(around:${radius},${lat},${lng})[healthcare=hospital];
@@ -309,7 +322,7 @@ async function loadNearbyPlaces(){
  nwr(around:${radius},${lat},${lng})[leisure=stadium];
 );
 out center tags;`;
- const controller=new AbortController();
+ const controller=new AbortController();nearbyController=controller;
  const timeout=setTimeout(()=>controller.abort(),25000);
  try{
   const response=await fetch("https://overpass-api.de/api/interpreter",{
@@ -335,14 +348,18 @@ out center tags;`;
    unique.set(key,{name,category:osmCategory(tags),distance_m:distance,latitude:placeLat,longitude:placeLng,osm_type:element.type,osm_id:element.id});
   });
   state.nearbyPlaces=Array.from(unique.values()).sort((a,b)=>a.distance_m-b.distance_m).slice(0,30);
+  try{localStorage.setItem(cacheKey,JSON.stringify({savedAt:Date.now(),places:state.nearbyPlaces}));}catch(e){}
   renderNearby();saveDraft();
-  if(!state.nearbyPlaces.length&&status)status.textContent="No named public facilities were found within 5 km. You can still publish with the confirmed address.";
+  if(!state.nearbyPlaces.length&&status)status.textContent="No named public facilities were found within 5 km. Source: © OpenStreetMap contributors.";
  }catch(e){
   if(run!==nearbyRun)return;
   console.warn("OpenStreetMap nearby discovery unavailable",e);
   if(status)status.textContent="Nearby facilities are temporarily unavailable from OpenStreetMap. Your confirmed location is saved; you can continue without this optional information.";
  }
- finally{clearTimeout(timeout);}
+ finally{
+  clearTimeout(timeout);
+  if(run===nearbyRun)nearbyController=null;
+ }
 }
 function revokePreviews(){
  state.files.forEach(f=>{if(f.previewUrl)URL.revokeObjectURL(f.previewUrl);});
