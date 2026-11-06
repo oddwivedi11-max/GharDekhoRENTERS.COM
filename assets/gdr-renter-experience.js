@@ -137,11 +137,8 @@ async function runMapSearch(){
     if(!navigator.geolocation)return reject(new Error("Location is not supported. Search for a locality instead."));
     navigator.geolocation.getCurrentPosition(resolve,err=>reject(new Error(err.code===1?"Location permission was denied. You can type a locality instead.":"Could not get your location. Try typing a locality.")),{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
    });
-   const map=window.GDRMapExperience;
-   if(map&&map.setRenterPin)map.setRenterPin({lat:located.coords.latitude,lng:located.coords.longitude},"My location");
-   const canvas=document.getElementById("gdrExploreMapCanvas");
-   if(canvas&&window.L){const instance=window.L.DomUtil.get(canvas);if(instance&&instance._leaflet_id){/* map is controlled by GDRMapExperience */}}
-   const searchResult=await api.searchRenterArea(p);
+   if(typeof api.searchAtCoordinates!=="function")throw new Error("The map location service is still loading. Please reopen Explore Map.");
+   const searchResult=await api.searchAtCoordinates(located.coords.latitude,located.coords.longitude,"My location");
    if(searchResult===false)throw new Error("Could not search around your current location.");
   }else{
    const searchResult=await api.searchTypedMapLocation();
