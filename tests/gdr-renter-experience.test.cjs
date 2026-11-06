@@ -5,6 +5,7 @@ const vm = require('node:vm');
 const js = fs.readFileSync('assets/gdr-renter-experience.js', 'utf8');
 const map = fs.readFileSync('assets/gdr-map-experience.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
+const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
 const start = js.indexOf('function parseRequest(raw){');
 const end = js.indexOf('\nfunction setValue', start);
 assert.ok(start >= 0 && end > start, 'local parser is present');
@@ -105,7 +106,7 @@ test('map search calls the live Supabase viewport RPC and enforces map bounds an
 test('map results exclude occupied inventory and deduplicate property ids', () => {
   assert.match(map, /status!=="verified"&&status!=="pending"/);
   assert.match(map, /unique\.has\(String\(p\.id\)\)/);
-  assert.match(map, /released_at is null/);
+  assert.match(mapMigration, /released_at is null/);
 });
 test('map GPS action centers the map before searching the selected viewport', () => {
   assert.match(map, /async function searchAtCoordinates\(lat,lng,label\)/);
