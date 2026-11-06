@@ -206,3 +206,11 @@ body.gdr-property-studio-open{overflow:hidden!important}
 .gdr-moveout-actions button{min-height:44px}
 .gdr-moveout-message{min-height:18px;margin:8px 0 0;color:#37623e;font-size:12px;line-height:1.45}
 @media(max-width:600px){.gdr-moveout-form{display:grid;grid-template-columns:1fr}.gdr-moveout-form label{min-width:0}.gdr-moveout-actions button{width:100%}.gdr-moveout-heading{align-items:flex-start}}
+
+/* Property Studio renter-facing nearby places preview. */
+.gdr-studio-preview-nearby-list{display:grid;gap:7px;margin-top:10px}
+.gdr-studio-preview-nearby-list>div{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 12px;border:1px solid #e4e9df;border-radius:10px;background:#fff}
+.gdr-studio-preview-nearby-list>div>span{display:grid;gap:3px;min-width:0}
+.gdr-studio-preview-nearby-list b{color:#304b36;font-size:12px;overflow-wrap:anywhere}
+.gdr-studio-preview-nearby-list small{color:#849084;font-size:10px}
+.gdr-studio-preview-nearby-list strong{flex:0 0 auto;color:#8a7046;font-size:11px}
