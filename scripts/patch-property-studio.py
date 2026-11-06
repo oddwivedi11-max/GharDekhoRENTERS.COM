@@ -149,22 +149,21 @@ if renter_js_new not in source:
             renter_js_new,
             "switch renter move-out controller to a fresh asset path"
         )
-renter_css_old = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout3">'
-renter_css_old2 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">'
-renter_css_new = '<link rel="stylesheet" href="/assets/gdr-rental-suite-v2.css?v=20261107-moveout-v2">'
-if renter_css_new not in source:
-    if renter_css_old in source:
-        source = source.replace(renter_css_old, renter_css_new, 1)
-        print("Updated: switch renter move-out styles to a fresh asset path")
-    elif renter_css_old2 in source:
-        source = source.replace(renter_css_old2, renter_css_new, 1)
-        print("Updated: switch renter move-out styles to a fresh asset path")
+renter_css_variants = [
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite-v2.css?v=20261107-moveout-v2">',
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout3">',
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">',
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">'
+]
+renter_css_original = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">'
+if renter_css_original not in source:
+    for old_css_ref in renter_css_variants:
+        if old_css_ref in source:
+            source = source.replace(old_css_ref, renter_css_original, 1)
+            print("Updated: use the existing renter dashboard stylesheet plus verified Studio styles")
+            break
     else:
-        replace_once(
-            '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
-            renter_css_new,
-            "switch renter move-out styles to a fresh asset path"
-        )
+        raise SystemExit("Stopped safely: renter dashboard stylesheet reference could not be resolved.")
 source = source.replace("● Soon available", "● Vacating Soon")
 source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
