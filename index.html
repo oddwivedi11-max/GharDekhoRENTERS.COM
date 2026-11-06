@@ -13729,7 +13729,9 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     }
                     return edits + ((i < a.length || j < b.length) ? 1 : 0) <= 1;
                 };
-                const typedLocationMatch = typedTerms.some(term =>
+                // Every meaningful word in a locality must match. Matching only a generic
+                // token such as "nagar" can incorrectly return listings from other areas.
+                const typedLocationMatch = typedTerms.every(term =>
                     searchableText.includes(term) ||
                     (term.length >= 5 && searchableWords.some(word => editDistanceAtMostOne(term, word)))
                 );
