@@ -130,18 +130,18 @@ jobs:
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
           grep -q 'List Your Property' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.js?v=20261107-studio3' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261107-studio4' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261107-studio3' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-moveout-v2' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-studio3" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-studio4" -o /tmp/gdr-property-studio.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
           grep -q 'SpeechRecognition' /tmp/gdr-property-studio.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261107-studio3" -o /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-topbar' /tmp/gdr-property-studio.css
           grep -q 'gdr-moveout-notice' /tmp/gdr-property-studio.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261107-studio3" -o /tmp/gdr-property-studio.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261107-studio4" -o /tmp/gdr-property-studio.html
           grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261107-moveout-v2" -o /tmp/gdr-rental-suite.js
           grep -q 'renter_submit_move_out_notice' /tmp/gdr-rental-suite.js
