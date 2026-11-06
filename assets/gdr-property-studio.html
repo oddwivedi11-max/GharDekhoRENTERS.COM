@@ -47,6 +47,15 @@
         <div class="gdr-studio-voice-controls"><select id="gdrStudioVoiceLanguage" aria-label="Voice language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English</option></select><button type="button" id="gdrStudioVoiceStart">Start speaking</button><button type="button" id="gdrStudioVoiceStop">Stop</button></div>
         <p id="gdrStudioVoiceStatus" aria-live="polite">Voice details will fill the form. You must review them before publishing.</p>
         <textarea id="gdrStudioVoiceTranscript" placeholder="Your spoken words will appear here…" aria-label="Voice transcript"></textarea>
+        <div id="gdrStudioVoiceAssistant" class="gdr-studio-voice-assistant" aria-live="polite">
+          <div class="gdr-studio-voice-assistant-top"><span class="gdr-studio-voice-state" id="gdrStudioVoiceState">READY TO LISTEN</span><button type="button" id="gdrStudioVoiceMute" aria-pressed="false">🔊 Voice on</button></div>
+          <p id="gdrStudioVoiceReply">Hi! I’m GDR. Tell me about your property in your own words. I’ll ask only for the details I still need.</p>
+          <div id="gdrStudioVoicePending" class="gdr-studio-voice-pending" hidden></div>
+          <div class="gdr-studio-voice-confirm-actions" id="gdrStudioVoiceConfirmActions" hidden>
+            <button type="button" id="gdrStudioVoiceConfirm">✓ Confirm details</button>
+            <button type="button" id="gdrStudioVoiceEdit">Edit / Correct</button>
+          </div>
+        </div>
       </div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="1" hidden>
