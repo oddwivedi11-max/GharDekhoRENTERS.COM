@@ -12,6 +12,24 @@ const end = js.indexOf('\nfunction setValue', start);
 assert.ok(start >= 0 && end > start, 'local parser is present');
 const parseRequest = vm.runInNewContext(js.slice(start, end) + '; parseRequest');
 
+
+test('Hindi locality searches transliterate into Latin inventory text instead of becoming an empty match', () => {
+  const start = js.indexOf('function normalizeSearchText(value){');
+  const end = js.indexOf('function parseRequest(raw){', start);
+  assert.ok(start >= 0 && end > start, 'Hindi-aware search normalizer is present');
+  const normalize = vm.runInNewContext(js.slice(start, end) + '; normalizeSearchText');
+  assert.equal(normalize('अजय पटेल नगर'), 'ajay patel nagar');
+  assert.equal(normalize('सिंगरौली'), 'singrauli');
+  const inventory = normalize('Ajay Patel Nagar, Singrauli, Madhya Pradesh');
+  assert.ok(normalize('अजय पटेल नगर').split(' ').every(term => inventory.includes(term)));
+});
+
+test('Hindi Smart Finder command extracts locality and home type', () => {
+  const p = parseRequest('अजय पटेल नगर में जितने भी घर है दिखाओ');
+  assert.equal(p.location, 'अजय पटेल नगर');
+  assert.equal(p.stayType, 'home');
+});
+
 test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
   const p = parseRequest('Mujhe Patel Nagar Bhopal mein 2 BHK furnished flat chahiye. Budget 8000 rupees hai aur college paas hona chahiye.');
   assert.equal(p.location, 'Patel Nagar Bhopal'); assert.equal(p.maxBudget, '8000'); assert.equal(p.bhk, '2');
