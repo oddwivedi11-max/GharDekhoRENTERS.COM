@@ -54,6 +54,7 @@
       <div class="gdr-studio-field-grid">
         <label class="gdr-studio-field"><span>Monthly rent (₹) *</span><input id="gdrStudioRent" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 8000" required><small>Rent expected every month.</small></label>
         <label class="gdr-studio-field"><span>Security deposit (₹) <small>Optional</small></span><input id="gdrStudioDeposit" type="number" min="0" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 16000"><small>Leave blank if you have not decided.</small></label>
+         <label class="gdr-studio-field"><span>Furnishing</span><select id="gdrStudioFurnishing"><option value="">Choose furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-furnished</option><option value="Unfurnished">Unfurnished</option></select><small>Select the current furnishing condition.</small></label>
       </div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="2" hidden>
