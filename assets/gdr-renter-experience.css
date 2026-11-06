@@ -266,3 +266,12 @@
  #renterDashboard.gdrx-premium .renter-action-arrow{transition:none}
  #renterDashboard.gdrx-premium .renter-dashboard-action:hover{transform:none}
 }
+
+/* GDR map microphone control: champagne icon button and visible listening state */
+#gdrxMapMic{min-width:46px;width:46px;padding:0;display:grid;place-items:center;font-size:0;border:1px solid #d9c28f;background:linear-gradient(145deg,#f8efd9,#e7d3a5);color:#6b552d;box-shadow:0 3px 0 #9d8456}
+#gdrxMapMic:before{content:"";width:19px;height:19px;display:block;background:currentColor;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='2' width='6' height='12' rx='3'/%3E%3Cpath d='M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-4 0h8'/%3E%3C/svg%3E") center/contain no-repeat}
+#gdrxMapMic.listening{background:#f8e8e4;border-color:#e3a59c;color:#a53e35;animation:gdrxPulse 1.1s infinite}
+#gdrxMapGo{border:1px solid #d9c28f;background:linear-gradient(145deg,#f8efd9,#e7d3a5);color:#514326;font-weight:950;box-shadow:0 3px 0 #9d8456}
+.gdr-map-list-card-selected{border-color:#bd9c5e!important;background:#fffaf0!important;box-shadow:0 0 0 2px rgba(189,156,94,.2),0 8px 18px rgba(22,57,46,.08)}
+@media(max-width:620px){#gdrxMapMic{min-width:44px;width:44px;height:44px}}
+@media(prefers-reduced-motion:reduce){#gdrxMapMic.listening{animation:none!important}}
