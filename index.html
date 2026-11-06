@@ -13656,11 +13656,12 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
             // the PIN; a postal API outage must never block matching local records.
             const pinMatch = location.match(/(?:^|\D)(\d{6})(?:\D|$)/);
             const pinTerms = pinMatch ? [pinMatch[1]] : [];
-            const normalizeSearchText = value => String(value || "")
-                .toLowerCase()
-                .replace(/[^a-z0-9]+/g, " ")
-                .replace(/\s+/g, " ")
-                .trim();
+            const normalizeSearchText = value => {
+                const normalizer = window.GDRRenterExperience?.normalizeSearchText;
+                if (typeof normalizer === "function") return normalizer(value);
+                return String(value || "").toLowerCase().normalize("NFKC")
+                    .replace(/[^\p{L}\p{N}]+/gu, " ").replace(/\s+/g, " ").trim();
+            };
             const pinInventoryMatches = pinTerms.length ? allProperties.filter(property => {
                 const inventoryText = normalizeSearchText([
                     property.title, property.location, property.address, property.area, property.name
@@ -20741,7 +20742,7 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 <script src="/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7" defer></script>
 <div id="gdrPropertyStudioMount"></div>
 <script src="/assets/gdr-property-studio.js?v=20261107-studio2" defer></script>
-<script src="/assets/gdr-renter-experience.js?v=20261107-dashboardui1" defer></script>
+<script src="/assets/gdr-renter-experience.js?v=20261107-hindi-search1" defer></script>
 <script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant1" defer></script>
 </body>
 
