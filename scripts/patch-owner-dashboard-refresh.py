@@ -21,6 +21,9 @@ def replace_once(old, new, label):
         if label == "show pending status on public property cards" and 'property.status === "pending"' in source and 'property.status === "soon_available"' in source and ("Vacating Soon" in source or "Soon Available" in source):
             print(f"Already applied: {label}")
             return
+        if label == "activate the selected dashboard after successful role switch" and "saveActiveAccountRole(target)" in source and "await supabaseClient.auth.signOut()" in source and "window.location.reload()" in source:
+            print(f"Already applied: {label}")
+            return
         raise SystemExit(f"Stopped safely for {label}: original and corrected text not found")
     if count != 1:
         raise SystemExit(f"Stopped safely for {label}: expected 1 original match, found {count}")
