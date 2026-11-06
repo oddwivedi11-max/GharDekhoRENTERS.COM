@@ -38,7 +38,7 @@ Then redeploy. The Studio will automatically enable Google Places Autocomplete, 
 
 ## Database
 
-Migration `20261107120000_owner_property_studio.sql` is additive. It adds listing metadata columns and a restricted publish RPC, preserves existing property/owner/tenancy records, and extends the public property read RPC with the new renter-visible fields. No table is dropped or reset.
+Migration `20261106195955_owner_property_studio.sql` is additive. It adds listing metadata columns and a restricted publish RPC, preserves existing property/owner/tenancy records, and extends the public property read RPC with the new renter-visible fields. No table is dropped or reset.
 
 
 ## Occupancy and move-out notices
