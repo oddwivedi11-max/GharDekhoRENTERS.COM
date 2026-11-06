@@ -40,8 +40,8 @@ function extractIntent(raw){
  else if(/\b(independent house|house)\b/i.test(s))p.propertyType="independent_house";
  else if(/\bvilla\b/i.test(s))p.propertyType="villa";
  const locationText=s
-  .replace(/(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक)\s*₹?\s*[\d,]+/ig," ")
-  .replace(/(?:above|more than|minimum|at least|से ज्यादा|से ऊपर)\s*₹?\s*[\d,]+/ig," ")
+  .replace(/(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक|above|more than|minimum|at least|से ज्यादा|से ऊपर)\s*₹?\s*[\d,.]+\s*(?:k|thousand|हजार)?/ig," ")
+  .replace(/₹?\s*[\d,.]+\s*(?:k|thousand|हजार)?\s*(?:ke andar|ke under|tak|तक|के अंदर|से कम)/ig," ")
   .replace(/\b\d+\s*(?:bhk|bed\s?room|बीएचके)\b/ig," ")
   .replace(/\b(1|2|3|4|5)\s*(?:bhk|bedroom)\b/ig," ")
   .replace(/\b(mujhe|please|show|find|search|available|rental|rent|property|properties|home|homes|house|houses|flat|flats|apartment|apartments|independent|villa|room|rooms|dikhao|dikhaiye|dikhana|chahiye|mein|me|mai|ke|ka|ki|par|near|in|at|all|saare|sare|jitne|bhi|ghar|makan|kiraye|wala|wale|wali|sirf|only|furnished|unfurnished|semi furnished|pg|hostel|under|within|budget|hain|hai|ho|ke|ka|ki)\b/ig," ")
