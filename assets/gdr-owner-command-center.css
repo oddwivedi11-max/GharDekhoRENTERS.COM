@@ -209,3 +209,48 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
 #ownerDashboard .owner-add-property-card:not(.gd-property-modal-open){
   pointer-events:none!important;
 }
+
+
+/* High-contrast owner command-centre heading on the forest-green panel. */
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro,
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro>div{
+  color:#f5fff0!important;
+}
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro .gdr-occ-eyebrow{
+  color:#d5f58a!important;
+  font-size:11px!important;
+  font-weight:1000!important;
+  letter-spacing:.2em!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.28)!important;
+}
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro h2,
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro h2 *{
+  color:#ffffff!important;
+  font-size:clamp(25px,3.2vw,32px)!important;
+  font-weight:1000!important;
+  line-height:1.12!important;
+  letter-spacing:-.035em!important;
+  text-shadow:0 2px 12px rgba(0,0,0,.32)!important;
+  opacity:1!important;
+}
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro p{
+  color:#e2f1e5!important;
+  font-size:13px!important;
+  font-weight:550!important;
+  line-height:1.55!important;
+  text-shadow:0 1px 5px rgba(0,0,0,.2)!important;
+  opacity:1!important;
+}
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-live{
+  color:#eaffc9!important;
+  border-color:#8eaf61!important;
+  background:rgba(10,39,27,.82)!important;
+}
+#ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-live i{
+  background:#d5f58a!important;
+  box-shadow:0 0 0 4px rgba(213,245,138,.2)!important;
+}
+@media(max-width:760px){
+  #ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-intro h2{font-size:25px!important}
+  #ownerDashboard #gdrOwnerCommandCenterHome .gdr-occ-live{align-self:flex-start}
+}
