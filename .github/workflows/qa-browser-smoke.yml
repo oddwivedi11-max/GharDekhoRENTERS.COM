@@ -17,6 +17,7 @@ on:
       - "fix/back-dashboard-file-picker-20261107"
       - "fix/free-osm-property-studio-20261107"
       - "fix/gdr-map-voice-ai-20261107"
+      - "fix/gdr-map-voice-ai-20261107b"
     paths:
       - "index.html"
       - "admin/**"
