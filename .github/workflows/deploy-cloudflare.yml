@@ -28,6 +28,25 @@ jobs:
           python3 scripts/patch-owner-dashboard-refresh.py
           python3 scripts/patch-property-studio.py
 
+      - name: Version the renter comparison assets in the production HTML
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          path = Path("index.html")
+          source = path.read_text(encoding="utf-8")
+          replacements = {
+              "/assets/gdr-renter-experience.js?v=20261107-renter1": "/assets/gdr-renter-experience.js?v=20261107-compare2",
+              "/assets/gdr-renter-experience.css?v=20261107-renter1": "/assets/gdr-renter-experience.css?v=20261107-compare2",
+          }
+          for old, new in replacements.items():
+              if old in source:
+                  source = source.replace(old, new)
+              elif new not in source:
+                  raise SystemExit("Required renter asset reference not found: " + old)
+          path.write_text(source, encoding="utf-8")
+          print("Updated renter comparison asset cache versions.")
+          PY
+
       - name: Commit corrected index.html back to main
         run: |
           if ! git diff --quiet -- index.html; then
@@ -92,10 +111,11 @@ jobs:
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-renter1" -o /tmp/gdr-renter-experience.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-compare2" -o /tmp/gdr-renter-experience.js
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
           grep -q 'toggleCompare' /tmp/gdr-renter-experience.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-renter1" -o /tmp/gdr-renter-experience.css
+          grep -q 'GDR_COMPARE_AUTOFILL_V2' /tmp/gdr-renter-experience.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-compare2" -o /tmp/gdr-renter-experience.css
           grep -q 'gdrx-finder' /tmp/gdr-renter-experience.css
           grep -q 'gdr-renter-experience.js?v=20261107-renter1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-index.html

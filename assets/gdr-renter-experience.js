@@ -1,5 +1,6 @@
 (function(){
 "use strict";
+/* GDR_COMPARE_AUTOFILL_V2: seed the clicked home with up to two nearest visible real listings. */
 if(window.GDRRenterExperience)return;
 const $=id=>document.getElementById(id),esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const state={compare:[],parsed:null,recognition:null,lang:"hi-IN"};
@@ -106,14 +107,79 @@ async function runMapSearch(){
 }
 function mountCompare(){
  if($("gdrxCompare"))return;const d=document.createElement("section");d.id="gdrxCompare";d.className="gdrx-compare";d.hidden=true;
- d.innerHTML='<div class="gdrx-compare-head"><div><span>SHORTLIST SIDE BY SIDE</span><h3>Compare homes <small id="gdrxCompareCount">0 / 3</small></h3></div><button id="gdrxCompareClose" aria-label="Close comparison">×</button></div><div id="gdrxCompareGrid"></div><div class="gdrx-compare-foot">Estimated monthly total = rent + recorded monthly maintenance. Refundable deposits remain separate.<button id="gdrxCompareClear">Clear</button></div>';
- document.body.appendChild(d);$("gdrxCompareClose").onclick=()=>d.hidden=true;$("gdrxCompareClear").onclick=()=>{state.compare=[];renderCompare()}
+ d.innerHTML='<div class="gdrx-compare-head"><div><span>SHORTLIST SIDE BY SIDE</span><h3>Compare homes <small id="gdrxCompareCount">0 / 3</small></h3></div><div class="gdrx-compare-actions"><button id="gdrxCompareClear" type="button">Clear all</button><button id="gdrxCompareClose" type="button" aria-label="Close comparison">×</button></div></div><div id="gdrxCompareGrid"></div><div class="gdrx-compare-foot">Estimated monthly total = rent + recorded monthly maintenance. Refundable deposits remain separate.</div>';
+ document.body.appendChild(d);try{const saved=JSON.parse(sessionStorage.getItem("gdrxCompareHomes")||"[]");if(Array.isArray(saved))state.compare=saved.filter(p=>p&&p.id!=null).slice(0,3)}catch(_){}$("gdrxCompareClose").onclick=()=>d.hidden=true;$("gdrxCompareClear").onclick=()=>{state.compare=[];renderCompare();toast("Comparison cleared.")};if(state.compare.length)renderCompare()
 }
-function toggleCompare(p){if(!p?.id)return;const i=state.compare.findIndex(x=>String(x.id)===String(p.id));if(i>=0){state.compare.splice(i,1);toast("Removed from comparison")}else if(state.compare.length>=3){toast("Compare up to three homes at a time.");return}else{state.compare.push(p);toast("Added to comparison")}renderCompare()}
+function buildCompareSelection(primary,available){
+ const key=p=>String(p&&p.id!=null?p.id:"");
+ if(!key(primary))return [];
+ const unique=new Map([[key(primary),primary]]);
+ (Array.isArray(available)?available:[]).filter(p=>key(p)&&key(p)!==key(primary)).slice().sort((a,b)=>{
+  const da=Number(a.gdrDistanceKm),db=Number(b.gdrDistanceKm);
+  return (Number.isFinite(da)?da:Number.POSITIVE_INFINITY)-(Number.isFinite(db)?db:Number.POSITIVE_INFINITY);
+ }).forEach(p=>{if(unique.size<3&&!unique.has(key(p)))unique.set(key(p),p)});
+ return Array.from(unique.values()).slice(0,3);
+}
+function toggleCompare(p){
+ if(!p||p.id==null)return;
+ const id=String(p.id),existing=state.compare.findIndex(x=>String(x.id)===id);
+ if(existing>=0){renderCompare();toast("This home is already in your comparison.");return}
+ if(state.compare.length>=3){toast("Compare up to three homes at a time.");return}
+ if(!state.compare.length){
+  const visible=window.GDRMapExperience&&typeof window.GDRMapExperience.getRenterVisibleProperties==="function"?window.GDRMapExperience.getRenterVisibleProperties():[];
+  state.compare=buildCompareSelection(p,visible);
+  toast(state.compare.length>1?state.compare.length+" nearby homes added for comparison":"Added. Search a wider area to find more homes to compare.");
+ }else{state.compare.push(p);toast("Added to comparison.")}
+ renderCompare();
+}
 function renderCompare(){
- const d=$("gdrxCompare"),grid=$("gdrxCompareGrid");if(!d||!grid)return;d.hidden=!state.compare.length;$("gdrxCompareCount").textContent=state.compare.length+" / 3";grid.replaceChildren();
- const fields=[["Monthly rent",p=>"₹"+Number(p.rent||0).toLocaleString("en-IN")],["Security deposit",p=>p.security_deposit==null?"Not listed":"₹"+Number(p.security_deposit).toLocaleString("en-IN")],["Configuration",p=>p.bhk?p.bhk+" BHK":p.room_type||p.listing_type||"Not listed"],["Furnishing",p=>p.furnishing||"Not listed"],["Distance",p=>Number.isFinite(Number(p.gdrDistanceKm))?Number(p.gdrDistanceKm).toFixed(1)+" km":"Not available"],["Availability",p=>p.status==="occupied"?"Occupied":p.status==="soon_available"?"Vacating soon":p.status==="pending"?"Pending verification":"Available"],["Owner verification",p=>p.owner_verified===true?"Verified":p.owner_verified===false?"Not verified":"Not available"],["Monthly maintenance",p=>p.monthly_maintenance==null?"Not listed":"₹"+Number(p.monthly_maintenance).toLocaleString("en-IN")],["Estimated monthly total",p=>p.monthly_maintenance==null?"Rent only; maintenance not listed":"₹"+(Number(p.rent||0)+Number(p.monthly_maintenance||0)).toLocaleString("en-IN")]];
- state.compare.forEach(p=>{const c=document.createElement("article");c.className="gdrx-compare-card";const im=document.createElement("img");im.src=p.image_url||"";im.alt="Property photo";im.onerror=()=>im.hidden=true;const h=document.createElement("h4");h.textContent=p.title||p.name||"Rental property";const loc=document.createElement("p");loc.textContent=p.location||p.address||"Location not listed";c.append(im,h,loc);fields.forEach(f=>{const row=document.createElement("div");row.className="gdrx-row";const a=document.createElement("small"),b=document.createElement("strong");a.textContent=f[0];b.textContent=f[1](p);row.append(a,b);c.append(row)});const rm=document.createElement("button");rm.textContent="Remove";rm.onclick=()=>{state.compare=state.compare.filter(x=>String(x.id)!==String(p.id));renderCompare()};c.append(rm);grid.append(c)})
+ const d=$("gdrxCompare"),grid=$("gdrxCompareGrid");if(!d||!grid)return;
+ const count=state.compare.length;d.hidden=!count;$("gdrxCompareCount").textContent=count+" / 3";grid.replaceChildren();
+ grid.style.gridTemplateColumns=count?"repeat("+count+", minmax(0, 1fr))":"";
+ d.style.width=count===1?"min(560px, calc(100vw - 26px))":count===2?"min(900px, calc(100vw - 26px))":"min(1120px, calc(100vw - 26px))";
+ try{if(count)sessionStorage.setItem("gdrxCompareHomes",JSON.stringify(state.compare));else sessionStorage.removeItem("gdrxCompareHomes")}catch(_){}
+ if(!count)return;
+ const fields=[
+  {label:"Monthly rent",value:p=>p.rent==null?"Not listed":"₹"+Number(p.rent).toLocaleString("en-IN"),key:"rent"},
+  {label:"Security deposit",value:p=>p.security_deposit==null?"Not listed":"₹"+Number(p.security_deposit).toLocaleString("en-IN"),key:"security_deposit"},
+  {label:"Configuration",value:p=>p.bhk?p.bhk+" BHK":p.room_type||p.listing_type||"Not listed"},
+  {label:"Furnishing",value:p=>p.furnishing||"Not listed"},
+  {label:"Distance",value:p=>Number.isFinite(Number(p.gdrDistanceKm))?Number(p.gdrDistanceKm).toFixed(1)+" km":"Not available"},
+  {label:"Availability",value:p=>{
+   const raw=String(p.availability_status||p.availability||p.occupancy_status||"").toLowerCase();
+   if(raw)return raw.replace(/_/g," ").replace(/\b\w/g,x=>x.toUpperCase());
+   const status=String(p.status||"").toLowerCase();
+   if(status==="occupied")return "Occupied";if(status==="soon_available")return "Vacating soon";
+   if(status==="available"||status==="vacant")return "Available";return "Not listed";
+  }},
+  {label:"Owner verification",value:p=>{
+   const verified=p.owner_verified===true||String(p.owner_verification_status||"").toLowerCase()==="verified";
+   const unverified=p.owner_verified===false||String(p.owner_verification_status||"").toLowerCase()==="not_verified";
+   return verified?"✓ Verified":unverified?"Not verified":"Not listed";
+  }},
+  {label:"Monthly maintenance",value:p=>p.monthly_maintenance==null?"Not listed":"₹"+Number(p.monthly_maintenance).toLocaleString("en-IN")},
+  {label:"Estimated monthly total",value:p=>p.monthly_maintenance==null?"Rent only; maintenance not listed":p.rent==null?"Not listed":"₹"+(Number(p.rent)+Number(p.monthly_maintenance)).toLocaleString("en-IN")}
+ ];
+ const minFor=key=>{const values=state.compare.map(p=>Number(p[key])).filter(v=>Number.isFinite(v)&&v>=0);return values.length>1?Math.min(...values):null};
+ state.compare.forEach(p=>{
+  const card=document.createElement("article");card.className="gdrx-compare-card";
+  const image=document.createElement("img");image.alt="Property photo";image.loading="lazy";
+  if(p.image_url&&/^https?:\/\//i.test(String(p.image_url)))image.src=p.image_url;else image.hidden=true;image.onerror=()=>{image.hidden=true};
+  const title=document.createElement("h4");title.textContent=p.title||p.name||"Rental property";
+  const location=document.createElement("p");location.textContent=[p.location,p.address].filter(Boolean).join(", ")||"Location not listed";
+  card.append(image,title,location);
+  fields.forEach(field=>{
+   const row=document.createElement("div");row.className="gdrx-row";
+   const label=document.createElement("small"),value=document.createElement("strong");label.textContent=field.label;value.textContent=field.value(p);
+   if(field.key&&minFor(field.key)!==null&&Number(p[field.key])===minFor(field.key))row.classList.add("gdrx-best-value");
+   row.append(label,value);card.append(row);
+  });
+  const remove=document.createElement("button");remove.type="button";remove.textContent="Remove home";
+  remove.setAttribute("aria-label","Remove "+(p.title||p.name||"property")+" from comparison");
+  remove.onclick=()=>{state.compare=state.compare.filter(x=>String(x.id)!==String(p.id));renderCompare();toast("Home removed from comparison.")};
+  card.append(remove);grid.append(card);
+ });
+ if(count<2){const hint=document.createElement("p");hint.className="gdrx-compare-hint";hint.textContent="Only one listing is available in this map area. Search a wider area or increase the radius to compare more real homes.";grid.append(hint)}
 }
 function applyManualScores(){
  const root=$("propertiesContainer"),p=state.parsed;if(!root||!p)return;
@@ -134,7 +200,7 @@ function bind(){
  const map=$("gdrExploreMapPanel");if(map&&!map.dataset.gdrx){map.dataset.gdrx="1";new MutationObserver(()=>{if(!map.hidden)mountMapVoice()}).observe(map,{attributes:true,attributeFilter:["hidden","class"]})}
  const mapBtn=$("renterExploreMapBtn");if(mapBtn&&!mapBtn.dataset.gdrx){mapBtn.dataset.gdrx="1";mapBtn.addEventListener("click",()=>setTimeout(mountMapVoice,150))}
 }
-window.GDRRenterExperience={toggleCompare,parseRequest,openFindHome:openFind,closeFindHome:closeFind};
+window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,openFindHome:openFind,closeFindHome:closeFind};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();window.addEventListener("load",bind);
 new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();

@@ -27,7 +27,7 @@ test('map exposes real inventory preference ranking and comparison actions', () 
   assert.match(map, /function applyRenterFilters\(prefs\)/); assert.match(map, /gdrMatchScore/); assert.match(map, /toggleCompare\(p\)/);
 });
 test('index loads renter experience assets', () => {
-  assert.match(index, /gdr-renter-experience\.js\?v=20261107-renter1/); assert.match(index, /gdr-renter-experience\.css\?v=20261107-renter1/);
+  assert.match(index, /gdr-renter-experience\.js\?v=20261107-(?:renter1|compare2)/); assert.match(index, /gdr-renter-experience\.css\?v=20261107-(?:renter1|compare2)/);
 });
 
 test('map API exports a real radius setter so initialization cannot fail', () => {
@@ -49,4 +49,28 @@ test('production headers allow same-origin microphone permission for browser spe
   const headers = fs.readFileSync('_headers', 'utf8');
   assert.match(headers, /microphone=\(self\)/);
   assert.doesNotMatch(headers, /microphone=\(\)/);
+});
+
+
+test('compare selection seeds the clicked home plus up to two nearest visible real listings', () => {
+  const start = js.indexOf('function buildCompareSelection(primary,available){');
+  const end = js.indexOf('\nfunction toggleCompare(p){', start);
+  assert.ok(start >= 0 && end > start, 'comparison selection helper is present');
+  const helper = vm.runInNewContext(js.slice(start, end) + '; buildCompareSelection');
+  const selected = helper({id:'b'}, [
+    {id:'c',gdrDistanceKm:2},{id:'a',gdrDistanceKm:1},{id:'b',gdrDistanceKm:0},{id:'d',gdrDistanceKm:3}
+  ]);
+  assert.deepEqual(Array.from(selected,p=>p.id),['b','a','c']);
+});
+test('compare selection deduplicates property ids and caps at three', () => {
+  const start = js.indexOf('function buildCompareSelection(primary,available){');
+  const end = js.indexOf('\nfunction toggleCompare(p){', start);
+  const helper = vm.runInNewContext(js.slice(start, end) + '; buildCompareSelection');
+  const selected = helper({id:1},[{id:1},{id:2},{id:2},{id:3},{id:4}]);
+  assert.deepEqual(Array.from(selected,p=>p.id),[1,2,3]);
+});
+test('comparison persists for the current browser session', () => {
+  assert.match(js,/sessionStorage\.setItem\("gdrxCompareHomes"/);
+  assert.match(js,/sessionStorage\.getItem\("gdrxCompareHomes"/);
+  assert.match(js,/GDR_COMPARE_AUTOFILL_V2/);
 });

@@ -100,3 +100,33 @@
 #gdrxMapMic:hover{transform:translateY(-2px);box-shadow:0 5px 0 rgba(111,85,43,.24)}
 #gdrxMapMic.listening{background:linear-gradient(135deg,#ffe9e6,#efb4a8);border-color:#d88e8a;color:#8e3832;animation:gdrxPulse 1.1s infinite}
 #gdrxMapGo:disabled,#gdrxMapMic:disabled{opacity:.58;cursor:wait}
+
+
+/* GDR compare v2: compact adaptive side-by-side comparison. */
+.gdrx-compare{max-height:min(78vh,820px);overscroll-behavior:contain;scrollbar-gutter:stable}
+.gdrx-compare-head{position:sticky;top:-17px;z-index:3;padding:3px 0 10px;background:#fbfcf8}
+.gdrx-compare-actions{display:flex;align-items:center;gap:8px}
+.gdrx-compare-actions button{min-width:36px;min-height:36px;border:1px solid #d8e1d7;border-radius:10px;background:#fff;color:#254b3c;font-weight:800}
+#gdrxCompareGrid{align-items:stretch;min-width:0}
+.gdrx-compare-card{display:flex;flex-direction:column;min-width:0}
+.gdrx-compare-card>img[hidden]{display:none!important}
+.gdrx-compare-card>h4{font-size:14px;line-height:1.35;overflow-wrap:anywhere}
+.gdrx-compare-card>p{font-size:11px;line-height:1.45;overflow-wrap:anywhere}
+.gdrx-row{align-items:flex-start;min-height:35px}
+.gdrx-row small{font-size:10px;line-height:1.35}
+.gdrx-row strong{font-size:11px;line-height:1.35;overflow-wrap:anywhere}
+.gdrx-row.gdrx-best-value{background:#edf7ef;border-radius:7px;padding-inline:7px}
+.gdrx-row.gdrx-best-value strong{color:#176b48}
+.gdrx-compare-card>button{margin-top:auto;min-height:36px;cursor:pointer}
+.gdrx-compare-hint{grid-column:1/-1;margin:0;padding:14px;border:1px dashed #d7c69d;border-radius:12px;background:#fffaf0;color:#6b5732;font-size:12px;line-height:1.5}
+@media(max-width:620px){
+ .gdrx-compare{left:7px;right:7px;bottom:7px;transform:none;width:auto!important;max-height:82dvh;padding:12px}
+ .gdrx-compare-head{top:-12px;gap:8px}
+ #gdrxCompareGrid{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(260px,82vw);grid-template-columns:none!important;overflow-x:auto;overflow-y:hidden;padding:0 0 8px;scroll-snap-type:x mandatory;scrollbar-width:thin}
+ .gdrx-compare-card{display:flex;flex-direction:column;scroll-snap-align:start;min-width:260px}
+ .gdrx-compare-card>img{width:100%;height:120px;grid-row:auto}
+ .gdrx-row{display:flex;grid-column:auto}
+ .gdrx-compare-card>button{grid-column:auto}
+ .gdrx-compare-hint{grid-column:1}
+}
+@media(prefers-reduced-motion:reduce){.gdrx-compare{scroll-behavior:auto}}
