@@ -16,7 +16,7 @@ const typeLabels={
 };
 const configurations=["1 RK","1 BHK","2 BHK","3 BHK","4 BHK","5+ BHK"];
 const allowedTypes=["image/jpeg","image/png","image/webp"];
-let searchTimer=null,searchController=null,googlePlacesPromise=null;
+let searchTimer=null,searchController=null,googlePlacesPromise=null,nearbyRun=0,googleAutocomplete=null;
 function client(){return window.__gdrSupabaseClient||null;}
 function studio(){return $("#gdrPropertyStudio");}
 function message(text,tone){
@@ -212,7 +212,34 @@ function restoreMapPanel(){
  panel.hidden=true;
  try{state.mapParent.insertBefore(panel,state.mapNext&&state.mapNext.parentNode===state.mapParent?state.mapNext:null);}catch(e){}
 }
+async function openGoogleMap(){
+ const host=$("#gdrStudioMapHost");if(!host)return;
+ host.innerHTML='<div id="gdrStudioGoogleMap" style="height:360px;min-height:300px;border-radius:14px;overflow:hidden"></div><div class="gdr-studio-location-actions"><button type="button" id="gdrStudioGoogleMapConfirm">Confirm this pin</button></div>';
+ const center=state.lat!==null&&state.lng!==null?{lat:state.lat,lng:state.lng}:{lat:23.2599,lng:77.4126};
+ state.googleMap=new google.maps.Map($("#gdrStudioGoogleMap"),{center:center,zoom:state.lat!==null?17:12,mapTypeControl:false,streetViewControl:false,fullscreenControl:true});
+ state.googleMarker=new google.maps.Marker({position:center,map:state.googleMap,draggable:true,title:"Property location"});
+ state.googleMap.addListener("click",event=>state.googleMarker.setPosition(event.latLng));
+ $("#gdrStudioGoogleMapConfirm")?.addEventListener("click",()=>{
+  const point=state.googleMarker&&state.googleMarker.getPosition();if(!point)return;
+  const lat=point.lat(),lng=point.lng(),geocoder=new google.maps.Geocoder();
+  message("Confirming the selected map address…","info");
+  geocoder.geocode({location:{lat:lat,lng:lng}},(results,status)=>{
+   if(status==="OK"&&results&&results[0]){
+    const address=results[0].formatted_address;
+    const components=results[0].address_components||[];
+    const pin=components.find(part=>part.types&&part.types.includes("postal_code"));
+    setLocation(address,lat,lng,pin?pin.long_name:"");
+    message("Map location confirmed. Nearby public places are being refreshed.","success");
+   }else{
+    message("The pin is selected, but Google could not find its address. Search the address or move the pin to a nearby street.","error");
+   }
+  });
+ });
+ message("Tap the Google Map or drag the pin to the property entrance, then confirm.","info");
+}
 async function openMap(){
+ const googleReady=await loadGooglePlaces();
+ if(googleReady){openGoogleMap();return;}
  if(!moveMapToStudio()){message("The map picker is unavailable. Please use address search or GPS.","error");return;}
  if(!window.GDRMapExperience||typeof window.GDRMapExperience.openOwnerMapPicker!=="function"){
   message("The map service is still loading. Please try again in a moment.","error");restoreMapPanel();return;
@@ -241,6 +268,24 @@ function googleKey(){
  const meta=$('meta[name="gdr-google-maps-api-key"]');
  return String(window.GDR_GOOGLE_MAPS_API_KEY||(meta&&meta.content)||"").trim();
 }
+async function bindGoogleAutocomplete(){
+ const ready=await loadGooglePlaces();
+ if(!ready)return;
+ const input=$("#gdrStudioLocation");
+ if(!input||input.dataset.gdrGoogleAutocomplete==="1")return;
+ googleAutocomplete=new google.maps.places.Autocomplete(input,{componentRestrictions:{country:"in"},fields:["formatted_address","geometry","address_components","name"]});
+ googleAutocomplete.addListener("place_changed",()=>{
+  const place=googleAutocomplete.getPlace(),loc=place.geometry&&place.geometry.location;
+  if(!loc)return;
+  const components=place.address_components||[];
+  const pin=components.find(part=>part.types&&part.types.includes("postal_code"));
+  const address=place.formatted_address||place.name||input.value;
+  setLocation(address,loc.lat(),loc.lng(),pin?pin.long_name:"");
+  $("#gdrStudioLocationSuggestions").hidden=true;
+  message("Google Places address selected and coordinates saved.","success");
+ });
+ input.dataset.gdrGoogleAutocomplete="1";
+}
 function loadGooglePlaces(){
  const key=googleKey();
  if(!key)return Promise.resolve(false);
@@ -264,6 +309,10 @@ const placeTypes=[
 function renderNearby(){
  const box=$("#gdrStudioNearbyList"),status=$("#gdrStudioNearbyStatus");if(!box||!status)return;
  box.innerHTML="";
+ if(state.lat===null||state.lng===null){
+  status.textContent="Confirm the property location to discover nearby public places.";
+  return;
+ }
  if(!googleKey()){
   status.textContent="Google Places is not configured yet. Real nearby results will appear after a restricted Google Maps browser key is added.";
   return;
@@ -280,11 +329,13 @@ function renderNearby(){
  status.textContent=state.nearbyPlaces.length+" nearby places found using Google Places.";
 }
 async function loadNearbyPlaces(){
+ const run=++nearbyRun;
  state.nearbyPlaces=[];renderNearby();saveDraft();
  if(state.lat===null||state.lng===null)return;
  if(!googleKey())return;
  const status=$("#gdrStudioNearbyStatus");if(status)status.textContent="Finding nearby railway stations, hospitals, schools and more…";
  const ready=await loadGooglePlaces();
+ if(run!==nearbyRun)return;
  if(!ready){if(status)status.textContent="Google Places could not load. Check the API key, enabled APIs, billing and website restrictions.";return;}
  try{
   const service=new google.maps.places.PlacesService(document.createElement("div"));
@@ -301,7 +352,7 @@ async function loadNearbyPlaces(){
     }).filter(Boolean));
    });
   }));
-  const batches=await Promise.all(searches),unique=new Map();
+  const batches=await Promise.all(searches);if(run!==nearbyRun)return;const unique=new Map();
   batches.flat().forEach(place=>{const key=place.place_id||place.name+"|"+place.latitude+"|"+place.longitude;if(!unique.has(key))unique.set(key,place);});
   state.nearbyPlaces=Array.from(unique.values()).sort((a,b)=>a.distance_m-b.distance_m).slice(0,30);
   renderNearby();saveDraft();
@@ -571,7 +622,8 @@ function bindEvents(){
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
-  state.address=e.target.value;state.lat=null;state.lng=null;state.pincode="";const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];saveDraft();
+  state.address=e.target.value;state.lat=null;state.lng=null;state.pincode="";const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();
+  if(googleKey())return;
   if(searchTimer)clearTimeout(searchTimer);
   const q=e.target.value.trim();if(q.length<3){$("#gdrStudioLocationSuggestions").hidden=true;updateLocationStatus();return;}
   searchTimer=setTimeout(()=>searchAddress(q),350);
@@ -695,6 +747,7 @@ async function init(){
   mount.innerHTML=await response.text();
  }
  bindEvents();wrapMapCallback();
+ await bindGoogleAutocomplete();
  const studioRoot=studio();
  if(studioRoot)studioRoot.hidden=true;
 }
