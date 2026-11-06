@@ -172,3 +172,21 @@ body.gdr-property-studio-open{overflow:hidden!important}
  .gdr-studio-step{font-size:8px}
  .gdr-studio-step b{width:23px;height:23px;flex-basis:23px}
 }
+
+
+/* Renter-facing Property Studio gallery and nearby places */
+.gdr-property-detail-gallery{display:grid;gap:10px}
+.gdr-property-detail-gallery .property-detail-image{display:block;width:100%;max-height:460px;object-fit:cover;border-radius:16px}
+.gdr-property-detail-thumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px}
+.gdr-property-detail-thumbs button{flex:0 0 86px;width:86px;height:66px;padding:0;border:2px solid #dbe5d8;border-radius:10px;overflow:hidden;background:#f5f7f1;cursor:pointer}
+.gdr-property-detail-thumbs img{width:100%;height:100%;object-fit:cover}
+.gdr-property-nearby-public{margin:22px 0;padding:16px;border:1px solid #dce6d8;border-radius:16px;background:#f8faf5}
+.gdr-property-nearby-public h3{margin:0 0 12px;color:#1b432d}
+.gdr-property-nearby-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gdr-property-nearby-item{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:11px;border-radius:10px;background:#fff}
+.gdr-property-nearby-item span{display:grid;gap:3px;min-width:0}
+.gdr-property-nearby-item strong{color:#304b36;font-size:12px}
+.gdr-property-nearby-item small{color:#849084;font-size:10px}
+.gdr-property-nearby-item b{flex:0 0 auto;color:#8a7046;font-size:11px}
+.gdr-studio-photo-remove{border-color:#ead8d5!important;background:#fff8f6!important;color:#9b4a40!important}
+@media(max-width:640px){.gdr-property-nearby-grid{grid-template-columns:1fr}}
