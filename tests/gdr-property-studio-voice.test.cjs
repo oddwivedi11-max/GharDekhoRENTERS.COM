@@ -34,3 +34,11 @@ test("owner voice UI includes reply, confirmation, mute and transcript controls"
  for(const id of ["gdrStudioVoiceAssistant","gdrStudioVoiceReply","gdrStudioVoicePending","gdrStudioVoiceConfirm","gdrStudioVoiceMute","gdrStudioVoiceTranscript"])assert.ok(markup.includes(id),id);
  assert.match(css,/gdr-studio-voice-assistant/);
 });
+
+test("PG and hostel voice listing asks for existing room and bed fields",()=>{
+ assert.match(js,/field="roomType"/);
+ assert.match(js,/field="gender"/);
+ assert.match(js,/field="totalBeds"/);
+ assert.match(js,/field="availableBeds"/);
+ assert.match(js,/field="foodIncluded"/);
+});
