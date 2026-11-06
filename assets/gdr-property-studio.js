@@ -478,6 +478,7 @@ async function getOwner(){
 async function open(voice){
  if(state.publishing)return;
  try{
+  await readyPromise;
   const dash=$("#ownerDashboard");
   if(!dash||!dash.classList.contains("active")||!document.body.classList.contains("gd-owner-mode")){
    throw new Error("Open the Owner Dashboard to start a property listing.");
@@ -686,11 +687,18 @@ function showSuccess(property){
  $("#gdrStudioViewInventory")?.addEventListener("click",()=>{try{sessionStorage.setItem("gdr_studio_open_inventory","1");}catch(e){}window.location.reload();});
  $("#gdrStudioSuccessClose")?.addEventListener("click",()=>window.location.reload());
 }
-function init(){
+async function init(){
+ const mount=$("#gdrPropertyStudioMount");
+ if(mount&&!studio()){
+  const response=await fetch("/assets/gdr-property-studio.html?v="+VERSION,{cache:"no-cache"});
+  if(!response.ok)throw new Error("Property Studio layout could not be loaded.");
+  mount.innerHTML=await response.text();
+ }
  bindEvents();wrapMapCallback();
  const studioRoot=studio();
  if(studioRoot)studioRoot.hidden=true;
 }
+let readyPromise=Promise.resolve();
 window.GDRPropertyStudio={open:()=>open(false),openByVoice:()=>open(true),close:close};
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
+if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{readyPromise=init();},{once:true});else readyPromise=init();
 })();
