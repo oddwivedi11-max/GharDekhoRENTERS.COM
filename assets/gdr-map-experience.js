@@ -363,18 +363,29 @@
     state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");});
     state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent="Map area changed. Tap Search this area to refresh homes for the visible boundaries.";});
   }
+  function ensureMapVoiceAssistant(){
+    return new Promise((resolve,reject)=>{
+      if(window.GDRMapVoiceAssistant)return resolve(window.GDRMapVoiceAssistant);
+      const existing=document.querySelector('script[data-gdr-map-voice]');
+      if(existing){existing.addEventListener("load",()=>resolve(window.GDRMapVoiceAssistant),{once:true});existing.addEventListener("error",()=>reject(new Error("GDR voice assistant could not load.")),{once:true});return;}
+      const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-voice1";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
+      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-voice1";script.defer=true;script.dataset.gdrMapVoice="true";
+      script.onload=()=>window.GDRMapVoiceAssistant?resolve(window.GDRMapVoiceAssistant):reject(new Error("GDR voice assistant did not initialize."));
+      script.onerror=()=>reject(new Error("GDR voice assistant could not load."));document.head.appendChild(script);
+    });
+  }
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
     dashboard.classList.add("gdr-map-mode");panel.hidden=false;
     try{
-      await ensureLeaflet();initRenterMap();requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
+      await ensureLeaflet();initRenterMap();await ensureMapVoiceAssistant();window.GDRMapVoiceAssistant.mount(panel);requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
       if(!state.renterMap._gdrInitialView){state.renterMap.setView([23.2599,77.4126],12);state.renterMap._gdrInitialView=true;}
       const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
       if(query)await searchTypedMapLocation();
       else setStatus("Tap anywhere on the map to place your starting location, then tap Search this area. You can also search a city, locality or PIN code.");
     }catch(error){console.error("GDR map initialization failed:",error);setStatus("The interactive map could not load. Check your connection and try again.");}
   }
-  function closeRenterMap(){const d=$("renterDashboard"),p=$("gdrExploreMapPanel");if(p)p.hidden=true;if(d)d.classList.remove("gdr-map-mode");clearPreview();}
+  function closeRenterMap(){const d=$("renterDashboard"),p=$("gdrExploreMapPanel");if(window.GDRMapVoiceAssistant)window.GDRMapVoiceAssistant.destroy();if(p)p.hidden=true;if(d)d.classList.remove("gdr-map-mode");clearPreview();}
   function setupPlaceSearch(inputId,panelId,onSelect,kind){
     const input=$(inputId),panel=$(panelId);if(!input||!panel)return;
     const timerKey=kind==="owner"?"ownerSearchTimer":"searchTimer",controllerKey=kind==="owner"?"ownerSearchController":"searchController";
@@ -664,5 +675,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice()};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,locateRenter,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;},getRenterVisibleProperties:()=>state.visible.slice()};
 })();

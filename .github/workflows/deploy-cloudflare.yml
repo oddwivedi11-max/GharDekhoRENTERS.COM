@@ -39,7 +39,7 @@ jobs:
               ("gdr-renter-experience.js", "20261107-dashboardui1"),
               ("gdr-renter-experience.css", "20261107-dashboardui1"),
               ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
-              ("gdr-map-experience.js", "20261107-renter3d1"),
+              ("gdr-map-experience.js", "20261107-voice1"),
           ]
           for asset, version in assets:
               pattern = r'(/assets/' + re.escape(asset) + r')(?:\?v=[^"\s>]*)?'
@@ -75,6 +75,8 @@ jobs:
           node --test tests/gdr-role-switch-navigation.test.cjs
           node --test tests/gdr-role-enablement.test.cjs
           node --check assets/gdr-map-experience.js
+          node --check assets/gdr-map-voice.js
+          node --test tests/gdr-map-voice.test.cjs
           node --check assets/gdr-renter-experience.js
           node --test tests/gdr-renter-experience.test.cjs
           node --check assets/gdr-rental-suite.js
@@ -115,6 +117,11 @@ jobs:
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-voice1" -o /tmp/gdr-map-voice.js
+          grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
+          grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-voice1" -o /tmp/gdr-map-voice.css
+          grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-dashboardui1" -o /tmp/gdr-renter-experience.js
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
           grep -q 'toggleCompare' /tmp/gdr-renter-experience.js
