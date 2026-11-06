@@ -571,6 +571,7 @@ function selectedType(type){
 }
 function setConfiguration(value){state.configuration=value;updateConfigurationCards();saveDraft();}
 function setCover(i){state.coverIndex=i;renderPhotos();saveDraft();}
+// Please review and correct every field before continuing; publishing remains a manual owner action.
 function detectVoiceLanguage(text){
  const value=String(text||"");
  if(/[ऀ-ॿ]/.test(value))return "hi";
@@ -688,11 +689,11 @@ function nextVoiceQuestion(){
  else{field="complete";question=voiceText("बहुत बढ़िया! ज़रूरी details पूरी हो गई हैं। अब photos और बाकी details जोड़कर preview में सब check करें।","Great! The key details are complete. Add photos and the remaining details, then review the preview.");}
  state.voice.lastField=field;state.voice.lastQuestion=question;speakVoice(question);
 }
-function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sahi|ठीक|हाँ|हां|जी|सही|बिल्कुल|correct hai|that's right)\b/i.test(String(text||"").trim());}
-function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)\b/i.test(String(text||"").trim());}
+function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sahi|correct hai|that's right|ठीक|हाँ|हां|जी|सही|बिल्कुल)(?:\s|$)/i.test(String(text||"").trim());}
+function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)(?:\s|$)/i.test(String(text||"").trim());}
 function processVoiceTurn(text){
- const raw=String(text||"").trim();if(!raw)return;state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
- if(/\b(stop listening|stop microphone|band karo|mic band|रोक दो|बंद करो)\b/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Okay, I stopped listening. Press Start speaking when you want to continue."));return;}
+ const raw=String(text||"").trim();if(!raw)return;state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
+ if(/\b(stop listening|stop microphone|band karo|mic band)\b|रोक दो|बंद करो/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Okay, I stopped listening. Press Start speaking when you want to continue."));return;}
  if(/\b(repeat|say again|dobara bolo|phir se bolo|फिर से बोलो|दोहराओ)\b/.test(lower)){speakVoice(state.voice.lastQuestion||state.voice.lastReply);return;}
  if(/\b(show details|details dikhao|meri details|सब दिखाओ|जानकारी दिखाओ)\b/.test(lower)){const keys=["propertyType","configuration","address","rent","deposit","furnishing"];const summary=keys.map(k=>currentVoiceValue(k)?voiceFieldLabel(k)+": "+voiceFieldValue(k,currentVoiceValue(k)):"").filter(Boolean).join(". ");speakVoice(summary||voiceText("अभी कोई detail confirm नहीं हुई है।","No details have been confirmed yet."));return;}
  if(/\b(submit|publish|list my property|property submit|publish my property)\b/.test(lower)||/सबमिट|पब्लिश/.test(lower)){speakVoice(voiceText("मैं आपकी property अपने आप publish नहीं करूँगा। Preview में details check करके Publish My Property दबाएँ।","I won't publish automatically. Review the preview and press Publish My Property yourself."));return;}
@@ -709,7 +710,7 @@ function scheduleVoiceTurn(){
  if(state.voice.turnTimer)clearTimeout(state.voice.turnTimer);
  state.voice.turnTimer=setTimeout(()=>{const text=state.voice.turnText.trim();state.voice.turnText="";if(text)processVoiceTurn(text);},1100);
 }
-function updateVoiceTranscript(){const area=$("#gdrStudioVoiceTranscript");if(area)area.value=[state.voice.finalText,state.voice.interimText].filter(Boolean).join(" ").trim();}
+function updateVoiceTranscript(){const area=$("#gdrStudioVoiceTranscript");if(area)area.value=[state.voice.finalText,state.voice.turnText,state.voice.interimText].filter(Boolean).join(" ").trim();}
 function scheduleVoiceRestart(delay){
  if(!state.voice.active||state.voice.manualStop||state.voice.permissionBlocked||state.voice.speaking)return;
  if(state.voice.restartTimer)clearTimeout(state.voice.restartTimer);
