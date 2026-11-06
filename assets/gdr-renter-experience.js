@@ -108,7 +108,9 @@ function review(raw){
  $("gdrxFind").onclick=()=>$("renterFindHomeForm").requestSubmit()
 }
 function startVoice(target,lang){
- const mapMode=target==="gdrxMapPrompt",micId=mapMode?"gdrxMapMic":"gdrxMic",statusId=mapMode?"gdrxMapStatus":"gdrxStatus";
+ const mapMode=target==="gdrxMapPrompt";
+ const micId=mapMode?"gdrxMapMic":"gdrxMic";
+ const statusId=mapMode?"gdrxMapStatus":"gdrxStatus";
  const status=$(statusId),mic=$(micId),API=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!API){if(status)status.textContent="Speech recognition is not supported in this browser. Type your request instead.";return}
  try{
