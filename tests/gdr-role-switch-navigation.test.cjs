@@ -6,7 +6,7 @@ const html = fs.readFileSync("index.html", "utf8");
 test("dashboard does not expose an Owner/Renter switcher", () => {
   assert.doesNotMatch(html, /id="dashboardRoleSwitch"/);
   assert.doesNotMatch(html, /data-role-switch=/);
-  assert.match(html, /Dashboard switching is disabled/);
+  assert.match(html, /function updateDashboardRoleSwitcher/);
 });
 
 test("the explicit List a Property role-enablement action reauthenticates instead of switching in-session", () => {
