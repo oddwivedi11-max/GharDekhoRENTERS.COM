@@ -23,10 +23,12 @@ function speak(message){
 function normalize(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();}
 function extractIntent(raw){
  const s=String(raw||"").trim(),n=normalize(s),p={...state.prefs};
- const moneyMatch=s.match(/(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक)\s*₹?\s*([\d,]+)/i);
- if(moneyMatch)p.maxBudget=Number(moneyMatch[1].replace(/,/g,""));
- const minMatch=s.match(/(?:above|more than|minimum|at least|से ज्यादा|से ऊपर)\s*₹?\s*([\d,]+)/i);
- if(minMatch)p.minBudget=Number(minMatch[1].replace(/,/g,""));
+ const amountValue=m=>{if(!m)return null;const n=Number(String(m[1]||"").replace(/,/g,""));return Number.isFinite(n)?n*(/^(k|thousand|हजार)$/i.test(String(m[2]||""))?1000:1):null;};
+ const amountPattern="\\s*₹?\\s*([\\d,.]+)\\s*(k|thousand|हजार)?";
+ const moneyMatch=s.match(new RegExp("(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक)"+amountPattern,"i"))||s.match(new RegExp("₹?\\s*([\\d,.]+)\\s*(k|thousand|हजार)?\\s*(?:ke andar|ke under|tak|तक|के अंदर|से कम)","i"));
+ const maxAmount=amountValue(moneyMatch);if(maxAmount!==null)p.maxBudget=maxAmount;
+ const minMatch=s.match(new RegExp("(?:above|more than|minimum|at least|से ज्यादा|से ऊपर)"+amountPattern,"i"));
+ const minAmount=amountValue(minMatch);if(minAmount!==null)p.minBudget=minAmount;
  const bhk=s.match(/\b(1|2|3|4|5|one|two|three|four|five)\s*(?:bhk|bed\s?room)\b/i)||s.match(/\b(1|2|3|4|5)\s*बीएचके\b/i);
  if(bhk){const v=String(bhk[1]).toLowerCase();p.bhk=({one:1,two:2,three:3,four:4,five:5}[v]||Number(v));}
  if(/\b(semi furnished|semi-furnished)\b|सेमी फर्निश्ड/i.test(s))p.furnishing="Semi-Furnished";
@@ -42,7 +44,7 @@ function extractIntent(raw){
   .replace(/(?:above|more than|minimum|at least|से ज्यादा|से ऊपर)\s*₹?\s*[\d,]+/ig," ")
   .replace(/\b\d+\s*(?:bhk|bed\s?room|बीएचके)\b/ig," ")
   .replace(/\b(1|2|3|4|5)\s*(?:bhk|bedroom)\b/ig," ")
-  .replace(/\b(mujhe|please|show|find|search|available|rental|rent|property|properties|home|homes|house|houses|flat|flats|apartment|apartments|room|rooms|dikhao|dikhaiye|dikhana|chahiye|mein|me|mai|ke|ka|ki|par|near|in|at|all|saare|sare|jitne|bhi|ghar|makan|kiraye|wala|wale|wali|sirf|only|furnished|unfurnished|semi furnished|pg|hostel|under|within|budget|hain|hai|ho|ke|ka|ki)\b/ig," ")
+  .replace(/\b(mujhe|please|show|find|search|available|rental|rent|property|properties|home|homes|house|houses|flat|flats|apartment|apartments|independent|villa|room|rooms|dikhao|dikhaiye|dikhana|chahiye|mein|me|mai|ke|ka|ki|par|near|in|at|all|saare|sare|jitne|bhi|ghar|makan|kiraye|wala|wale|wali|sirf|only|furnished|unfurnished|semi furnished|pg|hostel|under|within|budget|hain|hai|ho|ke|ka|ki)\b/ig," ")
   .replace(/(मुझे|दिखाओ|दिखाइए|दिखाना|चाहिए|में|मे|के|का|की|पर|सारे|सारे|जितने|भी|घर|मकान|किराये|वाले|वाली|सिर्फ|उपलब्ध|दिखा दो|कितने)/g," ");
  const candidate=locationText.replace(/[₹,]/g," ").replace(/\s+/g," ").trim();
  const locationOnly=n.length>0&&candidate.length>1&&!/^(mere aas paas|near me|around me|my location)$/.test(normalize(candidate));
