@@ -433,7 +433,9 @@ for old, new in (
         print("Upgraded owner workspace cache version: " + old)
     elif (
         new.replace("20261105-workspace3", "20261107-workspace4") in source
-        or new.replace("20261105-workspace3", "20261107-workspace5") in source
+        or new.replace("20261105-workspace3", "20261107-workspace7") in source
+        or new.replace("20261105-workspace3", "20261107-workspace6") in source
+        or new.replace("20261105-workspace3", "20261107-workspace7") in source
     ):
         print("Owner workspace asset already has the latest cache version: " + old)
     elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
@@ -547,13 +549,13 @@ for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
 import re
 source, controller_refs = re.subn(
     r'((?:src|href)="(/assets/gdr-owner-command-center-hotfix\.js)\?v=)[^"]+(")',
-    r'\g<1>20261107-workspace5\g<3>',
+    r'\g<1>20261107-workspace7\g<3>',
     source
 )
-if controller_refs == 0 and 'gdr-owner-command-center-hotfix.js' in source and '/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace5' not in source:
+if controller_refs == 0 and 'gdr-owner-command-center-hotfix.js' in source and '/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7' not in source:
     source = source.replace(
         'src="/assets/gdr-owner-command-center-hotfix.js"',
-        'src="/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace5"',
+        'src="/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7"',
         1
     )
 
