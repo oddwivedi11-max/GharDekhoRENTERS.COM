@@ -135,14 +135,18 @@ if css_ref not in source:
 
 renter_js_v1 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>'
 renter_js_v2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
-if renter_js_v2 not in source:
-    if renter_js_v1 in source:
-        source = source.replace(renter_js_v1, renter_js_v2, 1)
+renter_js_v3 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
+if renter_js_v3 not in source:
+    if renter_js_v2 in source:
+        source = source.replace(renter_js_v2, renter_js_v3, 1)
+        print("Updated: cache-bust renter move-out notice controller")
+    elif renter_js_v1 in source:
+        source = source.replace(renter_js_v1, renter_js_v3, 1)
         print("Updated: cache-bust renter move-out notice controller")
     else:
         replace_once(
             '<script src="/assets/gdr-rental-suite.js"></script>',
-            renter_js_v2,
+            renter_js_v3,
             "cache-bust renter move-out notice controller"
         )
 renter_css_v1 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">'
