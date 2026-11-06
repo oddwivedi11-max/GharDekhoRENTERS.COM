@@ -331,7 +331,16 @@ function renderPhotos(){
    else if(item.index!==0){const moved=state.uploadedPhotos.splice(item.index,1)[0];state.uploadedPhotos.unshift(moved);state.uploadedPaths.unshift(state.uploadedPaths.splice(item.index,1)[0]);}
    saveDraft();renderPhotos();
   });
-  meta.append(name,btn);card.append(img,meta);wrap.appendChild(card);
+  const remove=document.createElement("button");remove.type="button";remove.textContent="Remove photo";remove.className="gdr-studio-photo-remove";
+  remove.addEventListener("click",async()=>{
+   if(state.files.length){const removed=state.files.splice(item.index,1)[0];if(removed&&removed.previewUrl)URL.revokeObjectURL(removed.previewUrl);state.coverIndex=Math.max(0,Math.min(state.coverIndex,state.files.length-1));}
+   else{
+    const removed=state.uploadedPhotos.splice(item.index,1)[0];const path=state.uploadedPaths.splice(item.index,1)[0];
+    if(path){try{await client().storage.from("property-images").remove([path]);}catch(e){console.warn("Could not remove property photo",e);}}
+   }
+   saveDraft();renderPhotos();
+  });
+  meta.append(name,btn,remove);card.append(img,meta);wrap.appendChild(card);
  });
 }
 async function removeUploadedFiles(){
@@ -339,17 +348,16 @@ async function removeUploadedFiles(){
  try{await c.storage.from("property-images").remove(state.uploadedPaths);}catch(e){console.warn("Could not clean up replaced studio photos",e);}
  state.uploadedPaths=[];state.uploadedPhotos=[];
 }
-function acceptFiles(list){
+async function acceptFiles(list){
  const incoming=Array.from(list||[]);
  if(!incoming.length)return;
- const current=state.files.length?state.files.length:state.uploadedPhotos.length;
+ const current=state.files.length+state.uploadedPhotos.length;
  if(current+incoming.length>8){message("Choose up to 8 property photos.","error");return;}
  for(const f of incoming){
   if(!allowedTypes.includes(f.type)){message("Use JPG, PNG or WEBP photos only.","error");return;}
   if(f.size>5*1024*1024){message("Each photo must be 5 MB or smaller.","error");return;}
  }
- if(state.uploadedPhotos.length){removeUploadedFiles();}
- revokePreviews();state.files=[];
+ if(state.uploadedPhotos.length){await removeUploadedFiles();}
  incoming.forEach(f=>{f.previewUrl=URL.createObjectURL(f);state.files.push(f);});
  state.coverIndex=0;renderPhotos();saveDraft();message("Photos added. Choose the cover photo before publishing.","success");
 }
@@ -522,7 +530,9 @@ function parseVoice(text){
  if(rent){const val=rent[1].replace(/,/g,"");if(Number(val)>0){state.rent=val;const el=$("#gdrStudioRent");if(el)el.value=val;}}
  const deposit=t.match(/(?:deposit|security)\s*(?:is|of|hai|ka)?\s*(?:₹|rs\.?)?\s*([\d,]{3,})/i);
  if(deposit){state.deposit=deposit[1].replace(/,/g,"");const el=$("#gdrStudioDeposit");if(el)el.value=state.deposit;}
- const loc=t.match(/(?:in|at|mein|me|par)\s+([a-z0-9 ,'-]{3,70}?)(?=\s+(?:hai|hoga|ka|ki|ke|and|aur|with|rent|kiraya|monthly|for)\b|[.!?]|$)/i);
+ const hindiLoc=t.match(/(?:mera ghar|mera makaan|property|ghar)\s+(.{3,90}?)\s+(?:mein|me|par)\b/i);
+ const englishLoc=t.match(/(?:\bin\s+|\bat\s+)([a-z0-9 ,'-]{3,70}?)(?=\s+(?:is|hai|with|rent|kiraya|monthly|for)\b|[.!?]|$)/i);
+ const loc=hindiLoc||englishLoc;
  if(loc){
   const address=loc[1].trim().replace(/\s+/g," ");
   if(address.length>=3){const el=$("#gdrStudioLocation");if(el)el.value=address;state.address=address;searchAddress(address);}
@@ -560,7 +570,7 @@ function bindEvents(){
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
-  state.address=e.target.value;state.lat=null;state.lng=null;saveDraft();
+  state.address=e.target.value;state.lat=null;state.lng=null;state.pincode="";const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];saveDraft();
   if(searchTimer)clearTimeout(searchTimer);
   const q=e.target.value.trim();if(q.length<3){$("#gdrStudioLocationSuggestions").hidden=true;updateLocationStatus();return;}
   searchTimer=setTimeout(()=>searchAddress(q),350);
@@ -573,8 +583,8 @@ function bindEvents(){
  });
  $("#gdrStudioUseGps")?.addEventListener("click",useGps);
  $("#gdrStudioOpenMap")?.addEventListener("click",openMap);
- $("#gdrStudioPhotoFiles")?.addEventListener("change",e=>acceptFiles(e.target.files));
- $("#gdrStudioCameraFiles")?.addEventListener("change",e=>acceptFiles(e.target.files));
+ $("#gdrStudioPhotoFiles")?.addEventListener("change",e=>{acceptFiles(e.target.files);e.target.value="";});
+ $("#gdrStudioCameraFiles")?.addEventListener("change",e=>{acceptFiles(e.target.files);e.target.value="";});
  $("#gdrStudioChoosePhotos")?.addEventListener("click",()=>$("#gdrStudioPhotoFiles")?.click());
  $("#gdrStudioTakePhotos")?.addEventListener("click",()=>$("#gdrStudioCameraFiles")?.click());
  $("#gdrStudioVoiceStart")?.addEventListener("click",startVoice);
