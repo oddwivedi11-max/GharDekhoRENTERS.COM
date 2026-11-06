@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const root = path.join(__dirname, "..");
 const read = p => fs.readFileSync(path.join(root, p), "utf8");
-const renter = read("assets/gdr-rental-suite.js");
+const renter = read("assets/gdr-rental-suite-v2.js");
 const owner = read("assets/gdr-owner-renter-page.js");
 const migration = read("supabase/migrations/20261106201005_renter_moveout_notice.sql");
 const patcher = read("scripts/patch-property-studio.py");
