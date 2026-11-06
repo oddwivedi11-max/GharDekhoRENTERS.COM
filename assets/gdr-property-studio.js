@@ -232,7 +232,7 @@ async function openMap(){
   restoreMapPanel();
  }
 }
-function wrapMapCallback(){function wrapMapCallback(){
+function wrapMapCallback(){
  const original=window.__gdrSetPropertyLocation;
  if(typeof original!=="function"||original.__gdrStudioWrapped)return;
  const wrapped=function(address,lat,lng){
@@ -344,7 +344,7 @@ out center tags;`;
  }
  finally{clearTimeout(timeout);}
 }
-function revokePreviews(){function revokePreviews(){
+function revokePreviews(){
  state.files.forEach(f=>{if(f.previewUrl)URL.revokeObjectURL(f.previewUrl);});
 }
 function renderPhotos(){
@@ -475,7 +475,7 @@ function renderPreview(){
  ];
   const nearbyHtml=state.nearbyPlaces.length
    ?'<div class="gdr-studio-preview-nearby-list">'+state.nearbyPlaces.slice(0,8).map(place=>'<div><span><b>'+escapeHtml(place.name||"Nearby place")+'</b><small>'+escapeHtml(place.category||"Public place")+'</small></span><strong>'+escapeHtml(distanceLabel(place.distance_m))+'</strong></div>').join("")+'</div>'
-   :'<p>Nearby Places is awaiting Google Places API configuration.</p>';
+   :'<p>Nearby facilities are sourced from OpenStreetMap when available.</p>';
   box.innerHTML=
    '<div class="gdr-studio-preview-card"><img src="'+escapeHtml(cover)+'" alt="Property cover photo"><div class="gdr-studio-preview-copy"><span class="gdr-studio-preview-kicker">RENTER VIEW PREVIEW</span><h3>'+escapeHtml(title)+'</h3><strong class="gdr-studio-preview-rent">'+escapeHtml(formatINR(rent))+' <small>/ month</small></strong><div class="gdr-studio-preview-meta">'+details.map(d=>'<div><small>'+escapeHtml(d[0])+'</small><b>'+escapeHtml(d[1])+'</b></div>').join("")+'</div><p>'+escapeHtml(state.description||"No additional description.")+'</p></div></div>'+
    (photos.length>1?'<div class="gdr-studio-preview-strip">'+photos.map(p=>'<img src="'+escapeHtml(p)+'" alt="Property photo preview">').join("")+'</div>':"")+
