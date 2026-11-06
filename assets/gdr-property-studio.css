@@ -214,3 +214,34 @@ body.gdr-property-studio-open{overflow:hidden!important}
 .gdr-studio-preview-nearby-list b{color:#304b36;font-size:12px;overflow-wrap:anywhere}
 .gdr-studio-preview-nearby-list small{color:#849084;font-size:10px}
 .gdr-studio-preview-nearby-list strong{flex:0 0 auto;color:#8a7046;font-size:11px}
+
+
+/* GDR Property Studio — zero-cost conversational voice assistant */
+.gdr-studio-voice-assistant{margin-top:14px;padding:15px;border:1px solid #d8e5d7;border-radius:15px;background:linear-gradient(145deg,#fff,#f1f7ef);box-shadow:0 8px 22px rgba(18,61,49,.06)}
+.gdr-studio-voice-assistant-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.gdr-studio-voice-state{display:inline-flex;align-items:center;gap:7px;color:#27674c;font-size:10px;font-weight:900;letter-spacing:.12em}
+.gdr-studio-voice-state::before{content:"";width:8px;height:8px;border-radius:50%;background:#9ca99e}
+#gdrStudioVoiceMute{min-height:34px;padding:0 10px;border:1px solid #d7e2d5;border-radius:9px;background:#fff;color:#31543a;font-size:11px;font-weight:800}
+#gdrStudioVoiceReply{margin:12px 0 0;color:#1d4032;font-size:14px;font-weight:650;line-height:1.65}
+.gdr-studio-voice-pending{display:grid;gap:8px;margin-top:12px;padding:12px;border:1px solid #e2d3ad;border-radius:12px;background:#fffaf0;color:#594a2e}
+.gdr-studio-voice-pending>strong{font-size:12px}
+.gdr-studio-voice-pending>div{display:flex;justify-content:space-between;gap:12px;padding-top:7px;border-top:1px solid #eee4cf;font-size:12px}
+.gdr-studio-voice-pending>div span{color:#786b54}
+.gdr-studio-voice-pending>div b{color:#253f31;text-align:right;overflow-wrap:anywhere}
+.gdr-studio-voice-confirm-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:11px}
+.gdr-studio-voice-confirm-actions button{min-height:40px;padding:0 13px;border:1px solid #d2dfd1;border-radius:10px;background:#fff;color:#31543a;font-size:11px;font-weight:850}
+#gdrStudioVoiceConfirm{background:linear-gradient(145deg,#1c684d,#104333);border-color:#104333;color:#fff;box-shadow:0 3px 0 #092e23}
+#gdrStudioVoiceStart.is-recording{background:linear-gradient(145deg,#b43e3c,#8d2929)!important;border-color:#8d2929!important;color:#fff!important;box-shadow:0 4px 0 #68201f,0 8px 18px rgba(141,41,41,.18)}
+#gdrStudioVoiceStart.is-recording::before{content:"";display:inline-block;width:7px;height:7px;margin-right:7px;border-radius:50%;background:#fff;box-shadow:0 0 0 4px rgba(255,255,255,.18);animation:gdrStudioMicPulse 1.2s infinite}
+#gdrStudioVoiceStatus{color:#536c5a!important;font-weight:650;line-height:1.55}
+#gdrStudioVoiceTranscript{min-height:92px;line-height:1.55;font-size:14px}
+@keyframes gdrStudioMicPulse{50%{box-shadow:0 0 0 8px rgba(255,255,255,0)}}
+@media(max-width:620px){
+ .gdr-studio-voice{padding:14px}
+ .gdr-studio-voice-controls{display:grid;grid-template-columns:1fr 1fr}
+ .gdr-studio-voice-controls select{grid-column:1/-1;width:100%}
+ .gdr-studio-voice-controls button{width:100%;min-height:46px}
+ .gdr-studio-voice-assistant{padding:12px}
+ .gdr-studio-voice-pending>div{align-items:flex-start}
+}
+@media(prefers-reduced-motion:reduce){#gdrStudioVoiceStart.is-recording::before{animation:none}}
