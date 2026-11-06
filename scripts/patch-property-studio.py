@@ -138,11 +138,18 @@ replace_once(
     '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout1"></script>',
     "cache-bust renter move-out notice controller"
 )
-replace_once(
-    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
-    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">',
-    "cache-bust renter move-out notice styles"
-)
+renter_css_v1 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">'
+renter_css_v2 = '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">'
+if renter_css_v2 not in source:
+    if renter_css_v1 in source:
+        source = source.replace(renter_css_v1, renter_css_v2, 1)
+        print("Updated: cache-bust renter move-out notice styles")
+    else:
+        replace_once(
+            '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
+            renter_css_v2,
+            "cache-bust renter move-out notice styles"
+        )
 source = source.replace("● Soon available", "● Vacating Soon")
 source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
