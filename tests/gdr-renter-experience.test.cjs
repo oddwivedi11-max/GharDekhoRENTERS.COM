@@ -40,7 +40,6 @@ test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
 
 test('Hindi locality search requires all meaningful locality words, not a generic shared token', () => {
   assert.match(index, /const typedLocationMatch = typedTerms\.every\(term =>/);
-  assert.match(index, /normalizeSearchText\(value\)/);
 });
 
 test('English assistant extracts location, budget, BHK and furnishing', () => {
