@@ -29,10 +29,10 @@ h1 span:nth-child(1){color:#082f2a}h1 span:nth-child(2){color:#008a72}h1 span:nt
 .house{position:absolute;right:17px;top:18px;width:54px;height:44px;background:#fff4cf;border-radius:8px;box-shadow:0 8px 16px rgba(0,0,0,.13)}.house:before{content:"";position:absolute;left:4px;top:-22px;border-left:23px solid transparent;border-right:23px solid transparent;border-bottom:24px solid #d58c24}.house:after{content:"";position:absolute;left:21px;bottom:0;width:12px;height:23px;background:#075b50;border-radius:4px}
 .email{position:relative;margin-top:25px;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:17px 20px;border-radius:19px;background:linear-gradient(135deg,#005f51,#007d69);color:#fff;font-size:clamp(.95rem,3vw,1.2rem);font-weight:1000;box-shadow:0 8px 0 #043d35,0 18px 34px rgba(0,102,85,.22);border:1px solid rgba(255,255,255,.35)}
 .email small{display:block;font-size:.65rem;opacity:.72;letter-spacing:.1em}.copy{font-size:1.35rem}
-.notice{margin-top:18px;padding:17px 18px;border-radius:19px;background:linear-gradient(135deg,#e9fff5,#f7ffe8);border:1px solid #cceadf;color:#49635d;font-size:.9rem}
+.email.whatsapp{margin-top:14px;background:linear-gradient(135deg,#087a45,#16a765);box-shadow:0 8px 0 #07552f,0 18px 34px rgba(0,120,70,.18)}.notice{margin-top:18px;padding:17px 18px;border-radius:19px;background:linear-gradient(135deg,#e9fff5,#f7ffe8);border:1px solid #cceadf;color:#49635d;font-size:.9rem}
 .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:13px;margin-top:18px}
-.item{min-height:132px;padding:20px;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.8);box-shadow:0 10px 25px rgba(19,74,65,.06);transition:transform .18s ease,box-shadow .18s ease}
-.item:hover{transform:translateY(-4px);box-shadow:0 17px 35px rgba(19,74,65,.11)}
+.item{display:block;min-height:132px;padding:20px;color:inherit;text-align:left;cursor:pointer;border:1px solid var(--line);border-radius:20px;background:rgba(255,255,255,.8);box-shadow:0 10px 25px rgba(19,74,65,.06);transition:transform .18s ease,box-shadow .18s ease}
+.item:hover,.item:focus-visible{transform:translateY(-4px);box-shadow:0 17px 35px rgba(19,74,65,.11);outline:3px solid rgba(0,138,114,.22);outline-offset:3px}
 .icon{width:43px;height:43px;border-radius:14px;display:grid;place-items:center;font-size:21px;background:linear-gradient(145deg,#baff54,#54edaf);box-shadow:0 7px 14px rgba(24,151,116,.15);margin-bottom:11px}
 .item:nth-child(2) .icon{background:linear-gradient(145deg,#ffd65e,#ff9e28)}.item:nth-child(3) .icon{background:linear-gradient(145deg,#8ce5ff,#4c8fff)}.item:nth-child(4) .icon{background:linear-gradient(145deg,#d5b4ff,#8f70ed)}
 .item h2{font-size:1.02rem;margin:0 0 5px;color:#073f37;font-weight:1000}.item p{margin:0;color:#687a76;font-size:.84rem}
@@ -47,23 +47,24 @@ footer:before{content:"";position:absolute;width:280px;height:280px;border-radiu
 </style>
 </head>
 <body>
-<header><a class="logo" href="/">GharDekho Renters</a><a class="back" href="/">Back to website</a></header>
+<header><a class="logo" href="mailto:ghardekhorenters@gmail.com?subject=GharDekho%20Renters%20Enquiry" aria-label="Email GharDekho Renters">GharDekho Renters</a><a class="back" href="/">Back to website</a></header>
 <main><article class="card">
 <section class="hero">
 <div>
 <span class="kicker">✦ SUPPORT • GHARDEKHO RENTERS</span>
 <h1><span>Need help</span><br><span>or want to get</span><br><span>in touch?</span></h1>
-<p class="lead">For support, property-listing questions, account issues, feedback, business enquiries or legal and privacy requests, please contact GharDekho Renters by email.</p>
-<a class="email" href="https://mail.google.com/mail/?view=cm&fs=1&to=ghardekhorenters@gmail.com" target="_blank" rel="noopener"><span><small>CONTACT US AT</small>ghardekhorenters@gmail.com</span><b class="copy">↗</b></a>
+<p class="lead">For support, property-listing questions, account issues, feedback, business enquiries or legal and privacy requests, email us directly. For quick queries, contact us on WhatsApp only.</p>
+<a class="email" href="mailto:ghardekhorenters@gmail.com?subject=GharDekho%20Renters%20Enquiry&amp;body=Hello%20GharDekho%20Renters%2C%0A%0AI%20need%20help%20with%3A%20" aria-label="Email GharDekho Renters at ghardekhorenters@gmail.com"><span><small>EMAIL US AT</small>ghardekhorenters@gmail.com</span><b class="copy">↗</b></a>
+<a class="email whatsapp" href="https://wa.me/917389598902?text=Hello%20GharDekho%20Renters%2C%20I%20have%20a%20query." target="_blank" rel="noopener" aria-label="WhatsApp GharDekho Renters at plus 91 73895 98902"><span><small>WHATSAPP ONLY FOR QUERIES</small>+91 73895 98902</span><b class="copy">↗</b></a>
 </div>
 <div class="hero-art" aria-hidden="true"><div class="envelope"><div class="house"></div></div></div>
 </section>
 <div class="notice">🛡️ <strong>For faster assistance:</strong> include your registered email and relevant property or account details. Please do not send passwords, OTPs, Aadhaar numbers or other sensitive credentials by email.</div>
 <div class="grid">
-<div class="item"><div class="icon">💬</div><h2>Support</h2><p>Account, login, search or website issues.</p></div>
-<div class="item"><div class="icon">🏠</div><h2>Property enquiries</h2><p>Include relevant property or listing details.</p></div>
-<div class="item"><div class="icon">🤝</div><h2>Business enquiries</h2><p>Partnership, business or platform enquiries.</p></div>
-<div class="item"><div class="icon">🔐</div><h2>Privacy &amp; legal</h2><p>Privacy, data or Terms-related requests.</p></div>
+<a class="item" href="mailto:ghardekhorenters@gmail.com?subject=GharDekho%20Support%20Request&amp;body=Hello%20GharDekho%20Renters%2C%0A%0AI%20need%20help%20with%3A%0A"><div class="icon">💬</div><h2>Support</h2><p>Tap to email us about account, login, search or website issues.</p></a>
+<a class="item" href="mailto:ghardekhorenters@gmail.com?subject=Property%20Enquiry%20-%20GharDekho%20Renters&amp;body=Hello%20GharDekho%20Renters%2C%0A%0AProperty%20or%20listing%20details%3A%0A"><div class="icon">🏠</div><h2>Property enquiries</h2><p>Tap to email us about a property or listing.</p></a>
+<a class="item" href="mailto:ghardekhorenters@gmail.com?subject=Business%20%26%20Partnership%20Enquiry%20-%20GharDekho&amp;body=Hello%20GharDekho%20Renters%2C%0A%0AMy%20business%20enquiry%3A%0A"><div class="icon">🤝</div><h2>Business enquiries</h2><p>Tap to email us about partnerships or business enquiries.</p></a>
+<a class="item" href="mailto:ghardekhorenters@gmail.com?subject=Privacy%20%26%20Legal%20Enquiry%20-%20GharDekho&amp;body=Hello%20GharDekho%20Renters%2C%0A%0AMy%20privacy%20or%20legal%20request%3A%0A"><div class="icon">🔐</div><h2>Privacy &amp; legal</h2><p>Tap to email us about privacy, data or Terms-related requests.</p></a>
 </div>
 <nav class="quick" aria-label="Quick links">
 <a href="/contact.html"><span>Contact</span><span class="arrow">›</span></a>
@@ -72,7 +73,7 @@ footer:before{content:"";position:absolute;width:280px;height:280px;border-radiu
 </nav>
 <footer>
 <div class="no-broker">NO BROKERAGE <em>COST BY GDR.</em></div>
-<div class="footer-brand">GharDekho Renters</div>
+<a class="footer-brand" href="mailto:ghardekhorenters@gmail.com?subject=GharDekho%20Renters%20Enquiry" style="display:inline-block;color:#fff">GharDekho Renters</a>
 <div class="footer-sub">Connecting People. Building Better Rentals.</div>
 <div class="founder"><small>FOUNDER &amp; DEVELOPER</small><strong>OD DWIVEDI</strong></div>
 <div class="footer-bottom">© 2026 GharDekho Renters. All rights reserved.</div>
