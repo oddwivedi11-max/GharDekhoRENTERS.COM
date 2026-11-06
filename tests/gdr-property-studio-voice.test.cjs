@@ -11,6 +11,7 @@ test("owner voice recognition is continuous and shows interim transcript",()=>{
  assert.match(js,/rec\.interimResults=true/);
  assert.match(js,/state\.voice\.turnText/);
  assert.match(js,/scheduleVoiceRestart/);
+ assert.match(js,/state\.voice\.interimText\.trim\(\)/);
 });
 test("owner voice assistant restarts after normal browser session end but respects manual stop",()=>{
  assert.match(js,/state\.voice\.active&&!state\.voice\.manualStop/);
@@ -22,6 +23,7 @@ test("owner voice assistant requires confirmation before committing recognized v
  assert.match(js,/state\.voice\.awaitingConfirmation&&isVoiceYes/);
  assert.match(js,/gdrStudioVoiceConfirm/);
  assert.match(js,/function processVoiceTurn/);
+ assert.match(js,/const correction=extractVoiceDetails\(raw\)/);
 });
 test("owner voice assistant uses browser-native speech synthesis and no paid AI API",()=>{
  assert.match(js,/SpeechSynthesisUtterance/);
