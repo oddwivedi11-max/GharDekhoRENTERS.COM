@@ -9139,7 +9139,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css">
 <link rel="stylesheet" href="/assets/gdr-map-experience.css">
   <link rel="stylesheet" href="/assets/gdr-rental-suite.css">
-  <link rel="stylesheet" href="/assets/gdr-owner-payments.css?v=20261105-workspace3">
+  <link rel="stylesheet" href="/assets/gdr-owner-payments.css?v=20261107-workspace4">
 <link rel="stylesheet" href="/assets/gdr-homepage-premium-v1.css">
 </head>
 
@@ -9985,7 +9985,7 @@ body.gd-owner-explore-mode #propertiesSection {
                             </label>
                             <div class="owner-image-upload-field gd-owner-image-v7">
                                 <div class="gd-upload-head"><div><span class="gd-upload-kicker">PROPERTY MEDIA</span><strong>Add your best property photo</strong><small>Clear, bright photos help renters understand the space.</small></div><span class="gd-upload-limit">JPG • PNG • WEBP<br>MAX 5 MB</span></div>
-                                <label for="propertyImageFile" class="gd-upload-dropzone owner-upload-label">
+                                <label data-gd-open-property-picker class="gd-upload-dropzone owner-upload-label">
                                     <div class="gd-upload-icon">＋</div>
                                     <div><strong>Upload property image</strong><span>Click to browse your gallery</span><small>Recommended: landscape photo of the room or exterior</small></div>
                                     <b>Choose image</b>
@@ -16711,9 +16711,32 @@ function updateStayTypeFields() {
             const choosePropertyImageBtn = document.getElementById("choosePropertyImageBtn");
             const propertyImageFile = document.getElementById("propertyImageFile");
             const removePropertyImageBtn = document.getElementById("removePropertyImageBtn");
+            const propertyImageDropzone = document.querySelector("[data-gd-open-property-picker]");
+            if (propertyImageFile && propertyImageFile.dataset.gdClickGuardBound !== "1") {
+                propertyImageFile.dataset.gdClickGuardBound = "1";
+                propertyImageFile.addEventListener("click", function(event) {
+                    if (propertyImageFile.dataset.gdPickerAuthorized !== "1") {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                        return;
+                    }
+                    propertyImageFile.dataset.gdPickerAuthorized = "0";
+                }, true);
+            }
+            const openPropertyImagePicker = function(event) {
+                event.preventDefault();
+                event.stopPropagation();
+                if (!propertyImageFile) return;
+                propertyImageFile.dataset.gdPickerAuthorized = "1";
+                propertyImageFile.click();
+            };
             if (choosePropertyImageBtn && propertyImageFile && choosePropertyImageBtn.dataset.gdImageBound !== "1") {
                 choosePropertyImageBtn.dataset.gdImageBound = "1";
-                choosePropertyImageBtn.addEventListener("click", () => propertyImageFile.click());
+                choosePropertyImageBtn.addEventListener("click", openPropertyImagePicker);
+            }
+            if (propertyImageDropzone && propertyImageFile && propertyImageDropzone.dataset.gdImageBound !== "1") {
+                propertyImageDropzone.dataset.gdImageBound = "1";
+                propertyImageDropzone.addEventListener("click", openPropertyImagePicker);
             }
             if (propertyImageFile && propertyImageFile.dataset.gdImageBound !== "1") {
                 propertyImageFile.dataset.gdImageBound = "1";
@@ -20730,12 +20753,12 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
 })();
 </script>
 <script src="/assets/gdr-map-experience.js"></script>
-<script src="/assets/gdr-owner-renter-page.js?v=20261105-workspace3"></script>
+<script src="/assets/gdr-owner-renter-page.js?v=20261107-workspace4"></script>
 <script src="/assets/gdr-rental-suite.js"></script>
-  <script src="/assets/gdr-owner-payments.js?v=20261105-workspace3" defer></script>
-<script src="/assets/gdr-owner-current-renters-dashboard.js?v=20261105-workspace3" defer></script>
+  <script src="/assets/gdr-owner-payments.js?v=20261107-workspace4" defer></script>
+<script src="/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" defer></script>
 <script src="/assets/gdr-owner-saved-properties-cleanup.js" defer></script>
-<script src="/assets/gdr-owner-command-center-hotfix.js?v=20261105-workspace3" defer></script>
+<script src="/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace4" defer></script>
 </body>
 
 </html>
