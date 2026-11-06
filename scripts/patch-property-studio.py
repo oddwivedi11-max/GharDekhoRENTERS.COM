@@ -156,6 +156,8 @@ if renter_js_new not in source:
     elif renter_js_old2 in source:
         source = source.replace(renter_js_old2, renter_js_new, 1)
         print("Updated: switch renter move-out controller to a fresh asset path")
+    elif 'src="/assets/gdr-rental-suite-v2.js' in source:
+        print("Already applied: renter move-out controller uses the v2 asset path")
     else:
         replace_once(
             '<script src="/assets/gdr-rental-suite.js"></script>',
