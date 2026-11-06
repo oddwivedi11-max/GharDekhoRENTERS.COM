@@ -10,6 +10,7 @@ function addSupport(){const root=$("renterDashboard"),actions=root?.querySelecto
 function parseRequest(raw){
  const n=String(raw||"").toLowerCase(),p={raw:String(raw||""),location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:""};
  const b=n.match(/\b([1-5])\s*(?:bhk|bed(?:room)?s?)\b/);if(b)p.bhk=b[1];
+ const radius=n.match(/(?:within|radius|around)\s*(\d+(?:\.\d+)?)\s*(?:km|kilomet(?:er|re)s?)\b/i);if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
  if(/\b(pg|paying guest)\b/.test(n))p.stayType="pg";else if(/\b(hostel)\b/.test(n))p.stayType="hostel";else if(/\b(flat|apartment|house|home|villa|room)\b/.test(n))p.stayType="home";
  if(/\b(semi[\s-]?furnished)\b/.test(n))p.furnishing="Semi-Furnished";else if(/\b(unfurnished)\b/.test(n))p.furnishing="Unfurnished";else if(/\b(furnished)\b/.test(n))p.furnishing="Furnished";
  const max=n.match(/(?:under|below|upto|up to|maximum|max|budget|around|within|₹|rs\.?|rupees?|रुपये)\s*(?:₹|rs\.?)?\s*([\d,]{3,8})/i)||n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये)/i);if(max)p.maxBudget=max[1].replace(/,/g,"");
@@ -36,13 +37,35 @@ function review(raw){
  $("gdrxFind").onclick=()=>$("renterFindHomeForm").requestSubmit()
 }
 function startVoice(target,lang){
- const API=window.SpeechRecognition||window.webkitSpeechRecognition;if(!API){$("gdrxStatus").textContent="Speech recognition is not supported here. Type your request instead.";return}
- try{state.recognition?.stop();const r=new API();state.recognition=r;r.lang=lang||state.lang;r.interimResults=false;r.maxAlternatives=1;
- $("gdrxMic").classList.add("listening");$("gdrxStatus").textContent="Listening… speak your home requirements.";
- r.onresult=e=>{const t=e.results?.[0]?.[0]?.transcript||"";$(target).value=t;if(target==="gdrxPrompt")review(t);else runMapSearch()};
- r.onerror=e=>$("gdrxStatus").textContent=e.error==="not-allowed"?"Microphone permission denied. You can still type.":"Voice input unavailable. Please type your request.";
- r.onend=()=>{$("gdrxMic")?.classList.remove("listening");state.recognition=null};r.start()
- }catch(e){$("gdrxStatus").textContent="Could not start the microphone. Use text search instead."}
+ const mapMode=target==="gdrxMapPrompt";
+ const micId=mapMode?"gdrxMapMic":"gdrxMic";
+ const statusId=mapMode?"gdrxMapStatus":"gdrxStatus";
+ const status=$(statusId),mic=$(micId);
+ const API=window.SpeechRecognition||window.webkitSpeechRecognition;
+ if(!API){if(status)status.textContent="Speech recognition is not supported in this browser. Type your request instead.";return}
+ try{
+  state.recognition?.stop();
+  const r=new API();state.recognition=r;r.lang=lang||state.lang;r.interimResults=false;r.maxAlternatives=1;
+  mic?.classList.add("listening");
+  if(status)status.textContent="Listening… speak your home requirements.";
+  r.onresult=e=>{
+   const transcript=e.results?.[0]?.[0]?.transcript||"";
+   const field=$(target);if(field){field.value=transcript;field.dispatchEvent(new Event("input",{bubbles:true}));}
+   if(mapMode)runMapSearch();else review(transcript);
+  };
+  r.onerror=e=>{
+   if(!status)return;
+   status.textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")
+    ?"Microphone access was blocked. Allow microphone access for ghardekhorenters.com in Chrome site settings, then retry. You can still type."
+    :e.error==="no-speech"?"No speech detected. Tap the microphone and try again."
+    :"Voice input unavailable. Please type your request.";
+  };
+  r.onend=()=>{mic?.classList.remove("listening");if(state.recognition===r)state.recognition=null};
+  r.start();
+ }catch(error){
+  mic?.classList.remove("listening");
+  if(status)status.textContent="Could not start the microphone. Check browser microphone permission or use text search.";
+ }
 }
 function mountFinder(){
  const sec=$("renterFindHomeSection"),form=$("renterFindHomeForm");if(!sec||!form||$("gdrxFinder"))return;
@@ -58,18 +81,28 @@ function mountFinder(){
 function mountMapVoice(){
  const panel=$("gdrExploreMapPanel"),toolbar=panel?.querySelector(".gdr-map-toolbar");if(!panel||!toolbar||$("gdrxMapVoice"))return;
  const w=document.createElement("div");w.id="gdrxMapVoice";w.className="gdrx-map-voice";
- w.innerHTML='<label for="gdrxMapPrompt">TALK TO GDR · MAP SEARCH</label><div><input id="gdrxMapPrompt" placeholder="2 BHK under ₹8,000 near Patel Nagar"><button type="button" id="gdrxMapMic">●</button><button type="button" id="gdrxMapGo">Search map</button></div><p id="gdrxMapStatus" role="status">Voice or text search uses the existing map and property inventory.</p>';
- toolbar.appendChild(w);$("gdrxMapGo").onclick=runMapSearch;$("gdrxMapMic").onclick=()=>startVoice("gdrxMapPrompt",state.lang);$("gdrxMapPrompt").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();runMapSearch()}}
+ w.innerHTML='<label for="gdrxMapPrompt">TALK TO GDR · MAP SEARCH</label><div><input id="gdrxMapPrompt" autocomplete="off" aria-label="Describe the home you want on the map" placeholder="2 BHK under ₹8,000 near Patel Nagar"><button type="button" id="gdrxMapMic" aria-label="Search by voice" title="Search by voice">🎙 Speak</button><button type="button" id="gdrxMapGo">Search map</button></div><p id="gdrxMapStatus" role="status" aria-live="polite">Type or speak your requirements. GDR will search real listings in the selected area.</p>';
+ toolbar.appendChild(w);
+ $("gdrxMapGo").onclick=runMapSearch;
+ $("gdrxMapMic").onclick=()=>startVoice("gdrxMapPrompt",state.lang);
+ $("gdrxMapPrompt").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();runMapSearch()}}
 }
 async function runMapSearch(){
- const p=parseRequest($("gdrxMapPrompt").value),api=window.GDRMapExperience;
- if(!p.location){$("gdrxMapStatus").textContent="Include a city, locality or PIN code to locate your map search.";return}
- if(!api){$("gdrxMapStatus").textContent="Map module is loading. Try again shortly.";return}
- try{$("gdrxMapGo").disabled=true;$("gdrxMapStatus").textContent="Locating "+p.location+" and searching real listings…";$("gdrMapPlaceSearch").value=p.location;
- await api.searchTypedMapLocation();if(api.setRenterRadius&&$("gdrMapRadius")?.value)api.setRenterRadius($("gdrMapRadius").value);
- if(api.applyRenterFilters)api.applyRenterFilters(p);
- $("gdrxMapStatus").textContent="Map updated with available listing filters."+(p.nearby?" Nearby "+p.nearby+" preference is noted but not distance-filtered because verified facility distances are not stored.":"");
- }catch(e){$("gdrxMapStatus").textContent=e.message||"Map search failed. Try another locality."}finally{$("gdrxMapGo").disabled=false}
+ const prompt=$("gdrxMapPrompt"),status=$("gdrxMapStatus"),go=$("gdrxMapGo");
+ if(!prompt||!status||!go)return;
+ const p=parseRequest(prompt.value),api=window.GDRMapExperience;
+ if(!p.location){status.textContent="Include a city, locality or PIN code (for example, Patel Nagar Bhopal) to locate your map search.";return}
+ if(!api||typeof api.searchTypedMapLocation!=="function"){status.textContent="The map is still loading. Close and reopen Explore Map, then try again.";return}
+ try{
+  go.disabled=true;status.textContent="Locating "+p.location+" and searching real GharDekho listings…";
+  const locationInput=$("gdrMapPlaceSearch");if(locationInput)locationInput.value=p.location;
+  if(p.radiusKm&&typeof api.setRenterRadius==="function")api.setRenterRadius(p.radiusKm,true);
+  const searchResult=await api.searchTypedMapLocation();
+  if(searchResult===false)throw new Error("We could not search that location. Check the locality name or try a nearby PIN code.");
+  if(api.applyRenterFilters)api.applyRenterFilters(p);
+  status.textContent="Map updated with matching GharDekho listings."+(p.nearby?" Nearby "+p.nearby+" preference is noted; distance matching is shown only where verified facility data exists.":"");
+ }catch(error){status.textContent=error.message||"Map search failed. Try another locality."}
+ finally{go.disabled=false}
 }
 function mountCompare(){
  if($("gdrxCompare"))return;const d=document.createElement("section");d.id="gdrxCompare";d.className="gdrx-compare";d.hidden=true;
