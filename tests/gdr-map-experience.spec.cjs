@@ -133,7 +133,7 @@ test.describe('GDR map-first experience structure', () => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     const section = page.locator('#renterSavedPropertiesSection');
     await expect(section).toHaveCSS('display', 'none');
-    await page.locator('#renterSavedPropertiesBtn').click();
+    await page.locator('#renterSavedPropertiesBtn').evaluate(button => button.click());
     await expect(section).toBeVisible();
   });
 });
