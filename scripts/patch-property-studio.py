@@ -174,12 +174,17 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio1" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio2" defer></script>'
+old_script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio1" defer></script>'
 if script_ref not in source:
-    body_pos = source.rfind("</body>")
-    if body_pos < 0:
-        raise SystemExit("Stopped safely: closing body tag missing.")
-    source = source[:body_pos] + script_ref + "\n" + source[body_pos:]
+    if old_script_ref in source:
+        source = source.replace(old_script_ref, script_ref, 1)
+        print("Updated: refresh Property Studio controller asset")
+    else:
+        body_pos = source.rfind("</body>")
+        if body_pos < 0:
+            raise SystemExit("Stopped safely: closing body tag missing.")
+        source = source[:body_pos] + script_ref + "\n" + source[body_pos:]
 
 enrichment = '''            // Enrich map/Nearby result rows with renter-safe Property Studio fields.
             if (property && (!Array.isArray(property.photo_urls) || !Object.prototype.hasOwnProperty.call(property, "nearby_places"))) {
