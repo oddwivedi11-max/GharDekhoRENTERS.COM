@@ -34,14 +34,15 @@ function extractIntent(raw){
  else if(/\b(furnished|fully furnished)\b|फर्निश्ड/i.test(s))p.furnishing="Furnished";
  if(/\b(pg|paying guest)\b/i.test(s))p.stayType="pg";
  else if(/\b(hostel)\b/i.test(s))p.stayType="hostel";
- else if(/\b(flat|apartment)\b/i.test(s))p.propertyType="flat";
- else if(/\b(independent house|villa|house)\b/i.test(s))p.propertyType="house";
+ else if(/\b(flat|apartment)\b/i.test(s))p.propertyType="apartment";
+ else if(/\b(independent house|house)\b/i.test(s))p.propertyType="independent_house";
+ else if(/\bvilla\b/i.test(s))p.propertyType="villa";
  const locationText=s
   .replace(/(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक)\s*₹?\s*[\d,]+/ig," ")
   .replace(/(?:above|more than|minimum|at least|से ज्यादा|से ऊपर)\s*₹?\s*[\d,]+/ig," ")
   .replace(/\b\d+\s*(?:bhk|bed\s?room|बीएचके)\b/ig," ")
   .replace(/\b(1|2|3|4|5)\s*(?:bhk|bedroom)\b/ig," ")
-  .replace(/\b(mujhe|please|show|find|search|available|rental|rent|property|properties|home|homes|house|houses|flat|flats|apartment|apartments|room|rooms|dikhao|dikhaiye|dikhana|chahiye|mein|me|mai|ke|ka|ki|par|near|in|at|all|saare|sare|jitne|bhi|ghar|makan|kiraye|wala|wale|wali|sirf|only|furnished|unfurnished|semi furnished|pg|hostel|under|within|budget)\b/ig," ")
+  .replace(/\b(mujhe|please|show|find|search|available|rental|rent|property|properties|home|homes|house|houses|flat|flats|apartment|apartments|room|rooms|dikhao|dikhaiye|dikhana|chahiye|mein|me|mai|ke|ka|ki|par|near|in|at|all|saare|sare|jitne|bhi|ghar|makan|kiraye|wala|wale|wali|sirf|only|furnished|unfurnished|semi furnished|pg|hostel|under|within|budget|hain|hai|ho|ke|ka|ki)\b/ig," ")
   .replace(/(मुझे|दिखाओ|दिखाइए|दिखाना|चाहिए|में|मे|के|का|की|पर|सारे|सारे|जितने|भी|घर|मकान|किराये|वाले|वाली|सिर्फ|उपलब्ध|दिखा दो|कितने)/g," ");
  const candidate=locationText.replace(/[₹,]/g," ").replace(/\s+/g," ").trim();
  const locationOnly=n.length>0&&candidate.length>1&&!/^(mere aas paas|near me|around me|my location)$/.test(normalize(candidate));
@@ -65,7 +66,7 @@ function startListening(){
  if(!window.isSecureContext){status("Microphone requires a secure HTTPS connection.","error");return;}
  if(state.recognition){try{state.recognition.stop();}catch(_){}state.recognition=null;}
  state.finalText="";state.interimText="";state.executed="";state.manualStop=false;transcript();
- const r=new Speech(),session=++state.session;state.recognition=r;r.lang=state.language;r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
+ const r=new Speech(),session=++state.session;state.recognition=r;state.active=true;setMic(true);r.lang=state.language;r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
  r.onstart=()=>{if(session!==state.session)return;setMic(true);status(text("सुन रहा हूँ… बोलिए, रुकने पर अपने आप search होगा।","Listening… speak naturally. Search starts automatically after you pause."),"listening");};
  r.onresult=e=>{
   if(session!==state.session)return;let interim="";
@@ -119,7 +120,7 @@ async function runTurn(raw){
 function mount(panel){
  if(!panel||state.root)return;
  const root=document.createElement("section");root.className="gdr-map-voice";root.id="gdrMapVoiceAssistant";
- root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">TALK TO GDR · MAP SEARCH</span><h3>Find homes with your voice</h3><p>Speak in Hindi, English or Hinglish. Pause to search automatically.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="Try: Mujhe Singrauli mein 7000 ke andar ghar dikhao…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start voice search" aria-pressed="false"><span aria-hidden="true">🎙</span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p>';
+ root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">TALK TO GDR · MAP SEARCH</span><h3>Find homes with your voice</h3><p>Speak in Hindi, English or Hinglish. Pause to search automatically.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="Try: Mujhe Singrauli mein 7000 ke andar ghar dikhao…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start voice search" aria-pressed="false"><span aria-hidden="true">🎙</span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p>';
  const heading=panel.querySelector(".gdr-map-header, .gdr-explore-map-header, header");
  if(heading&&heading.parentNode===panel)heading.insertAdjacentElement("afterend",root);else panel.insertBefore(root,panel.firstChild);
  state.root=root;
@@ -129,7 +130,7 @@ function mount(panel){
  $("gdrMapVoiceTranscript").addEventListener("keydown",e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();$("gdrMapVoiceSearch").click();}});
  $("gdrMapVoiceMute").addEventListener("click",e=>{state.muted=!state.muted;e.currentTarget.textContent=state.muted?"Unmute voice":"Mute voice";e.currentTarget.setAttribute("aria-pressed",String(state.muted));if(state.muted&&window.speechSynthesis)window.speechSynthesis.cancel();});
 }
-function destroy(){if(state.silenceTimer)clearTimeout(state.silenceTimer);if(state.recognition){try{state.recognition.stop();}catch(_){}}state.recognition=null;state.active=false;setMic(false);}
+function destroy(){state.session++;if(state.silenceTimer)clearTimeout(state.silenceTimer);if(state.recognition){try{state.recognition.stop();}catch(_){}}state.recognition=null;state.active=false;setMic(false);if(window.speechSynthesis)window.speechSynthesis.cancel();}
 window.addEventListener("pagehide",destroy);
 window.GDRMapVoiceAssistant={mount,destroy,runTurn,version:VERSION};
 })();
