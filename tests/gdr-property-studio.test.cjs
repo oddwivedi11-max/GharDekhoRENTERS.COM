@@ -50,7 +50,7 @@ test("Property Studio is a separate guided page with the required simple listing
   assert.match(html, /gdrPropertyStudioMount/);
   for (const token of [
     "gdrStudioStepTitle", "gdrStudioRent",
-    "gdrStudioDeposit", "gdrStudioLocation", "gdrStudioUseGps",
+    "gdrStudioDeposit", "gdrStudioFurnishing", "gdrStudioLocation", "gdrStudioUseGps",
     "gdrStudioOpenMap", "gdrStudioPhotoFiles", "gdrStudioCameraFiles",
     "gdrStudioVoiceStart", "gdrStudioPublish"
   ]) assert.ok(studioMarkup.includes(token), token);
@@ -68,6 +68,7 @@ test("Property Studio saves drafts, uploads owner-scoped photos and uses the sec
   assert.match(studio, /owner_publish_property_studio/);
   assert.match(studio, /p_submission_id/);
   assert.match(studio, /p_photo_urls/);
+  assert.match(studio, /p_furnishing:state\.furnishing\|\|null/);
   assert.match(studio, /SpeechRecognition/);
   assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
   assert.match(studio, /overpass-api\.de\/api\/interpreter/);
