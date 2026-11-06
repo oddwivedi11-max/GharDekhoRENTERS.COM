@@ -361,7 +361,6 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
   text-shadow:0 1px 5px rgba(0,0,0,.35)!important;
 }
 #ownerDashboard #gdrOwnerModuleHeader h2,
-#ownerDashboard #gdrOwnerModuleHeader h2# gdrOccModuleTitle,
 #ownerDashboard #gdrOwnerModuleHeader #gdrOccModuleTitle{
   color:#ffffff!important;
   -webkit-text-fill-color:#ffffff!important;
