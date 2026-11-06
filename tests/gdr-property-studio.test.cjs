@@ -99,5 +99,6 @@ test("local property placeholder and responsive Studio styles are present", () =
   assert.match(studioCss, /@media\(max-width:760px\)/);
   assert.match(studioCss, /gdr-studio-photo-remove/);
   assert.match(studioCss, /gdr-property-nearby-public/);
+  assert.match(studioCss, /gdr-moveout-notice/);
   assert.match(patcher, /gdrListPropertyHero/);
 });
