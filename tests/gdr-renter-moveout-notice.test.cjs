@@ -32,7 +32,7 @@ test("move-out notice does not release a tenancy and automatically syncs verifie
 
 test("owner still has an explicit action to confirm and release a renter", () => {
   assert.match(owner, /release_property_occupancy/);
-  assert.match(owner, /Mark this renter as moved out/);
+  assert.match(owner, /Release this renter and mark the property available again/);
 });
 
 test("soon_available is presented as Vacating Soon in the owner portal", () => {
