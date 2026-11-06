@@ -179,7 +179,7 @@ async function runMapSearch(rawOverride){
    if(typeof api.searchAtCoordinates!=="function")throw new Error("The map location service is not available for GPS search.");
    const result=await api.searchAtCoordinates(located.coords.latitude,located.coords.longitude,"My location");if(result===false)throw new Error("Could not search around your current location.");
   }else{
-   const result=await api.searchTypedMapLocation();if(result===false)throw new Error("We could not search that location. Check the locality name or try a nearby PIN code.");
+   const searchResult=await api.searchTypedMapLocation();if(searchResult===false)throw new Error("We could not search that location. Check the locality name or try a nearby PIN code.");
    if(typeof api.applyRenterFilters==="function")api.applyRenterFilters(p);
   }
   const rows=api.getRenterVisibleProperties?api.getRenterVisibleProperties():[],message=assistantReply(language,rows.length,p.location,"");
