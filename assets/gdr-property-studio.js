@@ -161,8 +161,8 @@ async function searchAddress(query){
   const data=await res.json();
   const features=(Array.isArray(data.features)?data.features:[]).filter(f=>f&&f.geometry&&Array.isArray(f.geometry.coordinates)&&Number.isFinite(Number(f.geometry.coordinates[0]))&&Number.isFinite(Number(f.geometry.coordinates[1])));
   const india=features.filter(f=>String(f.properties&&f.properties.countrycode||"").toLowerCase()==="in");
-  showSuggestions(india.length?india:features);
-  if(status)status.textContent=(india.length||features.length)?"Choose the correct locality from the suggestions.":"No matching address found. Try adding the city or PIN code.";
+   showSuggestions(india);
+   if(status)status.textContent=india.length?"Choose the correct Indian locality from the suggestions.":"No matching Indian address found. Try adding the city or PIN code.";
  }catch(e){
   if(e.name==="AbortError")return;
   if(status)status.textContent="Address suggestions are unavailable. You can still use GPS or the map pin.";
@@ -490,10 +490,13 @@ function renderPreview(){
   ["Location",address||"—"],
   ["Availability","Pending verification after submission"]
  ];
- box.innerHTML=
-  '<div class="gdr-studio-preview-card"><img src="'+escapeHtml(cover)+'" alt="Property cover photo"><div class="gdr-studio-preview-copy"><span class="gdr-studio-preview-kicker">RENTER VIEW PREVIEW</span><h3>'+escapeHtml(title)+'</h3><strong class="gdr-studio-preview-rent">'+escapeHtml(formatINR(rent))+' <small>/ month</small></strong><div class="gdr-studio-preview-meta">'+details.map(d=>'<div><small>'+escapeHtml(d[0])+'</small><b>'+escapeHtml(d[1])+'</b></div>').join("")+'</div><p>'+escapeHtml(state.description||"No additional description.")+'</p></div></div>'+
-  (photos.length>1?'<div class="gdr-studio-preview-strip">'+photos.map(p=>'<img src="'+escapeHtml(p)+'" alt="Property photo preview">').join("")+'</div>':"")+
-  '<div class="gdr-studio-preview-nearby"><strong>Nearby places</strong><p>'+(state.nearbyPlaces.length?state.nearbyPlaces.length+" genuine Google Places results will be shown to renters.":"Nearby Places is awaiting Google Places API configuration.")+'</p></div>';
+  const nearbyHtml=state.nearbyPlaces.length
+   ?'<div class="gdr-studio-preview-nearby-list">'+state.nearbyPlaces.slice(0,8).map(place=>'<div><span><b>'+escapeHtml(place.name||"Nearby place")+'</b><small>'+escapeHtml(place.category||"Public place")+'</small></span><strong>'+escapeHtml(distanceLabel(place.distance_m))+'</strong></div>').join("")+'</div>'
+   :'<p>Nearby Places is awaiting Google Places API configuration.</p>';
+  box.innerHTML=
+   '<div class="gdr-studio-preview-card"><img src="'+escapeHtml(cover)+'" alt="Property cover photo"><div class="gdr-studio-preview-copy"><span class="gdr-studio-preview-kicker">RENTER VIEW PREVIEW</span><h3>'+escapeHtml(title)+'</h3><strong class="gdr-studio-preview-rent">'+escapeHtml(formatINR(rent))+' <small>/ month</small></strong><div class="gdr-studio-preview-meta">'+details.map(d=>'<div><small>'+escapeHtml(d[0])+'</small><b>'+escapeHtml(d[1])+'</b></div>').join("")+'</div><p>'+escapeHtml(state.description||"No additional description.")+'</p></div></div>'+
+   (photos.length>1?'<div class="gdr-studio-preview-strip">'+photos.map(p=>'<img src="'+escapeHtml(p)+'" alt="Property photo preview">').join("")+'</div>':"")+
+   '<div class="gdr-studio-preview-nearby"><strong>Nearby places</strong>'+nearbyHtml+'</div>';
 }
 function updateStep(){
  const root=studio();if(!root)return;
