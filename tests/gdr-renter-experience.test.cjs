@@ -6,6 +6,7 @@ const js = fs.readFileSync('assets/gdr-renter-experience.js', 'utf8');
 const map = fs.readFileSync('assets/gdr-map-experience.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
+const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
 const start = js.indexOf('function parseRequest(raw){');
 const end = js.indexOf('\nfunction setValue', start);
 assert.ok(start >= 0 && end > start, 'local parser is present');
@@ -111,4 +112,26 @@ test('map results exclude occupied inventory and deduplicate property ids', () =
 test('map GPS action centers the map before searching the selected viewport', () => {
   assert.match(map, /async function searchAtCoordinates\(lat,lng,label\)/);
   assert.match(map, /searchAtCoordinates,usePreciseOwnerLocation/);
+});
+
+test('renter dashboard keeps Explore Map and Explore Nearby as separate actions', () => {
+  assert.match(index, /id="renterExploreMapBtn"/);
+  assert.match(index, /id="renterLiveNearbyBtn"/);
+  assert.match(index, /<strong>Explore Nearby<\/strong>/);
+  assert.match(js, /mapBtn\.addEventListener\("click"/);
+  assert.match(index, /action\.addEventListener\("click",event=>\{/);
+  assert.match(index, /function showPanel\(\)/);
+});
+test('renter dashboard keeps the Find a Home shortcut and working payment destination', () => {
+  assert.match(index, /id="renterFindHomeBtn"/);
+  assert.match(js, /fbtn\.addEventListener\("click",openFind\)/);
+  assert.match(rentalSuite, /id="gdrRenterPaymentsAction"/);
+  assert.match(rentalSuite, /openRenter\("payments"\)/);
+});
+test('renter dashboard final visual overrides provide readable hero and premium pastel actions', () => {
+  assert.match(index, /gdr-renter-dashboard-visual-fix-v4/);
+  assert.match(index, /renter-welcome-copy h3\{[\s\S]*?color:#fff!important/);
+  assert.match(index, /#gdrRenterPaymentsAction\{[\s\S]*?background:linear-gradient\(135deg,#e5f5ff/);
+  assert.match(index, /#gdrxSupport\{[\s\S]*?background:linear-gradient\(145deg,#f2fbf6/);
+  assert.match(js, /We’re here to help with your rental journey/);
 });
