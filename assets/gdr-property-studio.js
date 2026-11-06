@@ -8,7 +8,7 @@ const state={
   rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
   files:[],coverIndex:0,uploadedPhotos:[],uploadedPaths:[],nearbyPlaces:[],
-  submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null,voice:{active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,turnText:"",finalText:"",interimText:"",pending:{},awaitingConfirmation:false,lastReply:"",lastQuestion:"",lastField:"",muted:false,language:"hi",session:0,permissionBlocked:false,skippedDeposit:false}
+  submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null,voice:{active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,turnText:"",finalText:"",interimText:"",pending:{},awaitingConfirmation:false,lastReply:"",lastQuestion:"",lastField:"",muted:false,language:"hi",session:0,permissionBlocked:false,skippedDeposit:false,skippedFood:false}
 };
 const typeLabels={
  apartment:"Apartment / Flat",independent_house:"Independent House",villa:"Villa",
@@ -688,6 +688,11 @@ function nextVoiceQuestion(){
  else if(!state.rent){field="rent";question=voiceText("Monthly rent कितना रखना चाहेंगे?","What monthly rent would you like to set?");}
  else if(!state.deposit&&!state.voice.skippedDeposit){field="deposit";question=voiceText("Security deposit कितना है? अगर अभी तय नहीं है तो skip बोल सकते हैं।","What is the security deposit? Say skip if you have not decided yet.");}
  else if(!state.furnishing){field="furnishing";question=voiceText("Property furnished, semi-furnished या unfurnished है?","Is the property furnished, semi-furnished or unfurnished?");}
+ else if(["pg","hostel"].includes(state.propertyType)&&!state.roomType){field="roomType";question=voiceText("Room type क्या है—single, double sharing, triple sharing या shared?","What is the room type: single, double sharing, triple sharing or shared?");}
+ else if(["pg","hostel"].includes(state.propertyType)&&!state.gender){field="gender";question=voiceText("यह PG किसके लिए है—male, female या anyone?","Who can stay: male, female or anyone?");}
+ else if(["pg","hostel"].includes(state.propertyType)&&!state.totalBeds){field="totalBeds";question=voiceText("कुल कितने beds हैं?","How many beds are there in total?");}
+ else if(["pg","hostel"].includes(state.propertyType)&&!state.availableBeds){field="availableBeds";question=voiceText("अभी कितने beds available हैं?","How many beds are currently available?");}
+ else if(["pg","hostel"].includes(state.propertyType)&&!state.foodIncluded&&!state.voice.skippedFood){field="foodIncluded";question=voiceText("क्या meals included हैं? हाँ या नहीं बोलें, या skip कर सकते हैं।","Are meals included? Say yes or no, or say skip.");}
  else{field="complete";question=voiceText("बहुत बढ़िया! ज़रूरी details पूरी हो गई हैं। अब photos और बाकी details जोड़कर preview में सब check करें।","Great! The key details are complete. Add photos and the remaining details, then review the preview.");}
  state.voice.lastField=field;state.voice.lastQuestion=question;speakVoice(question);
 }
@@ -695,13 +700,16 @@ function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sa
 function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)(?:[\s,.!?]|$)/i.test(String(text||"").trim());}
 function processVoiceTurn(text){
  const raw=String(text||"").trim();if(!raw)return;state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
+ if(/\b(start again|restart|dobara shuru)\b|फिर से शुरू/.test(lower)){state.voice.finalText="";state.voice.turnText="";state.voice.interimText="";state.voice.pending={};state.voice.awaitingConfirmation=false;updateVoiceTranscript();renderVoicePending();speakVoice(voiceText("ठीक है, नई शुरुआत करते हैं। अपनी property के बारे में बताइए।","Let's start again. Tell me about your property."));return;}
+ if(/\b(go back|back one step|peeche jao)\b|पीछे जाओ/.test(lower)){goToStep(state.step-1);speakVoice(voiceText("ठीक है, पिछले step पर आ गए हैं।","Okay, I've moved to the previous step."));return;}
+ if(/\b(continue listing|next step|aage chalo)\b|आगे चलो/.test(lower)){goToStep(state.step+1);speakVoice(voiceText("ठीक है, listing के अगले step पर चलते हैं।","Okay, moving to the next listing step."));return;}
  if(/\b(stop listening|stop microphone|band karo|mic band)\b|रोक दो|बंद करो/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Okay, I stopped listening. Press Start speaking when you want to continue."));return;}
  if(/\b(repeat|say again|dobara bolo|phir se bolo|फिर से बोलो|दोहराओ)\b/.test(lower)){speakVoice(state.voice.lastQuestion||state.voice.lastReply);return;}
  if(/\b(show details|details dikhao|meri details|सब दिखाओ|जानकारी दिखाओ)\b/.test(lower)){const keys=["propertyType","configuration","address","rent","deposit","furnishing"];const summary=keys.map(k=>currentVoiceValue(k)?voiceFieldLabel(k)+": "+voiceFieldValue(k,currentVoiceValue(k)):"").filter(Boolean).join(". ");speakVoice(summary||voiceText("अभी कोई detail confirm नहीं हुई है।","No details have been confirmed yet."));return;}
  if(/\b(submit|publish|list my property|property submit|publish my property)\b/.test(lower)||/सबमिट|पब्लिश/.test(lower)){speakVoice(voiceText("मैं आपकी property अपने आप publish नहीं करूँगा। Preview में details check करके Publish My Property दबाएँ।","I won't publish automatically. Review the preview and press Publish My Property yourself."));return;}
  if(state.voice.awaitingConfirmation&&isVoiceYes(raw)){applyVoicePending();speakVoice(voiceText("ठीक है, ये details form में confirm कर दी हैं।","Confirmed. I have added these details to the form."),nextVoiceQuestion);return;}
  if(state.voice.awaitingConfirmation&&isVoiceNo(raw)){state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();speakVoice(voiceText("कोई बात नहीं। सही detail बोलिए, मैं उसे दोबारा check करूँगा।","No problem. Tell me the correct detail and I'll check it again."));return;}
- if(/\b(skip|chhodo)\b|छोड़ो|स्किप/.test(lower)){if(state.voice.lastField==="deposit"){state.voice.skippedDeposit=true;nextVoiceQuestion();return;}speakVoice(voiceText("ठीक है, इस optional detail को बाद में भर सकते हैं।","Okay, you can fill this optional detail later."));return;}
+ if(/\b(skip|chhodo)\b|छोड़ो|स्किप/.test(lower)){if(state.voice.lastField==="deposit"){state.voice.skippedDeposit=true;nextVoiceQuestion();return;}if(state.voice.lastField==="foodIncluded"){state.voice.skippedFood=true;nextVoiceQuestion();return;}speakVoice(voiceText("ठीक है, इस optional detail को बाद में भर सकते हैं।","Okay, you can fill this optional detail later."));return;}
  const extracted=extractVoiceDetails(raw);
  if(!Object.keys(extracted).length){speakVoice(voiceText("मैं आपकी बात पूरी तरह नहीं समझ पाया। कृपया property type, location या rent जैसी detail फिर से बताइए।","I couldn't identify a property detail. Please repeat the property type, location or rent."));return;}
  state.voice.pending={...state.voice.pending,...extracted};state.voice.awaitingConfirmation=true;renderVoicePending();
