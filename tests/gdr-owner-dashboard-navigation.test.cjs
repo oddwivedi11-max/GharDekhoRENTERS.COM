@@ -43,7 +43,7 @@ test("owner Nearby Properties has one launch card, not a second command-centre s
 test("stylesheet loader replaces an existing unversioned command-centre stylesheet",()=>{
  assert.match(controller,/querySelector\('link\[rel="stylesheet"\]\[href\*="gdr-owner-command-center\.css"\]'\)/);
  assert.match(controller,/if\(link\.getAttribute\("href"\)!==href\)link\.setAttribute\("href",href\)/);
- assert.match(controller,/gdr-owner-command-center\.css\?v=20261107-workspace6/);
+ assert.match(controller,/gdr-owner-command-center\.css\?v=20261107-workspace7/);
 });
 test("workspace heading uses the requested high-contrast premium palette",()=>{
  assert.match(styles,/#e8d18a/);
