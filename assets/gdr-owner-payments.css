@@ -131,3 +131,39 @@ body.gdr-pay-lock>header,body.gdr-pay-lock>.site-header,body.gdr-pay-lock>#siteH
 @media(max-width:600px){
   #gdrPaymentsPage .gdr-pay-header--minimal{margin-bottom:12px!important}
 }
+
+/* Payments workspace is a standalone overlay: never allow the underlying
+   site/owner brand badge to sit above or collide with its navigation. */
+#gdrPaymentsPage{
+  z-index:2147483000!important;
+  isolation:isolate!important;
+}
+body.gdr-pay-lock>header,
+body.gdr-pay-lock>#ownerDashboard,
+body.gdr-pay-lock>.gdr-header-brand,
+body.gdr-pay-lock .gdr-home-brandbar,
+body.gdr-pay-lock .gd-auth-brand-lock,
+body.gdr-pay-lock .gdr-owner-space-brand,
+body.gdr-pay-lock .gdr-occ-brand,
+body.gdr-pay-lock [data-gdr-owner-brand]{
+  visibility:hidden!important;
+  pointer-events:none!important;
+}
+#gdrPaymentsPage .gdr-pay-header--minimal{
+  display:flex!important;
+  min-height:54px!important;
+  margin:0 0 24px!important;
+  padding:0!important;
+  align-items:center!important;
+  justify-content:flex-end!important;
+  border:0!important;
+  background:transparent!important;
+  box-shadow:none!important;
+}
+#gdrPaymentsPage .gdr-pay-header--minimal:before,
+#gdrPaymentsPage .gdr-pay-header--minimal:after{display:none!important;content:none!important}
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{
+  position:relative!important;
+  z-index:2!important;
+  margin:0!important;
+}
