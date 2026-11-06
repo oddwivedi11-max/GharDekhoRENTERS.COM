@@ -548,16 +548,12 @@ for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
 # Ensure browsers fetch the repaired command-centre controller on this deploy.
 import re
 source, controller_refs = re.subn(
-    r'((?:src|href)="(/assets/gdr-owner-command-center-hotfix\.js)\?v=)[^"]+(")',
-    r'\g<1>20261107-workspace7\g<3>',
+    r"""((?:src|href)=["'](/assets/gdr-owner-command-center-hotfix\.js)(?:\?v=)?)[^"']*(["'])""",
+    r'\g<1>?v=20261107-workspace7\g<3>',
     source
 )
 if controller_refs == 0 and 'gdr-owner-command-center-hotfix.js' in source and '/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7' not in source:
-    source = source.replace(
-        'src="/assets/gdr-owner-command-center-hotfix.js"',
-        'src="/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7"',
-        1
-    )
+    raise SystemExit("Stopped safely: could not safely update the owner command-centre controller reference.")
 
 path.write_text(source, encoding="utf-8")
 print("Updated index.html successfully.")
