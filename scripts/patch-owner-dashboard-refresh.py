@@ -520,7 +520,7 @@ for asset in (
         elif f'/assets/{asset}?v=20261107-workspace4' not in source:
             # These finance assets use their own independent cache version.
             import re
-            if not re.search(r'/assets/' + re.escape(asset) + r'\\?v=[^"\\']+', source):
+            if f'/assets/{asset}?v=' not in source:
                 raise SystemExit("Stopped safely: could not version owner asset " + asset)
 
 # Invalidate cached finance assets after removing the overlapping title strip.
