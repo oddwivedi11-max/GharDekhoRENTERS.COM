@@ -162,3 +162,107 @@
  #gdrxMapGo{height:44px;padding:0 12px}
 }
 @media(prefers-reduced-motion:reduce){#gdrxMapMic.listening,#gdrxMapMic.listening:before{animation:none!important}.gdrx-map-voice button{transition:none}}
+
+
+/* 2026-11-07: Premium renter dashboard — distinct 3D navigation cards */
+#renterDashboard.gdrx-premium .renter-dashboard-actions{gap:18px;align-items:stretch}
+#renterDashboard.gdrx-premium .renter-dashboard-action{
+  min-height:124px;padding:19px 18px;border:1px solid transparent;border-radius:21px;
+  box-shadow:0 7px 0 var(--gdr-card-edge),0 15px 28px var(--gdr-card-shadow),inset 0 1px 0 rgba(255,255,255,.72);
+  transform:translateY(0);transition:transform .24s cubic-bezier(.2,.75,.25,1),box-shadow .24s ease,filter .24s ease;
+  isolation:isolate;position:relative;overflow:hidden
+}
+#renterDashboard.gdrx-premium .renter-dashboard-action::before{
+  content:"";position:absolute;inset:0 auto 0 0;width:5px;background:var(--gdr-card-accent);opacity:.95;z-index:-1
+}
+#renterDashboard.gdrx-premium .renter-dashboard-action::after{
+  content:"";position:absolute;top:-52px;right:-42px;width:150px;height:150px;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.19),rgba(255,255,255,0) 70%);pointer-events:none;z-index:-1
+}
+#renterDashboard.gdrx-premium .renter-dashboard-action:hover{
+  transform:translateY(-5px);box-shadow:0 11px 0 var(--gdr-card-edge),0 23px 38px var(--gdr-card-shadow),inset 0 1px 0 rgba(255,255,255,.78);filter:saturate(1.04)
+}
+#renterDashboard.gdrx-premium .renter-dashboard-action:active{
+  transform:translateY(2px);box-shadow:0 3px 0 var(--gdr-card-edge),0 8px 16px var(--gdr-card-shadow)
+}
+#renterDashboard.gdrx-premium .renter-dashboard-action:focus-visible{outline:3px solid #b99a5e;outline-offset:4px}
+#renterDashboard.gdrx-premium .renter-dashboard-action>span:nth-child(2){gap:6px}
+#renterDashboard.gdrx-premium .renter-dashboard-action strong{font-size:15px;font-weight:850;letter-spacing:-.015em;line-height:1.25}
+#renterDashboard.gdrx-premium .renter-dashboard-action small{font-size:12px;font-weight:600;line-height:1.45;max-width:29ch}
+#renterDashboard.gdrx-premium .renter-action-icon{
+  width:49px;height:49px;flex-basis:49px;border-radius:16px;font-size:22px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.9),0 7px 14px rgba(16,38,31,.13),0 2px 0 rgba(0,0,0,.06)
+}
+#renterDashboard.gdrx-premium .renter-action-arrow{font-size:23px;font-weight:800;transition:transform .22s ease,color .22s ease}
+#renterDashboard.gdrx-premium .renter-dashboard-action:hover .renter-action-arrow{transform:translateX(4px)}
+/* Explore Map — deep emerald / teal */
+#renterDashboard.gdrx-premium #renterExploreMapBtn{
+  --gdr-card-edge:#082c26;--gdr-card-shadow:rgba(8,48,39,.25);--gdr-card-accent:#8de0c0;
+  background:linear-gradient(138deg,#176354 0%,#10483f 58%,#0a342e 100%);border-color:#347d6b;color:#f4fff9
+}
+#renterDashboard.gdrx-premium #renterExploreMapBtn strong,
+#renterDashboard.gdrx-premium #renterExploreMapBtn small,
+#renterDashboard.gdrx-premium #renterExploreMapBtn .renter-action-arrow{color:#f4fff9}
+#renterDashboard.gdrx-premium #renterExploreMapBtn .renter-action-icon{background:linear-gradient(145deg,#e6fff4,#a9e5d0);color:#125344}
+/* Live Nearby — luminous turquoise / cyan */
+#renterDashboard.gdrx-premium #renterLiveNearbyBtn{
+  --gdr-card-edge:#075c59;--gdr-card-shadow:rgba(0,111,112,.22);--gdr-card-accent:#a8fff0;
+  background:linear-gradient(140deg,#087f7a 0%,#076a70 55%,#084d5c 100%);border-color:#39aaa1;color:#f2fffd
+}
+#renterDashboard.gdrx-premium #renterLiveNearbyBtn strong,
+#renterDashboard.gdrx-premium #renterLiveNearbyBtn small,
+#renterDashboard.gdrx-premium #renterLiveNearbyBtn .renter-action-arrow{color:#f2fffd}
+#renterDashboard.gdrx-premium #renterLiveNearbyBtn .renter-action-icon{background:linear-gradient(145deg,#e5fffb,#a7eee5);color:#08716e}
+/* Find a Home — champagne / golden cream */
+#renterDashboard.gdrx-premium #renterFindHomeBtn{
+  --gdr-card-edge:#c9ae72;--gdr-card-shadow:rgba(122,93,42,.15);--gdr-card-accent:#c59b4e;
+  background:linear-gradient(140deg,#fffdf6 0%,#f8f0dc 58%,#efe1c1 100%);border-color:#e4d3ad;color:#26372e
+}
+#renterDashboard.gdrx-premium #renterFindHomeBtn strong{color:#26372e}
+#renterDashboard.gdrx-premium #renterFindHomeBtn small{color:#5d6257}
+#renterDashboard.gdrx-premium #renterFindHomeBtn .renter-action-arrow{color:#8a682f}
+#renterDashboard.gdrx-premium #renterFindHomeBtn .renter-action-icon{background:linear-gradient(145deg,#fff9e9,#e9d4a4);color:#765820}
+/* Saved Properties — ruby / coral red */
+#renterDashboard.gdrx-premium #renterSavedPropertiesBtn{
+  --gdr-card-edge:#dca4a5;--gdr-card-shadow:rgba(145,46,54,.14);--gdr-card-accent:#c83d4a;
+  background:linear-gradient(140deg,#fff9f8 0%,#ffeded 60%,#f9dede 100%);border-color:#f0c7c7;color:#482b30
+}
+#renterDashboard.gdrx-premium #renterSavedPropertiesBtn strong{color:#542a32}
+#renterDashboard.gdrx-premium #renterSavedPropertiesBtn small{color:#79565a}
+#renterDashboard.gdrx-premium #renterSavedPropertiesBtn .renter-action-arrow{color:#b52f40}
+#renterDashboard.gdrx-premium #renterSavedPropertiesBtn .renter-action-icon{background:linear-gradient(145deg,#fff7f6,#f4c6ca);color:#b52e40}
+/* My Home — lavender / royal purple */
+#renterDashboard.gdrx-premium #gdrRenterHomeAction{
+  --gdr-card-edge:#b9b3df;--gdr-card-shadow:rgba(82,67,145,.15);--gdr-card-accent:#7764c6;
+  background:linear-gradient(140deg,#fbfaff 0%,#f0edff 58%,#e4defb 100%);border-color:#d5cef4;color:#332d57
+}
+#renterDashboard.gdrx-premium #gdrRenterHomeAction strong{color:#342c60}
+#renterDashboard.gdrx-premium #gdrRenterHomeAction small{color:#645d83}
+#renterDashboard.gdrx-premium #gdrRenterHomeAction .renter-action-arrow{color:#6551b3}
+#renterDashboard.gdrx-premium #gdrRenterHomeAction .renter-action-icon{background:linear-gradient(145deg,#fff,#d9d0ff);color:#5c4db0}
+/* My Payments — royal blue / deep navy */
+#renterDashboard.gdrx-premium #gdrRenterPaymentsAction{
+  --gdr-card-edge:#123e91;--gdr-card-shadow:rgba(20,64,145,.23);--gdr-card-accent:#9dc8ff;
+  background:linear-gradient(140deg,#2868c5 0%,#174b9c 55%,#102f69 100%);border-color:#4b83d0;color:#f7fbff
+}
+#renterDashboard.gdrx-premium #gdrRenterPaymentsAction strong,
+#renterDashboard.gdrx-premium #gdrRenterPaymentsAction small,
+#renterDashboard.gdrx-premium #gdrRenterPaymentsAction .renter-action-arrow{color:#f7fbff}
+#renterDashboard.gdrx-premium #gdrRenterPaymentsAction .renter-action-icon{background:linear-gradient(145deg,#f2f8ff,#b9d6ff);color:#174a99}
+/* Welcome-card contrast hardening: avoid inherited dark text on forest green. */
+#renterDashboard.gdrx-premium .renter-welcome-card{background:radial-gradient(circle at 92% 12%,rgba(207,179,119,.22),transparent 17rem),linear-gradient(135deg,#123d35,#092b25);color:#fff}
+#renterDashboard.gdrx-premium .renter-welcome-copy h3{color:#fff!important;font-weight:850;line-height:1.08}
+#renterDashboard.gdrx-premium .renter-welcome-copy p{color:#e0eee7!important;font-weight:550}
+#renterDashboard.gdrx-premium .dashboard-section-kicker{color:#f0dcae!important;font-weight:900}
+#renterDashboard.gdrx-premium .renter-edit-profile-compact{color:#153d35!important;background:linear-gradient(145deg,#fffdf6,#f0e5ca);font-weight:850}
+@media(max-width:620px){
+ #renterDashboard.gdrx-premium .renter-dashboard-actions{grid-template-columns:1fr;gap:13px}
+ #renterDashboard.gdrx-premium .renter-dashboard-action{min-height:96px;padding:15px 14px}
+ #renterDashboard.gdrx-premium .renter-dashboard-action strong{font-size:15px}
+ #renterDashboard.gdrx-premium .renter-dashboard-action small{font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ #renterDashboard.gdrx-premium .renter-dashboard-action,
+ #renterDashboard.gdrx-premium .renter-action-arrow{transition:none}
+ #renterDashboard.gdrx-premium .renter-dashboard-action:hover{transform:none}
+}
