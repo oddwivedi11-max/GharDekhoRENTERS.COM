@@ -316,6 +316,13 @@
     if(!skipSearch&&state.renterMap&&state.searchCenter)return searchRenterArea();
     return Promise.resolve(state.visible.slice());
   }
+  async function searchAtCoordinates(lat,lng,label){
+    if(!validPoint(lat,lng)||!state.renterMap)throw new Error("A valid map location is required.");
+    setRenterPin({lat:Number(lat),lng:Number(lng)},label||"Selected location");
+    state.renterMap.flyTo([Number(lat),Number(lng)],15,{duration:.65});
+    await new Promise(resolve=>state.renterMap.once("moveend",resolve));
+    return searchRenterArea();
+  }
   function locateRenter(){
     if(!navigator.geolocation){setStatus("This browser does not support location. Search for a city or locality instead.");searchRenterArea();return;}
     setStatus("Requesting your location permission…");
@@ -631,5 +638,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice()};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice()};
 })();
