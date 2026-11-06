@@ -41,7 +41,9 @@ test("the renter List a Property action uses explicit owner role enablement", ()
 
 test("ordinary Owner login does not silently grant Owner access to a renter-only account", () => {
   assert.match(html, /Never create Owner access during an ordinary login/);
-  assert.match(html, /This account is not registered as an Owner/);
+  assert.match(html, /if \(!roles\.includes\("owner"\)\)/);
+  assert.match(html, /activeRole = "renter"/);
+  assert.match(html, /localStorage\.setItem\("gd_preferred_role", "renter"\)/);
 });
 
 test("role persistence preserves the existing role when enabling the second mode", () => {
