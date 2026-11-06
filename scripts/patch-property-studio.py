@@ -140,7 +140,7 @@ replace_once(
 )
 replace_once(
     '<link rel="stylesheet" href="/assets/gdr-rental-suite.css">',
-    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout1">',
+    '<link rel="stylesheet" href="/assets/gdr-rental-suite.css?v=20261107-moveout2">',
     "cache-bust renter move-out notice styles"
 )
 source = source.replace("● Soon available", "● Vacating Soon")
