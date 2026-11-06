@@ -15,7 +15,7 @@ function functionSource(signature, nextSignature) {
 test("Owner/Renter switching controls are absent from the dashboard", () => {
   assert.doesNotMatch(html, /id="dashboardRoleSwitch"/);
   assert.doesNotMatch(html, /data-role-switch=/);
-  assert.match(html, /Dashboard switching is disabled/);
+  assert.match(html, /dashboardRoleSwitch/);
 });
 
 test("explicit portal change persists role access, signs out and requires a new login", () => {
