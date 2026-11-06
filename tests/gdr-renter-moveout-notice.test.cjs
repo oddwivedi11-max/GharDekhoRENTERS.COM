@@ -37,5 +37,6 @@ test("owner still has an explicit action to confirm and release a renter", () =>
 
 test("soon_available is presented as Vacating Soon in the owner portal", () => {
   assert.match(patcher, /Vacating Soon/);
-  assert.match(patcher, /soon_available/);
+  assert.match(patcher, /Soon Available/);
+  assert.match(patcher, /source\.replace\("● Soon Available", "● Vacating Soon"\)/);
 });
