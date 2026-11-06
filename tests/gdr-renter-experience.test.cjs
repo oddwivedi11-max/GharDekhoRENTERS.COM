@@ -35,8 +35,8 @@ test('map API exports a real radius setter so initialization cannot fail', () =>
   assert.match(map, /setRenterRadius,getRenterVisibleProperties/);
 });
 test('map voice uses its own microphone and status elements', () => {
-  assert.match(js, /const micId=mapMode\?"gdrxMapMic":"gdrxMic"/);
-  assert.match(js, /const statusId=mapMode\?"gdrxMapStatus":"gdrxStatus"/);
+  assert.match(js, /micId=mapMode\?"gdrxMapMic":"gdrxMic"/);
+  assert.match(js, /statusId=mapMode\?"gdrxMapStatus":"gdrxStatus"/);
   assert.match(js, /function runMapSearch\(\)/);
   assert.match(js, /const searchResult=await api\.searchTypedMapLocation\(\)/);
 });
