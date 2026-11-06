@@ -45,6 +45,7 @@ jobs:
           PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py
           node --check assets/gdr-property-studio.js
           node --check assets/gdr-rental-suite.js
+          node --check assets/gdr-rental-suite-v2.js
           node --test tests/gdr-property-studio.test.cjs
           node --test tests/gdr-renter-moveout-notice.test.cjs
           node --test tests/gdr-role-portal-switch.spec.cjs
@@ -122,8 +123,8 @@ jobs:
           grep -q 'List Your Property' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.js?v=20261107-studio1' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261107-studio1' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite.js?v=20261107-moveout3' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite.css?v=20261107-moveout3' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.js?v=20261107-moveout-v2' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.css?v=20261107-moveout-v2' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-studio1" -o /tmp/gdr-property-studio.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
@@ -132,8 +133,10 @@ jobs:
           grep -q 'gdr-studio-topbar' /tmp/gdr-property-studio.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.html?v=20261107-studio1" -o /tmp/gdr-property-studio.html
           grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite.js?v=20261107-moveout3" -o /tmp/gdr-rental-suite.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261107-moveout-v2" -o /tmp/gdr-rental-suite.js
           grep -q 'renter_submit_move_out_notice' /tmp/gdr-rental-suite.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.css?v=20261107-moveout-v2" -o /tmp/gdr-rental-suite-v2.css
+          grep -q 'gdr-moveout-notice' /tmp/gdr-rental-suite-v2.css
           # The payment module has its own independently versioned dynamic stylesheet;
           # the payment JS and the new Property Studio assets are verified above.
           echo "Cloudflare worker, map, owner dashboard, renter profile, payments and responsive styles are responding."
