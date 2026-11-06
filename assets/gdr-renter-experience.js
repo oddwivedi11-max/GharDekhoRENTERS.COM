@@ -9,17 +9,50 @@ function openFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");i
 function closeFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(f){f.hidden=true;f.style.display="none"}document.body.classList.remove("gd-renter-explore-mode");if(d){d.style.display="block";d.scrollIntoView({behavior:"smooth",block:"start"})}}
 function addSupport(){const root=$("renterDashboard"),actions=root?.querySelector(".renter-dashboard-actions");if(!root||!actions||$("gdrxSupport"))return;const b=document.createElement("button");b.type="button";b.id="gdrxSupport";b.className="renter-dashboard-action gdrx-support";b.innerHTML='<span class="renter-action-icon">✉</span><span><strong>Support</strong><small>Get help with your account or rental</small></span><span class="renter-action-arrow">↗</span>';b.onclick=()=>location.href="/contact.html";actions.appendChild(b)}
 function parseRequest(raw){
- const n=String(raw||"").toLowerCase(),p={raw:String(raw||""),location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:""};
- const b=n.match(/\b([1-5])\s*(?:bhk|bed(?:room)?s?)\b/);if(b)p.bhk=b[1];
- const radius=n.match(/(?:within|radius|around)\s*(\d+(?:\.\d+)?)\s*(?:km|kilomet(?:er|re)s?)\b/i);if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
- if(/\b(pg|paying guest)\b/.test(n))p.stayType="pg";else if(/\b(hostel)\b/.test(n))p.stayType="hostel";else if(/\b(flat|apartment|house|home|villa|room)\b/.test(n))p.stayType="home";
- if(/\b(semi[\s-]?furnished)\b/.test(n))p.furnishing="Semi-Furnished";else if(/\b(unfurnished)\b/.test(n))p.furnishing="Unfurnished";else if(/\b(furnished)\b/.test(n))p.furnishing="Furnished";
- const max=n.match(/(?:under|below|upto|up to|maximum|max|budget|around|within|₹|rs\.?|rupees?|रुपये)\s*(?:₹|rs\.?)?\s*([\d,]{3,8})/i)||n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये)/i);if(max)p.maxBudget=max[1].replace(/,/g,"");
- const min=n.match(/(?:above|minimum|min|at least)\s*(?:₹|rs\.?)?\s*([\d,]{3,8})/i);if(min)p.minBudget=min[1].replace(/,/g,"");
- if(/\b(college|university|कॉलेज)\b/.test(n))p.nearby="college";else if(/\b(hospital|clinic|अस्पताल)\b/.test(n))p.nearby="hospital";else if(/\b(market|bazaar|बाजार)\b/.test(n))p.nearby="market";
- const regs=[/\b(?:in|at|near|around)\b\s+(.+?)(?=\s+(?:under|below|upto|up to|budget|₹|rs\.?|rupees?|furnished|unfurnished|semi|[1-5]\s*(?:bhk|bed|bedroom)|pg|hostel|flat|apartment|house|villa|college|hospital|market)\b|$)/i,/^(.+?)\s+(?:mein|me|में)(?=\s+(?:[1-5]\s*(?:bhk|bed)|furnished|unfurnished|pg|hostel|flat|apartment|house|villa|budget|under|₹|rs\.?))/i,/(?:location|locality|area)\s*[:\-]?\s*(.+?)(?=\s+(?:budget|₹|rs\.?|furnished|unfurnished|[1-5]\s*bhk)\b|$)/i];
- for(const re of regs){const m=String(raw||"").match(re);if(m){p.location=m[1].replace(/^(?:mujhe|mujhko|i need|i want|find me|show me|please)\s+/i,"").replace(/[.,!?]+$/,"").trim();break}}
- return p
+ const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
+ const p={raw:original,location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:"",propertyType:"",radiusKm:null,useMyLocation:false,familyFriendly:false};
+ const bhk=n.match(/\b([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|कमरे)\b/);if(bhk)p.bhk=bhk[1];
+ const radius=n.match(/(?:within|radius(?: of)?|around|के अंदर|तक)\s*(\d+(?:\.\d+)?)\s*(?:km|kms|kilomet(?:er|re)s?|किलोमीटर|कि\.?मी\.?)\b/i)||n.match(/\b(\d+(?:\.\d+)?)\s*(?:km|kms|kilomet(?:er|re)s?|किलोमीटर)\s*(?:के अंदर|तक|radius)?/i);
+ if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
+ if(/\b(pg|paying guest)\b|पीजी/.test(n))p.stayType="pg";
+ else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
+ else if(/\b(flat|apartment|house|home|villa|room)\b|फ्लैट|मकान|घर|कमरा/.test(n))p.stayType="home";
+ if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
+ else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
+ else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
+ if(/\b(independent house)\b|स्वतंत्र मकान/.test(n))p.propertyType="independent_house";
+ else if(/\b(villa)\b/.test(n))p.propertyType="villa";
+ else if(/\b(apartment|flat)\b|अपार्टमेंट|फ्लैट/.test(n))p.propertyType="apartment";
+ else if(/\b(other property)\b/.test(n))p.propertyType="other";
+ const range=n.match(/(?:between|from|budget)?\s*(?:₹|rs\.?\s*)?([\d,]{3,8})\s*(?:to|and|-)\s*(?:₹|rs\.?\s*)?([\d,]{3,8})/i);
+ if(range){p.minBudget=range[1].replace(/,/g,"");p.maxBudget=range[2].replace(/,/g,"");}
+ else{
+  const min=n.match(/(?:at least|minimum|min|above|more than|greater than|कम से कम|से ज्यादा|से अधिक)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i);
+  if(min)p.minBudget=min[1].replace(/,/g,"");
+  const max=n.match(/(?:under|below|up to|upto|maximum|max|budget|not more than|less than|तक|से कम|₹|rs\.?\s*|rupees?\s*|रुपये\s*)\s*(?:₹|rs\.?\s*)?([\d,]{3,8})(?!\s*(?:km|kms|kilomet))/i);
+  if(max)p.maxBudget=max[1].replace(/,/g,"");
+  if(!p.maxBudget){const amount=n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये|रु\.?)/i);if(amount)p.maxBudget=amount[1].replace(/,/g,"");}
+ }
+ if(/\b(my|current) location\b|मेरी लोकेशन|मेरी जगह|मेरे पास/.test(n))p.useMyLocation=true;
+ if(/\b(college|university)\b|कॉलेज|विश्वविद्यालय/.test(n))p.nearby="college";
+ else if(/\b(hospital|clinic)\b|अस्पताल/.test(n))p.nearby="hospital";
+ else if(/\b(market|bazaar)\b|बाजार|मार्केट/.test(n))p.nearby="market";
+ else if(/\b(railway station|train station)\b|रेलवे स्टेशन|स्टेशन/.test(n))p.nearby="railway station";
+ if(/family[ -]?friendly|for family|परिवार के लिए|फैमिली/.test(n))p.familyFriendly=true;
+ const stop="under|below|upto|up to|budget|maximum|max|minimum|min|above|at least|more than|₹|rs\\.?|rupees?|रुपये|रु\\.?|furnished|unfurnished|semi|[1-5]\\s*(?:bhk|bed|bedroom)|pg|hostel|flat|apartment|house|villa|room|within|radius|around|college|hospital|market|railway|family";
+ const strip=/^(?:mujhe|mujhko|mujhe ek|show me|find me|i need|i want|please|mujhe chahiye|मुझे|मुझको)\s+/i;
+ let m=original.match(new RegExp("^(.+?)\\s+(?:mein|me|में)(?=\\s|$)","i"));
+ if(m)p.location=m[1].replace(strip,"").trim();
+ if(!p.location){
+  m=original.match(new RegExp("(.+?)\\s+(?:ke paas|ke pass|के पास)(?=\\s|$)","i"));
+  if(m)p.location=m[1].replace(strip,"").trim();
+ }
+ if(!p.location){
+  const re=new RegExp("(?:in|at|near|around|nearby)\\s+(.+?)(?=\\s+(?:"+stop+")\\b|$)","i");
+  m=original.match(re);if(m)p.location=m[1].replace(strip,"").replace(/[.,!?]+$/,"").trim();
+ }
+ if(/^(?:my|current) location$/i.test(p.location))p.location="";
+ return p;
 }
 function setValue(id,v){const el=$(id);if(!el||v==null||v==="")return;el.value=String(v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))}
 function applyToForm(p){
