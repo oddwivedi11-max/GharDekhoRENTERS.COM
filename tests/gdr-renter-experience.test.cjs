@@ -27,7 +27,7 @@ test('map exposes real inventory preference ranking and comparison actions', () 
   assert.match(map, /function applyRenterFilters\(prefs\)/); assert.match(map, /gdrMatchScore/); assert.match(map, /toggleCompare\(p\)/);
 });
 test('index loads renter experience assets', () => {
-  assert.match(index, /gdr-renter-experience\.js\?v=20261107-(?:renter1|compare2)/); assert.match(index, /gdr-renter-experience\.css\?v=20261107-(?:renter1|compare2)/);
+  assert.match(index, /gdr-renter-experience\.js\?v=20261107-(?:renter1|compare2|voice1)/); assert.match(index, /gdr-renter-experience\.css\?v=20261107-(?:renter1|compare2|voice1)/);
 });
 
 test('map API exports a real radius setter so initialization cannot fail', () => {
