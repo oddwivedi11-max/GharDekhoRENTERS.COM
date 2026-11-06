@@ -98,8 +98,11 @@ jobs:
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
           grep -q 'previousBodyOverflow' /tmp/gdr-owner-current-renters-dashboard.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261107-workspace4" -o /tmp/gdr-owner-command-center.css
-          grep -q '#c8f169' /tmp/gdr-owner-command-center.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261107-workspace6" -o /tmp/gdr-owner-command-center.css
+          grep -q '#e8d18a' /tmp/gdr-owner-command-center.css
+          grep -q '#e8f0ea' /tmp/gdr-owner-command-center.css
+          grep -q '#b9f36b' /tmp/gdr-owner-command-center.css
+          grep -q 'workspace6' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'gdrOccModuleTitle' /tmp/gdr-owner-command-center.css
           grep -q 'grid-template-columns:112px minmax(0,1fr)' /tmp/gdr-owner-command-center.css
           grep -q 'function bindLogout' /tmp/gdr-owner-command-center-hotfix.js
