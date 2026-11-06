@@ -4,7 +4,7 @@ const VERSION="20261107-studio1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
-  user:null,owner:null,step:0,publishing:false,propertyType:"",configuration:"",
+  user:null,owner:null,step:0,publishing:false,published:false,propertyType:"",configuration:"",
   rent:"",deposit:"",description:"",address:"",pincode:"",lat:null,lng:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
   files:[],coverIndex:0,uploadedPhotos:[],uploadedPaths:[],nearbyPlaces:[],
@@ -534,7 +534,7 @@ async function open(voice){
   if(!dash||!dash.classList.contains("active")||!document.body.classList.contains("gd-owner-mode")){
    throw new Error("Open the Owner Dashboard to start a property listing.");
   }
-  const account=await getOwner();state.user=account.user;state.owner=account.owner;
+  const account=await getOwner();state.user=account.user;state.owner=account.owner;state.published=false;
   state.submissionId=state.submissionId||uuid();
   restoreDraft();
   const root=studio();if(!root)throw new Error("Property Studio could not be loaded. Refresh and try again.");
@@ -547,6 +547,7 @@ async function open(voice){
 }
 function close(){
  if(state.publishing)return;
+ if(state.published){window.location.reload();return;}
  stopVoice();restoreMapPanel();
  const root=studio();if(root)root.hidden=true;
  document.body.classList.remove("gdr-property-studio-open");
@@ -733,6 +734,7 @@ async function publish(){
 }
 function showSuccess(property){
  const root=studio();if(!root)return;
+ state.published=true;
  const body=$("#gdrStudioMain");
  if(body)body.innerHTML=
   '<div class="gdr-studio-success"><div class="gdr-studio-success-mark">✓</div><span>GHARDEKHO PROPERTY STUDIO</span><h1>Your property is submitted.</h1><p>Your listing is saved in My Properties with <strong>Pending verification</strong> status. It will follow the existing GharDekho listing and occupancy workflow.</p><div class="gdr-studio-success-id">Property reference <b>'+escapeHtml(property.id||"Saved")+'</b></div><button type="button" id="gdrStudioViewInventory">View My Properties</button><button type="button" class="gdr-studio-success-secondary" id="gdrStudioSuccessClose">Back to Dashboard</button></div>';
