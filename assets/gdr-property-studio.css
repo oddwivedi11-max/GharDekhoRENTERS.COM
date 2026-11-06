@@ -221,6 +221,8 @@ body.gdr-property-studio-open{overflow:hidden!important}
 .gdr-studio-voice-assistant-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .gdr-studio-voice-state{display:inline-flex;align-items:center;gap:7px;color:#27674c;font-size:10px;font-weight:900;letter-spacing:.12em}
 .gdr-studio-voice-state::before{content:"";width:8px;height:8px;border-radius:50%;background:#9ca99e}
+.gdr-studio-voice-state[data-status^="LISTENING"]::before,.gdr-studio-voice-state[data-status^="RECONNECTING"]::before{background:#16a36b;box-shadow:0 0 0 4px rgba(22,163,107,.12)}
+.gdr-studio-voice-state[data-status^="MICROPHONE NEEDS"]::before{background:#c23b3b;box-shadow:0 0 0 4px rgba(194,59,59,.12)}
 #gdrStudioVoiceMute{min-height:34px;padding:0 10px;border:1px solid #d7e2d5;border-radius:9px;background:#fff;color:#31543a;font-size:11px;font-weight:800}
 #gdrStudioVoiceReply{margin:12px 0 0;color:#1d4032;font-size:14px;font-weight:650;line-height:1.65}
 .gdr-studio-voice-pending{display:grid;gap:8px;margin-top:12px;padding:12px;border:1px solid #e2d3ad;border-radius:12px;background:#fffaf0;color:#594a2e}
