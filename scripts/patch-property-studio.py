@@ -190,7 +190,7 @@ old_img = '''                    <img
                         src="__DOLLAR__{escapeHtml(image)}"
                         alt="__DOLLAR__{escapeHtml(property.title || "Rental property")}"
                         loading="lazy"
-                        onerror="this.src='__DOLLAR__{getDefaultPropertyImage()}';"
+                        onerror="this.src='__DOLLAR__{getDefaultPropertyImage()}'"
                     >'''.replace("__DOLLAR__", dollar)
 new_img = '''                    <div class="gdr-property-detail-gallery">
                       <img class="property-detail-image" id="gdrPropertyDetailMainImage" src="__DOLLAR__{escapeHtml(image)}" alt="__DOLLAR__{escapeHtml(property.title || "Rental property")}" loading="lazy" onerror="this.src='__DOLLAR__{getDefaultPropertyImage()}'">
