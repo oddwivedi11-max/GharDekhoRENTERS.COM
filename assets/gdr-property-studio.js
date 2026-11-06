@@ -595,7 +595,7 @@ function speakVoice(text,after){
  if(state.voice.muted||!window.speechSynthesis||!window.SpeechSynthesisUtterance){if(typeof after==="function")after();return;}
  try{
   window.speechSynthesis.cancel();state.voice.speaking=true;
-  if(state.recognition){try{state.recognition.stop();}catch(e){}}
+  if(state.recognition){const oldRecognition=state.recognition;state.recognition=null;state.recording=false;state.voice.session++;try{oldRecognition.stop();}catch(e){}}
   const utterance=new SpeechSynthesisUtterance(text),language=state.voice.language==="en"?"en-IN":"hi-IN";
   utterance.lang=language;utterance.rate=.96;utterance.pitch=1;
   const voices=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
@@ -743,7 +743,7 @@ function startVoice(){
  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
  if(!Speech){setVoiceState("VOICE INPUT UNAVAILABLE",false);setVoiceReply(voiceText("इस browser में voice input नहीं है। आप manually type कर सकते हैं।","Voice input is unavailable in this browser. You can type manually."));return;}
  if(state.voice.active&&state.recording)return;state.voice.manualStop=false;state.voice.permissionBlocked=false;state.voice.active=true;
- const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone शुरू हो रहा है…","Starting microphone…");setVoiceState("STARTING",true);startVoiceRecognition();
+ const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone शुरू हो रहा है…","Starting microphone…");setVoiceState("STARTING",true);speakVoice(voiceText("नमस्ते! मैं GDR हूँ। अपनी property के बारे में बताइए। मैं एक-एक करके ज़रूरी details पूछूँगा।","Hello! I’m GDR. Tell me about your property and I’ll ask for the details I need."),startVoiceRecognition);
 }
 function stopVoice(){
  state.voice.active=false;state.voice.manualStop=true;state.recording=false;state.voice.session++;
