@@ -37,8 +37,8 @@ test('map API exports a real radius setter so initialization cannot fail', () =>
 test('map voice uses its own microphone and status elements', () => {
   assert.match(js, /micId=mapMode\?"gdrxMapMic":"gdrxMic"/);
   assert.match(js, /statusId=mapMode\?"gdrxMapStatus":"gdrxStatus"/);
-  assert.match(js, /function runMapSearch\(\)/);
-  assert.match(js, /const searchResult=await api\.searchTypedMapLocation\(\)/);
+  assert.match(js, /function runMapSearch\(rawOverride\)/);
+  assert.match(js, /await api\.searchTypedMapLocation\(\)/);
 });
 test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
   const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
@@ -92,4 +92,22 @@ test('comparison persists for the current browser session', () => {
   assert.match(js,/sessionStorage\.setItem\("gdrxCompareHomes"/);
   assert.match(js,/sessionStorage\.getItem\("gdrxCompareHomes"/);
   assert.match(js,/GDR_COMPARE_AUTOFILL_V2/);
+});
+
+test('map search calls the live Supabase viewport RPC and enforces map bounds and radius', () => {
+  assert.match(map, /get_available_map_properties_in_bounds/);
+  assert.match(map, /p_south:/); assert.match(map, /p_north:/);
+  assert.match(map, /p_radius_km:Number\(state\.radiusKm\)/);
+  assert.match(map, /distanceKm\(center/);
+  assert.match(map, /bounds\.contains/);
+  assert.match(map, /Search this area/);
+});
+test('map results exclude occupied inventory and deduplicate property ids', () => {
+  assert.match(map, /status!=="verified"&&status!=="pending"/);
+  assert.match(map, /unique\.has\(String\(p\.id\)\)/);
+  assert.match(map, /released_at is null/);
+});
+test('map GPS action centers the map before searching the selected viewport', () => {
+  assert.match(map, /async function searchAtCoordinates\(lat,lng,label\)/);
+  assert.match(map, /searchAtCoordinates,usePreciseOwnerLocation/);
 });
