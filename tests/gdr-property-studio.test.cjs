@@ -13,7 +13,7 @@ const patcher = read("scripts/patch-property-studio.py");
 
 test("List Your Property is the first major owner dashboard action before statistics", () => {
   const hero = html.indexOf('id="gdrListPropertyHero"');
-  const firstStat = html.indexOf('class="owner-stat-card');
+  const firstStat = html.indexOf('class="dashboard-stat-card owner-stat-card');
   assert.notEqual(hero, -1);
   assert.notEqual(firstStat, -1);
   assert.ok(hero < firstStat);
@@ -47,8 +47,9 @@ test("cross-role access requires sign-out and a fresh role-guarded login", () =>
 });
 
 test("Property Studio is a separate guided page with the required simple listing fields", () => {
+  assert.match(html, /gdrPropertyStudioMount/);
   for (const token of [
-    "gdrPropertyStudioMount", "gdrStudioStepTitle", "gdrStudioRent",
+    "gdrStudioStepTitle", "gdrStudioRent",
     "gdrStudioDeposit", "gdrStudioLocation", "gdrStudioUseGps",
     "gdrStudioOpenMap", "gdrStudioPhotoFiles", "gdrStudioCameraFiles",
     "gdrStudioVoiceStart", "gdrStudioPublish"
