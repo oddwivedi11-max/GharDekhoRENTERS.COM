@@ -18,6 +18,7 @@ on:
       - "fix/owner-ui-navigation-visibility-20261105"
       - "fix/back-dashboard-file-picker-20261107"
       - "fix/free-osm-property-studio-20261107"
+      - "fix/gdr-map-voice-ai-20261107"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
@@ -93,6 +94,9 @@ jobs:
         run: |
           node --check assets/gdr-pincode-search.js
           node --check assets/gdr-map-experience.js
+          node --check assets/gdr-map-voice.js
+          node --check tests/gdr-map-voice.test.cjs
+          node --test tests/gdr-map-voice.test.cjs
           PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py
           node --check assets/gdr-property-studio.js
           node --check assets/gdr-rental-suite.js
