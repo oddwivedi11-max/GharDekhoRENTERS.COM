@@ -135,16 +135,16 @@ if css_ref_v4 not in source:
         source = source.replace(css_ref_v3, css_ref_v4, 1)
         print("Updated: refresh conversational Property Studio voice styles")
     elif css_ref_v2 in source:
-        source = source.replace(css_ref_v2, css_ref_v3, 1)
+        source = source.replace(css_ref_v2, css_ref_v4, 1)
         print("Updated: refresh Property Studio nearby preview styles")
     elif css_ref_v1 in source:
-        source = source.replace(css_ref_v1, css_ref_v3, 1)
+        source = source.replace(css_ref_v1, css_ref_v4, 1)
         print("Updated: refresh Property Studio and renter notice stylesheet")
     else:
         head_pos = source.rfind("</head>")
         if head_pos < 0:
             raise SystemExit("Stopped safely: closing head tag missing.")
-        source = source[:head_pos] + css_ref_v3 + "\n" + source[head_pos:]
+        source = source[:head_pos] + css_ref_v4 + "\n" + source[head_pos:]
 
 renter_js_old = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
 renter_js_old2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
