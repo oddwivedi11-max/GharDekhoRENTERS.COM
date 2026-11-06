@@ -50,7 +50,7 @@ test("Property Studio is a separate guided page with the required simple listing
   assert.match(html, /gdrPropertyStudioMount/);
   for (const token of [
     "gdrStudioStepTitle", "gdrStudioRent",
-    "gdrStudioDeposit", "gdrStudioLocation", "gdrStudioUseGps",
+    "gdrStudioDeposit", "gdrStudioFurnishing", "gdrStudioLocation", "gdrStudioUseGps",
     "gdrStudioOpenMap", "gdrStudioPhotoFiles", "gdrStudioCameraFiles",
     "gdrStudioVoiceStart", "gdrStudioPublish"
   ]) assert.ok(studioMarkup.includes(token), token);
@@ -68,17 +68,19 @@ test("Property Studio saves drafts, uploads owner-scoped photos and uses the sec
   assert.match(studio, /owner_publish_property_studio/);
   assert.match(studio, /p_submission_id/);
   assert.match(studio, /p_photo_urls/);
+  assert.match(studio, /p_furnishing:state\.furnishing\|\|null/);
   assert.match(studio, /SpeechRecognition/);
   assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
-  assert.match(studio, /PlacesService/);
-  assert.match(studio, /GDR_GOOGLE_MAPS_API_KEY/);
+  assert.match(studio, /overpass-api\.de\/api\/interpreter/);
+  assert.match(studio, /distanceMeters\(lat,lng,placeLat,placeLng\)/);
   assert.match(studio, /Please review and correct every field before continuing/);
 });
 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261107-studio2\"/);
+  assert.match(studio, /const VERSION=\"20261107-studio5\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
+  assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
 
 test("renter preview shows actual nearby place names, categories and distances", () => {
@@ -88,10 +90,19 @@ test("renter preview shows actual nearby place names, categories and distances",
   assert.ok(studio.includes("showSuggestions(india);"));
 });
 
-test("missing Google Places credentials fail closed instead of inventing nearby places", () => {
-  assert.match(studio, /Google Places is not configured yet/);
-  assert.match(studio, /if\(!googleKey\(\)\)return/);
-  assert.match(studio, /nearbyPlaces=Array\.from/);
+test("Property Studio uses only free Photon, Leaflet and OpenStreetMap nearby discovery", () => {
+  assert.match(studio, /photon\.komoot\.io/);
+  assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
+  assert.match(studio, /overpass-api\.de\/api\/interpreter/);
+  assert.match(studio, /out center tags/);
+  assert.match(studio, /gdr_osm_nearby_v1/);
+  assert.match(studio, /86400000/);
+  assert.match(studio, /nearbyController\.abort\(\)/);
+  assert.match(studio, /cached\.places\.map\(p=>\(\{\.\.\.p,distance_m:Math\.round\(distanceMeters/);
+  assert.match(studioMarkup, /© OpenStreetMap contributors/);
+  assert.match(read("assets/gdr-property-studio.txt"), /© OpenStreetMap contributors/);
+  assert.match(studio, /distanceMeters\(lat,lng,placeLat,placeLng\)/);
+  assert.doesNotMatch(studio, /google\.maps|PlacesService|GDR_GOOGLE_MAPS_API_KEY|gdr-google-maps-api-key/i);
   assert.match(studioMarkup, /gdrStudioNearbyStatus/);
 });
 

@@ -54,6 +54,7 @@
       <div class="gdr-studio-field-grid">
         <label class="gdr-studio-field"><span>Monthly rent (₹) *</span><input id="gdrStudioRent" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 8000" required><small>Rent expected every month.</small></label>
         <label class="gdr-studio-field"><span>Security deposit (₹) <small>Optional</small></span><input id="gdrStudioDeposit" type="number" min="0" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 16000"><small>Leave blank if you have not decided.</small></label>
+         <label class="gdr-studio-field"><span>Furnishing</span><select id="gdrStudioFurnishing"><option value="">Choose furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-furnished</option><option value="Unfurnished">Unfurnished</option></select><small>Select the current furnishing condition.</small></label>
       </div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="2" hidden>
@@ -65,7 +66,7 @@
       <div class="gdr-studio-location-actions"><button type="button" id="gdrStudioUseGps">◎ Use Current Location</button><button type="button" id="gdrStudioOpenMap">⌖ Select on Map</button></div>
       <p id="gdrStudioLocationStatus" class="gdr-studio-location-status" aria-live="polite">Choose a search result, use GPS or place the pin on the map.</p>
       <div id="gdrStudioMapHost"></div>
-      <div class="gdr-studio-nearby"><strong>Nearby public places</strong><p id="gdrStudioNearbyStatus">Nearby places are discovered automatically after location confirmation.</p><div id="gdrStudioNearbyList"></div></div>
+      <div class="gdr-studio-nearby"><strong>Nearby public places</strong><p id="gdrStudioNearbyStatus">Nearby places are discovered automatically after location confirmation.</p><div id="gdrStudioNearbyList"></div><small>Source: © OpenStreetMap contributors. Results depend on available map data.</small></div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="3" hidden>
       <h2 class="gdr-studio-panel-title">Add photos of your property</h2><p class="gdr-studio-panel-subtitle">Use your own genuine property photos. You can add up to 8 photos and choose the cover photo.</p>
