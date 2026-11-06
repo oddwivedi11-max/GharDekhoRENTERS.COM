@@ -55,7 +55,7 @@ test.describe('GDR renter map voice UI', () => {
     });
     await page.locator('#gdrMapVoiceMic').click();
     await expect(page.locator('#gdrMapVoiceMic')).toHaveClass(/is-listening/);
-    await expect(page.locator('#gdrMapVoiceStatus')).toContainText('Listening');
+    await expect(page.locator('#gdrMapVoiceStatus')).toHaveAttribute('data-state', 'listening');
   });
 
   test('microphone and transcript remain in separate columns on mobile', async ({ page }) => {
