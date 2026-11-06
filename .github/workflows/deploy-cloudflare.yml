@@ -36,8 +36,9 @@ jobs:
           path = Path("index.html")
           source = path.read_text(encoding="utf-8")
           assets = [
-              ("gdr-renter-experience.js", "20261107-renter3d1"),
-              ("gdr-renter-experience.css", "20261107-renter3d1"),
+              ("gdr-renter-experience.js", "20261107-dashboardui1"),
+              ("gdr-renter-experience.css", "20261107-dashboardui1"),
+              ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
               ("gdr-map-experience.js", "20261107-renter3d1"),
           ]
           for asset, version in assets:
