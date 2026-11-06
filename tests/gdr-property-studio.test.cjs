@@ -80,6 +80,7 @@ test("Studio layout is loaded from a separately deployed text fragment asset", (
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
   assert.match(studio, /const VERSION=\"20261107-studio4\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
+  assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
 
 test("renter preview shows actual nearby place names, categories and distances", () => {
