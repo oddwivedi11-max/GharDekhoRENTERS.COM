@@ -120,7 +120,17 @@
     copy.append(node("p","",meta));if(Number.isFinite(Number(p.gdrMatchScore)))copy.append(node("p","gdr-map-match-score",p.gdrMatchScore+"% preference match"));copy.append(node("p","",statusOf(p)+" · "+(p.owner_verified?"Verified owner":"Owner verification pending")+" · Owner contact is shared only through the approved visit flow."));
     main.append(img,copy);
     const actions=node("div","gdr-map-preview-actions"),details=node("button","gdr-map-details-btn","View details"),favorite=node("button","gdr-map-details-btn","♡ Save"),compare=node("button","gdr-map-details-btn","＋ Compare"),close=node("button","gdr-map-dismiss-btn","Close");
-    details.type="button";details.addEventListener("click",()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(p.id);else{const url=new URL("/property.html",location.origin);url.searchParams.set("id",p.id);window.location.assign(url.href);}});
+    details.type="button";details.addEventListener("click",()=>{
+      if(typeof window.openPropertyDetails==="function"){window.openPropertyDetails(p.id);return;}
+      if(details.dataset.expanded==="1")return;
+      details.dataset.expanded="1";details.textContent="Details shown";
+      const description=String(p.description||"").trim();
+      const extra=node("div","gdr-map-preview-extra");
+      extra.append(node("p","",description||"No additional description has been provided for this listing."));
+      extra.append(node("p","",[p.address,p.location].filter(Boolean).join(" · ")));
+      extra.append(node("p","", "Property ID: "+p.id));
+      copy.append(extra);
+    });
     favorite.type="button";favorite.addEventListener("click",async()=>{
       const client=db();if(!client||!client.auth){setStatus("Please sign in as a renter to save this home.");return;}
       favorite.disabled=true;
