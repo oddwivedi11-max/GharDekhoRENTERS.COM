@@ -81,17 +81,19 @@ jobs:
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
           grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace4' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js?v=20261107-workspace4' /tmp/gdr-live-index.html
-          grep -q 'gdr-owner-payments.js?v=20261107-brandfix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-owner-payments.js?v=20261107-paytitle1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-index.html
-          grep -q 'gdr-owner-payments.css?v=20261107-brandfix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-owner-payments.css?v=20261107-paytitle1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace4" -o /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261107-workspace4" -o /tmp/gdr-owner-renter-page.js
           grep -q 'Additional charges could not be loaded' /tmp/gdr-owner-renter-page.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.js?v=20261107-brandfix1" -o /tmp/gdr-owner-payments.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.js?v=20261107-paytitle1" -o /tmp/gdr-owner-payments.js
           grep -q 'gdrPayAddCharge' /tmp/gdr-owner-payments.js
           grep -q 'gdr-pay-header--minimal' /tmp/gdr-owner-payments.js
+          grep -q 'GDR PAYMENT' /tmp/gdr-owner-payments.js
+          grep -q 'gdr-pay-brand-title' /tmp/gdr-owner-payments.css
           if grep -q 'GDR FINANCE / OWNER WORKSPACE' /tmp/gdr-owner-payments.js; then echo 'Redundant finance heading still present'; exit 1; fi
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
@@ -105,6 +107,6 @@ jobs:
           grep -q 'window.addEventListener("click"' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.css?v=20261107-brandfix1" -o /tmp/gdr-owner-payments.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.css?v=20261107-paytitle1" -o /tmp/gdr-owner-payments.css
           grep -q 'gdr-pay-charge-modal' /tmp/gdr-owner-payments.css
           echo "Cloudflare worker, map, owner dashboard, renter profile, payments and responsive styles are responding."
