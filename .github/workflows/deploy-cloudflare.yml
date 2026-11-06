@@ -36,8 +36,8 @@ jobs:
           source = path.read_text(encoding="utf-8")
           import re
           replacements = {
-              r"(/assets/gdr-renter-experience\.js\?v=)[^\\"' ]+": r"\g<1>20261107-voice1",
-              r"(/assets/gdr-renter-experience\.css\?v=)[^\\"' ]+": r"\g<1>20261107-compare2",
+              r'(/assets/gdr-renter-experience\.js\?v=)[^" ]+': r'\g<1>20261107-voice1',
+              r'(/assets/gdr-renter-experience\.css\?v=)[^" ]+': r'\g<1>20261107-compare2',
           }
           for pattern, versioned in replacements.items():
               source, count = re.subn(pattern, versioned, source)
