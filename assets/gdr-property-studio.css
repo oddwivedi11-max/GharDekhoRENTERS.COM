@@ -190,3 +190,19 @@ body.gdr-property-studio-open{overflow:hidden!important}
 .gdr-property-nearby-item b{flex:0 0 auto;color:#8a7046;font-size:11px}
 .gdr-studio-photo-remove{border-color:#ead8d5!important;background:#fff8f6!important;color:#9b4a40!important}
 @media(max-width:640px){.gdr-property-nearby-grid{grid-template-columns:1fr}}
+
+
+/* Renter move-out notice styles; colocated with the verified Studio stylesheet asset. */
+.gdr-moveout-notice{margin-top:18px;border:1px solid #d8e4d6;background:linear-gradient(145deg,#fbfcf7,#f3f7ee)}
+.gdr-moveout-heading{display:flex;align-items:center;justify-content:space-between;gap:12px}
+.gdr-moveout-heading h4{margin:4px 0 0;color:#1b432d}
+.gdr-moveout-kicker{color:#9b8051;font-size:9px;font-weight:950;letter-spacing:.18em}
+.gdr-moveout-badge{padding:7px 10px;border:1px solid #d9e6d2;border-radius:999px;background:#edf5e8;color:#416a40;font-size:10px;font-weight:850}
+.gdr-moveout-notice>p{color:#6b7b6d;font-size:12px;line-height:1.55}
+.gdr-moveout-form{display:flex;align-items:flex-end;flex-wrap:wrap;gap:12px}
+.gdr-moveout-form label{display:grid;gap:6px;min-width:min(100%,260px);color:#45604a;font-size:12px;font-weight:850}
+.gdr-moveout-form input{min-height:46px;padding:0 12px;border:1px solid #d3dfd0;border-radius:10px;background:#fff;color:#1b3928;font:inherit}
+.gdr-moveout-actions{display:flex;flex-wrap:wrap;gap:8px}
+.gdr-moveout-actions button{min-height:44px}
+.gdr-moveout-message{min-height:18px;margin:8px 0 0;color:#37623e;font-size:12px;line-height:1.45}
+@media(max-width:600px){.gdr-moveout-form{display:grid;grid-template-columns:1fr}.gdr-moveout-form label{min-width:0}.gdr-moveout-actions button{width:100%}.gdr-moveout-heading{align-items:flex-start}}
