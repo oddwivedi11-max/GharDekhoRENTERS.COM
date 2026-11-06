@@ -546,7 +546,7 @@ for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
 # Ensure browsers fetch the repaired command-centre controller on this deploy.
 import re
 source, controller_refs = re.subn(
-    r"""((?:src|href)=["'](/assets/gdr-owner-command-center-hotfix\.js)(?:\?v=)?)[^"']*(["'])""",
+    r"""((?:src|href)=["'](/assets/gdr-owner-command-center-hotfix\.js))(?:\?v=[^"']*)?(["'])""",
     r'\g<1>?v=20261107-workspace7\g<3>',
     source
 )
