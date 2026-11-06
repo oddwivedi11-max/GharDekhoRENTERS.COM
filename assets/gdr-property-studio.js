@@ -773,7 +773,7 @@ function stopVoice(){
 function toggleVoiceMute(){
  state.voice.muted=!state.voice.muted;const btn=$("#gdrStudioVoiceMute");
  if(btn){btn.textContent=state.voice.muted?"🔇 Voice muted":"🔊 Voice on";btn.setAttribute("aria-pressed",state.voice.muted?"true":"false");}
- if(state.voice.muted&&window.speechSynthesis)window.speechSynthesis.cancel();
+ if(state.voice.muted&&window.speechSynthesis){window.speechSynthesis.cancel();state.voice.speaking=false;scheduleVoiceRestart(200);}
 }
 
 function bindEvents(){
