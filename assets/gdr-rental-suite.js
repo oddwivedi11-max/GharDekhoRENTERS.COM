@@ -70,7 +70,7 @@ async function loadHome(){
     rental.expected_move_out_at=value;
     var dateEl=$("gdrRenterExpectedMoveOut");if(dateEl)dateEl.textContent=date(value);
     var help=$("gdrRenterMoveoutHelp");if(help)help.textContent="Your move-out notice is recorded. The property will show Vacating Soon until the owner confirms the move-out.";
-    var badge=$(".gdr-moveout-badge");if(badge)badge.textContent="Notice submitted";
+    var badge=document.querySelector(".gdr-moveout-badge");if(badge)badge.textContent="Notice submitted";
     button.textContent="Update notice";
     if(!$("gdrRenterWithdrawMoveout")){
      var withdraw=document.createElement("button");withdraw.type="button";withdraw.id="gdrRenterWithdrawMoveout";withdraw.className="gdr-rental-secondary";withdraw.textContent="Withdraw notice";form.querySelector(".gdr-moveout-actions").appendChild(withdraw);bindWithdraw();
@@ -90,7 +90,7 @@ async function loadHome(){
      rental.expected_move_out_at=null;
      var dateEl=$("gdrRenterExpectedMoveOut");if(dateEl)dateEl.textContent="Not set";
      var help=$("gdrRenterMoveoutHelp");if(help)help.textContent="Your move-out notice was withdrawn. Your tenancy remains active until the owner confirms the move-out.";
-     var badge=$(".gdr-moveout-badge");if(badge)badge.textContent="Active tenancy";
+     var badge=document.querySelector(".gdr-moveout-badge");if(badge)badge.textContent="Active tenancy";
      withdraw.remove();var submit=form.querySelector('button[type="submit"]');if(submit)submit.textContent="Submit move-out notice";
      if(messageEl)messageEl.textContent="Move-out notice withdrawn.";
     }catch(error){if(messageEl)messageEl.textContent=error.message||"Could not withdraw the move-out notice.";}
