@@ -12,7 +12,7 @@ function injectButton(){
 }
 function styles(){
  if($("gdr-pay-style"))return;
- const l=document.createElement("link");l.id="gdr-pay-style";l.rel="stylesheet";l.href="/assets/gdr-owner-payments.css?v=20261107-paytitle3";document.head.appendChild(l);
+ const l=document.createElement("link");l.id="gdr-pay-style";l.rel="stylesheet";l.href="/assets/gdr-owner-payments.css?v=20261107-paytitle5";document.head.appendChild(l);
 }
 function fmtDate(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}
 function statusOf(p){return p.status==="paid"?"Paid":p.status==="rejected"?"Rejected":"Pending verification";}
