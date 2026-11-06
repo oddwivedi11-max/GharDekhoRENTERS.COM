@@ -3,6 +3,8 @@ const { test, expect } = require('@playwright/test');
 async function openMapWithMockLeaflet(page) {
   await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.evaluate(() => {
+    const dashboard = document.getElementById('renterDashboard');
+    if (dashboard) { dashboard.hidden = false; dashboard.style.display = 'block'; }
     const center = { lat: 23.2599, lng: 77.4126 };
     const makeMap = element => {
       element.classList.add('leaflet-container');
