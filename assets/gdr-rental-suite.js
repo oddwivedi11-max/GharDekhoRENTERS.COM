@@ -192,3 +192,4 @@ document.addEventListener("click",function(event){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
 })();
+// Cache release: renter move-out notice v3.
