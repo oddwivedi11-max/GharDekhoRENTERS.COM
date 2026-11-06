@@ -518,14 +518,20 @@ for asset in (
         if plain in source:
             source = source.replace(plain, plain.replace(f"/assets/{asset}", f"/assets/{asset}?v=20261107-workspace4"), 1)
         elif f'/assets/{asset}?v=20261107-workspace4' not in source:
-            raise SystemExit("Stopped safely: could not version owner asset " + asset)
+            # These finance assets use their own independent cache version.
+            import re
+            if f'/assets/{asset}?v=' not in source:
+                raise SystemExit("Stopped safely: could not version owner asset " + asset)
 
 # Invalidate cached finance assets after removing the overlapping title strip.
 for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
     old_ref = f"/assets/{asset}?v=20261107-workspace4"
-    new_ref = f"/assets/{asset}?v=20261107-finance-clean5"
+    prior_ref = f"/assets/{asset}?v=20261107-finance-clean5"
+    new_ref = f"/assets/{asset}?v=20261107-brandfix1"
     if old_ref in source:
         source = source.replace(old_ref, new_ref)
+    elif prior_ref in source:
+        source = source.replace(prior_ref, new_ref)
     elif new_ref not in source:
         raise SystemExit("Stopped safely: finance asset reference not found: " + asset)
 
