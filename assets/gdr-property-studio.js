@@ -743,7 +743,9 @@ function startVoiceRecognition(){
   else if(e.error==="network")setVoiceReply(voiceText("Browser speech recognition को network access नहीं मिल रहा। Connection check करें; manual typing उपलब्ध है।","Browser speech recognition needs a network connection. Check your connection; manual typing is still available."));
  };
  rec.onend=()=>{
-  if(session!==state.voice.session)return;state.recognition=null;state.recording=false;
+  if(session!==state.voice.session)return;
+  if(state.voice.interimText.trim()){state.voice.turnText+=(state.voice.turnText?" ":"")+state.voice.interimText.trim();state.voice.interimText="";updateVoiceTranscript();scheduleVoiceTurn();}
+  state.recognition=null;state.recording=false;
   if(state.voice.active&&!state.voice.manualStop&&!state.voice.permissionBlocked&&!state.voice.speaking){setVoiceState("RECONNECTING MICROPHONE…",true);scheduleVoiceRestart(450);}
   else if(state.voice.permissionBlocked)setVoiceState("MICROPHONE NEEDS ATTENTION",false);
   else if(!state.voice.speaking)setVoiceState("READY",false);
