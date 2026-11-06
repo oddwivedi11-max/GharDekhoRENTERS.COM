@@ -33,9 +33,10 @@ function normalizeSearchText(value){
   return out;
  };
  const raw=String(value||"").toLowerCase().normalize("NFKC");
- const latin=raw.replace(/[\u0900-\u097F]+/gu,word=>transliterateWord(word));
+ const aliases={"सिंगरौली":"singrauli","इंदौर":"indore","रीवा":"rewa","भोपाल":"bhopal","जबलपुर":"jabalpur","ग्वालियर":"gwalior","उज्जैन":"ujjain","सतना":"satna","देवास":"dewas","सीधी":"sidhi"};
+ const latin=raw.replace(/[\u0900-\u097F]+/gu,word=>aliases[word]||transliterateWord(word));
  const normalized=latin.replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
- return normalized.replace(/\bsingarauli\b/g,"singrauli").replace(/\bindaur\b/g,"indore").replace(/\breeva\b/g,"rewa");
+ return normalized;
 }
 
 function parseRequest(raw){
