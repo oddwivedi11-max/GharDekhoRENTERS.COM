@@ -5,7 +5,7 @@ const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
   user:null,owner:null,step:0,publishing:false,published:false,propertyType:"",configuration:"",
-  rent:"",deposit:"",description:"",address:"",pincode:"",lat:null,lng:null,
+  rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
   files:[],coverIndex:0,uploadedPhotos:[],uploadedPaths:[],nearbyPlaces:[],
   submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null
@@ -33,7 +33,7 @@ function saveDraft(){
  if(!state.user)return;
  const data={
   propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,
-  description:state.description,address:state.address,pincode:state.pincode,lat:state.lat,lng:state.lng,
+  description:state.description,furnishing:state.furnishing,address:state.address,pincode:state.pincode,lat:state.lat,lng:state.lng,
   roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,availableBeds:state.availableBeds,
   foodIncluded:state.foodIncluded,uploadedPhotos:state.uploadedPhotos,uploadedPaths:state.uploadedPaths,
   nearbyPlaces:state.nearbyPlaces,submissionId:state.submissionId,step:state.step
@@ -45,7 +45,7 @@ function restoreDraft(){
  try{
   const raw=localStorage.getItem(draftKey());if(!raw)return;
   const d=JSON.parse(raw);if(!d||typeof d!=="object")return;
-  ["propertyType","configuration","rent","deposit","description","address","pincode","roomType","gender","totalBeds","availableBeds","foodIncluded"].forEach(k=>{if(d[k]!==undefined)state[k]=d[k];});
+  ["propertyType","configuration","rent","deposit","furnishing","description","address","pincode","roomType","gender","totalBeds","availableBeds","foodIncluded"].forEach(k=>{if(d[k]!==undefined)state[k]=d[k];});
   state.lat=Number.isFinite(Number(d.lat))&&d.lat!==null?Number(d.lat):null;
   state.lng=Number.isFinite(Number(d.lng))&&d.lng!==null?Number(d.lng):null;
   state.uploadedPhotos=Array.isArray(d.uploadedPhotos)?d.uploadedPhotos:[];
@@ -62,7 +62,7 @@ function restoreDraft(){
 function syncFormFromState(){
  const values={
   gdrStudioLocation:state.address,gdrStudioPincode:state.pincode,gdrStudioRent:state.rent,
-  gdrStudioDeposit:state.deposit,gdrStudioDescription:state.description,
+  gdrStudioDeposit:state.deposit,gdrStudioFurnishing:state.furnishing,gdrStudioDescription:state.description,
   gdrStudioRoomType:state.roomType,gdrStudioGender:state.gender,
   gdrStudioTotalBeds:state.totalBeds,gdrStudioAvailableBeds:state.availableBeds
  };
@@ -445,6 +445,7 @@ function validateStep(step){
  if(step===1){
   state.rent=$("#gdrStudioRent")?.value||state.rent;
   state.deposit=$("#gdrStudioDeposit")?.value||state.deposit;
+ state.furnishing=$("#gdrStudioFurnishing")?.value||state.furnishing;
   if(!Number.isFinite(Number(state.rent))||Number(state.rent)<1||Number(state.rent)>10000000){message("Enter a valid monthly rent.","error");return false;}
   if(state.deposit!==""&&(!Number.isFinite(Number(state.deposit))||Number(state.deposit)<0||Number(state.deposit)>10000000)){message("Enter a valid security deposit or leave it blank.","error");return false;}
  }
@@ -470,6 +471,7 @@ function renderPreview(){
   ["Configuration",config||"—"],
   ["Monthly rent",formatINR(rent)],
   ["Security deposit",deposit?formatINR(deposit):"Not specified"],
+  ["Furnishing",state.furnishing||"Not specified"],
   ["Location",address||"—"],
   ["Availability","Pending verification after submission"]
  ];
@@ -615,9 +617,9 @@ function bindEvents(){
   searchTimer=setTimeout(()=>searchAddress(q),350);
  });
  $("#gdrStudioPincode")?.addEventListener("input",e=>{state.pincode=e.target.value.replace(/\D/g,"").slice(0,6);e.target.value=state.pincode;saveDraft();});
- ["gdrStudioRent","gdrStudioDeposit","gdrStudioDescription","gdrStudioRoomType","gdrStudioGender","gdrStudioTotalBeds","gdrStudioAvailableBeds","gdrStudioFoodIncluded"].forEach(id=>{
+ ["gdrStudioRent","gdrStudioDeposit","gdrStudioFurnishing","gdrStudioDescription","gdrStudioRoomType","gdrStudioGender","gdrStudioTotalBeds","gdrStudioAvailableBeds","gdrStudioFoodIncluded"].forEach(id=>{
   const el=document.getElementById(id);if(!el)return;
-  el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;saveDraft();});
+  el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;saveDraft();});
   el.addEventListener("change",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;saveDraft();});
  });
  $("#gdrStudioUseGps")?.addEventListener("click",useGps);
@@ -699,7 +701,7 @@ async function publish(){
    p_longitude:state.lng,
    p_bhk:bhk,
    p_rent:Number(state.rent),
-   p_furnishing:null,
+   p_furnishing:state.furnishing||null,
    p_description:state.description||null,
    p_image_url:coverUrl
   };
