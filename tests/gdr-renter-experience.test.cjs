@@ -40,6 +40,25 @@ test('map voice uses its own microphone and status elements', () => {
   assert.match(js, /function runMapSearch\(\)/);
   assert.match(js, /const searchResult=await api\.searchTypedMapLocation\(\)/);
 });
+test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
+  const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
+  assert.equal(p.location, 'सिंगरौली मध्य प्रदेश');
+});
+test('voice assistant replies in the language used by the speaker', () => {
+  const start = js.indexOf('function detectReplyLanguage(raw){');
+  const end = js.indexOf('function setValue', start);
+  assert.ok(start >= 0 && end > start, 'voice response helpers are present');
+  const helpers = vm.runInNewContext(js.slice(start, end) + '; ({detectReplyLanguage, assistantReply})');
+  assert.equal(helpers.detectReplyLanguage('मुझे भोपाल में घर दिखाओ'), 'hi');
+  assert.equal(helpers.detectReplyLanguage('Show available homes in Bhopal'), 'en');
+  assert.match(helpers.assistantReply('hi', 3, 'सिंगरौली'), /मुझे 3 उपलब्ध/);
+  assert.match(helpers.assistantReply('en', 2, 'Bhopal'), /I found 2 available/);
+});
+test('map assistant speaks responses and preserves previous location for follow-up filters', () => {
+  assert.match(js, /speechSynthesis\.speak/);
+  assert.match(js, /const parsed=parseRequest\(raw\),previous=state\.lastMapSearch\|\|\{\}/);
+  assert.match(js, /await api\.openRenterMap\(\)/);
+});
 test('map voice supports an explicit spoken search radius', () => {
   const p = parseRequest('2 BHK under 8000 near Patel Nagar within 3 km');
   assert.equal(p.radiusKm, 3);
