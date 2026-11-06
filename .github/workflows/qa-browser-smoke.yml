@@ -16,6 +16,7 @@ on:
       - "feature/owner-command-center-20261105"
       - "fix/back-dashboard-file-picker-20261107"
       - "fix/free-osm-property-studio-20261107"
+      - "fix/gdr-map-voice-ai-20261107"
     paths:
       - "index.html"
       - "admin/**"
