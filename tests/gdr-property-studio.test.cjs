@@ -8,7 +8,7 @@ const html = read("index.html");
 const studio = read("assets/gdr-property-studio.js");
 const studioMarkup = read("assets/gdr-property-studio.html");
 const studioCss = read("assets/gdr-property-studio.css");
-const migration = read("supabase/migrations/20261107120000_owner_property_studio.sql");
+const migration = read("supabase/migrations/20261106195955_owner_property_studio.sql");
 const patcher = read("scripts/patch-property-studio.py");
 
 test("List Your Property is the first major owner dashboard action before statistics", () => {
