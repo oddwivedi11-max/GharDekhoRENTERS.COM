@@ -129,8 +129,12 @@ if 'id="gdrPropertyStudioMount"' not in source:
 css_ref_v1 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">'
 css_ref_v2 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio2">'
 css_ref_v3 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio3">'
-if css_ref_v3 not in source:
-    if css_ref_v2 in source:
+css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-voiceassistant1">'
+if css_ref_v4 not in source:
+    if css_ref_v3 in source:
+        source = source.replace(css_ref_v3, css_ref_v4, 1)
+        print("Updated: refresh conversational Property Studio voice styles")
+    elif css_ref_v2 in source:
         source = source.replace(css_ref_v2, css_ref_v3, 1)
         print("Updated: refresh Property Studio nearby preview styles")
     elif css_ref_v1 in source:
@@ -178,8 +182,8 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>'
-old_script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio5" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant1" defer></script>'
+old_script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>'
 if script_ref not in source:
     if old_script_ref in source:
         source = source.replace(old_script_ref, script_ref, 1)
