@@ -860,3 +860,5 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
 .gdr-home-3d-marker.gdr-home-selected{filter:drop-shadow(0 0 0 #d7b56d) drop-shadow(0 0 10px rgba(194,151,75,.95));transform:translateY(-5px) scale(1.1)}
 .gdr-home-3d-marker.gdr-home-selected .gdr-home-3d-price{background:#f5e7c4;border-color:#c69b55;color:#513d1c;box-shadow:0 0 0 2px rgba(198,155,85,.2),0 5px 15px rgba(24,53,42,.22)}
 @media(prefers-reduced-motion:reduce){.gdr-home-3d-marker.gdr-home-selected{transform:none}}
+
+.gdr-map-preview-extra{grid-column:1/-1;margin-top:8px;padding:9px 10px;border:1px solid #e3e9e4;border-radius:10px;background:#f7faf8;color:#4e665e;font-size:11px;line-height:1.5;overflow-wrap:anywhere}.gdr-map-preview-extra p{margin:0 0 5px}.gdr-map-preview-extra p:last-child{margin-bottom:0;font-size:9px;color:#7d8c85}
