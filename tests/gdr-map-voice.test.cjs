@@ -1,37 +1,39 @@
-const { test, expect } = require('@playwright/test');
+const test = require('node:test');
+const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const voice = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-voice.js'), 'utf8');
 const map = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-experience.js'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-voice.css'), 'utf8');
 
-test.describe('GDR renter map voice assistant', () => {
-  test('loads only inside the existing Explore Map and uses the existing map search API', () => {
-    expect(map).toContain('ensureMapVoiceAssistant');
-    expect(map).toContain('window.GDRMapVoiceAssistant.mount(panel)');
-    expect(voice).toContain('window.GDRMapExperience');
-    expect(voice).toContain('resolveMapQuery');
-    expect(voice).toContain('searchAtCoordinates');
-    expect(voice).toContain('filterVisibleByLocation');
-  });
-  test('supports browser-native speech, silence finalization and typed fallback', () => {
-    expect(voice).toContain('window.SpeechRecognition||window.webkitSpeechRecognition');
-    expect(voice).toContain('setTimeout(finishTurn,1800)');
-    expect(voice).toContain('gdrMapVoiceSearch');
-    expect(voice).toContain('SpeechSynthesisUtterance');
-    expect(voice).toContain('hi-IN');
-    expect(voice).toContain('en-IN');
-  });
-  test('keeps microphone controls responsive and prevents overlapping UI', () => {
-    expect(css).toContain('grid-template-columns:minmax(0,1fr) 104px');
-    expect(css).toContain('@media(max-width:620px)');
-    expect(css).toContain('.gdr-map-voice-mic.is-listening');
-    expect(voice).toContain('aria-pressed');
-  });
-  test('filters common rent, BHK and furnishing commands deterministically', () => {
-    expect(voice).toContain('maxBudget');
-    expect(voice).toContain('p.bhk');
-    expect(voice).toContain('p.furnishing="Furnished"');
-    expect(voice).toContain('p.stayType="pg"');
-  });
+test('voice assistant loads inside the existing renter Explore Map', () => {
+  assert.match(map, /ensureMapVoiceAssistant/);
+  assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
+  assert.match(voice, /window\.GDRMapExperience/);
+  assert.match(voice, /resolveMapQuery/);
+  assert.match(voice, /searchAtCoordinates/);
+  assert.match(voice, /filterVisibleByLocation/);
+});
+
+test('voice recognition has automatic silence finalization and typed fallback', () => {
+  assert.match(voice, /window\.SpeechRecognition\|\|window\.webkitSpeechRecognition/);
+  assert.match(voice, /setTimeout\(finishTurn,1800\)/);
+  assert.match(voice, /gdrMapVoiceSearch/);
+  assert.match(voice, /SpeechSynthesisUtterance/);
+  assert.match(voice, /hi-IN/);
+  assert.match(voice, /en-IN/);
+});
+
+test('voice UI has responsive controls and accessible microphone state', () => {
+  assert.match(css, /grid-template-columns:minmax\(0,1fr\) 104px/);
+  assert.match(css, /@media\(max-width:620px\)/);
+  assert.match(css, /\.gdr-map-voice-mic\.is-listening/);
+  assert.match(voice, /aria-pressed/);
+});
+
+test('common rental filters are parsed deterministically', () => {
+  assert.match(voice, /maxBudget/);
+  assert.match(voice, /p\.bhk/);
+  assert.match(voice, /p\.furnishing="Furnished"/);
+  assert.match(voice, /p\.stayType="pg"/);
 });
