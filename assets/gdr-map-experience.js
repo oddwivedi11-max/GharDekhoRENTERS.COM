@@ -112,11 +112,11 @@
   function showPreview(p){
     const preview=$("gdrMapPreview");if(!preview)return;preview.replaceChildren();
     const main=node("div","gdr-map-preview-main"),img=document.createElement("img");
-    img.alt="Property photograph";img.loading="lazy";img.src=safeImage(p.image_url)||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='240'%3E%3Crect width='100%25' height='100%25' fill='%23e9f1ee'/%3E%3C/svg%3E";
+    img.alt="Property photograph";img.loading="lazy";img.src=safeImage(p.image_url||(Array.isArray(p.photo_urls)?p.photo_urls[0]:""))||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='240'%3E%3Crect width='100%25' height='100%25' fill='%23e9f1ee'/%3E%3C/svg%3E";
     const copy=node("div","");
     copy.append(node("h4","",p.title||p.name||"Rental property"),node("p","",[p.location,p.address].filter(Boolean).join(", ")||"Location details available"),node("p","gdr-map-rent",money(p.rent)+" / month"));
     const meta=[p.bhk?p.bhk+" BHK":"",p.furnishing||"",p.listing_type&&p.listing_type!=="home"?p.listing_type.toUpperCase():"Home",Number.isFinite(p.gdrDistanceKm)?p.gdrDistanceKm.toFixed(1)+" km away":""].filter(Boolean).join(" · ");
-    copy.append(node("p","",meta));if(Number.isFinite(Number(p.gdrMatchScore)))copy.append(node("p","gdr-map-match-score",p.gdrMatchScore+"% preference match"));copy.append(node("p","",statusOf(p)+" · Owner contact is shared only through the approved visit flow."));
+    copy.append(node("p","",meta));if(Number.isFinite(Number(p.gdrMatchScore)))copy.append(node("p","gdr-map-match-score",p.gdrMatchScore+"% preference match"));copy.append(node("p","",statusOf(p)+" · "+(p.owner_verified?"Verified owner":"Owner verification pending")+" · Owner contact is shared only through the approved visit flow."));
     main.append(img,copy);
     const actions=node("div","gdr-map-preview-actions"),details=node("button","gdr-map-details-btn","View details"),favorite=node("button","gdr-map-details-btn","♡ Save"),compare=node("button","gdr-map-details-btn","＋ Compare"),close=node("button","gdr-map-dismiss-btn","Close");
     details.type="button";details.addEventListener("click",()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(p.id);else setStatus("Open this property from the property results to see full details.");});
@@ -281,24 +281,31 @@
       return false;
     }finally{if(button){button.disabled=false;button.textContent="Search this area";}}
   }
-  async function searchRenterArea(){
+  async function searchRenterArea(prefs){
     if(!state.renterMap)return false;
+    if(prefs)state.currentPrefs=Object.assign({},prefs);
     const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Searching…";}
-    setStatus("Searching homes within "+state.radiusKm+" km of the selected location…");
+    setStatus("Searching genuine available homes in the visible map area…");
     try{
-      if(!state.searchCenter){const c=state.renterMap.getCenter();setRenterPin(c,"");}
-      const bounds=radiusBounds(state.searchCenter);
-      state.boundsRows=await fetchBounds(bounds);
-      const rows=applyRadius(state.boundsRows,state.searchCenter);
-      renderMarkers(rows,state.searchCenter);
-      setStatus(rows.length+" properties within "+state.radiusKm+" km of "+(state.resolvedQuery||"the selected map centre")+".");
+      const center=state.renterMap.getCenter();
+      if(!validPoint(center.lat,center.lng))throw new Error("The map center is not a valid location.");
+      state.searchCenter=[Number(center.lat),Number(center.lng)];
+      const bounds=state.renterMap.getBounds();
+      if(!bounds||!bounds.getSouthWest||!bounds.getNorthEast)throw new Error("Map boundaries are unavailable. Move or zoom the map and retry.");
+      state.lastSearchBounds=bounds;
+      state.boundsRows=await fetchBounds(bounds,state.searchCenter,state.currentPrefs);
+      const rows=applyRenterFilters(state.currentPrefs);
+      if(!rows.length)setStatus("No rental homes found in this area. Try expanding your search radius.");
       return rows;
     }catch(error){
       console.error("GDR map search failed:",error);
-      setStatus(error&&error.message?("Properties could not be loaded: "+error.message):"Properties could not be loaded. Please try again.");
+      state.boundsRows=[];state.visible=[];
+      renderMarkers([],state.searchCenter||[INDIA_CENTER[0],INDIA_CENTER[1]]);
+      setStatus(error&&error.message?error.message:"Properties could not be loaded. Please try again.");
       return false;
     }finally{if(button){button.disabled=false;button.textContent="Search this area";}}
   }
+  function setRenterSearchPreferences(prefs){state.currentPrefs=Object.assign({},prefs||{});return state.currentPrefs;}
   function setRenterRadius(value,skipSearch){
     const next=Number(value);
     if(!Number.isFinite(next)){throw new Error("Choose a valid search radius.");}
@@ -321,7 +328,7 @@
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
     state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView([23.2599,77.4126],12);
     state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");});
-    state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent=state.visible.length+" GharDekho "+(state.visible.length===1?"home":"homes")+" shown.";});
+    state.renterMap.on("moveend",()=>{const s=$("gdrMapStatus");if(s&&state.visible.length)s.textContent="Map area changed. Tap Search this area to refresh homes for the visible boundaries.";});
   }
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
@@ -593,13 +600,13 @@
 
   function bind(){
     $("renterExploreMapBtn")?.addEventListener("click",openRenterMap);$("gdrMapBackBtn")?.addEventListener("click",closeRenterMap);
-    $("gdrMapSearchAreaBtn")?.addEventListener("click",searchTypedMapLocation);$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
+    $("gdrMapSearchAreaBtn")?.addEventListener("click",()=>searchRenterArea());$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
     const radiusInput=$("gdrMapRadius");if(radiusInput){radiusInput.min="0.5";radiusInput.max="10";radiusInput.step="0.5";radiusInput.addEventListener("input",e=>{state.radiusKm=Math.max(.5,Math.min(10,Number(e.target.value)||5));const label=$("gdrMapRadiusValue");if(label)label.textContent=state.radiusKm<1?Math.round(state.radiusKm*1000)+" m":state.radiusKm+" km";});}
     $("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap)searchRenterArea();});
     $("gdrMapListToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;const on=!l.classList.contains("gdr-list-mode");l.classList.toggle("gdr-list-mode",on);if(panel)panel.hidden=!on;$("gdrMapListToggle").setAttribute("aria-pressed",String(on));$("gdrMapViewToggle").setAttribute("aria-pressed",String(!on));if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
     $("gdrMapViewToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;l.classList.remove("gdr-list-mode");if(panel)panel.hidden=true;$("gdrMapListToggle").setAttribute("aria-pressed","false");$("gdrMapViewToggle").setAttribute("aria-pressed","true");if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
     $("gdrOpenOwnerMapPickerBtn")?.addEventListener("click",openOwnerMapPicker);$("gdrCloseOwnerMapPickerBtn")?.addEventListener("click",closeOwnerMapPicker);$("gdrConfirmOwnerMapLocation")?.addEventListener("click",confirmOwnerMapLocation);
-    setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{state.searchCenter=[r.lat,r.lng];state.resolvedQuery=r.label;if(state.renterMap){state.renterMap.setView(state.searchCenter,14,{animate:false});searchRenterArea();}},"renter");
+    setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{if(state.renterMap){setRenterPin(r,r.label);state.renterMap.setView(state.searchCenter,14,{animate:false});searchRenterArea();}},"renter");
     $("gdrMapPlaceSearch")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchTypedMapLocation();}});
     $("gdrMapPlaceSearch")?.addEventListener("change",()=>{state.resolvedQuery="";});
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label,false);updateOwnerStatus("Approximate locality found. Zoom in and tap the exact building/entrance or drag the pin; search results are not exact property coordinates.");}},"owner");
@@ -624,5 +631,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice()};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice()};
 })();
