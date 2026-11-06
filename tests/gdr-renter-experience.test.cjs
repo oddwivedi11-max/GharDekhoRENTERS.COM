@@ -44,3 +44,9 @@ test('map voice supports an explicit spoken search radius', () => {
   const p = parseRequest('2 BHK under 8000 near Patel Nagar within 3 km');
   assert.equal(p.radiusKm, 3);
 });
+
+test('production headers allow same-origin microphone permission for browser speech search', () => {
+  const headers = fs.readFileSync('_headers', 'utf8');
+  assert.match(headers, /microphone=\(self\)/);
+  assert.doesNotMatch(headers, /microphone=\(\)/);
+});
