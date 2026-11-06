@@ -248,7 +248,9 @@ function wrapMapCallback(){
  window.__gdrSetPropertyLocation=wrapped;
 }
 const osmCategory=tags=>{
- if(tags.railway==="station"||tags.public_transport==="station")return "Railway station";
+ if(tags.railway==="station")return "Railway station";
+ if(tags.amenity==="bus_station")return "Bus station";
+ if(tags.public_transport==="station")return "Transit station";
  if(tags.highway==="bus_stop"||tags.public_transport==="platform")return "Bus stop";
  if(tags.amenity==="hospital"||tags.healthcare==="hospital")return "Hospital";
  if(tags.amenity==="school")return "School";
