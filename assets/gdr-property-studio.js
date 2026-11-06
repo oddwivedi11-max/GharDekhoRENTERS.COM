@@ -630,8 +630,10 @@ function extractVoiceDetails(text){
   const wordConfig=t.match(/\b(ek|do|teen|char|paanch|panch|one|two|three|four|five)\s*(?:bhk|bedroom)\b/);
   const map={ek:"1",one:"1",do:"2",two:"2",teen:"3",three:"3",char:"4",four:"4",paanch:"5",panch:"5",five:"5"};
   if(wordConfig)out.configuration=map[wordConfig[1]]+" BHK";
-  else if(/\bone\s*rk\b|\bek\s*rk\b|1\s*room\s*kitchen/.test(t))out.configuration="1 RK";
+  else if(/\bone\s*rk\b|\bek\s*rk\b|1\s*room\s*kitchen|एक\s*आरके/.test(t))out.configuration="1 RK";
+  else{const hindiConfig=t.match(/(एक|दो|तीन|चार|पाँच|पांच)\s*(?:बीएचके|bhk|bedroom)/);const hindiMap={"एक":"1","दो":"2","तीन":"3","चार":"4","पाँच":"5","पांच":"5"};if(hindiConfig)out.configuration=hindiMap[hindiConfig[1]]+" BHK";}
  }
+ if(out.configuration&&!out.propertyType)out.propertyType="apartment";
  const furnish=t.match(/\b(semi[\s-]?furnished|fully furnished|furnished|unfurnished)\b/);
  if(furnish)out.furnishing=/semi/.test(furnish[1])?"Semi-Furnished":/unfurnished/.test(furnish[1])?"Unfurnished":"Furnished";
  const depIdx=t.search(/security deposit|deposit/),rentIdx=t.search(/rent|kiraya|किराया|monthly/);
@@ -689,8 +691,8 @@ function nextVoiceQuestion(){
  else{field="complete";question=voiceText("बहुत बढ़िया! ज़रूरी details पूरी हो गई हैं। अब photos और बाकी details जोड़कर preview में सब check करें।","Great! The key details are complete. Add photos and the remaining details, then review the preview.");}
  state.voice.lastField=field;state.voice.lastQuestion=question;speakVoice(question);
 }
-function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sahi|correct hai|that's right|ठीक|हाँ|हां|जी|सही|बिल्कुल)(?:\s|$)/i.test(String(text||"").trim());}
-function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)(?:\s|$)/i.test(String(text||"").trim());}
+function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sahi|correct hai|that's right|ठीक|हाँ|हां|जी|सही|बिल्कुल)(?:[\s,.!?]|$)/i.test(String(text||"").trim());}
+function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)(?:[\s,.!?]|$)/i.test(String(text||"").trim());}
 function processVoiceTurn(text){
  const raw=String(text||"").trim();if(!raw)return;state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
  if(/\b(stop listening|stop microphone|band karo|mic band)\b|रोक दो|बंद करो/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Okay, I stopped listening. Press Start speaking when you want to continue."));return;}
@@ -735,6 +737,7 @@ function startVoiceRecognition(){
  rec.onend=()=>{
   if(session!==state.voice.session)return;state.recognition=null;state.recording=false;
   if(state.voice.active&&!state.voice.manualStop&&!state.voice.permissionBlocked&&!state.voice.speaking){setVoiceState("RECONNECTING MICROPHONE…",true);scheduleVoiceRestart(450);}
+  else if(state.voice.permissionBlocked)setVoiceState("MICROPHONE NEEDS ATTENTION",false);
   else if(!state.voice.speaking)setVoiceState("READY",false);
  };
  try{rec.start();}catch(error){state.recognition=null;state.recording=false;scheduleVoiceRestart(800);}
