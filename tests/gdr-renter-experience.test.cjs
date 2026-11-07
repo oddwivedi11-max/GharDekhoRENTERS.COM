@@ -231,6 +231,17 @@ test('city-wide microphone searches discard stale form filters and the previous 
   assert.match(js, /setValue\("renterMaxBudgetPreset","",true\)/);
 });
 
+test('starting a new renter voice search clears the visible previous city and every old form filter', () => {
+  const start = js.indexOf('function startVoice(target,lang){');
+  const end = js.indexOf('function hideUpperAvailableRentalPanel', start);
+  const voice = js.slice(start, end);
+  assert.match(voice, /clearRenterSearchFilters\(\)/);
+  assert.match(voice, /const locationField=\$\("renterSearchLocation"\)/);
+  assert.match(voice, /locationField\.value=""/);
+  assert.match(voice, /state\.parsed=null/);
+  assert.match(js, /function clearRenterSearchFilters\(\)/);
+});
+
 test('all-property Hinglish requests tolerate common phrasing and clean the Ajay speech prefix before Singrauli', () => {
   const cases = [
     'Singrauli mein jitni bhi properties hain dikhao',
