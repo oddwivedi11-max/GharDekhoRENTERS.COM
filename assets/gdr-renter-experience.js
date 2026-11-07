@@ -234,7 +234,7 @@ function parseRequest(raw){
     p.location=cityPart;
    }else{
     const localityFromCity=city?cityKey.replace(new RegExp("(?:^| )"+city[0]+"(?: |$)","g")," ").replace(/\\b(madhya pradesh|m p|mp)\\b/g," ").replace(/\\s+/g," ").trim():"";
-    const resolvedCity=city?(cityKey===city[0]?cityPart:city[1]):cityPart;
+    const resolvedCity=city?(cityKey==="singrauli"?"Singrauli":cityKey===city[0]?cityPart:city[1]):cityPart;
     const resolvedLocality=localityPart||localityFromCity;
     p.location=resolvedLocality?resolvedLocality+", "+resolvedCity:resolvedCity;
    }
