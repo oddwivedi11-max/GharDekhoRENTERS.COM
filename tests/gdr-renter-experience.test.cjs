@@ -419,3 +419,32 @@ test('Hindi city-first locality searches retain the locality while stripping all
   assert.equal(parsed.location, 'पटेल नगर, भोपाल');
   assert.equal(parsed.stayType, '');
 });
+
+
+test('Hindi request "भोपाल पटेल नगर में जितनी प्रॉपर्टीज है दिखाओ" resolves to Patel Nagar, Bhopal', () => {
+  const p = parseRequest('भोपाल पटेल नगर में जितनी प्रॉपर्टीज है दिखाओ');
+  assert.equal(p.location, 'patel nagar, Bhopal');
+  assert.equal(p.stayType, '');
+});
+
+test('Patel Nagar Bhopal assistant search returns only real available records with accurate coordinates', () => {
+  const filterStart = js.indexOf('function normalizedPropertyBhk(row){');
+  const filterEnd = js.indexOf('async function searchAssistantListings', filterStart);
+  assert.ok(filterStart >= 0 && filterEnd > filterStart, 'shared inventory filter is present');
+  const helpers = vm.runInNewContext(
+    js.slice(normalizeStart, start) +
+    js.slice(start, end) +
+    js.slice(filterStart, filterEnd) +
+    '; ({parseRequest,filterAssistantListings})'
+  );
+  const intent = helpers.parseRequest('भोपाल पटेल नगर में जितनी प्रॉपर्टीज है दिखाओ');
+  const inventory = [
+    {id:'patel-pending-home',title:'liitle one house',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Patel Nagar, Bhopal',latitude:23.2557212,longitude:77.5021024,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000},
+    {id:'patel-pending-hostel',title:'dwivedi house ji',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Patel Nagar, Bhopal',latitude:23.2557212,longitude:77.5021024,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'hostel',available_beds:24,rent:8000},
+    {id:'patel-verified-home',title:'om house',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Patel Nagar, Bhopal',latitude:23.2557212,longitude:77.5021024,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home',rent:9000},
+    {id:'wrong-delhi-coordinate',title:'Lalu bhai home',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Patel Nagar, Bhopal',latitude:28.6450127,longitude:77.1692817,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'hostel',available_beds:7,rent:7000},
+    {id:'occupied-patel-home',title:'occupied home',location:'Patel Nagar, Bhopal',latitude:23.2557212,longitude:77.5021024,status:'occupied',verification_status:'verified',owner_verified:true,listing_type:'home',rent:7000}
+  ];
+  const rows = helpers.filterAssistantListings(inventory,{location:intent.location});
+  assert.deepEqual(Array.from(rows,row=>row.id),['patel-pending-home','patel-pending-hostel','patel-verified-home']);
+});
