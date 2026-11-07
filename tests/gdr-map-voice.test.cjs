@@ -47,7 +47,7 @@ test('voice requests use the database-backed assistant and do not use a map-radi
 
 test('Hindi and Hinglish speech phrases retain locality, BHK and rent filters', () => {
   const start = renter.indexOf('function normalizeSearchText(value){');
-  const end = renter.indexOf('\nfunction filterAssistantListings', start);
+  const end = renter.indexOf('\nfunction detectReplyLanguage', start);
   const vm = require('node:vm');
   const helpers = vm.runInNewContext(renter.slice(start, end) + '; ({normalizeSearchText,parseRequest})');
   const singrauli = helpers.parseRequest('Mujhe Madhya Pradesh Singrauli mein 2 BHK ghar 10,000 ke kam rent wale dikhao');
