@@ -45,13 +45,13 @@ test('Madhya Pradesh state-plus-city voice request resolves to the requested cit
   assert.equal(p.stayType, 'home');
 });
 test('spoken renter search is one-shot, stop-safe and submits the existing real search form', () => {
-  assert.match(js, /rec\\.continuous=false/);
-  assert.match(js, /state\\.voiceSession/);
-  assert.match(js, /function stopRenterVoice/);
-  assert.match(js, /r\\.abort\\?r\\.abort\\(\\):r\\.stop\\(\\)/);
-  assert.match(js, /review\\(finalText,\\{autoSearch:true\\}\\)/);
-  assert.match(js, /form\\.requestSubmit\\(\\)/);
-  assert.match(js, /Chrome speech recognition could not reach its speech service/);
+  assert.ok(js.includes('rec.continuous=false'));
+  assert.ok(js.includes('state.voiceSession'));
+  assert.ok(js.includes('function stopRenterVoice'));
+  assert.ok(js.includes('r.abort?r.abort():r.stop()'));
+  assert.ok(js.includes('review(finalText,{autoSearch:true})'));
+  assert.ok(js.includes('form.requestSubmit()'));
+  assert.ok(js.includes('Chrome speech recognition could not reach its speech service'));
 });
 
 test('voice parser distinguishes Room from Apartment for renter searches', () => {
@@ -62,15 +62,16 @@ test('voice parser distinguishes Room from Apartment for renter searches', () =>
   assert.equal(apartment.propertyType, 'apartment');
 });
 test('spoken follow-up filters preserve the previously selected city and stay type', () => {
-  assert.match(js, /const extracted=parseRequest\\(raw\\),previous=state\\.parsed\\|\\|\\{\\}/);
-  assert.match(js, /if\\(!extracted\\[key\\]\\)p\\[key\\]=previous\\[key\\]\\|\\|""/);
+  assert.ok(js.includes('const extracted=parseRequest(raw),previous=state.parsed||{}'));
+  assert.ok(js.includes('if(!extracted[key])p[key]=previous[key]||""'));
 });
 test('renter search applies an exact property type filter to real inventory', () => {
-  assert.match(index, /id="renterSearchPropertyType"/);
-  assert.match(index, /propertyType:\$\\("renterSearchPropertyType"\\)/);
-  assert.match(index, /const propertyTypeMatch = !renterPropertyType/);
-  assert.match(index, /locationMatch && listingTypeMatch && propertyTypeMatch/);
+  assert.ok(index.includes('id="renterSearchPropertyType"'));
+  assert.ok(index.includes('propertyType:$("renterSearchPropertyType")'));
+  assert.ok(index.includes('const propertyTypeMatch = !renterPropertyType'));
+  assert.ok(index.includes('locationMatch && listingTypeMatch && propertyTypeMatch'));
 });
+
 test('Hindi locality search requires all meaningful locality words, not a generic shared token', () => {
   assert.match(index, /const typedLocationMatch = typedTerms\.every\(term =>/);
 });
