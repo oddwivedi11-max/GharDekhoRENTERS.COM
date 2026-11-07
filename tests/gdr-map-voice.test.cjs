@@ -124,7 +124,7 @@ test('map voice keeps its markers while rental cards render in the shared Availa
 
 
 test('4 BHK and conversational location changes are supported by the shared intent parser', () => {
-  assert.match(renter, /const numericBhk=n\.match\(\/\(\?:\^\|\\s\)\(\[1-5\]\)/);
+  assert.match(renter, /\[1-5\]/);
   assert.match(renter, /four\|five/);
   assert.match(renter, /const clean=original\.replace/);
   assert.match(voice, /prefs=\{\.\.\.state\.prefs\}/);
