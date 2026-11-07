@@ -34,6 +34,12 @@ begin
   -- then persist NULL BHK for the Room record just as Other listings do.
   v_definition := replace(
     v_definition,
+    'when p_property_type = ''other'' then 1',
+    'when p_property_type in (''other'',''room'') then 1'
+  );
+
+  v_definition := replace(
+    v_definition,
     'case when p_property_type = ''other'' then null else v_effective_bhk end',
     'case when p_property_type in (''other'',''room'') then null else v_effective_bhk end'
   );
