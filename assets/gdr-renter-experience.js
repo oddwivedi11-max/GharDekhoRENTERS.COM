@@ -299,10 +299,16 @@ function parseRequest(raw){
  }else if(!p.location&&matchedCity){
   p.location=matchedCity[1];
  }
+ // Explicit locality-only "all properties" phrasing must retain the complete locality.
+ const localityOnlyRequest=original.match(/^(?:मुझे\s+|mujhe\s+)?(.+?)\s+(?:की|का|के|ki|ka|ke)\s+(?:(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari|all|every)\s+)?(?:(?:उपलब्ध|available)\s+)?(?:(?:रेंटल|rental)\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?:\s+(?:दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find))?\s*[.!?]?$/i);
+ if(localityOnlyRequest){
+  const requestedLocality=localityOnlyRequest[1].replace(/[.,!?]+$/,"").trim();
+  if(requestedLocality)p.location=requestedLocality;
+ }
  return p;
 }
 
-
+ 
 function detectReplyLanguage(raw){
  const value=String(raw||"");
  if(/[\u0900-\u097F]/.test(value))return "hi";
