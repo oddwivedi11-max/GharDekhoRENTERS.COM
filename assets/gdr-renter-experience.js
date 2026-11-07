@@ -45,6 +45,8 @@ function filterAssistantListings(rows,prefs){
  const tokens=query.split(" ").filter(Boolean);
  const knownCities=["singrauli","bhopal","indore","jabalpur","gwalior","ujjain","rewa","satna","dewas","sidhi","delhi","mumbai","pune","jaipur","lucknow","noida","gurgaon","gurugram","hyderabad","chennai","kolkata","bengaluru","bangalore"];
  const requestedCities=knownCities.filter(city=>tokens.includes(city));
+ const cityCenters={bhopal:[23.2599,77.4126],singrauli:[24.0724946,82.6246537]};
+ const distanceKm=(a,b)=>{const rad=value=>value*Math.PI/180,lat1=rad(a[0]),lat2=rad(b[0]),dLat=rad(b[0]-a[0]),dLng=rad(b[1]-a[1]),h=Math.sin(dLat/2)**2+Math.cos(lat1)*Math.cos(lat2)*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));};
  const number=value=>value==null||value===""?null:Number(value);
  return (Array.isArray(rows)?rows:[]).filter(row=>{
   if(!row||!row.id)return false;
@@ -61,6 +63,8 @@ function filterAssistantListings(rows,prefs){
    const address=normalizeSearchText(row.address||"");
    const addressCities=knownCities.filter(city=>new RegExp("(?:^| )"+city+"(?: |$)").test(address));
    if(addressCities.some(city=>!requestedCities.includes(city)))return false;
+   const center=cityCenters[requestedCities[0]],lat=Number(row.latitude),lng=Number(row.longitude);
+   if(center&&Number.isFinite(lat)&&Number.isFinite(lng)&&distanceKm(center,[lat,lng])>120)return false;
   }
   const rent=number(row.rent),min=number(p.minBudget),max=number(p.maxBudget);
   if(min!==null&&rent!==null&&rent<min)return false;
