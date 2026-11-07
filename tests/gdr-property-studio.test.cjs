@@ -54,12 +54,20 @@ test("Property Studio is a separate guided page with the required simple listing
     "gdrStudioOpenMap", "gdrStudioPhotoFiles", "gdrStudioCameraFiles",
     "gdrStudioVoiceStart", "gdrStudioPublish"
   ]) assert.ok(studioMarkup.includes(token), token);
-  for (const type of ["apartment", "independent_house", "villa", "pg", "hostel", "other"]) {
+  for (const type of ["apartment", "room", "independent_house", "villa", "pg", "hostel", "other"]) {
     assert.ok(studioMarkup.includes('data-gdr-property-type="' + type + '"'), type);
   }
   for (const configuration of ["1 RK", "1 BHK", "2 BHK", "3 BHK", "4 BHK", "5+ BHK"]) {
     assert.ok(studioMarkup.includes('data-gdr-configuration="' + configuration + '"'), configuration);
   }
+});
+
+test("Room is a distinct supported property type without changing the existing listing workflow", () => {
+  const roomMigration = read("supabase/migrations/20261107130000_add_room_property_type.sql");
+  assert.match(roomMigration, /properties_property_type_check/);
+  assert.match(roomMigration, /'room'/);
+  assert.match(roomMigration, /owner_publish_property_studio/);
+  assert.match(studio, /propertyType==="room"\?null/);
 });
 
 test("Property Studio saves drafts, uploads owner-scoped photos and uses the secure publish RPC", () => {
