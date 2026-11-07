@@ -330,9 +330,9 @@ body.gdr-property-studio-open{overflow:hidden!important}
 #gdrStudioFormNext:hover span,#gdrStudioPublish:hover span{transform:translateX(3px)}
 #gdrStudioFormNext:active,#gdrStudioPublish:active{transform:translateY(4px);box-shadow:0 2px 0 #08291d,0 6px 12px rgba(12,55,38,.16)}
 #gdrStudioFormNext:focus-visible,#gdrStudioPublish:focus-visible,#gdrStudioBack:focus-visible{outline:3px solid #c5a66b;outline-offset:4px}
-.gdr-studio-assistant-footer{justify-content:flex-end;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid #e4eadd}
-.gdr-studio-assistant-footer>span{margin-right:auto;color:#819083;font-size:11px;line-height:1.4}
-.gdr-studio-assistant-footer #gdrStudioNext{min-height:42px;padding:0 17px;border:1px solid #d6e1d3;border-radius:11px;background:linear-gradient(180deg,#fff,#f0f5ed);color:#31543a;box-shadow:0 3px 0 #d4dfd0}
+.gdr-studio-footer[data-gdr-studio-assistant-footer]{justify-content:flex-end;gap:14px;margin-top:12px;padding-top:12px;border-top:1px solid #e4eadd}
+.gdr-studio-footer[data-gdr-studio-assistant-footer]>span{margin-right:auto;color:#819083;font-size:11px;line-height:1.4}
+.gdr-studio-footer[data-gdr-studio-assistant-footer] #gdrStudioNext{min-height:42px;padding:0 17px;border:1px solid #d6e1d3;border-radius:11px;background:linear-gradient(180deg,#fff,#f0f5ed);color:#31543a;box-shadow:0 3px 0 #d4dfd0}
 @keyframes gdrStudioNavShine{0%,28%{transform:translateX(0) skewX(-22deg);opacity:0}40%{opacity:1}75%,100%{transform:translateX(520%) skewX(-22deg);opacity:0}}
 @media(max-width:620px){
  .gdr-studio-form-navigation{grid-template-columns:auto minmax(0,1fr) minmax(112px,auto);gap:8px;padding:10px;margin:12px 0 18px}
@@ -340,9 +340,9 @@ body.gdr-property-studio-open{overflow:hidden!important}
  .gdr-studio-form-step{font-size:8px;letter-spacing:.1em}
  .gdr-studio-form-step b{width:23px;height:23px}
  #gdrStudioPublish{font-size:11px}
- .gdr-studio-assistant-footer{display:grid;grid-template-columns:1fr;gap:8px}
- .gdr-studio-assistant-footer>span{margin:0}
- .gdr-studio-assistant-footer #gdrStudioNext{width:100%;min-height:46px}
+ .gdr-studio-footer[data-gdr-studio-assistant-footer]{display:grid;grid-template-columns:1fr;gap:8px}
+ .gdr-studio-footer[data-gdr-studio-assistant-footer]>span{margin:0}
+ .gdr-studio-footer[data-gdr-studio-assistant-footer] #gdrStudioNext{width:100%;min-height:46px}
 }
 @media(prefers-reduced-motion:reduce){
  #gdrStudioFormNext:before,#gdrStudioPublish:before{animation:none}

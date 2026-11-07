@@ -107,7 +107,7 @@
         <div id="gdrStudioLiveFields" class="gdr-studio-live-fields" aria-live="polite"></div>
       </section>
     </div>
-    <div class="gdr-studio-footer gdr-studio-assistant-footer"><span>Prefer help from GDR? Continue with the voice assistant.</span><button type="button" id="gdrStudioNext">Continue →</button></div>
+    <div class="gdr-studio-footer" data-gdr-studio-assistant-footer><span>Prefer help from GDR? Continue with the voice assistant.</span><button type="button" id="gdrStudioNext">Continue →</button></div>
     <p id="gdrStudioMessage" hidden aria-live="polite"></p>
   </main>
 </section>
