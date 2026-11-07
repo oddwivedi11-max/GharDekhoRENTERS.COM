@@ -74,23 +74,26 @@ test("Room is a distinct supported property type without changing the existing l
   assert.match(studio, /propertyType==="room"\?null/);
 });
 
-test("Property Studio saves drafts, uploads owner-scoped photos and uses the secure publish RPC", () => {
-  assert.match(studio, /localStorage\.setItem/);
-  assert.match(studio, /storage\.from\("property-images"\)\.upload/);
-  assert.match(studio, /owner_publish_property_studio/);
-  assert.match(studio, /p_submission_id/);
-  assert.match(studio, /p_photo_urls/);
-  assert.match(studio, /p_furnishing:state\.furnishing\|\|null/);
-  assert.match(studio, /SpeechRecognition/);
-  assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
-  assert.match(studio, /overpass-api\.de\/api\/interpreter/);
-  assert.match(studio, /distanceMeters\(lat,lng,placeLat,placeLng\)/);
-  assert.match(studio, /Please review and correct every field before continuing/);
+test("Property Studio starts each new listing blank and uses the secure publish RPC", () => {
+  assert.ok(studio.includes("function resetNewListing()"));
+  assert.ok(studio.includes("function clearLegacyDraft()"));
+  assert.ok(!studio.includes("function restoreDraft()"));
+  assert.ok(!studio.includes("localStorage.setItem(draftKey"));
+  assert.ok(studio.includes('storage.from("property-images").upload'));
+  assert.ok(studio.includes("owner_publish_property_studio"));
+  assert.ok(studio.includes("p_submission_id"));
+  assert.ok(studio.includes("p_photo_urls"));
+  assert.ok(studio.includes("p_furnishing:state.furnishing||null"));
+  assert.ok(studio.includes("SpeechRecognition"));
+  assert.ok(studio.includes("GDRMapExperience.openOwnerMapPicker"));
+  assert.ok(studio.includes("overpass-api.de/api/interpreter"));
+  assert.ok(studio.includes("distanceMeters(lat,lng,placeLat,placeLng)"));
+  assert.ok(studio.includes("Please review and correct every field before continuing"));
 });
 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261107-stepnav3d1\"/);
+  assert.match(studio, /const VERSION=\"20261107-manualreset1\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
@@ -162,4 +165,20 @@ test("Manual form Next and final Submit are separate from GDR voice Continue",()
   assert.match(studio,/gdrStudioFormNext/);
   assert.match(studio,/assistantNext/);
   assert.match(studio,/Submit Your Property/);
+});
+
+test("New listing fields are blanked and browser autocomplete is disabled",()=>{
+  assert.ok(studio.includes('setAttribute("autocomplete","off")'));
+  assert.ok(studio.includes('state.rent="";state.deposit=""'));
+  assert.ok(studio.includes('state.address="";state.pincode=""'));
+  assert.ok(read("assets/gdr-property-studio.txt").includes('id="gdrStudioRent" type="number" autocomplete="off"'));
+  assert.ok(read("assets/gdr-property-studio.txt").includes('id="gdrStudioPincode" type="text" autocomplete="off"'));
+});
+test("Returning from a successful listing refreshes Owner Dashboard without reload or sign-out",()=>{
+  assert.ok(studio.includes("async function returnToOwnerDashboard(scrollToProperties)"));
+  assert.ok(studio.includes("window.renderActiveDashboard()"));
+  assert.ok(studio.includes("returnToOwnerDashboard(true)"));
+  assert.ok(studio.includes("returnToOwnerDashboard(false)"));
+  assert.ok(!studio.includes("window.location.reload()"));
+  assert.ok(!studio.includes("auth.signOut"));
 });
