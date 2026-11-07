@@ -13620,6 +13620,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
         async function filterProperties() {
             const location = String(document.getElementById("locationInput")?.value || "").trim().toLowerCase();
             const listingType = document.getElementById("listingTypeSelect")?.value || "";
+            const renterPropertyType = document.getElementById("renterSearchPropertyType")?.value || "";
             const bhk = document.getElementById("bhkSelect")?.value || "";
             const budget = document.getElementById("budgetSelect")?.value || "";
             const minBudgetRaw = String(document.getElementById("minBudget")?.value || document.getElementById("renterMinBudget")?.value || "").trim();
