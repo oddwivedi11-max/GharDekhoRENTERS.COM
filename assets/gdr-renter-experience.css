@@ -474,3 +474,25 @@
   #renterDashboard #renterExploreMapBtn,
   #renterDashboard #renterLiveNearbyBtn{min-width:0!important;max-width:100%!important}
 }
+
+
+/* GDR Smart Finder: conversational greeting and database-backed property results. */
+.gdrx-assistant-greeting{margin:12px 0 18px;padding:14px 16px;border:1px solid #e6d8bb;border-radius:14px;background:linear-gradient(135deg,#fffaf0,#f6f0e4);color:#29443b;font-size:14px;font-weight:650;line-height:1.65}
+.gdrx-assistant-results{margin:18px 0 4px;padding:18px;border:1px solid #d9e4d8;border-radius:18px;background:#fbfcf8}
+.gdrx-assistant-results-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.gdrx-assistant-results-heading h4{margin:0;color:#183d33;font-size:clamp(17px,2.4vw,21px);line-height:1.35}
+.gdrx-assistant-results-count{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:50%;background:#174b3d;color:#fff;font-weight:850}
+.gdrx-assistant-results-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.gdrx-assistant-property-card{display:flex;min-width:0;overflow:hidden;flex-direction:column;border:1px solid #e2e6dc;border-radius:14px;background:#fff;box-shadow:0 5px 18px rgba(32,55,42,.06)}
+.gdrx-assistant-property-image{width:100%;height:145px;object-fit:cover;background:#f1eee5}
+.gdrx-assistant-property-body{display:flex;min-width:0;flex:1;flex-direction:column;align-items:flex-start;gap:7px;padding:13px}
+.gdrx-assistant-property-body h5{margin:0;color:#1d332d;font-size:15px;line-height:1.4;overflow-wrap:anywhere}
+.gdrx-assistant-property-rent{color:#936a2f;font-size:17px}
+.gdrx-assistant-property-location,.gdrx-assistant-property-meta{margin:0;color:#68736b;font-size:12px;line-height:1.5;overflow-wrap:anywhere}
+.gdrx-assistant-property-status{display:inline-flex;padding:5px 8px;border-radius:999px;background:#f7f0df;color:#795a2c;font-size:10px;font-weight:800}
+.gdrx-assistant-property-actions{display:flex;flex-wrap:wrap;gap:8px;margin-top:auto;padding-top:5px}
+.gdrx-assistant-property-actions button{min-height:36px;padding:8px 11px;border:1px solid #d9c69d;border-radius:9px;background:#fff9ec;color:#28443a;font-size:12px;font-weight:800;cursor:pointer}
+.gdrx-assistant-property-actions button:first-child{background:#174b3d;border-color:#174b3d;color:#fff}
+.gdrx-assistant-results-status,.gdrx-assistant-results-empty,.gdrx-assistant-results-error{margin:8px 0;color:#53665b;font-size:13px;line-height:1.6}
+.gdrx-assistant-results-error{color:#a23e32}
+@media(max-width:620px){.gdrx-assistant-results{padding:13px}.gdrx-assistant-results-grid{grid-template-columns:minmax(0,1fr)}.gdrx-assistant-property-card{display:grid;grid-template-columns:104px minmax(0,1fr)}.gdrx-assistant-property-image{height:100%;min-height:160px}.gdrx-assistant-property-body{padding:11px}.gdrx-assistant-property-actions button{flex:1}}
