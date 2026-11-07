@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-map-ux1";
+const VERSION="20261107-map-ux2";
 const $=id=>document.getElementById(id);
 const state={root:null,recognition:null,active:false,finalText:"",interimText:"",silenceTimer:null,session:0,searchId:0,executed:"",language:"hi-IN",muted:false,city:"",prefs:{},speaking:false,manualStop:false};
 const text=(hi,en)=>state.language==="en-IN"?en:hi;
