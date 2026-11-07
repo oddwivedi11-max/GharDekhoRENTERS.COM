@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-voiceassistant5";
+const VERSION="20261107-voiceassistant6";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -680,10 +680,16 @@ function renderLiveVoiceForm(){
   ["deposit","Security deposit",state.deposit?formatINR(state.deposit):"",1],
   ["address","Property location",state.address||"",2],
   ["pincode","PIN code",state.pincode||"",2],
-  ["furnishing","Furnishing",state.furnishing||"",1]
+  ["furnishing","Furnishing",state.furnishing||"",1],
+  ["roomType","Room type",state.roomType||"",0],
+  ["gender","Guest preference",state.gender||"",0],
+  ["totalBeds","Total beds",state.totalBeds||"",0],
+  ["availableBeds","Available beds",state.availableBeds||"",0],
+  ["foodIncluded","Meals",state.foodIncluded==="yes"?"Meals included":state.foodIncluded==="no"?"No meals":"",0]
  ];
  const required=["propertyType","address","rent"];
  if(["apartment","independent_house","villa"].includes(state.propertyType))required.push("configuration");
+ if(["pg","hostel"].includes(state.propertyType))required.push("roomType","gender","totalBeds","availableBeds");
  const completed=required.filter(key=>!!currentVoiceValue(key)).length;
  const percent=Math.round(completed/required.length*100);
  const count=$("#gdrStudioLiveProgressText");
@@ -698,11 +704,11 @@ function renderLiveVoiceForm(){
  }).join("");
 }
 function editVoiceField(key){
- const steps={propertyType:0,configuration:0,rent:1,deposit:1,furnishing:1,address:2,pincode:2};
+ const steps={propertyType:0,configuration:0,rent:1,deposit:1,furnishing:1,address:2,pincode:2,roomType:0,gender:0,totalBeds:0,availableBeds:0,foodIncluded:0};
  if(!Object.prototype.hasOwnProperty.call(steps,key))return;
  state.step=steps[key];updateStep();
- const ids={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",address:"gdrStudioLocation",pincode:"gdrStudioPincode"};
- const target=ids[key]?$("#"+ids[key]):(key==="configuration"?$("#gdrStudioConfigurationOptions"):$("#gdrStudioMain"));
+ const ids={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",address:"gdrStudioLocation",pincode:"gdrStudioPincode",roomType:"gdrStudioRoomType",gender:"gdrStudioGender",totalBeds:"gdrStudioTotalBeds",availableBeds:"gdrStudioAvailableBeds",foodIncluded:"gdrStudioFoodIncluded"};
+ const target=ids[key]?$("#"+ids[key]):(key==="configuration"?$("#gdrStudioConfigurationOptions"):key==="propertyType"?$("[data-gdr-property-type]"):$("#gdrStudioMain"));
  target?.focus?.({preventScroll:true});target?.scrollIntoView?.({behavior:"smooth",block:"center"});
 }
 
