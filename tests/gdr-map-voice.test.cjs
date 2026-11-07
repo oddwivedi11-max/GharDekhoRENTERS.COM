@@ -154,3 +154,11 @@ test('map voice assistant styles keep the headline and microphone readable on da
   assert.match(css, /#gdrMapVoiceAssistant \.gdr-map-voice-mic\{background:linear-gradient/);
   assert.match(css, /leaflet-control-layers/);
 });
+
+
+test('all-properties voice requests clear stale BHK, budget, furnishing and home-type filters', () => {
+  assert.match(voice, /const allListings=/);
+  assert.match(voice, /if\(allListings\)\{\["bhk","minBudget","maxBudget","furnishing","stayType","propertyType"\]\.forEach\(key=>delete prefs\[key\]\);\}/);
+  assert.match(voice, /mapSummary=api\.showVoiceSearchResults\(rows,point,location\)/);
+  assert.match(voice, /mapSummary\.unmapped/);
+});
