@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-voiceassistant4";
+const VERSION="20261107-voiceassistant5";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -637,8 +637,8 @@ function extractVoiceDetails(text){
   else{const hindiConfig=t.match(/(एक|दो|तीन|चार|पाँच|पांच)\s*(?:बीएचके|bhk|bedroom)/);const hindiMap={"एक":"1","दो":"2","तीन":"3","चार":"4","पाँच":"5","पांच":"5"};if(hindiConfig)out.configuration=hindiMap[hindiConfig[1]]+" BHK";}
  }
  if(out.configuration&&!out.propertyType)out.propertyType="apartment";
- const furnish=t.match(/\b(semi[\s-]?furnished|fully furnished|furnished|unfurnished)\b/);
- if(furnish)out.furnishing=/semi/.test(furnish[1])?"Semi-Furnished":/unfurnished/.test(furnish[1])?"Unfurnished":"Furnished";
+ const furnish=t.match(/\b(semi[\s-]?furnished|partly furnished|partially furnished|thoda furnished|fully furnished|furnished|unfurnished)\b/);
+ if(furnish)out.furnishing=/semi|partly|partially|thoda/.test(furnish[1])?"Semi-Furnished":/unfurnished/.test(furnish[1])?"Unfurnished":"Furnished";
  const depIdx=t.search(/security deposit|deposit/),rentIdx=t.search(/rent|kiraya|किराया|monthly/);
  if(depIdx>=0){const n=amountFromText(raw.slice(depIdx,depIdx+90));if(n!==null)out.deposit=String(n);}
  if(rentIdx>=0){const n=amountFromText(raw.slice(rentIdx,Math.min(raw.length,rentIdx+100)));if(n!==null)out.rent=String(n);}
@@ -647,6 +647,8 @@ function extractVoiceDetails(text){
   if(currency){const n=amountFromText(currency[0]);if(n!==null)out.rent=String(n);}
   else{const trailing=raw.match(/([\d,]+(?:\s*(?:k|thousand))?)\s*(?:rupees?|rupee|rupaye|रुपये|रुपए)/i);if(trailing){const n=amountFromText(trailing[1]);if(n!==null)out.rent=String(n);}}
  }
+ if(!out.rent&&!out.deposit&&state.voice.lastField==="rent"){const n=amountFromText(raw);if(n!==null)out.rent=String(n);}
+ if(!out.rent&&!out.deposit&&state.voice.lastField==="deposit"){const n=amountFromText(raw);if(n!==null)out.deposit=String(n);}
  const pin=raw.match(/\b([1-9][0-9]{5})\b/);if(pin)out.pincode=pin[1];
  const locationPatterns=[
   /(?:location|address|area)\s*(?:is|:)?\s+(.+?)(?=\s+(?:rent|kiraya|deposit|security|furnished|unfurnished|semi[\s-]?furnished|pin|pincode)\b|[.!?]|$)/i,
@@ -655,6 +657,10 @@ function extractVoiceDetails(text){
   /(?:में|मे)\s*([ऀ-ॿa-zA-Z0-9 ,'-]{3,70}?)(?=\s*(?:है|और|किराया|₹|$))/i
  ];
  for(const pattern of locationPatterns){const m=raw.match(pattern);if(m){const address=m[1].trim().replace(/\s+/g," ").replace(/^(mera|meri|my|property|flat|house|home)\s+/i,"").replace(/\s+(hai|is)$/i,"");if(address.length>=3&&!/^(a property|property|flat|apartment)$/i.test(address))out.address=address;break;}}
+ if(!out.address&&state.voice.lastField==="address"){
+  const cityPattern=/\b(bhopal|singrauli|indore|jabalpur|gwalior|ujjain|rewa|satna|delhi|mumbai|pune|jaipur|lucknow|hyderabad|chennai|kolkata|bengaluru|bangalore)\b|भोपाल|सिंगरौली|इंदौर|जबलपुर|ग्वालियर|उज्जैन|रीवा|सतना|दिल्ली|मुंबई|पुणे|जयपुर|लखनऊ/i;
+  if(cityPattern.test(raw))out.address=raw.replace(/^(?:my|mera|meri|property|flat|apartment|house|home)\s+/i,"").replace(/\b(?:is|in|at|mein|me|hai|location|address)\b/gi," ").replace(/\s+/g," ").trim();
+ }
  const room=t.match(/\b(single|double|triple|shared)\s*(?:sharing|room)?\b/);if(room)out.roomType=room[1][0].toUpperCase()+room[1].slice(1);
  const gender=t.match(/\b(male|female|anyone|both)\b/);if(gender)out.gender=gender[1]==="both"||gender[1]==="anyone"?"Any":gender[1][0].toUpperCase()+gender[1].slice(1);
  const total=t.match(/\btotal\s*beds?\s*(?:is|are|of)?\s*(\d{1,3})\b/);if(total)out.totalBeds=total[1];
