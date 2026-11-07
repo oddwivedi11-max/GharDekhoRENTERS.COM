@@ -71,3 +71,14 @@ test("owner voice uses only browser-native recognition locales and retains expli
  assert.ok(js.includes('startsWith("en")?"en-IN":"hi-IN"'));
  assert.ok(js.includes('$("#gdrStudioVoiceStart")?.addEventListener("click",startVoice)'));
 });
+
+test("owner voice extracts a bare city/locality and context-only rent or deposit answers",()=>{
+ assert.ok(js.includes('state.voice.lastField==="address"'));
+ assert.ok(js.includes("cityPattern"));
+ assert.ok(js.includes('state.voice.lastField==="rent"'));
+ assert.ok(js.includes('state.voice.lastField==="deposit"'));
+});
+test("owner voice interprets partly furnished wording as semi-furnished",()=>{
+ assert.ok(js.includes("partly furnished|partially furnished|thoda furnished"));
+ assert.ok(js.includes('/semi|partly|partially|thoda/'));
+});
