@@ -45,9 +45,13 @@ test('voice searches the complete public inventory and renders matching home car
   assert.match(voice, /assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
   assert.match(voice, /gdrMapVoiceResults/);
   assert.doesNotMatch(voice, /api\.searchTypedMapLocation\(\)/);
+  assert.match(voice, /api\.showVoiceSearchResults\(rows,point,location\)/);
   assert.match(renter, /client\.rpc\("get_public_properties"\)/);
   assert.match(renter, /searchAssistantListings\(prefs,raw,target\)/);
   assert.match(map, /get_available_map_properties_in_bounds/);
+  assert.match(map, /function showVoiceSearchResults\(rows,point,label\)/);
+  assert.match(map, /renderMarkers\(items,center,false\)/);
+  assert.match(map, /if\(!p\|\|!validPoint\(p\.latitude,p\.longitude\)\)return/);
 });
 test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
   assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
