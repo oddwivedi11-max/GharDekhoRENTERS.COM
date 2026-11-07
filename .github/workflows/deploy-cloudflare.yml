@@ -120,6 +120,8 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
+          echo "Live map script reference:"
+          grep -oE 'gdr-map-experience.js[^"]*' /tmp/gdr-live-index.html | head -5
           grep -q 'gdr-map-experience.js?v=20261107-map-list-full-results1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
