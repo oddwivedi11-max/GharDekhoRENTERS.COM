@@ -190,13 +190,14 @@
       b.append(img,copy);b.addEventListener("click",()=>selectProperty(p,true));panel.append(b);
     });
   }
-  function renderMarkers(rows,center){
+  function renderMarkers(rows,center,showRadius){
     if(!state.renterMap||!state.renterLayer)return;
     state.renterLayer.clearLayers();state.markerById.clear();
-    if(state.radiusCircle)state.renterMap.removeLayer(state.radiusCircle);
-    state.radiusCircle=window.L.circle(center,{radius:state.radiusKm*1000,color:"#c8a96b",weight:2,opacity:.9,fillColor:"#c8a96b",fillOpacity:.07,dashArray:"6 6"}).addTo(state.renterMap);
+    if(state.radiusCircle){state.renterMap.removeLayer(state.radiusCircle);state.radiusCircle=null;}
+    if(showRadius!==false)state.radiusCircle=window.L.circle(center,{radius:state.radiusKm*1000,color:"#c8a96b",weight:2,opacity:.9,fillColor:"#c8a96b",fillOpacity:.07,dashArray:"6 6"}).addTo(state.renterMap);
     if(state.renterPin){state.renterMap.removeLayer(state.renterPin);state.renterPin=null;}
     rows.forEach(p=>{
+      if(!p||!validPoint(p.latitude,p.longitude))return;
       const marker=window.L.marker([Number(p.latitude),Number(p.longitude)],{
         icon:markerIcon(p,String(p.id)===state.selectedPropertyId),keyboard:true,
         title:(p.title||p.name||"GharDekho home")+" · "+money(p.rent)+"/month"
@@ -211,6 +212,36 @@
     }
     setStatus(rows.length+" "+(rows.length===1?"home":"homes")+" found near "+(state.resolvedQuery||"the map center")+". Occupied homes are excluded.");
     const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=true;
+  }
+  function showVoiceSearchResults(rows,point,label){
+    if(!state.renterMap)return {total:0,mapped:0};
+    const items=Array.isArray(rows)?rows.filter(p=>p&&p.id):[];
+    state.boundsRows=items.slice();
+    const hasPoint=point&&validPoint(point.lat,point.lng);
+    let center;
+    if(hasPoint){
+      center=[Number(point.lat),Number(point.lng)];
+      state.searchCenter=center;
+      state.resolvedQuery=String(label||point.label||"Voice search");
+      const coordinates=items.filter(p=>validPoint(p.latitude,p.longitude)).map(p=>[Number(p.latitude),Number(p.longitude)]);
+      if(coordinates.length>1&&typeof state.renterMap.fitBounds==="function"){
+        state.renterMap.fitBounds(coordinates,{padding:[28,28],maxZoom:13});
+      }else{
+        const kind=String(point.properties&&(point.properties.type||point.properties.osm_value)||"").toLowerCase();
+        const cityLike=["city","town","administrative"].includes(kind);
+        state.renterMap.setView(center,cityLike?11:14,{animate:false});
+      }
+    }else{
+      const current=state.renterMap.getCenter();
+      center=[Number(current.lat),Number(current.lng)];
+      state.searchCenter=center;
+      state.resolvedQuery=String(label||"Voice search");
+    }
+    renderMarkers(items,center,false);
+    if(hasPoint)setRenterPin(point,label||point.label||"Voice search");
+    const mapped=items.filter(p=>validPoint(p.latitude,p.longitude)).length;
+    setStatus(items.length+" matching homes found for "+(label||"your voice search")+". "+mapped+" have map pins; all listings are available in List view.");
+    return {total:items.length,mapped};
   }
   function applyRenterFilters(prefs){
     prefs=prefs||state.currentPrefs||{};
@@ -695,5 +726,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice(),getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;}};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,showVoiceSearchResults,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice(),getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;}};
 })();
