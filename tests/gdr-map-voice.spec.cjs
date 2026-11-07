@@ -64,22 +64,43 @@ test.describe('GDR renter map voice UI', () => {
 
 
 
-  test('spoken map search updates the real map-results surface and opens its list view', async ({ page }) => {
+  test('full-inventory voice results synchronize with map markers and the map list', async ({ page }) => {
     await openMapWithMockLeaflet(page);
     await page.evaluate(() => {
       const api = window.GDRMapExperience;
-      api.setRenterSearchPreferences = prefs => { window.__mapVoicePrefs = prefs; };
-      api.searchTypedMapLocation = async () => true;
-      api.getRenterVisibleProperties = () => [{ id: 'property-1' }];
+      api.resolveMapQuery = async location => ({
+        lat: 24.0725, lng: 82.6247, label: location,
+        properties: { type: 'city', city: 'Singrauli' }
+      });
+      window.GDRRenterExperience.searchAssistantListings = async (prefs, raw, target) => {
+        const property = {
+          id: 'voice-property-1', title: 'Singrauli test home', rent: 7000,
+          location: 'Singrauli', address: 'Singrauli, Madhya Pradesh',
+          bhk: 2, furnishing: 'Unfurnished', listing_type: 'home',
+          latitude: 24.073, longitude: 82.625, status: 'verified',
+          verification_status: 'verified', owner_verified: true
+        };
+        const card = document.createElement('article');
+        card.textContent = property.title;
+        target.append(card);
+        window.__voiceSearchPrefs = prefs;
+        return [property];
+      };
       document.getElementById('gdrMapVoiceTranscript').value = 'Mujhe Singrauli mein 2 BHK ghar dikhao';
     });
     await page.locator('#gdrMapVoiceSearch').click();
-    await expect(page.locator('#gdrMapVoiceResults')).toContainText('1 homes');
-    await expect(page.locator('.gdr-map-voice-results-list')).toHaveCount(1);
-    await page.locator('.gdr-map-voice-results-list').click();
+    await expect(page.locator('#gdrMapVoiceResults')).toContainText('Singrauli test home');
+    await expect(page.locator('#gdrMapListPanel .gdr-map-list-card')).toHaveCount(1);
+    await expect(page.locator('#gdrMapCount')).toContainText('1 home found');
+    const state = await page.evaluate(() => ({
+      prefs: window.__voiceSearchPrefs,
+      visible: window.GDRMapExperience.getRenterVisibleProperties().map(property => property.id)
+    }));
+    expect(state.prefs.bhk).toBe('2');
+    expect(state.visible).toEqual(['voice-property-1']);
+    await page.locator('#gdrMapListToggle').click();
     await expect(page.locator('#gdrMapLayout')).toHaveClass(/gdr-list-mode/);
-    const prefs = await page.evaluate(() => window.__mapVoicePrefs);
-    expect(prefs.bhk).toBe('2');
+    await expect(page.locator('#gdrMapListPanel')).toBeVisible();
   });
 
   test('Back to Dashboard closes map mode and restores focus to Explore Map', async ({ page }) => {
