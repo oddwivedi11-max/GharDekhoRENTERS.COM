@@ -354,7 +354,7 @@ test('voice results reuse the Available Rental Properties renderer instead of du
   assert.match(search,/propertiesSection/);
   assert.match(search,/propertiesContainer/);
   assert.match(search,/gdrVoiceInventorySummary/);
-  assert.match(search,/scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
+  assert.match(search,/section\.scrollIntoView\(\{behavior:window\.matchMedia&&window\.matchMedia\("\(prefers-reduced-motion: reduce\)"\)\.matches\?"auto":"smooth",block:"start"\}\)/);
   assert.doesNotMatch(search,/gdrx-assistant-property-card/);
 });
 
