@@ -264,3 +264,15 @@ body.gdr-pay-lock :is(
   content:none!important;
   display:none!important;
 }
+
+/* Smart rent payment screenshot submission. */
+.gdr-upi-app-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:14px 0}
+.gdr-upi-app{display:grid;gap:4px;min-width:0;padding:12px 9px;border:1px solid #dce8df;border-radius:14px;background:#fff;color:#1c4937;text-decoration:none;box-shadow:0 3px 0 #dce8df,0 7px 15px #183b2910}
+.gdr-upi-app b{font-size:13px;font-weight:900}.gdr-upi-app small{font-size:10px;color:#718477;line-height:1.35}
+.gdr-owner-qr-link{display:inline-flex;max-width:100%;padding:8px;border:1px solid #dce9e0;border-radius:16px;background:#fff}
+.gdr-owner-qr-link .gdr-owner-qr{display:block;max-width:190px;max-height:190px;object-fit:contain}
+.gdr-payment-proof-preview{display:grid;gap:10px;padding:12px;border:1px solid #dbe8df;border-radius:14px;background:#f8fcf8}
+.gdr-payment-proof-preview[hidden]{display:none}
+.gdr-payment-proof-preview img{display:block;width:min(100%,360px);max-height:300px;object-fit:contain;border-radius:10px;background:#fff}
+.gdr-payment-proof-link,.gdr-pay-proof-link{display:inline-flex;margin-top:8px;color:#176b4a;font-size:12px;font-weight:850;text-decoration:underline;overflow-wrap:anywhere}
+@media(max-width:560px){.gdr-upi-app-grid{grid-template-columns:1fr}.gdr-upi-app{grid-template-columns:1fr auto;align-items:center}.gdr-upi-app small{grid-column:1/-1}}
