@@ -210,7 +210,7 @@ test('assistant search keeps property cards visible if optional map rendering fa
 });
 
 test('assistant result analytics use actual loaded listing and verification fields', () => {
-  assert.match(js, /function setAssistantAnalytics\(rows,count\)/);
+  assert.match(js, /const setAssistantAnalytics=\(rows,count\)=>/);
   assert.match(js, /Total matching/);
   assert.match(js, /Property verification:/);
   assert.match(js, /Listed rent range:/);
