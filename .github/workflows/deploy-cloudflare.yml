@@ -40,7 +40,7 @@ jobs:
               ("gdr-renter-experience.js", "20261107-renter-search3"),
               ("gdr-renter-experience.css", "20261107-mobile-card1"),
               ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
-              ("gdr-map-experience.js", "20261107-map-voice5"),
+              ("gdr-map-experience.js", "20261107-map-voice6"),
           ]
           for asset, version in assets:
               pattern = r'(/assets/' + re.escape(asset) + r')(?:\?v=[^"\s>]*)?'
