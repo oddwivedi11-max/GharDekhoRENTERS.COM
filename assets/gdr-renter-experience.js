@@ -279,7 +279,7 @@ function parseRequest(raw){
   if(city)p.location=city[1];
  }
  if(!p.location){
-  const localityIntent=clean.match(/^(.+?)\\s+(?:की|का|के|ki|ka|ke)\\s+(?:(?:जितने\\s+भी|जितनी\\s+भी|जितना\\s+भी|jitne\\s+bhi|jitni\\s+bhi|jitna\\s+bhi|सभी|सारे|सारी|sabhi|saare|saari|all|every)\\s+)?(?:(?:उपलब्ध|available)\\s+)?(?:(?:रेंटल|rental)\\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?=\\s|$)/i);
+  const localityIntent=clean.match(/^(.+?)\s+(?:की|का|के|ki|ka|ke)\s+(?:(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari|all|every)\s+)?(?:(?:उपलब्ध|available)\s+)?(?:(?:रेंटल|rental)\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?=\s|$)/i);
   if(localityIntent)p.location=localityIntent[1].replace(/[.,!?]+$/,"").trim();
  }
  if(/^(?:my|current) location$/i.test(p.location))p.location="";
@@ -347,7 +347,7 @@ function review(raw,options){
  const extracted=parseRequest(raw),previous=state.parsed||{};
  const p={...previous,...extracted,raw:String(raw||"")};
  const requestText=String(raw||"");
- const broadAllListings=/(?:all|every|any)\\s+(?:(?:available|rental)\\s+)*(?:properties|listings)|(?:जितने\\s+भी|जितनी\\s+भी|जितना\\s+भी|jitne\\s+bhi|jitni\\s+bhi|jitna\\s+bhi|सभी|सारे|सारी|sabhi|saare|saari)\\s+(?:(?:उपलब्ध|available|रेंटल|rental)\\s+)*(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings)/i.test(requestText)
+ const broadAllListings=/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties|listings)|(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari)\s+(?:(?:उपलब्ध|available|रेंटल|rental)\s+)*(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings)/i.test(requestText);
  const broadHomes=/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:homes?|houses?)|(?:jitne\s+bhi|sabhi|saare|saari)\s+(?:available\s+)?(?:ghar|makaan|homes?|houses?)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:घर|मकान)/i.test(requestText);
  const resetListingType=broadAllListings||broadHomes;
  if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}
