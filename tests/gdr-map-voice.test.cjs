@@ -136,3 +136,21 @@ test('map assistant starts with a greeting and an empty search field', () => {
   assert.match(voice, /placeholder="बोलें या यहाँ अपनी property search लिखें…"/);
   assert.doesNotMatch(voice, /value="बड़े नगर में 2 BHK/);
 });
+
+
+test('renter map offers free satellite and hybrid layers and uses a full radius bounds search for GPS', () => {
+  assert.match(map, /ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile/);
+  assert.match(map, /Reference\/World_Boundaries_and_Places\/MapServer\/tile/);
+  assert.match(map, /"Satellite \+ labels"/);
+  assert.match(map, /searchUsesRadius/);
+  assert.match(map, /radiusBounds\(state\.searchCenter\)/);
+  assert.match(map, /searchRenterArea\(undefined,true\)/);
+  assert.match(map, /Location permission is blocked/);
+});
+
+test('map voice assistant styles keep the headline and microphone readable on dark green', () => {
+  const css = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-voice.css'), 'utf8');
+  assert.match(css, /#gdrMapVoiceAssistant \.gdr-map-voice-head h3\{color:#fff!important/);
+  assert.match(css, /#gdrMapVoiceAssistant \.gdr-map-voice-mic\{background:linear-gradient/);
+  assert.match(css, /leaflet-control-layers/);
+});
