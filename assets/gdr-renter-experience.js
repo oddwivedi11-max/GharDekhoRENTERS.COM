@@ -310,17 +310,21 @@ function applyManualScores(){
 }
 function moveEditProfileToAccount(){
  const root=$("renterDashboard"),button=root?.querySelector(".renter-edit-profile-compact");
- if(!root||!button||button.closest(".renter-account-edit-stack"))return;
- const normalize=value=>String(value||"").replace(/\s+/g," ").trim().replace(/\s*•\s*/g," • ");
- const matches=Array.from(root.querySelectorAll("*")).filter(el=>{
+ if(!root||!button)return;
+ if(button.closest(".renter-account-edit-stack"))return;
+ const normalize=value=>String(value||"").replace(/\\s+/g," ").trim();
+ const candidates=Array.from(document.querySelectorAll("body *")).filter(el=>{
   if(el===button||el.contains(button))return false;
   const value=normalize(el.innerText||el.textContent);
-  return value==="ODD JI • Renter"||(/\bODD\s+JI\b/i.test(value)&&/\bRenter\b/i.test(value)&&value.length<80);
+  return /ODD\\s+JI/i.test(value)&&/Renter/i.test(value)&&value.length<=100;
  });
- matches.sort((a,b)=>normalize(a.innerText||a.textContent).length-normalize(b.innerText||b.textContent).length);
- const badge=matches[0];if(!badge||!badge.parentElement)return;
- const stack=document.createElement("div");stack.className="renter-account-edit-stack";
- badge.parentElement.insertBefore(stack,badge);stack.append(badge,button);
+ candidates.sort((a,b)=>normalize(a.innerText||a.textContent).length-normalize(b.innerText||b.textContent).length);
+ const badge=candidates[0];
+ if(!badge||!badge.parentElement)return;
+ const stack=document.createElement("div");
+ stack.className="renter-account-edit-stack";
+ badge.parentElement.insertBefore(stack,badge);
+ stack.append(badge,button);
 }
 function bind(){
  moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
