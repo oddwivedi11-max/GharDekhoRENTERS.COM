@@ -306,8 +306,13 @@ function parseRequest(raw){
    const localityTokens=city?cityTokens.filter((token,index)=>index!==cityIndex&&!stateTokens.has(token)&&!fillerTokens.has(token)):[];
    const localityFromCity=localityTokens.join(" ");
    const resolvedCity=city?city[1]:cityPart;
-   const resolvedLocality=localityPart||localityFromCity;
-   p.location=resolvedLocality?resolvedLocality+", "+resolvedCity:resolvedCity;
+   const cityPartWithoutState=cityPart.replace(/\s+(?:madhya\s+pradesh|m\s*p|mp|india|district)\b.*$/i,"").trim();
+   if(/[a-z]/i.test(cityPart)&&localityTokens.length){
+    p.location=cityPartWithoutState;
+   }else{
+    const resolvedLocality=localityPart||localityFromCity;
+    p.location=resolvedLocality?resolvedLocality+", "+resolvedCity:resolvedCity;
+   }
   }
  }
  if(!p.location){
