@@ -151,6 +151,30 @@ test('voice assistant replies in the language used by the speaker', () => {
   assert.match(helpers.assistantReply('hi', 3, 'सिंगरौली'), /मुझे 3 उपलब्ध/);
   assert.match(helpers.assistantReply('en', 2, 'Bhopal'), /I found 2 available/);
 });
+test('voice map search renders markers only once after its location is resolved', () => {
+  const start = js.indexOf('const renderLoadedRows=()=>{');
+  const end = js.indexOf('const describeCount=', start);
+  assert.ok(start >= 0 && end > start);
+  const render = js.slice(start, end);
+  assert.ok(render.includes('if(!target){') && render.includes('showVoiceSearchResults'));
+  assert.ok(mapVoice.includes('api.showVoiceSearchResults(rows,point,location)'));
+});
+
+test('GPS voice searches apply the requested radius and active assistant filters before querying', () => {
+  const start = mapVoice.indexOf('if(intent.nearMe){');
+  const end = mapVoice.indexOf('const position=await new Promise', start);
+  assert.ok(start >= 0 && end > start);
+  const nearby = mapVoice.slice(start, end);
+  assert.ok(nearby.includes('setRenterSearchPreferences(state.prefs)'));
+  assert.ok(nearby.includes('setRenterRadius(intent.radiusKm,true)'));
+});
+
+test('voice follow-up commands can explicitly clear active budget, BHK and furnishing filters', () => {
+  assert.ok(mapVoice.includes('budget|rent') && mapVoice.includes('hatao'));
+  assert.ok(mapVoice.includes('bhk|bedrooms?'));
+  assert.ok(mapVoice.includes('furnishing'));
+});
+
 test('map assistant speaks responses and retains search context for follow-up filters', () => {
   assert.match(mapVoice, /speechSynthesis\.speak/);
   assert.match(mapVoice, /prefs=\{\.\.\.state\.prefs\}/);
