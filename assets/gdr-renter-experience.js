@@ -194,11 +194,11 @@ function parseRequest(raw){
  let m=clean.match(/\b(?:near|around|in|at)\b\s+(.+?)(?=\s+(?:under|below|upto|up to|budget|maximum|max|minimum|min|above|at least|more than|furnished|unfurnished|semi|[1-5]\s*(?:bhk|bed|bedroom)|pg|hostel|flat|apartment|house|villa|room|within|radius|around|college|hospital|market|railway|family)\b|$)/i);
  if(m)p.location=m[1].replace(/[.,!?]+$/,"").trim();
  if(!p.location){
-  const hindiCityLead=clean.match(/^(.+?)\s+(?:में|mein)\s+(.+)$/i);
+  const hindiCityLead=clean.match(/^(.+?)\s+(?:में|mein|me)\s+(.+)$/i);
   if(hindiCityLead){
    const cityPart=hindiCityLead[1].replace(/[.,!?]+$/,"").trim();
    let localityPart=hindiCityLead[2].trim();
-   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितने|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|कमरे)|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein)(?=\s|$)/i);
+   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितने|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|कमरे)|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
    if(stop>=0)localityPart=localityPart.slice(0,stop).trim();
    localityPart=localityPart.replace(/\s+(?:के|की|का)$/i,"").trim();
    p.location=localityPart?localityPart+", "+cityPart:cityPart;
