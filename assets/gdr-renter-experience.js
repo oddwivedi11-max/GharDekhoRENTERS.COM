@@ -308,8 +308,22 @@ function applyManualScores(){
   if(score!==null){if(!badge){badge=document.createElement("span");badge.className="gdrx-match-pill";card.querySelector(".property-card-body")?.prepend(badge)}if(badge)badge.textContent=score+"% preference match"}return {card,score:score===null?0:score}});
  const ordered=scored.slice().sort((x,y)=>y.score-x.score).map(x=>x.card);if(ordered.some((el,i)=>cards[i]!==el))ordered.forEach(el=>root.appendChild(el));
 }
+function moveEditProfileToAccount(){
+ const root=$("renterDashboard"),button=root?.querySelector(".renter-edit-profile-compact");
+ if(!root||!button||button.closest(".renter-account-edit-stack"))return;
+ const normalize=value=>String(value||"").replace(/\s+/g," ").trim().replace(/\s*•\s*/g," • ");
+ const matches=Array.from(root.querySelectorAll("*")).filter(el=>{
+  if(el===button||el.contains(button))return false;
+  const value=normalize(el.innerText||el.textContent);
+  return value==="ODD JI • Renter"||(/\bODD\s+JI\b/i.test(value)&&/\bRenter\b/i.test(value)&&value.length<80);
+ });
+ matches.sort((a,b)=>normalize(a.innerText||a.textContent).length-normalize(b.innerText||b.textContent).length);
+ const badge=matches[0];if(!badge||!badge.parentElement)return;
+ const stack=document.createElement("div");stack.className="renter-account-edit-stack";
+ badge.parentElement.insertBefore(stack,badge);stack.append(badge,button);
+}
 function bind(){
- addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
+ moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
  const results=$("propertiesContainer");if(results&&!results.dataset.gdrxScoreObserver){results.dataset.gdrxScoreObserver="1";new MutationObserver(()=>applyManualScores()).observe(results,{childList:true,subtree:true})}
  const form=$("renterFindHomeForm");if(form&&!form.dataset.gdrxScoreCapture){form.dataset.gdrxScoreCapture="1";form.addEventListener("submit",()=>{state.parsed={location:$("renterSearchLocation")?.value||"",bhk:$("renterSearchBhk")?.value||"",furnishing:$("renterSearchFurnishing")?.value||"",stayType:$("renterStayType")?.value||"",minBudget:$("renterMinBudget")?.value||"",maxBudget:$("renterMaxBudget")?.value||""};setTimeout(applyManualScores,1000)})}
  const fbtn=$("renterFindHomeBtn");if(fbtn&&!fbtn.dataset.gdrx){fbtn.dataset.gdrx="1";fbtn.addEventListener("click",openFind)}
