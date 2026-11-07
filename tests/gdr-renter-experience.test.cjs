@@ -220,7 +220,7 @@ test('database-backed assistant results exclude occupied listings and unrelated 
   const helpers = vm.runInNewContext(js.slice(normalizeStart, start) + js.slice(start, end) + '; ({normalizeSearchText,filterAssistantListings})');
   const fixtures = [
     {id:'bhopal-1',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Patel Nagar, Bhopal',status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:6000},
-    {id:'wrong-city',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Karol Bagh, Delhi',status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000},
+    {id:'wrong-city',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Karol Bagh, Delhi',latitude:28.6450127,longitude:77.1692817,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000},
     {id:'occupied',location:'Patel Nagar, Bhopal, Madhya Pradesh',address:'Patel Nagar, Bhopal',status:'occupied',verification_status:'verified',owner_verified:true,listing_type:'home',rent:5000},
     {id:'singrauli',location:'Waidhan, Singrauli, Madhya Pradesh',address:'Waidhan, Singrauli',status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home',rent:5000}
   ];
