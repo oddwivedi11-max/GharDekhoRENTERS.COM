@@ -231,7 +231,7 @@ function parseRequest(raw){
    const knownCities=[["bhopal","Bhopal"],["singrauli","Singrauli"],["indore","Indore"],["jabalpur","Jabalpur"],["gwalior","Gwalior"],["ujjain","Ujjain"],["rewa","Rewa"],["satna","Satna"],["dewas","Dewas"],["sidhi","Sidhi"]];
    const city=knownCities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(cityKey));
    if(/[a-z]/i.test(cityPart)){
-    p.location=cityPart;
+    p.location=city&&cityKey===city[0]&&localityPart?localityPart+", "+cityPart:cityPart;
    }else{
     const localityFromCity=city?cityKey.replace(new RegExp("(?:^| )"+city[0]+"(?: |$)","g")," ").replace(/\\b(madhya pradesh|m p|mp)\\b/g," ").replace(/\\s+/g," ").trim():"";
     const resolvedCity=city?(cityKey==="singrauli"?"Singrauli":cityKey===city[0]?cityPart:city[1]):cityPart;
