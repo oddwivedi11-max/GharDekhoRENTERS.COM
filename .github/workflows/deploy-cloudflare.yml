@@ -124,11 +124,11 @@ jobs:
           grep -q 'searchRenterArea(undefined,true)' /tmp/gdr-map-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice4" -o /tmp/gdr-map-voice.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice5" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
-          grep -q 'const VERSION="20261107-map-voice4"' /tmp/gdr-map-voice.js
-          grep -q 'const VERSION="20261107-map-voice4"' /tmp/gdr-map-voice.js
+          grep -q 'const VERSION="20261107-map-voice5"' /tmp/gdr-map-voice.js
+          grep -q 'const VERSION="20261107-map-voice5"' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
