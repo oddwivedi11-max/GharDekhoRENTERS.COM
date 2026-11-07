@@ -566,7 +566,7 @@ function selectedType(type){
  state.propertyType=type;
  if(type==="other")state.configuration="Other";
  else if(type==="room")state.configuration="";
- else if(type==="pg"||type==="hostel"||type==="room")state.configuration="";
+ else if(type==="pg"||type==="hostel")state.configuration="";
  else if(state.configuration==="Other")state.configuration="";
  updateTypeCards();updateConfigurationCards();updateConditionalFields();saveDraft();
 }
@@ -623,6 +623,7 @@ function extractVoiceDetails(text){
  else if(/\b(hostel)\b/.test(t))out.propertyType="hostel";
  else if(/\b(villa)\b/.test(t))out.propertyType="villa";
  else if(/\b(independent house|standalone house|separate house)\b/.test(t))out.propertyType="independent_house";
+ else if(/\b(single\s+)?room\b/.test(t)||/कमरा|कमरे/.test(t))out.propertyType="room";
  else if(/\b(flat|apartment)\b/.test(t)||/फ्लैट|अपार्टमेंट/.test(t))out.propertyType="apartment";
  else if(/\b(other property|other type)\b/.test(t))out.propertyType="other";
  let config=t.match(/\b(5\+\s*bhk|[1-4]\s*bhk|1\s*rk)\b/i);
