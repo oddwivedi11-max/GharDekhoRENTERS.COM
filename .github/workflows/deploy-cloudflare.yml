@@ -36,8 +36,8 @@ jobs:
           path = Path("index.html")
           source = path.read_text(encoding="utf-8")
           assets = [
-              ("gdr-renter-experience.js", "20261107-renter-ui-fix1"),
-              ("gdr-renter-experience.css", "20261107-renter-ui-fix1"),
+              ("gdr-renter-experience.js", "20261107-renter-ui-fix2"),
+              ("gdr-renter-experience.css", "20261107-renter-ui-fix2"),
               ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
               ("gdr-map-experience.js", "20261107-voice1"),
           ]
@@ -122,13 +122,13 @@ jobs:
           grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-voice1" -o /tmp/gdr-map-voice.css
           grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-renter-ui-fix1" -o /tmp/gdr-renter-experience.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-renter-ui-fix2" -o /tmp/gdr-renter-experience.js
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
           grep -q 'toggleCompare' /tmp/gdr-renter-experience.js
           grep -q 'GDR_COMPARE_AUTOFILL_V2' /tmp/gdr-renter-experience.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-renter-ui-fix1" -o /tmp/gdr-renter-experience.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-renter-ui-fix2" -o /tmp/gdr-renter-experience.css
           grep -q 'gdrx-finder' /tmp/gdr-renter-experience.css
-          grep -q 'gdr-renter-experience.js?v=20261107-renter-ui-fix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-renter-ui-fix2' /tmp/gdr-live-index.html
           grep -q 'gdr-renter-dashboard-visual-fix-v4' /tmp/gdr-live-index.html
           grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-index.html
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
