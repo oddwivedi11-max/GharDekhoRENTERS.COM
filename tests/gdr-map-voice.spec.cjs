@@ -19,7 +19,7 @@ async function openMapWithMockLeaflet(page) {
           return {
             getSouthWest: () => ({ lat: 23.1, lng: 77.2 }),
             getNorthEast: () => ({ lat: 23.4, lng: 77.6 }),
-            contains: () => true
+            contains: point => point[0] < 23.4
           };
         },
         flyTo() { return this; },
@@ -29,7 +29,8 @@ async function openMapWithMockLeaflet(page) {
     window.L = {
       map: element => makeMap(element),
       tileLayer: () => ({ addTo() { return this; } }),
-      control: { zoom: () => ({ addTo() { return this; } }) },
+      control: { zoom: () => ({ addTo() { return this; } }), layers: () => ({ addTo() { return this; } }) },
+      layerGroup: () => ({ addTo() { return this; } }),
       markerClusterGroup: () => ({ addTo() { return this; }, clearLayers() {}, addLayer() {} }),
       divIcon: () => ({}),
       marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
@@ -73,20 +74,23 @@ test.describe('GDR renter map voice UI', () => {
         properties: { type: 'city', city: 'Singrauli' }
       });
       window.GDRRenterExperience.searchAssistantListings = async (prefs, raw, target) => {
-        const property = {
-          id: 'voice-property-1', title: 'Singrauli test home', rent: 7000,
-          location: 'Singrauli', address: 'Singrauli, Madhya Pradesh',
-          bhk: 2, furnishing: 'Unfurnished', listing_type: 'home',
-          latitude: 24.073, longitude: 82.625, status: 'verified',
-          verification_status: 'verified', owner_verified: true
-        };
-        window.renderVoicePropertyResults([property]);
+        const properties = Array.from({length:6},(_,index)=>({
+          id:'voice-property-'+(index+1),
+          title:'Singrauli test home '+(index+1),
+          rent:7000+index*500,
+          location:'Singrauli',address:'Singrauli, Madhya Pradesh',
+          bhk:2,furnishing:'Unfurnished',listing_type:'home',
+          latitude:index===5?null:24.073+index*.007,
+          longitude:index===5?null:82.625,
+          status:'verified',verification_status:'verified',owner_verified:true
+        }));
+        window.renderVoicePropertyResults(properties);
         target.replaceChildren();
         const summary = document.createElement('p');
-        summary.textContent = '1 matching property displayed in Available Rental Properties below.';
+        summary.textContent = '6 matching properties displayed in Available Rental Properties below.';
         target.append(summary);
         window.__voiceSearchPrefs = prefs;
-        return [property];
+        return properties;
       };
       document.getElementById('gdrMapVoiceTranscript').value = 'Mujhe Singrauli mein 2 BHK ghar dikhao';
     });
@@ -94,14 +98,22 @@ test.describe('GDR renter map voice UI', () => {
     await expect(page.locator('#propertiesContainer')).toContainText('Singrauli test home');
     await expect(page.locator('#gdrMapVoiceResults')).toContainText('Available Rental Properties below');
     await expect(page.locator('#gdrMapVoiceResults')).not.toContainText('Singrauli test home');
-    await expect(page.locator('#gdrMapListPanel .gdr-map-list-card')).toHaveCount(1);
-    await expect(page.locator('#gdrMapCount')).toContainText('1 home found');
-    const state = await page.evaluate(() => ({
+    await expect(page.locator('#gdrMapListPanel .gdr-map-list-card')).toHaveCount(6);
+    await expect(page.locator('#gdrMapCount')).toContainText('5 map pins · 6 results');
+    const beforeViewport = await page.evaluate(() => ({
       prefs: window.__voiceSearchPrefs,
       visible: window.GDRMapExperience.getRenterVisibleProperties().map(property => property.id)
     }));
-    expect(state.prefs.bhk).toBe('2');
-    expect(state.visible).toEqual(['voice-property-1']);
+    expect(beforeViewport.prefs.bhk).toBe('2');
+    expect(beforeViewport.visible).toEqual(['voice-property-1','voice-property-2','voice-property-3','voice-property-4','voice-property-5','voice-property-6']);
+    await page.evaluate(() => window.GDRMapExperience.renderBrowseViewport());
+    await expect(page.locator('#gdrMapCount')).toContainText('0 visible map pins · 6 list results');
+    await expect(page.locator('#gdrMapListPanel .gdr-map-list-card')).toHaveCount(6);
+    const listed = await page.locator('#gdrMapListPanel .gdr-map-list-title').allTextContents();
+    expect(listed).toEqual([
+      '1. Singrauli test home 1','2. Singrauli test home 2','3. Singrauli test home 3',
+      '4. Singrauli test home 4','5. Singrauli test home 5','6. Singrauli test home 6'
+    ]);
     await page.locator('#gdrMapListToggle').click();
     await expect(page.locator('#gdrMapLayout')).toHaveClass(/gdr-list-mode/);
     await expect(page.locator('#gdrMapListPanel')).toBeVisible();
