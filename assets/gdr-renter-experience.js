@@ -152,13 +152,14 @@ async function searchAssistantListings(prefs,raw,target){
   setInventorySummary("Property search failed. No successful results were returned.");
   setStatus(message);
   console.error("GDR database property search failed:",error);
+  if(target)throw error;
   return [];
  }
 }
 
 function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
-  const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
+  const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:ab|now|then|also|aur|और|अब|तो|फिर|अच्छा|ठीक है)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
  const p={raw:original,location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:"",propertyType:"",radiusKm:null,useMyLocation:false,familyFriendly:false};
  const numericBhk=n.match(/(?:^|\s)([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|बेडरूम|बेड\s*रूम|कमरे|कमरा)(?=\s|$|[^a-z0-9])/i);
  const wordBhk=n.match(/(?:^|\s)(one|two|three|four|five|एक|दो|तीन|चार|पाँच|पांच)\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|बेडरूम|बेड\s*रूम)?(?=\s|$|[,.!?])/i);
