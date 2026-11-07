@@ -141,11 +141,14 @@ jobs:
           grep -q 'if(!current)state.finalText=spoken' /tmp/gdr-map-voice.js
           grep -q 'prefs={...state.prefs}' /tmp/gdr-map-voice.js
           if grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js; then echo 'Legacy slow interim speech finalizer is still present.'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-map-ux3" -o /tmp/gdr-map-voice.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-map-ux4" -o /tmp/gdr-map-voice.css
           grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
           grep -q '#gdrMapVoiceAssistant .gdr-map-voice-head h3' /tmp/gdr-map-voice.css
           grep -q '#gdrMapVoiceAssistant .gdr-map-voice-mic' /tmp/gdr-map-voice.css
           grep -q 'leaflet-control-layers' /tmp/gdr-map-voice.css
+          grep -q '#gdrMapVoiceAssistant.gdr-map-voice{' /tmp/gdr-map-voice.css
+          grep -q 'background:#FFF9EF!important' /tmp/gdr-map-voice.css
+          grep -q 'color:#173F35!important' /tmp/gdr-map-voice.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-renter-search3" -o /tmp/gdr-renter-experience.js
           grep -q 'get_public_properties' /tmp/gdr-renter-experience.js
           grep -q 'window.renderVoicePropertyResults(rows)' /tmp/gdr-renter-experience.js
