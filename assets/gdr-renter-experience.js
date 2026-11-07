@@ -48,7 +48,7 @@ function parseRequest(raw){
  if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
  if(/\b(pg|paying guest)\b|पीजी/.test(n))p.stayType="pg";
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
- else if(/\b(flat|apartment|house|home|villa|room)\b|फ्लैट|मकान|घर|कमरा/.test(n))p.stayType="home";
+ else if(/\b(flat|apartment|houses?|homes?|villa|room)\b|फ्लैट|मकान|घर|कमरा/.test(n))p.stayType="home";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
  else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
  else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
