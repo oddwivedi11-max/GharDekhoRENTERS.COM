@@ -11,6 +11,7 @@ test("owner voice recognition is one-shot and never automatically restarts",()=>
  assert.ok(js.includes("rec.continuous=false"));
  assert.ok(js.includes("rec.interimResults=true"));
  assert.ok(js.includes("state.voice.turnText"));
+ assert.ok(js.includes("String(state.voice.turnText||\"\").trim()"));
  assert.ok(!js.includes("scheduleVoiceRestart"));
  assert.ok(js.includes("state.voice.active=false;state.recording=false"));
 });
