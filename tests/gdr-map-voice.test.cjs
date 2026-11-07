@@ -52,6 +52,7 @@ test('voice searches the complete public inventory and renders matching home car
   assert.match(map, /function showVoiceSearchResults\(rows,point,label\)/);
   assert.match(map, /renderMarkers\(items,center,false\)/);
   assert.match(map, /if\(!p\|\|!validPoint\(p\.latitude,p\.longitude\)\)return/);
+  assert.match(map, /if\(pan&&state\.renterMap&&validPoint\(p\.latitude,p\.longitude\)\)/);
 });
 test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
   assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
