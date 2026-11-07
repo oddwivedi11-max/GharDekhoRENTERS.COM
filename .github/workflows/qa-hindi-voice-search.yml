@@ -1,0 +1,24 @@
+name: GDR Hindi Voice Search Regression
+
+on:
+  push:
+    branches:
+      - "fix/hindi-voice-search-singrauli-20261107"
+
+permissions:
+  contents: read
+
+jobs:
+  hindi-voice-search:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check renter search parser syntax
+        run: node --check assets/gdr-renter-experience.js
+      - name: Run Hindi city-first voice-search regressions
+        run: node --test --test-name-pattern='Hindi city-first all-property request|Hindi city-first locality searches' tests/gdr-renter-experience.test.cjs
