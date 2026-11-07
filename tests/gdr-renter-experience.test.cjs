@@ -160,6 +160,19 @@ test('Locality-only Hindi/Hinglish all-property commands retain the requested lo
   assert.equal(parseRequest('Patel Nagar Bhopal ki saari properties').location, 'Patel Nagar Bhopal');
   assert.equal(parseRequest('Mujhe Patel Nagar Bhopal ki saari properties dikhao').location, 'Patel Nagar Bhopal');
 });
+
+test('a new location-only Find Home request clears filters carried over from the previous city', () => {
+  assert.match(js, /const locationChanged=!!\(extracted\.location&&normalizeSearchText\(extracted\.location\)!==normalizeSearchText\(previous\.location\|\|""\)\)/);
+  assert.match(js, /locationChanged\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
+  assert.match(js, /setValue\("renterSearchBhk",p\.bhk,true\)/);
+  assert.match(js, /setValue\("renterSearchFurnishing",p\.furnishing,true\)/);
+  assert.match(js, /function bindLocationOnlySearchReset\(\)/);
+  assert.match(js, /location\.addEventListener\("input",resetIfLocationChanged\)/);
+  assert.match(js, /function clearRenterSearchFilters\(\)/);
+  assert.match(js, /\["renterMinBudgetPreset","No minimum"\]/);
+  assert.match(js, /\["renterStayType","All property types"\]/);
+});
+
 test('Find Home review clears previous filters for Hindi jitne bhi property requests', () => {
   assert.ok(js.includes('जितने\\s+भी') && js.includes('jitne\\s+bhi'));
   assert.ok(js.includes('const resetKeys=broadAllListings'));
