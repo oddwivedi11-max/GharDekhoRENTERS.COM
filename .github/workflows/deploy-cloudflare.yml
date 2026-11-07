@@ -183,7 +183,6 @@ jobs:
           grep -q 'processVoiceTurn' /tmp/gdr-property-studio.js
           grep -q 'function applyVoiceValues' /tmp/gdr-property-studio.js
           if grep -q 'scheduleVoiceRestart' /tmp/gdr-property-studio.js; then echo 'Automatic owner microphone restart still present.'; exit 1; fi
-          grep -q 'data-gdr-property-type="room"' /tmp/gdr-property-studio.html
           grep -q 'speechSynthesis' /tmp/gdr-property-studio.js
           grep -q 'SpeechRecognition' /tmp/gdr-property-studio.js
           grep -q 'gdr-renter-experience.js?v=20261107-voicefix1' /tmp/gdr-live-index.html
@@ -192,6 +191,8 @@ jobs:
           grep -q 'gdr-studio-voice-assistant' /tmp/gdr-property-studio.css
           grep -q 'gdr-moveout-notice' /tmp/gdr-property-studio.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261107-voiceassistant2" -o /tmp/gdr-property-studio.html
+          grep -q 'data-gdr-property-type="room"' /tmp/gdr-property-studio.html
+          grep -q 'Microphone is OFF by default' /tmp/gdr-property-studio.html
           grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
           grep -q 'gdrStudioVoiceAssistant' /tmp/gdr-property-studio.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261107-dashboardui1" -o /tmp/gdr-rental-suite.js
