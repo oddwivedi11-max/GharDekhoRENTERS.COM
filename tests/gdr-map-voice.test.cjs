@@ -31,11 +31,13 @@ test('voice UI has responsive controls and accessible microphone state', () => {
   assert.match(voice, /aria-pressed/);
 });
 
-test('common rental filters are parsed deterministically', () => {
+test('common rental filters are delegated to the shared deterministic intent parser', () => {
+  assert.match(voice, /assistant\.parseRequest\(raw\)/);
+  assert.match(voice, /minBudget/);
   assert.match(voice, /maxBudget/);
-  assert.match(voice, /p\.bhk/);
-  assert.match(voice, /p\.furnishing="Furnished"/);
-  assert.match(voice, /p\.stayType="pg"/);
+  assert.match(voice, /bhk/);
+  assert.match(renter, /p\.furnishing="Furnished"/);
+  assert.match(renter, /p\.stayType="pg"/);
 });
 
 
