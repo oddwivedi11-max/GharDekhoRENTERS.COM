@@ -74,7 +74,8 @@ test.describe('GDR map-first experience structure', () => {
       };
       window.L = {
         map: makeMap, tileLayer: () => ({ addTo() { return this; } }),
-        control: { zoom: () => ({ addTo() { return this; } }) },
+        control: { zoom: () => ({ addTo() { return this; } }), layers: () => ({ addTo() { return this; } }) },
+        layerGroup: () => ({ addTo() { return this; } }),
         markerClusterGroup: () => ({ addTo() { return this; }, clearLayers() {}, addLayer() {} }),
         divIcon: () => ({}), marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
         circle: () => ({ addTo() { return this; } })
@@ -105,7 +106,8 @@ test.describe('GDR map-first experience structure', () => {
           removeLayer() {}
         }),
         tileLayer: () => ({ addTo() { return this; } }),
-        control: { zoom: () => ({ addTo() { return this; } }) },
+        control: { zoom: () => ({ addTo() { return this; } }), layers: () => ({ addTo() { return this; } }) },
+        layerGroup: () => ({ addTo() { return this; } }),
         markerClusterGroup: () => ({ addTo() { return this; }, clearLayers() {}, addLayer() {} }),
         marker: () => ({ on() { return this; }, addTo() { return this; }, getLatLng: () => center }),
         divIcon: () => ({}),

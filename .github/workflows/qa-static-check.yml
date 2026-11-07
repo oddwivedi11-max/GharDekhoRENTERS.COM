@@ -23,6 +23,7 @@ on:
       - "fix/gdr-renter-search-accuracy-20261107c"
       - "fix/hindi-voice-search-singrauli-20261107"
       - "fix/map-viewport-browse-markers-20261107"
+      - "fix/map-list-full-results-mobile"
       - "fix/hindi-bhopal-patel-nagar-search-20261107b"
       - "fix/singrauli-location-only-search"
       - "fix/gdr-voice-autosearch-and-analytics"

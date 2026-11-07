@@ -42,7 +42,7 @@ jobs:
               ("gdr-rental-suite-v2.js", "20261107-paymentproof1"),
               ("gdr-owner-payments.js", "20261107-paymentproof1"),
               ("gdr-owner-payments.css", "20261107-paymentproof1"),
-              ("gdr-map-experience.js", "20261107-map-voice-loader7"),
+              ("gdr-map-experience.js", "20261107-map-list-full-results1"),
           ]
           for asset, version in assets:
               pattern = r'(/assets/' + re.escape(asset) + r')(?:\?v=[^"\s>]*)?'
@@ -120,7 +120,7 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
-          grep -q 'gdr-map-experience.js?v=20261107-map-voice-loader7' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261107-map-list-full-results1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js
@@ -128,8 +128,12 @@ jobs:
           grep -q 'SATELLITE_URL' /tmp/gdr-map-experience.js
           grep -q 'radiusBounds(state.searchCenter)' /tmp/gdr-map-experience.js
           grep -q 'searchRenterArea(undefined,true)' /tmp/gdr-map-experience.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
+          grep -q 'sortBrowseInventoryForList' /tmp/gdr-map-experience.js
+          grep -q 'renderMarkers(rows,origin,false,true,listRows)' /tmp/gdr-map-experience.js
+          grep -q 'Contact / request visit' /tmp/gdr-map-experience.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
+          grep -q 'gdr-map-list-actions' /tmp/gdr-map-experience.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice7" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js

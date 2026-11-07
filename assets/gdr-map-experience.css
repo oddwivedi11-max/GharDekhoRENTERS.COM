@@ -864,3 +864,25 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
 @media(prefers-reduced-motion:reduce){.gdr-home-3d-marker.gdr-home-selected{transform:none}}
 
 .gdr-map-preview-extra{grid-column:1/-1;margin-top:8px;padding:9px 10px;border:1px solid #e3e9e4;border-radius:10px;background:#f7faf8;color:#4e665e;font-size:11px;line-height:1.5;overflow-wrap:anywhere}.gdr-map-preview-extra p{margin:0 0 5px}.gdr-map-preview-extra p:last-child{margin-bottom:0;font-size:9px;color:#7d8c85}
+
+
+/* Full voice-search results list: keep every match while map pins remain viewport-scoped. */
+.gdr-map-list-item{display:grid;gap:7px;min-width:0}
+.gdr-map-list-copy{display:block;min-width:0}
+.gdr-map-list-title{overflow-wrap:anywhere}
+.gdr-map-list-actions{display:grid;grid-template-columns:1fr 1fr;gap:7px;min-width:0}
+.gdr-map-list-action{min-width:0;min-height:40px;padding:8px 10px;border:1px solid #cadbd6;border-radius:11px;background:#fff;color:#174a47;font:inherit;font-size:12px;font-weight:850;line-height:1.25;white-space:normal;overflow-wrap:anywhere}
+.gdr-map-list-action-primary{border-color:#153f3b;background:#153f3b;color:#fff}
+.gdr-map-list-action:focus-visible{outline:3px solid #8bb9ad;outline-offset:2px}
+.gdr-map-layout.gdr-list-mode .gdr-map-preview{position:relative;left:auto;bottom:auto;width:100%;margin-top:12px}
+@media(max-width:620px){
+  #gdrMapListPanel{gap:12px;max-height:none;overflow:visible;padding:0}
+  .gdr-map-list-card{width:100%;grid-template-columns:82px minmax(0,1fr);gap:9px;padding:9px;border-radius:13px}
+  .gdr-map-list-card img{width:82px;height:82px}
+  .gdr-map-list-card strong{font-size:13px;line-height:1.3;overflow-wrap:anywhere}
+  .gdr-map-list-card small{font-size:10px;line-height:1.45;overflow-wrap:anywhere}
+  .gdr-map-list-card b{font-size:13px}
+  .gdr-map-list-actions{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:6px}
+  .gdr-map-list-action{min-height:42px;padding:8px 6px;font-size:11px}
+}
+
