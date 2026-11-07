@@ -80,16 +80,20 @@ test.describe('GDR renter map voice UI', () => {
           latitude: 24.073, longitude: 82.625, status: 'verified',
           verification_status: 'verified', owner_verified: true
         };
-        const card = document.createElement('article');
-        card.textContent = property.title;
-        target.append(card);
+        window.renderVoicePropertyResults([property]);
+        target.replaceChildren();
+        const summary = document.createElement('p');
+        summary.textContent = '1 matching property displayed in Available Rental Properties below.';
+        target.append(summary);
         window.__voiceSearchPrefs = prefs;
         return [property];
       };
       document.getElementById('gdrMapVoiceTranscript').value = 'Mujhe Singrauli mein 2 BHK ghar dikhao';
     });
     await page.locator('#gdrMapVoiceSearch').click();
-    await expect(page.locator('#gdrMapVoiceResults')).toContainText('Singrauli test home');
+    await expect(page.locator('#propertiesContainer')).toContainText('Singrauli test home');
+    await expect(page.locator('#gdrMapVoiceResults')).toContainText('Available Rental Properties below');
+    await expect(page.locator('#gdrMapVoiceResults')).not.toContainText('Singrauli test home');
     await expect(page.locator('#gdrMapListPanel .gdr-map-list-card')).toHaveCount(1);
     await expect(page.locator('#gdrMapCount')).toContainText('1 home found');
     const state = await page.evaluate(() => ({

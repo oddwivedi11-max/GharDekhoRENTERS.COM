@@ -42,15 +42,16 @@ test('common rental filters are delegated to the shared deterministic intent par
 });
 
 
-test('voice searches the complete public inventory and makes the map the primary result surface', () => {
+test('voice searches the public inventory and renders results in Available Rental Properties', () => {
   assert.match(voice, /assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
   assert.match(voice, /gdrMapVoiceResults/);
   assert.doesNotMatch(voice, /api\.searchTypedMapLocation\(\)/);
   assert.match(voice, /api\.showVoiceSearchResults\(rows,point,location\)/);
   assert.match(renter, /client\.rpc\("get_public_properties"\)/);
   assert.match(renter, /searchAssistantListings\(prefs,raw,target\)/);
-  assert.match(renter, /if\(target\)throw error/);
-  assert.match(renter, /if\(target\)\{/);
+  assert.match(renter, /window\.renderVoicePropertyResults\(rows\)/);
+  assert.match(renter, /propertiesSection/);
+  assert.doesNotMatch(renter, /gdrx-assistant-property-card/);
   assert.match(map, /get_available_map_properties_in_bounds/);
   assert.match(map, /function showVoiceSearchResults\(rows,point,label\)/);
   assert.match(map, /renderMarkers\(items,center,false\)/);
@@ -62,7 +63,7 @@ test('voice searches the complete public inventory and makes the map the primary
 });
 test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
   assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
-  assert.match(map, /20261107-map-ux2/);
+  assert.match(map, /20261107-map-voice3/);
   assert.match(voice, /gdr-map-voice-mic-icon/);
   assert.match(voice, /<svg viewBox="0 0 24 24"/);
 });
@@ -109,9 +110,11 @@ test('legacy map microphone is removed so only one map voice UI can mount', () =
   assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
 });
 
-test('map voice search renders map markers and avoids a second property-card grid below the assistant', () => {
-  assert.match(renter, /Showing \"\+mapped\+\" mapped home price markers/);
-  assert.match(renter, /if\(target\)\{[\s\S]*?return rows;[\s\S]*?if\(!rows\.length\)/);
+test('map voice keeps its markers while rental cards render in the shared Available Rental Properties section', () => {
+  assert.match(renter, /window\.renderVoicePropertyResults\(rows\)/);
+  assert.match(renter, /gdrVoiceInventorySummary/);
+  assert.match(renter, /target\.append\(summary\)/);
+  assert.doesNotMatch(renter, /gdrx-assistant-property-card/);
   assert.match(map, /marker\.on\("click",\(\)=>selectProperty\(p,true\)\)/);
   assert.match(map, /showPreview\(p\)/);
 });
