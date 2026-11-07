@@ -248,7 +248,7 @@ function review(raw,options){
  const broadHomes=/(?:all|every|any)\s+(?:available\s+)?(?:homes?|houses?|properties)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:घर|मकान|प्रॉपर्टी|प्रॉपर्टीज)/i.test(String(raw||""));
  if(broadHomes){p.stayType="";p.propertyType="";}
  ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{
-  if(!extracted[key]&&!broadHomes)p[key]=previous[key]||"";
+  if(!extracted[key]&&!(broadHomes&&(key==="stayType"||key==="propertyType")))p[key]=previous[key]||"";
  });
  p.radiusKm=extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm;
  p.useMyLocation=!!(extracted.useMyLocation||previous.useMyLocation);
