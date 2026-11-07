@@ -90,7 +90,7 @@ test("Property Studio saves drafts, uploads owner-scoped photos and uses the sec
 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261107-manualfirst1\"/);
+  assert.match(studio, /const VERSION=\"20261107-stepnav3d1\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
@@ -148,4 +148,18 @@ test("Owner profile editing is available from the Owner Dashboard and uses the e
   assert.match(html, /addEventListener\("submit", saveOwnerProfile\)/);
   assert.match(html, /addEventListener\("click", openOwnerProfileEditor\)/);
   assert.match(read("assets/gdr-property-studio.css"), /#ownerDashboard \.owner-profile-card #ownerEditProfileBtn/);
+});
+
+test("Manual form Next and final Submit are separate from GDR voice Continue",()=>{
+  const markup=read("assets/gdr-property-studio.txt");
+  const manualNav=markup.indexOf('class="gdr-studio-form-navigation"');
+  const voice=markup.indexOf('class="gdr-studio-voice"');
+  const assistantFooter=markup.indexOf('class="gdr-studio-footer gdr-studio-assistant-footer"');
+  assert.ok(manualNav>=0 && manualNav<voice && voice<assistantFooter);
+  assert.match(markup,/id="gdrStudioFormNext"/);
+  assert.match(markup,/Submit Your Property/);
+  assert.match(markup,/id="gdrStudioNext">Continue →/);
+  assert.match(studio,/gdrStudioFormNext/);
+  assert.match(studio,/assistantNext/);
+  assert.match(studio,/Submit Your Property/);
 });

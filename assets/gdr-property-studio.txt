@@ -74,6 +74,12 @@
     <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
       <h2 class="gdr-studio-panel-title">Review before publishing</h2><p class="gdr-studio-panel-subtitle">Check the details carefully. Your listing will be saved in My Properties and follow the existing verification process.</p><div id="gdrStudioPreview"></div>
     </section>
+    <div class="gdr-studio-form-navigation" aria-label="Manual property listing navigation">
+      <button type="button" id="gdrStudioBack" hidden>← Back</button>
+      <span class="gdr-studio-form-step">STEP <b id="gdrStudioNavStep">1</b> <small>OF 5</small></span>
+      <button type="button" id="gdrStudioFormNext" class="gdr-studio-next-3d">Next <span aria-hidden="true">→</span></button>
+      <button type="button" id="gdrStudioPublish" class="gdr-studio-submit-3d" hidden>Submit Your Property <span aria-hidden="true">↗</span></button>
+    </div>
     <div class="gdr-studio-voice">
       <div class="gdr-studio-voice-head"><div><strong>Optional: Fill details by speaking</strong><small>Manual entry is the primary option. If you need help, use the optional microphone to tell GDR your details.</small></div><span aria-hidden="true">✦</span></div>
       <div class="gdr-studio-voice-controls">
@@ -101,7 +107,7 @@
         <div id="gdrStudioLiveFields" class="gdr-studio-live-fields" aria-live="polite"></div>
       </section>
     </div>
-    <div class="gdr-studio-footer"><button type="button" id="gdrStudioBack" hidden>← Back</button><button type="button" id="gdrStudioNext">Continue →</button><button type="button" id="gdrStudioPublish" hidden>Publish My Property</button></div>
+    <div class="gdr-studio-footer gdr-studio-assistant-footer"><span>Prefer help from GDR? Continue with the voice assistant.</span><button type="button" id="gdrStudioNext">Continue →</button></div>
     <p id="gdrStudioMessage" hidden aria-live="polite"></p>
   </main>
 </section>
