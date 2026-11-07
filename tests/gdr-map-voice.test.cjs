@@ -6,6 +6,7 @@ const voice = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-voice.js')
 const map = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-experience.js'), 'utf8');
 const renter = fs.readFileSync(path.join(__dirname, '../assets/gdr-renter-experience.js'), 'utf8');
 const css = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-voice.css'), 'utf8');
+const mapCss = fs.readFileSync(path.join(__dirname, '../assets/gdr-map-experience.css'), 'utf8');
 
 test('voice assistant loads inside the existing renter Explore Map', () => {
   assert.match(map, /ensureMapVoiceAssistant/);
