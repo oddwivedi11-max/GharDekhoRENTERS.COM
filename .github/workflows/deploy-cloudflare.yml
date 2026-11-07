@@ -179,7 +179,11 @@ jobs:
           grep -Fq 'review($("gdrxPrompt").value,{autoSearch:true})' /tmp/gdr-renter-experience.js
           grep -Fq 'section.scrollIntoView({behavior:window.matchMedia' /tmp/gdr-renter-experience.js
           grep -q 'speakAssistantReply(spokenReply,replyLanguage)' /tmp/gdr-renter-experience.js
-          grep -q 'state.voiceDraft=finalTranscript.trim()' /tmp/gdr-renter-experience.js
+          grep -q 'state.voiceDraft=finalTranscript' /tmp/gdr-renter-experience.js
+          grep -q 'const finalSegments=\[\]' /tmp/gdr-renter-experience.js
+          grep -q 'previous=autoSearch?{}:(state.parsed||{})' /tmp/gdr-renter-experience.js
+          grep -q 'resetKeys=(broadAllListings||broadHomes||resetLocationFilters)?' /tmp/gdr-renter-experience.js
+          grep -q 'noisyCityPrefix' /tmp/gdr-renter-experience.js
           grep -q 'Chrome speech recognition could not reach its speech service' /tmp/gdr-renter-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-compare-picker2" -o /tmp/gdr-renter-experience.css
           grep -q 'gdrx-finder' /tmp/gdr-renter-experience.css
