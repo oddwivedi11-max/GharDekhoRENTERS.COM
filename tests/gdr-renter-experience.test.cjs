@@ -107,7 +107,7 @@ test('voice parser distinguishes Room from Apartment for renter searches', () =>
 });
 test('spoken follow-up filters preserve the previously selected city and stay type', () => {
   assert.ok(js.includes('const extracted=parseRequest(raw),previous=state.parsed||{}'));
-  assert.ok(js.includes('if(!extracted[key]&&!(resetListingType&&(key==="stayType"||key==="propertyType")))p[key]=previous[key]||""'));
+  assert.ok(js.includes('const resetKeys=broadAllListings?'));\n  assert.ok(js.includes('if(!extracted[key]&&!resetKeys.includes(key))p[key]=previous[key]||""'));
   assert.ok(js.includes('if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}'));
 });
 test('renter search applies an exact property type filter to real inventory', () => {
