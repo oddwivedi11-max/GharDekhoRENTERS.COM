@@ -132,6 +132,37 @@ async function searchAssistantListings(prefs,raw,target){
   if(!node){node=document.createElement("p");node.id="gdrVoiceInventorySummary";node.className="small-text";const subtitle=section.querySelector(":scope > .small-text");if(subtitle)subtitle.insertAdjacentElement("afterend",node);else section.insertBefore(node,container);}
   node.textContent=message;
  };
+ const setAssistantAnalytics=(rows,count)=>{
+  if(!section||!container)return;
+  let panel=$("gdrxAssistantAnalytics");
+  if(!panel){panel=document.createElement("section");panel.id="gdrxAssistantAnalytics";panel.className="gdrx-assistant-analytics";panel.setAttribute("aria-live","polite");container.insertAdjacentElement("beforebegin",panel);}
+  const records=Array.isArray(rows)?rows:[];
+  if(!records.length){panel.hidden=true;panel.replaceChildren();return;}
+  panel.hidden=false;
+  const verified=records.filter(row=>String(row.status||"").toLowerCase()==="verified"&&String(row.verification_status||"").toLowerCase()==="verified").length;
+  const pending=records.filter(row=>String(row.status||"").toLowerCase()==="pending"||String(row.verification_status||"").toLowerCase()==="pending").length;
+  const ownersVerified=records.filter(row=>row.owner_verified===true).length;
+  const homes=records.filter(row=>!row.listing_type||String(row.listing_type).toLowerCase()==="home").length;
+  const pgHostel=records.length-homes;
+  const mapped=records.filter(row=>Number.isFinite(Number(row.latitude))&&Number.isFinite(Number(row.longitude))&&row.latitude!==null&&row.longitude!==null&&row.latitude!==""&&row.longitude!=="").length;
+  const photos=records.filter(row=>Boolean(row.image_url)||(Array.isArray(row.photo_urls)&&row.photo_urls.length>0)).length;
+  const rents=records.map(row=>Number(row.rent)).filter(value=>Number.isFinite(value)&&value>=0).sort((a,b)=>a-b);
+  const median=rents.length?(rents.length%2?rents[(rents.length-1)/2]:(rents[rents.length/2-1]+rents[rents.length/2])/2):null;
+  const money=value=>"₹"+Number(value).toLocaleString("en-IN",{maximumFractionDigits:0});
+  const metric=(label,value)=>'<div class="gdrx-analytics-metric"><span>'+esc(label)+'</span><strong>'+esc(value)+'</strong></div>';
+  const headline='<div class="gdrx-analytics-heading"><div><span>LIVE INVENTORY ANALYSIS</span><strong>'+esc(location||"Your search")+'</strong></div><small>'+esc(String(records.length))+' loaded of '+esc(String(Number(count)||records.length))+'</small></div>';
+  const cards='<div class="gdrx-analytics-grid">'+
+   metric("Total matching",String(Number(count)||records.length))+
+   metric("Homes",String(homes))+
+   metric("PG / Hostel",String(pgHostel))+
+   metric("Map-ready",mapped+" / "+records.length)+
+   '</div>';
+  const pricing=rents.length?'<p class="gdrx-analytics-line"><b>Listed rent range:</b> '+esc(money(rents[0]))+' – '+esc(money(rents[rents.length-1]))+(median!==null?' <span>· Median '+esc(money(median))+'</span>':'')+'</p>':'';
+  const verification='<p class="gdrx-analytics-line"><b>Property verification:</b> '+esc(String(verified))+' verified · '+esc(String(pending))+' pending <span>· Owner verified: '+esc(String(ownersVerified))+' / '+esc(String(records.length))+'</span></p>';
+  const completeness='<p class="gdrx-analytics-line"><b>Listing data:</b> '+esc(String(photos))+' with photos · '+esc(String(mapped))+' with map coordinates</p>';
+  const note=Number(count)>records.length?'<p class="gdrx-analytics-note">Showing '+esc(String(records.length))+' of '+esc(String(Number(count)))+' matching listings. Use Load More to fetch the rest.</p>':'<p class="gdrx-analytics-note">All matching records returned by this search are loaded below. Pending verification is labelled on each property card.</p>';
+  panel.innerHTML=headline+cards+pricing+verification+completeness+note;
+ };
  if(!section||!container||typeof window.renderVoicePropertyResults!=="function"){setStatus("The existing Available Rental Properties section is not ready. Please refresh and try again.");return [];}
  const client=window.__gdrSupabaseClient;
  if(!client||typeof client.rpc!=="function"){setStatus("Property database is not ready. Please refresh and try again.");return [];}
@@ -167,8 +198,16 @@ async function searchAssistantListings(prefs,raw,target){
   button.addEventListener("click",()=>loadMore(button));pagination.append(button);
  };
  const renderLoadedRows=()=>{
-  loadedRows.totalCount=totalCount;window.renderVoicePropertyResults(loadedRows);
-  if(!target){const mapApi=window.GDRMapExperience;if(mapApi&&typeof mapApi.showVoiceSearchResults==="function")mapApi.showVoiceSearchResults(loadedRows,null,location||"Assistant search");}
+  loadedRows.totalCount=totalCount;
+  window.renderVoicePropertyResults(loadedRows);
+  setAssistantAnalytics(loadedRows,totalCount);
+  if(!target){
+   const mapApi=window.GDRMapExperience;
+   if(mapApi&&typeof mapApi.showVoiceSearchResults==="function"){
+    try{mapApi.showVoiceSearchResults(loadedRows,null,location||"Assistant search");}
+    catch(error){console.warn("GDR assistant list results are ready; map rendering was skipped:",error);}
+   }
+  }
   updatePagination();
  };
  const describeCount=()=>language==="hi"?(location?location+" में ":"")+"कुल "+totalCount+" matching properties मिली हैं। अभी "+loadedRows.length+" दिखाई जा रही हैं.":"Found "+totalCount+" matching properties"+(location?" in "+location:"")+". Showing "+loadedRows.length+" so far.";
@@ -198,7 +237,7 @@ async function searchAssistantListings(prefs,raw,target){
  }catch(error){
   if(searchId!==state.assistantSearchId)return [];
   const message=String(error&&error.message||"The property search could not be completed. Please try again.");
-  window.renderVoicePropertyResults([],message);setInventorySummary("Property search failed. No successful results were returned.");setStatus(message);
+  window.renderVoicePropertyResults([],message);setAssistantAnalytics([],0);setInventorySummary("Property search failed. No successful results were returned.");setStatus(message);
   console.error("GDR database voice search failed:",error);if(target)throw error;return [];
  }
 }
@@ -393,9 +432,11 @@ function review(raw,options){
    :"Got it. I'm searching available rental homes in "+(p.location||"your selected location")+".";
   speakAssistantReply(spokenReply,replyLanguage);
  }else status.textContent="Extracted with a local parser. You can edit any field before searching.";
- $("gdrxEdit").onclick=()=>$("renterFindHomeForm").scrollIntoView({behavior:"smooth",block:"start"});
- $("gdrxFind").onclick=()=>searchAssistantListings(p,raw);
- if(options&&options.autoSearch)searchAssistantListings(p,raw);
+ const editButton=$("gdrxEdit");
+ if(editButton)editButton.onclick=()=>$("renterFindHomeForm")?.scrollIntoView({behavior:"smooth",block:"start"});
+ const findButton=$("gdrxFind");
+ if(findButton)findButton.onclick=()=>searchAssistantListings(p,raw);
+ if(options&&options.autoSearch)void searchAssistantListings(p,raw);
  return true;
 }
 function setRenterMicState(mic,listening){

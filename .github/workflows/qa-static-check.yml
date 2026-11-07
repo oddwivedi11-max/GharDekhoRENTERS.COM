@@ -25,6 +25,7 @@ on:
       - "fix/map-viewport-browse-markers-20261107"
       - "fix/hindi-bhopal-patel-nagar-search-20261107b"
       - "fix/singrauli-location-only-search"
+      - "fix/gdr-voice-autosearch-and-analytics"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
