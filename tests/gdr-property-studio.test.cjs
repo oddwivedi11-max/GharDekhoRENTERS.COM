@@ -173,6 +173,11 @@ test("New listing fields are blanked and browser autocomplete is disabled",()=>{
   assert.ok(studio.includes('state.address="";state.pincode=""'));
   assert.ok(read("assets/gdr-property-studio.txt").includes('id="gdrStudioRent" type="number" autocomplete="off"'));
   assert.ok(read("assets/gdr-property-studio.txt").includes('id="gdrStudioPincode" type="text" autocomplete="off"'));
+  for (const id of ["gdrStudioRent","gdrStudioDeposit","gdrStudioLocation","gdrStudioPincode"]) {
+    const input = read("assets/gdr-property-studio.txt").match(new RegExp('id="'+id+'"[^>]*'));
+    assert.ok(input, id + " input exists");
+    assert.equal((input[0].match(/autocomplete="off"/g)||[]).length, 1, id + " has one autocomplete policy");
+  }
 });
 test("Returning from a successful listing refreshes Owner Dashboard without reload or sign-out",()=>{
   assert.ok(studio.includes("async function returnToOwnerDashboard(scrollToProperties)"));
