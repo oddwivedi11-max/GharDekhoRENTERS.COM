@@ -91,7 +91,7 @@ function parseRequest(raw){
  ];
  const matchedCity=knownCities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(locationKey));
  if(matchedCity&&/(madhya pradesh|m p|mp|मध्य प्रदेश)/i.test(original)){
-  p.location=String(p.location||"").replace(/मध्य\\s*प्रदेश|madhya\\s+pradesh|\\bmp\\b/ig," ").replace(/\\bke\\b|के/ig," ").replace(/\\s+/g," ").trim()||matchedCity[1];
+  p.location=String(p.location||"").replace(/मध्य\s*प्रदेश|madhya\s+pradesh|\bmp\b/ig," ").replace(/\bke\b|के/ig," ").replace(/\s+/g," ").trim()||matchedCity[1];
  }else if(!p.location&&matchedCity){
   p.location=matchedCity[1];
  }
@@ -424,11 +424,11 @@ function moveEditProfileToAccount(){
  const root=$("renterDashboard"),button=root?.querySelector(".renter-edit-profile-compact");
  if(!root||!button)return;
  if(button.closest(".renter-account-edit-stack"))return;
- const normalize=value=>String(value||"").replace(/\\s+/g," ").trim();
+ const normalize=value=>String(value||"").replace(/\s+/g," ").trim();
  const candidates=Array.from(document.querySelectorAll("body *")).filter(el=>{
   if(el===button||el.contains(button))return false;
   const value=normalize(el.innerText||el.textContent);
-  return /ODD\\s+JI/i.test(value)&&/Renter/i.test(value)&&value.length<=100;
+  return /ODD\s+JI/i.test(value)&&/Renter/i.test(value)&&value.length<=100;
  });
  candidates.sort((a,b)=>normalize(a.innerText||a.textContent).length-normalize(b.innerText||b.textContent).length);
  const badge=candidates[0];
