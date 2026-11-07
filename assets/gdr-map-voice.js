@@ -29,6 +29,8 @@ function extractIntent(raw){
    if(parsed[key]!==undefined&&parsed[key]!==null&&parsed[key]!=="")prefs[key]=parsed[key];
   });
   const request=String(raw||"");
+  const allListings=/(?:\b(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties|listings|homes|houses)\b|(?:जितने\s+भी|सभी|सारे|सारी)\s*(?:उपलब्ध\s*)?(?:प्रॉपर्टी|प्रॉपर्टीज|लिस्टिंग|घर|मकान))/i.test(request);
+  if(allListings){["bhk","minBudget","maxBudget","furnishing","stayType","propertyType"].forEach(key=>delete prefs[key]);}
   if(/\b(?:any|all)\s+(?:bhk|bedrooms?)\b|(?:कोई भी|सभी)\s*(?:बीएचके|बेडरूम)|सभी प्रकार के घर/i.test(request))delete prefs.bhk;
   if(/\b(?:clear|remove|reset)\s+(?:budget|rent)\b|बजट हटाओ|किराया हटाओ/i.test(request)){delete prefs.minBudget;delete prefs.maxBudget;}
   return {prefs,location:String(parsed.location||""),nearMe:!!parsed.useMyLocation,radiusKm:parsed.radiusKm==null?null:Number(parsed.radiusKm),raw:request};
@@ -130,7 +132,7 @@ async function runTurn(raw){
  status(text("समझ गया। आपकी बताई location और filters के अनुसार असली घर खोज रहा हूँ…","Got it. Searching real homes using your location and filters…"),"processing");
   speak(text("समझ गया। "+(location?location+" में ":"")+"आपकी बताई शर्तों के अनुसार घर खोज रहा हूँ।","Got it. Searching homes "+(location?"in "+location+" ":"")+"using your requested filters."));
  try{
-  let rows=[];
+  let rows=[],mapSummary=null;
   if(intent.nearMe){
    if(!api||typeof api.searchAtCoordinates!=="function")throw new Error(text("Nearby map search अभी उपलब्ध नहीं है।","Nearby map search is not available right now."));
    const position=await new Promise((resolve,reject)=>{
@@ -154,15 +156,16 @@ async function runTurn(raw){
     try{if(typeof api.resolveMapQuery==="function")point=await api.resolveMapQuery(location);}
     catch(error){console.warn("GDR voice result map-centering skipped:",error);}
     if(searchId!==state.searchId)return;
-    api.showVoiceSearchResults(rows,point,location);
+    mapSummary=api.showVoiceSearchResults(rows,point,location);
    }
   }
   if(searchId!==state.searchId)return;
   if(!Array.isArray(rows))throw new Error(text("Property search response सही नहीं मिला।","The property search returned an invalid response."));
   const count=rows.length,place=intent.nearMe?text("आपकी current location","your current location"):location;
   if(count){
-   status(text(place+" में "+count+" matching घर मिले हैं। नीचे Available Rental Properties section में उनकी details देखें।","Found "+count+" matching homes in "+place+". Their actual property cards are shown in Available Rental Properties below."),"success");
-   speak(text(place+" में "+count+" घर मिले हैं। उनकी details नीचे Available Rental Properties में दिखाई गई हैं।","Found "+count+" homes in "+place+". Their actual property cards are displayed in Available Rental Properties below."));
+   const mapNote=mapSummary&&mapSummary.unmapped?text(" "+mapSummary.mapped+" घर map पर pin हुए हैं और "+mapSummary.unmapped+" बिना verified coordinates वाले घर list में दिख रहे हैं।"," "+mapSummary.mapped+" homes are pinned on the map; "+mapSummary.unmapped+" without verified coordinates remain visible in the results list."):"";
+   status(text(place+" में "+count+" matching properties मिली हैं।"+mapNote+" उनकी details नीचे Available Rental Properties में देखें।","Found "+count+" matching properties in "+place+"."+mapNote+" See their details in Available Rental Properties below."),"success");
+   speak(text(place+" में "+count+" properties मिली हैं।"+mapNote,"Found "+count+" properties in "+place+"."+mapNote));
   }else{
    status(text(place+" में इन filters के साथ कोई matching घर नहीं मिला। Location या filters जाँचें।","No matching homes found in "+place+" with these filters. Check the location or filters."),"empty");
    speak(text("इस location में matching घर नहीं मिले। आप locality या budget बदलकर बोल सकते हैं।","No matching homes found. You can try another locality or budget."));
