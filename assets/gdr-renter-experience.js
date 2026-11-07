@@ -43,7 +43,7 @@ function normalizeSearchText(value){
 function filterAssistantListings(rows,prefs){
  const p=prefs||{},query=normalizeSearchText(p.location||"");
  const tokens=query.split(" ").filter(Boolean);
- const knownCities=["singrauli","bhopal","indore","jabalpur","gwalior","ujjain","rewa","satna","dewas","sidhi"];
+ const knownCities=["singrauli","bhopal","indore","jabalpur","gwalior","ujjain","rewa","satna","dewas","sidhi","delhi","mumbai","pune","jaipur","lucknow","noida","gurgaon","gurugram","hyderabad","chennai","kolkata","bengaluru","bangalore"];
  const requestedCities=knownCities.filter(city=>tokens.includes(city));
  const number=value=>value==null||value===""?null:Number(value);
  return (Array.isArray(rows)?rows:[]).filter(row=>{
