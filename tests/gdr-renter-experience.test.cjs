@@ -159,17 +159,16 @@ test('Locality-only Hindi/Hinglish all-property commands retain the requested lo
   assert.equal(parseRequest('Patel Nagar Bhopal ki saari properties').location, 'Patel Nagar Bhopal');
 });
 test('Find Home review clears previous filters for Hindi jitne bhi property requests', () => {
-  assert.match(js, /जितने\\s\\+भी\\|जितनी\\s\\+भी\\|जितना\\s\\+भी\\|jitne\\s\\+bhi/);
-  assert.match(js, /const resetKeys=broadAllListings/);
-  assert.match(js, /setValue\\("renterMinBudget",p\\.minBudget\\|\\|"",true\\)/);
+  assert.ok(js.includes('जितने\\s+भी') && js.includes('jitne\\s+bhi'));
+  assert.ok(js.includes('const resetKeys=broadAllListings'));
+  assert.ok(js.includes('setValue("renterMinBudget",p.minBudget||"",true)'));
 });
 test('assistant city-level search expands Singrauli and Bhopal locality aliases without relaxing listing eligibility', () => {
-  assert.match(cityLocalitySearchMigration, /waidhan\\|vindhyanagar/);
-  assert.match(cityLocalitySearchMigration, /dav\\[\\[:space:\\]\\]\\+road/);
-  assert.match(cityLocalitySearchMigration, /patel\\[\\[:space:\\]\\]\\+nagar/);
-  assert.match(cityLocalitySearchMigration, /not exists \\(/
-  );
-  assert.match(cityLocalitySearchMigration, /p\\.status = 'verified'/);
+  assert.ok(cityLocalitySearchMigration.includes('waidhan|vindhyanagar'));
+  assert.ok(cityLocalitySearchMigration.includes('dav[[:space:]]+road'));
+  assert.ok(cityLocalitySearchMigration.includes('patel[[:space:]]+nagar'));
+  assert.ok(cityLocalitySearchMigration.includes('not exists('));
+  assert.ok(cityLocalitySearchMigration.includes("p.status='verified'"));
 });
 test('voice assistant replies in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
