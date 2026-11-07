@@ -28,6 +28,7 @@ on:
       - "fix/singrauli-location-only-search"
       - "fix/gdr-voice-autosearch-and-analytics"
       - "fix/gdr-fresh-voice-search-and-transcript-dedupe"
+      - "fix/clear-visible-renter-filters-on-new-voice-search"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
