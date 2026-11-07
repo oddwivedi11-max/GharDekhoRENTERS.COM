@@ -18,7 +18,11 @@ test("List Your Property is the first major owner dashboard action before statis
   assert.notEqual(firstStat, -1);
   assert.ok(hero < firstStat);
   assert.match(html, /id="gdrListPropertyStart"/);
-  assert.match(html, /id="gdrListPropertySpeak"/);
+  const heroEnd = html.indexOf("</section>", hero);
+  const heroMarkup = html.slice(hero, heroEnd);
+  assert.doesNotMatch(heroMarkup, /id="gdrListPropertySpeak"/);
+  assert.match(studioMarkup, /Manual entry is the primary option/);
+  assert.ok(studioMarkup.indexOf('class="gdr-studio-voice"') > studioMarkup.indexOf('data-gdr-studio-panel="4"'));
 });
 
 test("dashboard role switch is removed while role choice remains at login", () => {
@@ -134,4 +138,14 @@ test("local property placeholder and responsive Studio styles are present", () =
   assert.match(studioCss, /gdr-property-nearby-public/);
   assert.match(studioCss, /gdr-moveout-notice/);
   assert.match(patcher, /gdrListPropertyHero/);
+});
+
+test("Owner profile editing is available from the Owner Dashboard and uses the existing secure save flow", () => {
+  assert.match(html, /id="ownerEditProfileBtn">✏️ Edit Profile<\/button>/);
+  assert.match(html, /id="ownerProfileEditor"/);
+  assert.match(html, /id="ownerProfileForm"/);
+  assert.match(html, /rpc\("update_my_owner_profile"/);
+  assert.match(html, /addEventListener\("submit", saveOwnerProfile\)/);
+  assert.match(html, /addEventListener\("click", openOwnerProfileEditor\)/);
+  assert.match(read("assets/gdr-property-studio.css"), /#ownerDashboard \.owner-profile-card #ownerEditProfileBtn/);
 });
