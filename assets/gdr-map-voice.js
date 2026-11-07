@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-voice1";
+const VERSION="20261107-smart-search2";
 const $=id=>document.getElementById(id);
 const state={root:null,recognition:null,active:false,finalText:"",interimText:"",silenceTimer:null,session:0,executed:"",language:"hi-IN",muted:false,city:"",prefs:{},speaking:false,manualStop:false};
 const text=(hi,en)=>state.language==="en-IN"?en:hi;
@@ -22,33 +22,15 @@ function speak(message){
 }
 function normalize(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^\p{L}\p{N}]+/gu," ").trim();}
 function extractIntent(raw){
- const s=String(raw||"").trim(),n=normalize(s),p={...state.prefs};
- const amountValue=m=>{if(!m)return null;const n=Number(String(m[1]||"").replace(/,/g,""));return Number.isFinite(n)?n*(/^(k|thousand|हजार)$/i.test(String(m[2]||""))?1000:1):null;};
- const amountPattern="\\s*₹?\\s*([\\d,.]+)\\s*(k|thousand|हजार)?";
- const moneyMatch=s.match(new RegExp("(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक)"+amountPattern,"i"))||s.match(new RegExp("₹?\\s*([\\d,.]+)\\s*(k|thousand|हजार)?\\s*(?:ke andar|ke under|tak|तक|के अंदर|से कम)","i"));
- const maxAmount=amountValue(moneyMatch);if(maxAmount!==null)p.maxBudget=maxAmount;
- const minMatch=s.match(new RegExp("(?:above|more than|minimum|at least|से ज्यादा|से ऊपर)"+amountPattern,"i"));
- const minAmount=amountValue(minMatch);if(minAmount!==null)p.minBudget=minAmount;
- const bhk=s.match(/\b(1|2|3|4|5|one|two|three|four|five)\s*(?:bhk|bed\s?room)\b/i)||s.match(/\b(1|2|3|4|5)\s*बीएचके\b/i);
- if(bhk){const v=String(bhk[1]).toLowerCase();p.bhk=({one:1,two:2,three:3,four:4,five:5}[v]||Number(v));}
- if(/\b(semi furnished|semi-furnished)\b|सेमी फर्निश्ड/i.test(s))p.furnishing="Semi-Furnished";
- else if(/\b(unfurnished|without furniture)\b|बिना फर्नीचर/i.test(s))p.furnishing="Unfurnished";
- else if(/\b(furnished|fully furnished)\b|फर्निश्ड/i.test(s))p.furnishing="Furnished";
- if(/\b(pg|paying guest)\b/i.test(s))p.stayType="pg";
- else if(/\b(hostel)\b/i.test(s))p.stayType="hostel";
- else if(/\b(flat|apartment)\b/i.test(s))p.propertyType="apartment";
- else if(/\b(independent house|house)\b/i.test(s))p.propertyType="independent_house";
- else if(/\bvilla\b/i.test(s))p.propertyType="villa";
- const locationText=s
-  .replace(/(?:under|below|less than|within|upto|up to|ke andar|ke under|tak|से कम|के अंदर|तक|above|more than|minimum|at least|से ज्यादा|से ऊपर)\s*₹?\s*[\d,.]+\s*(?:k|thousand|हजार)?/ig," ")
-  .replace(/₹?\s*[\d,.]+\s*(?:k|thousand|हजार)?\s*(?:ke andar|ke under|tak|तक|के अंदर|से कम)/ig," ")
-  .replace(/\b\d+\s*(?:bhk|bed\s?room|बीएचके)\b/ig," ")
-  .replace(/\b(1|2|3|4|5)\s*(?:bhk|bedroom)\b/ig," ")
-  .replace(/\b(mujhe|please|show|find|search|available|rental|rent|property|properties|home|homes|house|houses|flat|flats|apartment|apartments|independent|villa|room|rooms|dikhao|dikhaiye|dikhana|chahiye|mein|me|mai|ke|ka|ki|par|near|in|at|all|saare|sare|jitne|bhi|ghar|makan|kiraye|wala|wale|wali|sirf|only|furnished|unfurnished|semi furnished|pg|hostel|under|within|budget|hain|hai|ho|ke|ka|ki)\b/ig," ")
-  .replace(/(मुझे|दिखाओ|दिखाइए|दिखाना|चाहिए|में|मे|के|का|की|पर|सारे|सारे|जितने|भी|घर|मकान|किराये|वाले|वाली|सिर्फ|उपलब्ध|दिखा दो|कितने)/g," ");
- const candidate=locationText.replace(/[₹,]/g," ").replace(/\s+/g," ").trim();
- const locationOnly=n.length>0&&candidate.length>1&&!/^(mere aas paas|near me|around me|my location)$/.test(normalize(candidate));
- return {prefs:p,location:locationOnly?candidate:"",nearMe:/\b(near me|around me|my location|aas paas|mere paas|mere aas paas)\b|आस पास|मेरे पास/i.test(s),raw:s};
+ const assistant=window.GDRRenterExperience;
+ if(assistant&&typeof assistant.parseRequest==="function"){
+  const parsed=assistant.parseRequest(raw)||{},prefs={...state.prefs};
+  ["minBudget","maxBudget","bhk","furnishing","stayType","propertyType"].forEach(key=>{
+   if(parsed[key]!==undefined&&parsed[key]!==null&&parsed[key]!=="")prefs[key]=parsed[key];
+  });
+  return {prefs,location:String(parsed.location||""),nearMe:!!parsed.useMyLocation,raw:String(raw||"")};
+ }
+ return {prefs:{...state.prefs},location:String(raw||"").trim(),nearMe:false,raw:String(raw||"")};
 }
 function setMic(on){
  state.active=on;
@@ -87,42 +69,44 @@ function startListening(){
  try{r.start();}catch(e){state.recognition=null;setMic(false);status(text("Microphone start नहीं हो पाया। दोबारा कोशिश करें।","Could not start the microphone. Please try again."),"error");}
 }
 async function runTurn(raw){
- const api=window.GDRMapExperience;if(!api){status("Map search is still loading. Please try again.","error");return;}
- const intent=extractIntent(raw);state.prefs={...api.getRenterSearchPreferences(),...intent.prefs};intent.prefs=state.prefs;
- const hasFilters=Object.keys(intent.prefs).length>0;
- api.setRenterSearchPreferences(intent.prefs);
- const city=intent.location||state.city;
- if(!city&&!intent.nearMe&&!hasFilters){status(text("कृपया city या locality बताइए, जैसे Singrauli।","Please mention a city or locality, such as Singrauli."),"error");speak(text("कृपया city या locality बताइए।","Please tell me a city or locality."));return;}
- const acknowledgement=intent.location?text("ठीक है! मैं "+intent.location+" में उपलब्ध घर खोज रहा हूँ।","Okay! Searching available homes in "+intent.location+"."):hasFilters?text("समझ गया! आपकी search preferences update कर रहा हूँ।","Got it! Updating your search filters."):text("ठीक है! आपके आसपास घर खोज रहा हूँ।","Okay! Searching for homes near you.");
- status(text("आपकी request समझ रहा हूँ…","Understanding your request…"),"processing");speak(acknowledgement);
+ const assistant=window.GDRRenterExperience;
+ if(!assistant||typeof assistant.searchAssistantListings!=="function"){
+  status(text("Smart Search अभी load हो रहा है। कृपया एक बार फिर कोशिश करें।","Smart Search is still loading. Please try again."),"error");return;
+ }
+ const intent=extractIntent(raw),location=intent.location;
+ state.prefs={...intent.prefs};
+ if(intent.nearMe){
+  status(text("कृपया city या locality का नाम बोलें। Nearby search के लिए location access अलग से चाहिए।","Please say a city or locality. Nearby search requires separate location access."),"error");
+  return;
+ }
+ if(!location){
+  status(text("Location साफ़ समझ नहीं आई। कृपया locality और शहर बोलें, जैसे बड़े नगर, सिंगरौली।","I couldn't identify the location. Please say the locality and city, such as Bade Nagar, Singrauli."),"error");
+  speak(text("कृपया locality और शहर का नाम दोबारा बोलें।","Please repeat the locality and city name."));return;
+ }
+ const target=$("gdrMapVoiceResults");
+ if(target)target.replaceChildren();
+ status(text("आपकी बात समझ रहा हूँ और GharDekho की असली listings खोज रहा हूँ…","Understanding your request and searching real GharDekho listings…"),"processing");
+ const filters={...state.prefs,location};
  try{
-  let rows=[];
-  if(intent.nearMe){
-   await new Promise((resolve,reject)=>{if(!navigator.geolocation){reject(new Error("Location permission is unavailable."));return;}navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:60000});}).then(async pos=>{state.city="";api.setRenterRadius(5,true);rows=await api.searchAtCoordinates(pos.coords.latitude,pos.coords.longitude,"My location");});
-  }else if(intent.location){
-   status(text("Location verify कर रहा हूँ…","Verifying the requested location…"),"processing");
-   const point=await api.resolveMapQuery(intent.location);
-   state.city=point.properties?.city||point.properties?.district||intent.location;
-   api.setRenterRadius(10,true);
-   status(text("अब "+state.city+" में properties search कर रहा हूँ…","Now searching properties in "+state.city+"…"),"searching");
-   rows=await api.searchAtCoordinates(point.lat,point.lng,state.city);
-   if(Array.isArray(rows))rows=api.filterVisibleByLocation(state.city);
-   if(Array.isArray(rows)&&!rows.length&&normalize(state.city)!==normalize(intent.location))rows=api.filterVisibleByLocation(intent.location);
+  const rows=await assistant.searchAssistantListings(filters,raw,target);
+  if(!Array.isArray(rows))throw new Error(text("Property search response सही नहीं मिला।","The property search returned an invalid response."));
+  const count=rows.length,place=location;
+  if(count){
+   status(text(place+" में "+count+" matching घर मिले हैं। नीचे उनकी rent और details देखें।","Found "+count+" matching homes in "+place+". See their rent and details below."),"success");
+   speak(text(place+" में "+count+" घर मिले हैं। उनकी details नीचे दिखाई गई हैं।","Found "+count+" homes in "+place+". Their details are shown below."));
   }else{
-   status(text("आपकी मौजूदा location पर filters लागू कर रहा हूँ…","Applying filters to your current map search…"),"searching");
-   rows=await api.searchRenterArea(intent.prefs);
-   if(state.city&&Array.isArray(rows))rows=api.filterVisibleByLocation(state.city);
+   status(text(place+" में इन filters के साथ कोई matching घर नहीं मिला। नीचे search result जाँचें या locality का नाम बदलें।","No matching homes found in "+place+" with these filters. Check the result below or try another locality."),"empty");
+   speak(text(place+" में इस बार matching घर नहीं मिले। आप locality या budget बदलकर बोल सकते हैं।","No matching homes found this time. You can try another locality or budget."));
   }
-  if(!Array.isArray(rows))rows=api.getRenterVisibleProperties();
-  const count=rows.length;
-  if(count){status(text(count+" matching homes मिल गए।","Found "+count+" matching homes."),"success");speak(text(count+" घर मिले हैं। Map और list में देखिए।","Found "+count+" homes. You can view them on the map and in the list."));}
-  else{status(text("इस location और filters में कोई matching home नहीं मिला।","No matching homes found for this location and filters."),"empty");speak(text("अभी इस location में कोई matching घर नहीं मिला। आप filters या radius बदल सकते हैं।","No matching homes found there. You can change the filters or search radius."));}
- }catch(error){console.error("GDR map voice search failed:",error);status(error.message||text("Search पूरी नहीं हो पाई। दोबारा कोशिश करें।","Search could not be completed. Please try again."),"error");speak(error.message||text("माफ़ कीजिए, search पूरी नहीं हो पाई।","Sorry, the search could not be completed."));}
+ }catch(error){
+  console.error("GDR database voice search failed:",error);
+  status(error.message||text("Search पूरी नहीं हो सकी। दोबारा कोशिश करें।","Search could not be completed. Please try again."),"error");
+ }
 }
 function mount(panel){
  if(!panel||state.root)return;
  const root=document.createElement("section");root.className="gdr-map-voice";root.id="gdrMapVoiceAssistant";
- root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">TALK TO GDR · MAP SEARCH</span><h3>Find homes with your voice</h3><p>Speak in Hindi, English or Hinglish. Pause to search automatically.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="Try: Mujhe Singrauli mein 7000 ke andar ghar dikhao…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start voice search" aria-pressed="false"><span aria-hidden="true">🎙</span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p>';
+ root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">TALK TO GDR · MAP SEARCH</span><h3>Find homes with your voice</h3><p>Speak in Hindi, English or Hinglish. Pause to search automatically.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="Try: Mujhe Singrauli mein 7000 ke andar ghar dikhao…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start voice search" aria-pressed="false"><span aria-hidden="true">🎙</span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p><div id="gdrMapVoiceResults" class="gdr-map-voice-results" aria-live="polite"></div>';
  const heading=panel.querySelector(".gdr-map-header, .gdr-explore-map-header, header");
  if(heading&&heading.parentNode===panel)heading.insertAdjacentElement("afterend",root);else panel.insertBefore(root,panel.firstChild);
  state.root=root;
