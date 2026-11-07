@@ -126,7 +126,7 @@ jobs:
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
           grep -q 'toggleCompare' /tmp/gdr-renter-experience.js
           grep -q 'GDR_COMPARE_AUTOFILL_V2' /tmp/gdr-renter-experience.js
-          grep -q 'rec.continuous=false' /tmp/gdr-renter-experience.js
+          grep -q 'r.continuous=false' /tmp/gdr-renter-experience.js
           grep -q 'review(finalText,{autoSearch:true})' /tmp/gdr-renter-experience.js
           grep -q 'Chrome speech recognition could not reach its speech service' /tmp/gdr-renter-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-renter-ui-fix3" -o /tmp/gdr-renter-experience.css
