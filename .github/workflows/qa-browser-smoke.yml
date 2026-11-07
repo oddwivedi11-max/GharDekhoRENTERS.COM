@@ -18,6 +18,7 @@ on:
       - "fix/free-osm-property-studio-20261107"
       - "fix/gdr-map-voice-ai-20261107"
       - "fix/gdr-map-voice-ai-20261107b"
+      - "fix/gdr-renter-search-accuracy-20261107c"
     paths:
       - "index.html"
       - "admin/**"

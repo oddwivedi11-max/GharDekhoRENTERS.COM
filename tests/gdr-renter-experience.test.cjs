@@ -355,3 +355,34 @@ test('map voice responses identify the actual Available Rental Properties sectio
   assert.match(mapVoice,/Available Rental Properties below/);
   assert.match(mapVoice,/assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
 });
+
+
+test('configuration-based BHK matching is exact and does not classify 1 RK as 1 BHK', () => {
+  const normalizerStart = js.indexOf('function normalizeSearchText(value){');
+  const filterStart = js.indexOf('function filterAssistantListings(rows,prefs){');
+  const filterEnd = js.indexOf('async function searchAssistantListings', filterStart);
+  assert.ok(normalizerStart >= 0 && filterStart > normalizerStart && filterEnd > filterStart);
+  const helpers = vm.runInNewContext(js.slice(normalizerStart, filterStart) + js.slice(filterStart, filterEnd) + '; filterAssistantListings');
+  const fixtures = [
+    {id:'configured-2bhk',location:'Patel Nagar, Bhopal',configuration:'2 BHK',bhk:null,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000},
+    {id:'one-rk',location:'Patel Nagar, Bhopal',configuration:'1 RK',bhk:1,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:4000},
+    {id:'missing-configuration',location:'Patel Nagar, Bhopal',configuration:null,bhk:null,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:5000}
+  ];
+  const twoBhk = helpers(fixtures,{location:'Patel Nagar',stayType:'home',bhk:'2'});
+  assert.deepEqual(Array.from(twoBhk,row=>row.id),['configured-2bhk']);
+  const oneBhk = helpers(fixtures,{location:'Patel Nagar',stayType:'home',bhk:'1'});
+  assert.deepEqual(Array.from(oneBhk,row=>row.id),[]);
+});
+
+test('Singrauli city search uses the structured 486xxx PIN when a valid locality has no city text or nearby coordinates', () => {
+  const normalizerStart = js.indexOf('function normalizeSearchText(value){');
+  const filterStart = js.indexOf('function filterAssistantListings(rows,prefs){');
+  const filterEnd = js.indexOf('async function searchAssistantListings', filterStart);
+  const helpers = vm.runInNewContext(js.slice(normalizerStart, filterStart) + js.slice(filterStart, filterEnd) + '; filterAssistantListings');
+  const fixtures = [
+    {id:'remote-singrauli-pin',location:'Shakti Nagar',address:'Shakti Nagar',pincode:'486885',latitude:24.95,longitude:82.62,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:6500},
+    {id:'wrong-delhi-pin',location:'Singrauli, Madhya Pradesh',pincode:'110005',latitude:28.645,longitude:77.169,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000}
+  ];
+  const results = helpers(fixtures,{location:'Singrauli',stayType:'home',bhk:'2'});
+  assert.deepEqual(Array.from(results,row=>row.id),['remote-singrauli-pin']);
+});

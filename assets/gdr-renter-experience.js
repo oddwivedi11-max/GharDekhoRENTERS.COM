@@ -40,11 +40,22 @@ function normalizeSearchText(value){
 }
 
 
+function normalizedPropertyBhk(row){
+ const configuration=normalizeSearchText(row&&row.configuration||"");
+ if(/\b\d+\s*rk\b/.test(configuration))return null;
+ const configured=configuration.match(/\b([1-5])\s*(?:\+\s*)?bhk\b/);
+ if(configured)return Number(configured[1]);
+ const value=row&&row.bhk;
+ if(value===null||value===undefined||String(value).trim()==="")return null;
+ const numeric=Number(value);
+ return Number.isInteger(numeric)&&numeric>=1&&numeric<=20?numeric:null;
+}
+
 function filterAssistantListings(rows,prefs){
  const p=prefs||{},query=normalizeSearchText(p.location||""),tokens=query.split(" ").filter(Boolean);
  const groups={
-  bhopal:{center:[23.2599,77.4126],radiusKm:55,cities:["bhopal"],areas:["patel nagar","indrapuri","chhatrasal nagar","huzur tahsil"]},
-  singrauli:{center:[24.0724946,82.6246537],radiusKm:70,cities:["singrauli","singruali"],areas:["waidhan","vindhyanagar","vindhya nagar","rajmata chun kumari stadium","dav road","d a v road"]}
+  bhopal:{center:[23.2599,77.4126],radiusKm:55,cities:["bhopal"],areas:["patel nagar","indrapuri","chhatrasal nagar","huzur tahsil"],postalPrefixes:["462"]},
+  singrauli:{center:[24.0724946,82.6246537],radiusKm:70,cities:["singrauli","singruali"],areas:["waidhan","vindhyanagar","vindhya nagar","rajmata chun kumari stadium","dav road","d a v road"],postalPrefixes:["486"]}
  };
  const phrase=(text,value)=>(" "+String(text||"")+" ").includes(" "+String(value||"")+" ");
  const selected=Object.values(groups).find(g=>g.cities.some(x=>tokens.includes(x))||g.areas.some(x=>phrase(query,x)));
@@ -58,14 +69,16 @@ function filterAssistantListings(rows,prefs){
   if(!allowed)return false;
   const type=String(row.listing_type||"home").toLowerCase();
   if((type==="pg"||type==="hostel")&&(num(row.available_beds)===null||num(row.available_beds)<=0))return false;
-  const hay=normalizeSearchText([row.location,row.address].filter(Boolean).join(" ")),words=hay.split(" ");
+  const postalCode=String(row.pincode||"").replace(/\D/g,"");
+  const postalMatch=!!(selected&&Array.isArray(selected.postalPrefixes)&&selected.postalPrefixes.some(prefix=>postalCode.startsWith(prefix)));
+  const hay=normalizeSearchText([row.location,row.address,postalCode].filter(Boolean).join(" ")),words=hay.split(" ");
   if(selected){
    const hasCoord=row.latitude!=null&&row.longitude!=null&&row.latitude!==""&&row.longitude!=="";
    const lat=Number(row.latitude),lng=Number(row.longitude),valid=hasCoord&&Number.isFinite(lat)&&Number.isFinite(lng)&&Math.abs(lat)<=90&&Math.abs(lng)<=180;
    const nearby=valid&&distance(selected.center,[lat,lng])<=selected.radiusKm;
-   if(valid&&!nearby)return false;
+   if(valid&&!nearby&&!postalMatch)return false;
    if(locality&&!phrase(hay,locality))return false;
-   if(!locality&&!nearby&&!selected.cities.some(x=>phrase(hay,x))&&!selected.areas.some(x=>phrase(hay,x)))return false;
+   if(!locality&&!nearby&&!postalMatch&&!selected.cities.some(x=>phrase(hay,x))&&!selected.areas.some(x=>phrase(hay,x)))return false;
    const ignored=new Set(["madhya","pradesh","india","mp","state","district",...selected.cities]);
    const extra=tokens.filter(x=>!ignored.has(x)&&!selected.areas.some(y=>y.split(" ").includes(x)));
    if(extra.some(x=>!words.includes(x)))return false;
@@ -73,7 +86,7 @@ function filterAssistantListings(rows,prefs){
   const rent=num(row.rent),min=num(p.minBudget),max=num(p.maxBudget);
   if(min!==null&&(rent===null||rent<min))return false;
   if(max!==null&&(rent===null||rent>max))return false;
-  if(p.bhk&&num(row.bhk)!==Number(p.bhk))return false;
+  if(p.bhk&&normalizedPropertyBhk(row)!==Number(p.bhk))return false;
   if(p.furnishing&&String(row.furnishing||"").trim().toLowerCase()!==String(p.furnishing).trim().toLowerCase())return false;
   if(p.stayType&&type!==String(p.stayType).toLowerCase())return false;
   if(p.propertyType&&String(row.property_type||"").toLowerCase()!==String(p.propertyType).toLowerCase())return false;
@@ -129,7 +142,9 @@ async function searchAssistantListings(prefs,raw,target){
    ]);
   }finally{if(timeoutId)clearTimeout(timeoutId);}
   if(response.error)throw response.error;
-  const rows=filterAssistantListings(response.data,prefs);
+  const inventory=Array.isArray(response.data)?response.data:[];
+  const inventoryMayBeTruncated=inventory.length>=100;
+  const rows=filterAssistantListings(inventory,prefs);
   if(searchId!==state.assistantSearchId)return [];
   window.renderVoicePropertyResults(rows);
   const count=rows.length;
@@ -137,8 +152,10 @@ async function searchAssistantListings(prefs,raw,target){
    ?(language==="hi"?"बिल्कुल! "+(location?location+" में ":"")+count+" matching rental properties मिली हैं। असली listings नीचे Available Rental Properties section में दिखाई गई हैं।":"I found "+count+" matching rental "+(count===1?"property":"properties")+(location?" in "+location:"")+". The actual listings are displayed in Available Rental Properties below.")
    :(language==="hi"?(location?location+" में ":"")+"इन filters के साथ कोई matching available property नहीं मिली। Available Rental Properties section में empty result दिखाया गया है।":"No matching available properties were found"+(location?" in "+location:"")+" with these filters. The Available Rental Properties section shows the empty state.");
   setInventorySummary(count+" matching "+(count===1?"rental property":"rental properties")+" found"+(location?" in "+location:"")+". Showing actual results in Available Rental Properties below.");
-  setStatus(message);
-  if(!target)speakAssistantReply(message,language);
+  const capNotice=inventoryMayBeTruncated?(language==="hi"?"ध्यान दें: database का मौजूदा public search अधिकतम 100 listings लौटाता है, इसलिए यह सूची अधूरी हो सकती है।":"Warning: the current public database search returns at most 100 listings, so this result may be incomplete."):"";
+  setStatus(message+(capNotice?" "+capNotice:""));
+  if(inventoryMayBeTruncated)setInventorySummary(count+" matching "+(count===1?"rental property":"rental properties")+" found. Warning: the existing public database function is capped at 100 records; results may be incomplete.");
+  if(!target)speakAssistantReply(message+(capNotice?" "+capNotice:""),language);
   requestAnimationFrame(()=>{
    if(searchId!==state.assistantSearchId)return;
    const rect=section.getBoundingClientRect(),height=window.innerHeight||document.documentElement.clientHeight;
