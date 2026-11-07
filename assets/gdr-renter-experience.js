@@ -257,7 +257,7 @@ function parseRequest(raw){
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
  else if(/\b(flat|apartment|independent house|villa|room|home|house|houses|homes)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा|घर|मकान/.test(n))p.stayType="home";
  // Only explicit all-properties requests clear the home/PG/hostel type filter.
- if(/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties?|listings?)|(?:jitni(?:\s+bhi)?|jitne(?:\s+bhi)?|jitna(?:\s+bhi)?|saari|sari|saare|sabhi|sab)\s+(?:(?:available|rental)\s+)*(?:properties?|property|listings?|homes?|houses?)|(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी)\s*(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|लिस्टिंग|घर|मकान))/i.test(original))p.stayType="";
+ if(/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties?|listings?)|(?:jitni(?:\s+bhi)?|jitne(?:\s+bhi)?|jitna(?:\s+bhi)?|saari|sari|saare|sabhi|sab)\s+(?:(?:available|rental)\s+)*(?:properties?|property|listings?|homes?|houses?)|(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी)\s*(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|लिस्टिंग|घर|मकान)/i.test(original))p.stayType="";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
  else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
  else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
