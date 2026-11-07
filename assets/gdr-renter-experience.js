@@ -278,7 +278,7 @@ function parseRequest(raw){
   const city=cities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(cityToken));
   if(city)p.location=city[1];
  }
- if(!p.location){
+ {
   const localityIntent=clean.match(/^(.+?)\s+(?:की|का|के|ki|ka|ke)\s+(?:(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari|all|every)\s+)?(?:(?:उपलब्ध|available)\s+)?(?:(?:रेंटल|rental)\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?=\s|$)/i);
   if(localityIntent)p.location=localityIntent[1].replace(/[.,!?]+$/,"").trim();
  }
