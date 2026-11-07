@@ -361,12 +361,14 @@ function review(raw,options){
  const resetListingType=broadAllListings||broadHomes;
  if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}
  const locationChanged=!!(extracted.location&&normalizeSearchText(extracted.location)!==normalizeSearchText(previous.location||""));
- const resetKeys=broadAllListings?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:locationChanged?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetListingType?["stayType","propertyType"]:[];
+ const locationOnlyRequest=!!extracted.location&&!extracted.minBudget&&!extracted.maxBudget&&!extracted.bhk&&!extracted.furnishing&&!extracted.stayType&&!extracted.propertyType&&!extracted.nearby;
+ const resetLocationFilters=locationChanged||locationOnlyRequest;
+ const resetKeys=broadAllListings?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetLocationFilters?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetListingType?["stayType","propertyType"]:[];
  ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{
   if(!extracted[key]&&!resetKeys.includes(key))p[key]=previous[key]||"";
   else if(resetKeys.includes(key)&&!extracted[key])p[key]="";
  });
- p.radiusKm=(broadAllListings||locationChanged)?(extracted.radiusKm??null):(extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm);
+ p.radiusKm=(broadAllListings||resetLocationFilters)?(extracted.radiusKm??null):(extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm);
  p.useMyLocation=(broadAllListings||locationChanged)?!!extracted.useMyLocation:!!(extracted.useMyLocation||previous.useMyLocation);
  p.familyFriendly=(broadAllListings||locationChanged)?!!extracted.familyFriendly:!!(extracted.familyFriendly||previous.familyFriendly);
  if(/\\b(reset|clear|start over|new search)\\b|फिल्टर हटाओ|नई खोज/i.test(String(raw||""))){
