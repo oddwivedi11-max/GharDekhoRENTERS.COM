@@ -19,6 +19,7 @@
       <h2 class="gdr-studio-panel-title">What kind of property are you listing?</h2><p class="gdr-studio-panel-subtitle">Choose the option that best describes your property.</p>
       <div class="gdr-studio-type-grid">
         <button type="button" class="gdr-studio-choice" data-gdr-property-type="apartment" aria-pressed="false"><span class="gdr-studio-choice-icon">🏢</span><strong>Apartment / Flat</strong><small>Residential flat</small></button>
+        <button type="button" class="gdr-studio-choice" data-gdr-property-type="room" aria-pressed="false"><span class="gdr-studio-choice-icon">🚪</span><strong>Room</strong><small>Single or private room</small></button>
         <button type="button" class="gdr-studio-choice" data-gdr-property-type="independent_house" aria-pressed="false"><span class="gdr-studio-choice-icon">🏠</span><strong>Independent House</strong><small>Separate home</small></button>
         <button type="button" class="gdr-studio-choice" data-gdr-property-type="villa" aria-pressed="false"><span class="gdr-studio-choice-icon">🏡</span><strong>Villa</strong><small>Independent villa</small></button>
         <button type="button" class="gdr-studio-choice" data-gdr-property-type="pg" aria-pressed="false"><span class="gdr-studio-choice-icon">🛏️</span><strong>PG</strong><small>Paying guest</small></button>
