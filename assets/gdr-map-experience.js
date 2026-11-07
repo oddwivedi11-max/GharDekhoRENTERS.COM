@@ -399,7 +399,16 @@
       const cityLike=["city","town","administrative"].includes(kind);
       state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false});
       state.resolvedQuery=point.label||query;
-      return await searchRenterArea(undefined,cityLike);
+      const results=await searchRenterArea(undefined,cityLike);
+      if(locationSearchId!==state.locationSearchId)return false;
+      const mapped=(Array.isArray(results)?results:[]).filter(row=>row&&validPoint(row.latitude,row.longitude))
+        .map(row=>[Number(row.latitude),Number(row.longitude)]);
+      if(mapped.length>1&&typeof state.renterMap.fitBounds==="function"){
+        state.renterMap.fitBounds(mapped,{padding:[56,56],maxZoom:13,animate:false});
+      }else if(mapped.length===1){
+        state.renterMap.setView(mapped[0],Math.min(15,Math.max(12,state.renterMap.getZoom())),{animate:false});
+      }
+      return results;
     }catch(error){
       if(locationSearchId!==state.locationSearchId)return false;
       console.warn("GDR map location search failed:",error);

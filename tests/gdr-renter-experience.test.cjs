@@ -66,6 +66,16 @@ test('GDR assistant uses indexed server-side pagination and never preloads the f
   assert.match(assistantSearchMigration, /GRANT EXECUTE ON FUNCTION/i);
 });
 
+test('typed map searches fit every returned property marker into the map viewport', () => {
+  const start = map.indexOf('async function searchTypedMapLocation(){');
+  const end = map.indexOf('async function searchRenterArea(', start);
+  assert.ok(start >= 0 && end > start, 'typed map search implementation is present');
+  const search = map.slice(start, end);
+  assert.match(search, /const mapped=\(Array\.isArray\(results\)\?results:\[\]\)\.filter/);
+  assert.match(search, /state\.renterMap\.fitBounds\(mapped,\{padding:\[56,56\],maxZoom:13,animate:false\}\)/);
+  assert.match(search, /state\.renterMap\.setView\(mapped\[0\]/);
+});
+
 test('typed GDR assistant searches immediately and automatically reveals the property results', () => {
   assert.ok(js.includes('review($("gdrxPrompt").value,{autoSearch:true})'), 'the main assistant action starts a real search without a second confirmation click');
   assert.ok(js.includes('Find matching homes →'), 'the primary action clearly communicates that it searches');
