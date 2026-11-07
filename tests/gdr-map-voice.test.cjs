@@ -165,15 +165,15 @@ test('all-properties voice requests clear stale BHK, budget, furnishing and home
 
 
 test('voice inventory stays cached and renter map automatically filters markers to the current viewport on zoom or pan', () => {
-  assert.match(map, /browseInventory:null, browseTimer:null/);
-  assert.match(map, /function filterBrowseInventoryToBounds\\(rows,bounds,center,prefs\\)/);
-  assert.match(map, /bounds\\.contains\\(point\\)/);
-  assert.match(map, /function renderBrowseViewport\\(\\)/);
-  assert.match(map, /renderMarkers\\(rows,origin,false,true\\)/);
-  assert.match(map, /state\\.browseTimer=setTimeout\\(\\(\\)=>\\{state\\.browseTimer=null;renderBrowseViewport\\(\\);\\},120\\)/);
-  assert.match(map, /state\\.browseInventory=items\\.slice\\(\\)/);
-  assert.match(map, /invalidateSize\\(\\{pan:false\\}\\)/);
-  assert.match(map, /Showing "\\+rows\\.length\\+" of "\\+total\\+" mapped homes in the current map view/);
+  assert.ok(map.includes('browseInventory:null, browseTimer:null'));
+  assert.ok(map.includes('function filterBrowseInventoryToBounds(rows,bounds,center,prefs)'));
+  assert.ok(map.includes('bounds.contains(point)'));
+  assert.ok(map.includes('function renderBrowseViewport()'));
+  assert.ok(map.includes('renderMarkers(rows,origin,false,true)'));
+  assert.ok(map.includes('state.browseTimer=setTimeout(()=>{state.browseTimer=null;renderBrowseViewport();},120)'));
+  assert.ok(map.includes('state.browseInventory=items.slice()'));
+  assert.ok(map.includes('invalidateSize({pan:false})'));
+  assert.ok(map.includes('Showing "+rows.length+" of "+total+" mapped homes in the current map view'));
 });
 
 
@@ -199,7 +199,7 @@ test('viewport browsing shows Bhopal homes after zooming in without applying the
 });
 
 test('viewport browsing retains the full inventory and preserves the selected location pin', () => {
-  assert.match(map, /state\\.browseInventory=items\\.slice\\(\\)/);
-  assert.match(map, /if\\(state\\.renterPin&&preservePin!==true\\)/);
-  assert.match(map, /state\\.browseInventory=null/);
+  assert.ok(map.includes("state.browseInventory=items.slice()"));
+  assert.ok(map.includes("if(state.renterPin&&preservePin!==true)"));
+  assert.ok(map.includes("state.browseInventory=null"));
 });
