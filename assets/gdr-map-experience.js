@@ -9,7 +9,7 @@
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null,
     currentPrefs:{}, selectedPropertyId:null, markerById:new Map(), lastSearchBounds:null,
-    browseInventory:null, browseTimer:null
+    browseInventory:null, browseCenter:null, browseTimer:null
   };
   const INDIA_CENTER=[22.9734,78.6569], TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", SATELLITE_URL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", LABELS_URL="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
   const PHOTON="https://photon.komoot.io/api/";
@@ -183,6 +183,19 @@
     if(pan&&state.renterMap&&validPoint(p.latitude,p.longitude))state.renterMap.flyTo([Number(p.latitude),Number(p.longitude)],Math.max(16,state.renterMap.getZoom()),{duration:.55});
     showPreview(p);
   }
+  function formatListDistance(p){
+    if(Number.isFinite(p.gdrDistanceKm)&&p.gdrDistanceKm>=0){
+      return "≈ "+(p.gdrDistanceKm<1?Math.round(p.gdrDistanceKm*1000)+" m":p.gdrDistanceKm.toFixed(2)+" km")+" away · straight-line";
+    }
+    return validPoint(p.latitude,p.longitude)?"Distance unavailable · search location not resolved":"Distance unavailable · no saved map coordinates";
+  }
+  function openMapResultDetails(p,requestContact){
+    if(!p||!p.id)return;
+    selectProperty(p,false);
+    if(typeof window.openPropertyDetails==="function"){window.openPropertyDetails(p.id);return;}
+    if(typeof window.openPropertyDetailsModal==="function"){window.openPropertyDetailsModal(p.id);return;}
+    if(requestContact)setStatus("Owner contact is shared through the approved visit/request flow. Open View details to continue.");
+  }
   function renderList(rows){
     const panel=$("gdrMapListPanel");if(!panel)return;panel.replaceChildren();
     if(!rows.length){
@@ -191,22 +204,30 @@
       more.type="button";more.addEventListener("click",()=>setRenterRadius(Math.min(10,Number(state.radiusKm)+1)));
       empty.append(more);panel.append(empty);return;
     }
-    rows.forEach(p=>{
+    rows.forEach((p,index)=>{
+      const item=node("article","gdr-map-list-item");item.dataset.propertyId=String(p.id);
       const b=node("button","gdr-map-list-card","");b.type="button";b.dataset.propertyId=String(p.id);
+      b.setAttribute("aria-label","View "+(p.title||p.name||"rental property")+" details");
       if(String(p.id)===state.selectedPropertyId)b.classList.add("gdr-map-list-card-selected");
       const img=document.createElement("img");img.loading="lazy";img.alt="Property photograph";
       img.src=safeImage(p.image_url||(Array.isArray(p.photo_urls)?p.photo_urls[0]:""))||"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='160'%3E%3Crect width='100%25' height='100%25' fill='%23e9f1ee'/%3E%3C/svg%3E";
-      const copy=node("span","");
+      const copy=node("span","gdr-map-list-copy");
       copy.append(
-        node("strong","",p.title||p.name||"Rental property"),
-        node("small","",[p.location||p.address,p.bhk?p.bhk+" BHK":"",p.furnishing||"",Number.isFinite(p.gdrDistanceKm)?(p.gdrDistanceKm<1?Math.round(p.gdrDistanceKm*1000)+" m away":p.gdrDistanceKm.toFixed(1)+" km away"):""].filter(Boolean).join(" · ")),
+        node("strong","gdr-map-list-title",(index+1)+". "+(p.title||p.name||"Rental property")),
+        node("small","",[(p.location||p.address),p.bhk?p.bhk+" BHK":"",p.furnishing||"",formatListDistance(p)].filter(Boolean).join(" · ")),
         node("b","",money(p.rent)+" / month"),
         node("small","",statusOf(p)+(p.owner_verified?" · Verified owner":" · Owner verification pending"))
       );
-      b.append(img,copy);b.addEventListener("click",()=>selectProperty(p,true));panel.append(b);
+      b.append(img,copy);b.addEventListener("click",()=>selectProperty(p,true));
+      const actions=node("div","gdr-map-list-actions");
+      const details=node("button","gdr-map-list-action gdr-map-list-action-primary","View details");
+      details.type="button";details.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openMapResultDetails(p,false);});
+      const contact=node("button","gdr-map-list-action","Contact / request visit");
+      contact.type="button";contact.addEventListener("click",e=>{e.preventDefault();e.stopPropagation();openMapResultDetails(p,true);});
+      actions.append(details,contact);item.append(b,actions);panel.append(item);
     });
   }
-  function renderMarkers(rows,center,showRadius,preservePin){
+  function renderMarkers(rows,center,showRadius,preservePin,listRowsOverride){
     if(!state.renterMap||!state.renterLayer)return;
     state.renterLayer.clearLayers();state.markerById.clear();
     if(state.radiusCircle){state.renterMap.removeLayer(state.radiusCircle);state.radiusCircle=null;}
@@ -220,13 +241,19 @@
       });
       marker.on("click",()=>selectProperty(p,true));state.renterLayer.addLayer(marker);state.markerById.set(String(p.id),marker);
     });
-    state.visible=rows;renderList(rows);
-    const count=$("gdrMapCount");if(count)count.textContent=rows.length+" "+(rows.length===1?"home":"homes")+" found";
+    const listRows=Array.isArray(listRowsOverride)?listRowsOverride:rows;
+    state.visible=listRows;renderList(listRows);
+    const mappedCount=rows.filter(p=>p&&validPoint(p.latitude,p.longitude)).length;
+    const count=$("gdrMapCount");if(count)count.textContent=Array.isArray(listRowsOverride)?mappedCount+" map pins · "+listRows.length+" results":listRows.length+" "+(listRows.length===1?"home":"homes")+" found";
     if(!rows.length){
+      if(listRows.length){
+        setStatus(listRows.length+" matching homes remain available in the list. No properties are pinned in the current map view.");
+        const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=true;return;
+      }
       clearPreview();setStatus("No rental homes found in this area. Try expanding your search radius.");
       const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=false;return;
     }
-    setStatus(rows.length+" "+(rows.length===1?"home":"homes")+" found near "+(state.resolvedQuery||"the map center")+". Occupied homes are excluded.");
+    setStatus(mappedCount+" homes pinned near "+(state.resolvedQuery||"the map center")+". "+listRows.length+" matching results remain in the list.");
     const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=true;
   }
   function filterBrowseInventoryToBounds(rows,bounds,center,prefs){
@@ -251,21 +278,39 @@
     }).map(row=>Object.assign({},row,{gdrDistanceKm:distanceKm(origin,[Number(row.latitude),Number(row.longitude)])}))
       .sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
   }
+  function sortBrowseInventoryForList(rows,center){
+    const origin=Array.isArray(center)&&validPoint(center[0],center[1])?center:null,seen=new Set(),entries=[];
+    (Array.isArray(rows)?rows:[]).forEach((row,index)=>{
+      if(!row||!row.id||seen.has(String(row.id)))return;
+      seen.add(String(row.id));
+      let distance=null;
+      if(origin&&validPoint(row.latitude,row.longitude))distance=distanceKm(origin,[Number(row.latitude),Number(row.longitude)]);
+      else if(!origin){const stored=asNumber(row.distance_km);if(stored!==null&&stored>=0)distance=stored;}
+      entries.push({row:Object.assign({},row,{gdrDistanceKm:Number.isFinite(distance)?distance:null}),index});
+    });
+    entries.sort((a,b)=>{
+      const ad=Number.isFinite(a.row.gdrDistanceKm),bd=Number.isFinite(b.row.gdrDistanceKm);
+      if(ad&&bd)return (a.row.gdrDistanceKm-b.row.gdrDistanceKm)||(a.index-b.index);
+      if(ad!==bd)return ad?-1:1;
+      return a.index-b.index;
+    });
+    return entries.map(entry=>entry.row);
+  }
   function renderBrowseViewport(){
     if(!state.renterMap||!Array.isArray(state.browseInventory))return false;
     const bounds=state.renterMap.getBounds(),center=state.renterMap.getCenter();
     if(!bounds||typeof bounds.contains!=="function"||!validPoint(center.lat,center.lng))return false;
     const origin=[Number(center.lat),Number(center.lng)];
-    state.searchCenter=origin;
     const rows=filterBrowseInventoryToBounds(state.browseInventory,bounds,origin,state.currentPrefs);
-    renderMarkers(rows,origin,false,true);
+    const listRows=sortBrowseInventoryForList(state.browseInventory,state.browseCenter);
+    renderMarkers(rows,origin,false,true,listRows);
     const total=state.browseInventory.filter(p=>p&&validPoint(p.latitude,p.longitude)).length;
     if(rows.length){
-      setStatus("Showing "+rows.length+" of "+total+" mapped homes in the current map view. Zoom out to see more homes or zoom in to explore a city.");
+      setStatus("Showing "+rows.length+" of "+total+" mapped homes in the current map view. All "+listRows.length+" matching results remain in the distance-sorted list.");
     }else{
-      setStatus("No mapped homes in this view. Zoom out or move the map to another city; the full search results remain available below.");
+      setStatus("No mapped homes in this view. All "+listRows.length+" matching results remain available in the list below.");
     }
-    const count=$("gdrMapCount");if(count)count.textContent=rows.length+" homes in this map view";
+    const count=$("gdrMapCount");if(count)count.textContent=rows.length+" visible map pins · "+listRows.length+" list results";
     return rows;
   }
   function showVoiceSearchResults(rows,point,label){
@@ -279,11 +324,13 @@
     if(hasPoint){
       center=[Number(point.lat),Number(point.lng)];
       state.searchCenter=center;
+      state.browseCenter=center.slice();
       state.resolvedQuery=String(label||point.label||"Voice search");
     }else{
       const current=state.renterMap.getCenter();
       center=[Number(current.lat),Number(current.lng)];
       state.searchCenter=center;
+      state.browseCenter=null;
       state.resolvedQuery=String(label||"Voice search");
     }
     if(typeof state.renterMap.invalidateSize==="function")state.renterMap.invalidateSize({pan:false});
@@ -298,12 +345,14 @@
       const cityLike=["city","town","administrative"].includes(kind);
       state.renterMap.setView(center,cityLike?11:14,{animate:false});
     }
-    renderMarkers(items,center,false);
+    const listRows=sortBrowseInventoryForList(items,state.browseCenter);
+    const mappedItems=items.filter(p=>p&&validPoint(p.latitude,p.longitude));
+    renderMarkers(mappedItems,center,false,false,listRows);
     if(hasPoint)setRenterPin(point,label||point.label||"Voice search");
     const mapped=coordinates.length,unmapped=Math.max(0,items.length-mapped);
     const count=$("gdrMapCount");
-    if(count)count.textContent=mapped+" homes on map"+(unmapped?" · "+unmapped+" without map pin":"");
-    setStatus(items.length+" matching homes found for "+(label||"your voice search")+". "+mapped+" displayed as price markers on the map"+(unmapped?"; "+unmapped+" listings have no verified coordinates and cannot be pinned.":"")+".");
+    if(count)count.textContent=mapped+" map pins · "+items.length+" results";
+    setStatus(items.length+" matching homes found for "+(label||"your voice search")+". "+mapped+" displayed as price markers on the map"+(unmapped?"; "+unmapped+" listings without saved map coordinates remain in the list.":"")+" Results are sorted by approximate straight-line distance.");
     const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=true;
     return {total:items.length,mapped,unmapped};
   }
@@ -388,7 +437,7 @@
     if(!query)return searchRenterArea();
     const locationSearchId=++state.locationSearchId,button=$("gdrMapSearchAreaBtn");
     if(button){button.disabled=true;button.textContent="Locating…";}
-    state.boundsRows=[];state.visible=[];state.browseInventory=null;
+    state.boundsRows=[];state.visible=[];state.browseInventory=null;state.browseCenter=null;
     if(state.renterMap)renderMarkers([],state.searchCenter||INDIA_CENTER);
     setStatus("Finding "+query+" on the map…");
     try{
@@ -419,7 +468,7 @@
   }
   async function searchRenterArea(prefs,useRadiusBounds){
     if(!state.renterMap)return false;
-    state.browseInventory=null;
+    state.browseInventory=null;state.browseCenter=null;
     if(state.browseTimer){clearTimeout(state.browseTimer);state.browseTimer=null;}
     if(prefs)state.currentPrefs=Object.assign({},prefs);
     const requestId=++state.mapSearchId,button=$("gdrMapSearchAreaBtn");
