@@ -102,8 +102,8 @@ test("owner listing hero makes manual listing primary and keeps voice only in th
  assert.ok(!hero.includes('id="gdrListPropertySpeak"'));
  assert.ok(markup.includes("Manual entry is the primary option"));
  assert.ok(markup.indexOf('class="gdr-studio-voice"')>markup.indexOf('data-gdr-studio-panel="4"'));
- assert.ok(index.includes('gdr-property-studio.js?v=20261107-stepnav3d1'));
- assert.ok(index.includes('gdr-property-studio.css?v=20261107-stepnav3d1'));
+ assert.ok(index.includes('gdr-property-studio.js?v=20261107-manualreset1'));
+ assert.ok(index.includes('gdr-property-studio.css?v=20261107-manualreset1'));
 });
 test("owner profile edit remains connected to its existing secure update flow",()=>{
  assert.ok(index.includes('id="ownerEditProfileBtn">✏️ Edit Profile</button>'));
@@ -113,4 +113,16 @@ test("owner profile edit remains connected to its existing secure update flow",(
  assert.ok(index.includes('addEventListener("submit", saveOwnerProfile)'));
  assert.ok(index.includes('addEventListener("click", openOwnerProfileEditor)'));
  assert.ok(css.includes("#ownerDashboard .owner-profile-card #ownerEditProfileBtn"));
+});
+
+test("new owner listings do not restore previous manually entered or spoken values",()=>{
+ assert.ok(js.includes("resetNewListing();"));
+ assert.ok(js.includes('state.address="";state.pincode=""'));
+ assert.ok(!js.includes("restoreDraft();"));
+});
+test("successful listing returns to the dashboard without a new auth/login navigation",()=>{
+ assert.ok(js.includes("window.renderActiveDashboard()"));
+ assert.ok(js.includes("window.history.replaceState"));
+ assert.ok(!js.includes("window.location.reload()"));
+ assert.ok(!js.includes("supabaseClient.auth.signOut"));
 });

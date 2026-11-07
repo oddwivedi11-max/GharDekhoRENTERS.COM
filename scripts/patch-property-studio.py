@@ -148,9 +148,13 @@ css_ref_v2 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=202
 css_ref_v3 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio3">'
 css_ref_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-voiceassistant2">'
 css_ref_v4_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-ownerprofile1">'
-css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-stepnav3d1">'
+css_ref_v4_prev = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-stepnav3d1">'
+css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-manualreset1">'
 if css_ref_v4 not in source:
-    if css_ref_v4_old in source:
+    if css_ref_v4_prev in source:
+        source = source.replace(css_ref_v4_prev, css_ref_v4, 1)
+        print("Updated: refresh manual-entry Property Studio styles")
+    elif css_ref_v4_old in source:
         source = source.replace(css_ref_v4_old, css_ref_v4, 1)
         print("Updated: refresh 3D manual Property Studio navigation styles")
     elif css_ref_old in source:
@@ -209,8 +213,9 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-manualreset1" defer></script>'
 old_script_refs = [
+    '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-manualfirst1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant6" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>'
