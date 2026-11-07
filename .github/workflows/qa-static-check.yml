@@ -35,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: gdr-qa-static-checks
+  group: gdr-qa-static-checks-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
