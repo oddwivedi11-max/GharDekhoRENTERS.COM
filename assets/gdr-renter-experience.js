@@ -280,7 +280,10 @@ function parseRequest(raw){
  }
  {
   const localityIntent=clean.match(/^(.+?)\s+(?:की|का|के|ki|ka|ke)\s+(?:(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari|all|every)\s+)?(?:(?:उपलब्ध|available)\s+)?(?:(?:रेंटल|rental)\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?=\s|$)/i);
-  if(localityIntent)p.location=localityIntent[1].replace(/[.,!?]+$/,"").trim();
+  if(localityIntent){
+   const localityCandidate=localityIntent[1].replace(/[.,!?]+$/,"").trim();
+   if(!/(?:\s+में\s+|\s+mein\s+|\s+in\s+)/i.test(localityCandidate))p.location=localityCandidate;
+  }
  }
  if(/^(?:my|current) location$/i.test(p.location))p.location="";
  // Resolve common Madhya Pradesh state-plus-city phrases to the actual requested city.
