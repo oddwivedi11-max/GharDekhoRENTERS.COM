@@ -15,15 +15,17 @@ test('voice assistant loads inside the existing renter Explore Map', () => {
   assert.match(voice, /gdrMapVoiceResults/);
 });
 
-test('voice recognition has automatic silence finalization and typed fallback', () => {
-  assert.match(voice, /window\.SpeechRecognition\|\|window\.webkitSpeechRecognition/);
-  assert.match(voice, /setTimeout\(finishTurn,1800\)/);
+test('voice recognition is single-utterance, final-transcript-only, and has typed fallback', () => {
+  assert.match(voice, /window\\.SpeechRecognition\\|\\|window\\.webkitSpeechRecognition/);
+  assert.match(voice, /r\\.continuous=false/);
+  assert.match(voice, /if\\(!current\\)state\\.finalText=spoken/);
+  assert.match(voice, /setTimeout\\(finishTurn,450\\)/);
+  assert.doesNotMatch(voice, /setTimeout\\(finishTurn,1800\\)/);
   assert.match(voice, /gdrMapVoiceSearch/);
   assert.match(voice, /SpeechSynthesisUtterance/);
   assert.match(voice, /hi-IN/);
   assert.match(voice, /en-IN/);
 });
-
 test('voice UI has responsive controls and accessible microphone state', () => {
   assert.match(css, /grid-template-columns:minmax\(0,1fr\) 86px/);
   assert.match(css, /@media\(max-width:620px\)/);
@@ -67,11 +69,11 @@ test('map voice places its assistant directly below the map heading and uses an 
   assert.match(voice, /gdr-map-voice-mic-icon/);
   assert.match(voice, /<svg viewBox="0 0 24 24"/);
 });
-test('speech finalization prefers final speech and does not append interim text twice', () => {
-  assert.match(voice, /const final=String\(state\.finalText\|\|""\)\.trim\(\)\|\|String\(state\.interimText\|\|""\)\.trim\(\)/);
-  assert.match(voice, /current\.endsWith\(" "\+next\)/);
+test('speech finalization never submits an interim-only partial transcript', () => {
+  assert.match(voice, /const final=String\\(state\\.finalText\\|\\|""\\)\\.trim\\(\\)/);
+  assert.match(voice, /if\\(!current\\)state\\.finalText=spoken/);
+  assert.match(voice, /current\\.endsWith\\(" "\\+next\\)/);
 });
-
 test('Hindi and Hinglish speech phrases retain locality, BHK and rent filters', () => {
   const start = renter.indexOf('function normalizeSearchText(value){');
   const end = renter.indexOf('\nfunction detectReplyLanguage', start);
@@ -117,4 +119,28 @@ test('map voice keeps its markers while rental cards render in the shared Availa
   assert.doesNotMatch(renter, /gdrx-assistant-property-card/);
   assert.match(map, /marker\.on\("click",\(\)=>selectProperty\(p,true\)\)/);
   assert.match(map, /showPreview\(p\)/);
+});
+
+
+test('4 BHK and conversational location changes are parsed without losing prior filters', () => {
+  const start = renter.indexOf('function normalizeSearchText(value){');
+  const end = renter.indexOf('\\nfunction detectReplyLanguage', start);
+  const vm = require('node:vm');
+  const helpers = vm.runInNewContext(renter.slice(start, end) + '; ({normalizeSearchText,parseRequest})');
+  const numeric = helpers.parseRequest('Show me 4 BHK homes in Singrauli');
+  assert.equal(numeric.location, 'Singrauli');
+  assert.equal(numeric.bhk, '4');
+  const word = helpers.parseRequest('Find four bedroom homes in Singrauli');
+  assert.equal(word.location, 'Singrauli');
+  assert.equal(word.bhk, '4');
+  const followup = helpers.parseRequest('अब पटेल नगर में 4 BHK दिखाओ');
+  assert.equal(followup.location, 'पटेल नगर');
+  assert.equal(followup.bhk, '4');
+  assert.match(voice, /prefs=\{\.\.\.state\.prefs\}/);
+});
+
+test('map assistant starts with a greeting and an empty search field', () => {
+  assert.match(voice, /नमस्ते! मैं GDRS/);
+  assert.match(voice, /placeholder="बोलें या यहाँ अपनी property search लिखें…"/);
+  assert.doesNotMatch(voice, /value="बड़े नगर में 2 BHK/);
 });
