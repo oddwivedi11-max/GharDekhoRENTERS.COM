@@ -145,7 +145,7 @@ async function searchAssistantListings(prefs,raw,target){
 
 function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
-  const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|मुझे|मुझको)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
+  const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
  const p={raw:original,location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:"",propertyType:"",radiusKm:null,useMyLocation:false,familyFriendly:false};
  const bhk=n.match(/\b([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|कमरे)\b/);if(bhk)p.bhk=bhk[1];
  const radius=n.match(/(?:within|radius(?: of)?|around|के अंदर|तक)\s*(\d+(?:\.\d+)?)\s*(?:km|kms|kilomet(?:er|re)s?|किलोमीटर|कि\.?मी\.?)\b/i)||n.match(/\b(\d+(?:\.\d+)?)\s*(?:km|kms|kilomet(?:er|re)s?|किलोमीटर)\s*(?:के अंदर|तक|radius)?/i);
