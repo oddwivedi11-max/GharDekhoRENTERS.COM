@@ -496,7 +496,7 @@
       if(window.GDRMapVoiceAssistant)return resolve(window.GDRMapVoiceAssistant);
       const existing=document.querySelector('script[data-gdr-map-voice]');
       if(existing){existing.addEventListener("load",()=>window.GDRMapVoiceAssistant?resolve(window.GDRMapVoiceAssistant):reject(new Error("GDR voice assistant did not initialize.")),{once:true});existing.addEventListener("error",()=>reject(new Error("GDR voice assistant could not load.")),{once:true});return;}
-      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-map-voice6";script.defer=true;script.dataset.gdrMapVoice="true";
+      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-map-voice7";script.defer=true;script.dataset.gdrMapVoice="true";
       script.onload=()=>window.GDRMapVoiceAssistant?resolve(window.GDRMapVoiceAssistant):reject(new Error("GDR voice assistant did not initialize."));
       script.onerror=()=>reject(new Error("GDR voice assistant could not load."));document.head.appendChild(script);
     });
