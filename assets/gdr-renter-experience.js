@@ -389,24 +389,19 @@ function startVoice(target,lang){
  }
 }
 function hideUpperAvailableRentalPanel(){
- const hideMatches=()=>{
-  const headings=Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,[role=heading]"));
-  headings.forEach(heading=>{
-   if(String(heading.textContent||"").replace(/\\s+/g," ").trim().toLowerCase()!=="available rental properties")return;
-   let node=heading;
-   for(let depth=0;depth<7&&node&&node!==document.body;depth++,node=node.parentElement){
-    const text=String(node.innerText||node.textContent||"").replace(/\\s+/g," ").trim();
-    if(/available rental properties/i.test(text)&&/loading properties/i.test(text)){
-     node.hidden=true;node.setAttribute("aria-hidden","true");node.setAttribute("data-gdr-hidden-duplicate-rentals","true");node.style.setProperty("display","none","important");
-     break;
-    }
+ // One bounded pass is enough: observing the entire document here caused repeated
+ // full-page heading scans while property cards and dashboard panels were updating.
+ const headings=document.querySelectorAll("h1,h2,h3,h4,h5,[role=heading]");
+ for(const heading of headings){
+  if(String(heading.textContent||"").replace(/\\s+/g," ").trim().toLowerCase()!=="available rental properties")continue;
+  let node=heading;
+  for(let depth=0;depth<7&&node&&node!==document.body;depth++,node=node.parentElement){
+   const text=String(node.textContent||"").replace(/\\s+/g," ").trim();
+   if(/available rental properties/i.test(text)&&/loading properties/i.test(text)){
+    node.hidden=true;node.setAttribute("aria-hidden","true");node.setAttribute("data-gdr-hidden-duplicate-rentals","true");node.style.setProperty("display","none","important");
+    break;
    }
-  });
- };
- hideMatches();
- if(!window.__gdrAvailableRentalPanelObserver&&document.body){
-  window.__gdrAvailableRentalPanelObserver=new MutationObserver(hideMatches);
-  window.__gdrAvailableRentalPanelObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
+  }
  }
 }
 function mountFinder(){
@@ -577,7 +572,7 @@ function ensureAssistantResultStyles(){
 }
 function bind(){
  ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
- const results=$("propertiesContainer");if(results&&!results.dataset.gdrxScoreObserver){results.dataset.gdrxScoreObserver="1";new MutationObserver(()=>applyManualScores()).observe(results,{childList:true,subtree:true})}
+ const results=$("propertiesContainer");if(results&&!results.dataset.gdrxScoreObserver){results.dataset.gdrxScoreObserver="1";let scoreFrame=0;new MutationObserver(()=>{if(scoreFrame)return;scoreFrame=requestAnimationFrame(()=>{scoreFrame=0;applyManualScores();});}).observe(results,{childList:true,subtree:true})}
  const form=$("renterFindHomeForm");if(form&&!form.dataset.gdrxScoreCapture){form.dataset.gdrxScoreCapture="1";form.addEventListener("submit",()=>{state.parsed={location:$("renterSearchLocation")?.value||"",bhk:$("renterSearchBhk")?.value||"",furnishing:$("renterSearchFurnishing")?.value||"",stayType:$("renterStayType")?.value||"",minBudget:$("renterMinBudget")?.value||"",maxBudget:$("renterMaxBudget")?.value||""};setTimeout(applyManualScores,1000)})}
  const fbtn=$("renterFindHomeBtn");if(fbtn&&!fbtn.dataset.gdrx){fbtn.dataset.gdrx="1";fbtn.addEventListener("click",openFind)}
  ["renterFindHomeBackBtn","renterFindHomeCancelBtn"].forEach(id=>{const b=$(id);if(b&&!b.dataset.gdrx){b.dataset.gdrx="1";b.addEventListener("click",closeFind)}})
@@ -586,5 +581,7 @@ function bind(){
 }
 window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,normalizeSearchText,filterAssistantListings,searchAssistantListings,openFindHome:openFind,closeFindHome:closeFind};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();window.addEventListener("load",bind);
-new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
+// Bind once after DOM readiness and once after full load. Do not observe the
+// entire document: bind() scans/moves dashboard nodes and would be re-run for
+// every property-card mutation, creating avoidable main-thread work.
 })();
