@@ -118,7 +118,16 @@ async function runTurn(raw){
     target.append(note);
    }
   }else{
+   if(api&&typeof api.setRenterSearchPreferences==="function")api.setRenterSearchPreferences(state.prefs);
    rows=await assistant.searchAssistantListings({...state.prefs,location},raw,target);
+   if(searchId!==state.searchId)return;
+   if(api&&typeof api.showVoiceSearchResults==="function"){
+    let point=null;
+    try{if(typeof api.resolveMapQuery==="function")point=await api.resolveMapQuery(location);}
+    catch(error){console.warn("GDR voice result map-centering skipped:",error);}
+    if(searchId!==state.searchId)return;
+    api.showVoiceSearchResults(rows,point,location);
+   }
   }
   if(searchId!==state.searchId)return;
   if(!Array.isArray(rows))throw new Error(text("Property search response सही नहीं मिला।","The property search returned an invalid response."));
