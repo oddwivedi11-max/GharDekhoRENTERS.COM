@@ -11,6 +11,7 @@ const assistantSearchMigration = fs.readFileSync('supabase/migrations/2026110715
 const cityLocalitySearchMigration = fs.readFileSync('supabase/migrations/20261107162245_expand_assistant_city_locality_search.sql', 'utf8');
 const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
 const css = fs.readFileSync('assets/gdr-renter-experience.css', 'utf8');
+const workflow = fs.readFileSync('.github/workflows/deploy-cloudflare.yml', 'utf8');
 const normalizeStart = js.indexOf('function normalizeSearchText(value){');
 const start = js.indexOf('function parseRequest(raw){');
 const end = js.indexOf('\nfunction setValue', start);
