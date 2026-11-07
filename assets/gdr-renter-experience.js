@@ -604,7 +604,7 @@ function renderCompareStudio(){
  const labels=document.createElement("div");labels.className="gdrx-matrix-labels";const labelHead=document.createElement("div");labelHead.className="gdrx-matrix-label-head";labelHead.textContent="PROPERTY DETAILS";labels.append(labelHead);
  const fields=compareFields();
  fields.forEach(f=>{const el=document.createElement("div");el.className="gdrx-matrix-label";el.textContent=f.label;labels.append(el)});
- const columns=document.createElement("div");columns.className="gdrx-matrix-columns";
+ const columns=document.createElement("div");columns.className="gdrx-matrix-columns";columns.style.gridTemplateColumns="repeat("+state.compare.length+",minmax(220px,1fr))";
  state.compare.forEach((p,index)=>{
   const col=document.createElement("article");col.className="gdrx-matrix-property";
   const top=document.createElement("div");top.className="gdrx-matrix-property-head";
