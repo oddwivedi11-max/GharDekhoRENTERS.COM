@@ -188,6 +188,44 @@ test('assistant city-level search expands Singrauli and Bhopal locality aliases 
   assert.ok(cityLocalitySearchMigration.includes("p.status='verified'"));
 });
 
+
+test('Hindi speech fillers before Singrauli are ignored and do not become part of the location', () => {
+  for (const phrase of [
+    'आज ही सिंगरौली में जितनी भी प्रॉपर्टीज हैं दिखाओ',
+    'अच्छा ये सिंगरौली में सब प्रॉपर्टी दिखाओ',
+    'ajay Singrauli all properties show'
+  ]) {
+    const p = parseRequest(phrase);
+    assert.equal(p.location, 'Singrauli', phrase);
+    assert.equal(p.allListings, true, phrase);
+    assert.equal(p.stayType, '', phrase);
+  }
+});
+
+test('all-property speech in Hindi and Hinglish clears stale home, BHK and furnishing filters', () => {
+  for (const phrase of [
+    'सिंगरौली में सब प्रॉपर्टी दिखाओ',
+    'सिंगरौली की सारी प्रॉपर्टीज दिखाओ',
+    'Singrauli mein sab properties dikhao',
+    'Singrauli mein jitni bhi properties hain dikhao',
+    'मुझे सिंगरौली में सभी प्रॉपर्टीज दिखाओ'
+  ]) {
+    const p = parseRequest(phrase);
+    assert.equal(p.location, 'Singrauli', phrase);
+    assert.equal(p.allListings, true, phrase);
+    assert.equal(p.stayType, '', phrase);
+    assert.equal(p.bhk, '', phrase);
+    assert.equal(p.furnishing, '', phrase);
+  }
+});
+
+test('voice search does not repopulate the separate manual location search field', () => {
+  assert.match(js, /function applyToForm\\(p,options\\)/);
+  assert.match(js, /if\\(options&&options\\.voiceSearch\\)setValue\\("renterSearchLocation","",true\\)/);
+  assert.match(js, /applyToForm\\(p,\\{voiceSearch:!!\\(options&&options\\.autoSearch\\)\\}\\)/);
+  assert.match(js, /const broadAllListings=!!extracted\\.allListings/);
+});
+
 test('voice auto-search safely runs even when review mode omits the manual action buttons', () => {
   const start = js.indexOf('function review(raw,options){');
   const end = js.indexOf('function setRenterMicState', start);
