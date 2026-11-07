@@ -444,51 +444,12 @@ function mountFinder(){
  $("gdrxLang").onchange=e=>state.lang=e.target.value;
  $("gdrxMic").onclick=()=>startVoice("gdrxPrompt",state.lang)
 }
+// Map voice is owned exclusively by GDRMapVoiceAssistant in gdr-map-voice.js.
+// The former gdrxMapVoice toolbar injected a second microphone and recognition
+// instance, which caused overlapping controls and competing search flows.
 function mountMapVoice(){
- const panel=$("gdrExploreMapPanel"),toolbar=panel?.querySelector(".gdr-map-toolbar");if(!panel||!toolbar||$("gdrxMapVoice"))return;
- const w=document.createElement("div");w.id="gdrxMapVoice";w.className="gdrx-map-voice";
- w.innerHTML='<label for="gdrxMapPrompt">TALK TO GDR · MAP SEARCH</label><div><input id="gdrxMapPrompt" autocomplete="off" aria-label="Describe the home you want on the map" placeholder="मुझे सिंगरौली में उपलब्ध घर दिखाओ / Show available homes in Singrauli"><select id="gdrxMapLang" aria-label="Voice input language"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select><button type="button" id="gdrxMapMic" aria-label="Search by voice" title="Search by voice">🎙 Speak</button><button type="button" id="gdrxMapGo">Search map</button></div><p id="gdrxMapStatus" role="status" aria-live="polite">Speak or type naturally. GDR will understand, reply in your language and search real available homes automatically.</p><div id="gdrxMapReply" class="gdrx-map-reply" role="status" aria-live="polite" hidden></div>';
- toolbar.appendChild(w);$("gdrxMapGo").onclick=()=>runMapSearch();
- $("gdrxMapMic").onclick=()=>startVoice("gdrxMapPrompt",$("#gdrxMapLang")?.value||state.lang);
- $("gdrxMapLang").onchange=e=>state.lang=e.target.value;
- $("gdrxMapPrompt").onkeydown=e=>{if(e.key==="Enter"){e.preventDefault();runMapSearch();}};
-}
-async function runMapSearch(rawOverride){
- const prompt=$("gdrxMapPrompt"),status=$("gdrxMapStatus"),go=$("gdrxMapGo"),reply=$("gdrxMapReply");if(!prompt||!status||!go)return;
- const raw=String(rawOverride||prompt.value||"").trim();if(!raw){status.textContent="Please speak or type a location and property requirement.";return;}
- const parsed=parseRequest(raw),previous=state.lastMapSearch||{},p=Object.assign({},previous);
- ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType","radiusKm"].forEach(key=>{if(parsed[key]!==""&&parsed[key]!==null&&parsed[key]!==undefined)p[key]=parsed[key];});
- p.useMyLocation=parsed.useMyLocation||false;p.raw=raw;
- const language=detectReplyLanguage(raw);state.mapReplyLanguage=language;
- if(!p.location&&!p.useMyLocation){
-  const question=language==="hi"?"कृपया शहर या इलाके का नाम बताइए, ताकि मैं सही जगह के घर खोज सकूँ।":language==="hinglish"?"Please city ya locality ka naam bata dijiye, taaki main sahi jagah ke homes search kar sakun.":"Please tell me the city or locality so I can search the correct homes.";
-  if(reply){reply.hidden=false;reply.textContent=question;}status.textContent=question;speakAssistantReply(question,language);return;
- }
- const api=window.GDRMapExperience;
- if(!api||typeof api.searchTypedMapLocation!=="function"){status.textContent=language==="hi"?"मैप अभी लोड हो रहा है। कृपया दोबारा कोशिश करें।":"The map is still loading. Please try again.";return;}
- try{
-  go.disabled=true;status.textContent=language==="hi"?"आपकी लोकेशन समझ रहा हूँ…":language==="hinglish"?"Aapki location samajh raha hoon…":"Understanding your location…";
-  if(reply){reply.hidden=false;reply.textContent=language==="hi"?"बिल्कुल, मैं "+p.location+" में उपलब्ध घर खोज रहा हूँ…":language==="hinglish"?"Bilkul, main "+p.location+" mein available homes search kar raha hoon…":"Absolutely, I'm searching available homes in "+p.location+"…";}
-  state.lastMapSearch=p;const locationInput=$("gdrMapPlaceSearch");if(locationInput)locationInput.value="";
-  if(typeof api.openRenterMap==="function")await api.openRenterMap();
-  if(locationInput)locationInput.value=p.location||"";
-  if(p.radiusKm&&typeof api.setRenterRadius==="function")api.setRenterRadius(p.radiusKm,true);
-  else if(typeof api.setRenterRadius==="function"&&!previous.location&&p.location)api.setRenterRadius(10,true);
-  if(typeof api.setRenterSearchPreferences==="function")api.setRenterSearchPreferences(p);
-  if(p.useMyLocation){
-   const located=await new Promise((resolve,reject)=>{if(!navigator.geolocation)return reject(new Error("Location is not supported. Search for a locality instead."));navigator.geolocation.getCurrentPosition(resolve,err=>reject(new Error(err.code===1?"Location permission was denied. You can type a locality instead.":"Could not get your location. Try typing a locality.")),{enableHighAccuracy:true,timeout:12000,maximumAge:60000});});
-   if(typeof api.searchAtCoordinates!=="function")throw new Error("The map location service is not available for GPS search.");
-   const result=await api.searchAtCoordinates(located.coords.latitude,located.coords.longitude,"My location");if(result===false)throw new Error("Could not search around your current location.");
-  }else{
-   const searchResult=await api.searchTypedMapLocation();if(searchResult===false)throw new Error("We could not search that location. Check the locality name or try a nearby PIN code.");
-   if(typeof api.applyRenterFilters==="function")api.applyRenterFilters(p);
-  }
-  const rows=api.getRenterVisibleProperties?api.getRenterVisibleProperties():[],message=assistantReply(language,rows.length,p.location,"");
-  if(reply){reply.hidden=false;reply.textContent=message;}status.textContent=message;speakAssistantReply(message,language);
- }catch(error){
-  const message=assistantReply(language,0,p.location,error&&error.message?error.message:"Please try again.");
-  if(reply){reply.hidden=false;reply.textContent=message;}status.textContent=message;speakAssistantReply(message,language);
- }finally{go.disabled=false}
+ const legacy=$("gdrxMapVoice");
+ if(legacy)legacy.remove();
 }
 function mountCompare(){
  if($("gdrxCompare"))return;const d=document.createElement("section");d.id="gdrxCompare";d.className="gdrx-compare";d.hidden=true;
@@ -604,8 +565,7 @@ function bind(){
  const form=$("renterFindHomeForm");if(form&&!form.dataset.gdrxScoreCapture){form.dataset.gdrxScoreCapture="1";form.addEventListener("submit",()=>{state.parsed={location:$("renterSearchLocation")?.value||"",bhk:$("renterSearchBhk")?.value||"",furnishing:$("renterSearchFurnishing")?.value||"",stayType:$("renterStayType")?.value||"",minBudget:$("renterMinBudget")?.value||"",maxBudget:$("renterMaxBudget")?.value||""};setTimeout(applyManualScores,1000)})}
  const fbtn=$("renterFindHomeBtn");if(fbtn&&!fbtn.dataset.gdrx){fbtn.dataset.gdrx="1";fbtn.addEventListener("click",openFind)}
  ["renterFindHomeBackBtn","renterFindHomeCancelBtn"].forEach(id=>{const b=$(id);if(b&&!b.dataset.gdrx){b.dataset.gdrx="1";b.addEventListener("click",closeFind)}})
- const map=$("gdrExploreMapPanel");if(map&&!map.dataset.gdrx){map.dataset.gdrx="1";new MutationObserver(()=>{if(!map.hidden)mountMapVoice()}).observe(map,{attributes:true,attributeFilter:["hidden","class"]})}
- const mapBtn=$("renterExploreMapBtn");if(mapBtn&&!mapBtn.dataset.gdrx){mapBtn.dataset.gdrx="1";mapBtn.addEventListener("click",()=>setTimeout(mountMapVoice,150))}
+ const map=$("gdrExploreMapPanel");if(map)map.querySelector("#gdrxMapVoice")?.remove();
 }
 window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,normalizeSearchText,filterAssistantListings,searchAssistantListings,openFindHome:openFind,closeFindHome:closeFind};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();window.addEventListener("load",bind);
