@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-stepnav3d1";
+const VERSION="20261107-manualreset1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -29,35 +29,12 @@ function uuid(){
  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,c=>{const r=Math.random()*16|0;return(c==="x"?r:(r&3|8)).toString(16);});
 }
 function draftKey(){return "gdr_property_studio_draft_v1:"+String(state.user&&state.user.id||"guest");}
-function saveDraft(){
- if(!state.user)return;
- const data={
-  propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,
-  description:state.description,furnishing:state.furnishing,address:state.address,pincode:state.pincode,lat:state.lat,lng:state.lng,
-  roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,availableBeds:state.availableBeds,
-  foodIncluded:state.foodIncluded,uploadedPhotos:state.uploadedPhotos,uploadedPaths:state.uploadedPaths,
-  nearbyPlaces:state.nearbyPlaces,submissionId:state.submissionId,step:state.step
- };
- try{localStorage.setItem(draftKey(),JSON.stringify(data));setStatus("Draft saved automatically");}catch(e){setStatus("Draft could not be saved on this device");}
+function clearLegacyDraft(){
+ try{localStorage.removeItem(draftKey());}catch(e){console.warn("Could not clear an older Property Studio draft",e);}
 }
-function restoreDraft(){
- if(!state.user)return;
- try{
-  const raw=localStorage.getItem(draftKey());if(!raw)return;
-  const d=JSON.parse(raw);if(!d||typeof d!=="object")return;
-  ["propertyType","configuration","rent","deposit","furnishing","description","address","pincode","roomType","gender","totalBeds","availableBeds","foodIncluded"].forEach(k=>{if(d[k]!==undefined)state[k]=d[k];});
-  state.lat=Number.isFinite(Number(d.lat))&&d.lat!==null?Number(d.lat):null;
-  state.lng=Number.isFinite(Number(d.lng))&&d.lng!==null?Number(d.lng):null;
-  state.uploadedPhotos=Array.isArray(d.uploadedPhotos)?d.uploadedPhotos:[];
-  state.uploadedPaths=Array.isArray(d.uploadedPaths)?d.uploadedPaths:[];
-  state.nearbyPlaces=Array.isArray(d.nearbyPlaces)?d.nearbyPlaces:[];
-  state.submissionId=d.submissionId||uuid();
-  state.step=Number.isInteger(d.step)?Math.min(4,Math.max(0,d.step)):0;
-  syncFormFromState();
-  if(state.uploadedPhotos.length)renderPhotos();
-  if(state.lat!==null&&state.lng!==null)renderNearby();
-  message("Your saved draft has been restored. Review the details and continue.","success");
- }catch(e){console.warn("Property Studio draft restore failed",e);}
+function saveDraft(){
+ // Keep values only in live page state. New listings never restore older values.
+ if(state.user)setStatus("Details stay on this page while you complete the listing");
 }
 function syncFormFromState(){
  const values={
@@ -69,6 +46,39 @@ function syncFormFromState(){
  Object.keys(values).forEach(id=>{const el=document.getElementById(id);if(el)el.value=values[id]??"";});
  const food=$("#gdrStudioFoodIncluded");if(food)food.value=state.foodIncluded||"";
  updateTypeCards();updateConfigurationCards();updateConditionalFields();updateLocationStatus();renderLiveVoiceForm();
+}
+
+function resetNewListing(){
+ stopVoice();restoreMapPanel();
+ if(searchTimer){clearTimeout(searchTimer);searchTimer=null;}
+ if(searchController){try{searchController.abort();}catch(e){}searchController=null;}
+ if(nearbyController){try{nearbyController.abort();}catch(e){}nearbyController=null;}
+ state.step=0;state.publishing=false;state.published=false;
+ state.propertyType="";state.configuration="";state.rent="";state.deposit="";
+ state.furnishing="";state.description="";state.address="";state.pincode="";
+ state.lat=null;state.lng=null;state.roomType="";state.gender="";
+ state.totalBeds="";state.availableBeds="";state.foodIncluded="";
+ state.files.forEach(file=>{if(file.previewUrl&&String(file.previewUrl).startsWith("blob:")){try{URL.revokeObjectURL(file.previewUrl);}catch(e){}}});
+ state.files=[];state.coverIndex=0;state.uploadedPhotos=[];state.uploadedPaths=[];
+ state.nearbyPlaces=[];state.submissionId=uuid();state.recognition=null;state.recording=false;
+ state.mapParent=null;state.mapNext=null;
+ Object.assign(state.voice,{
+  active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,
+  turnText:"",finalText:"",interimText:"",pending:{},awaitingConfirmation:false,
+  lastReply:"",lastQuestion:"",lastField:"",permissionBlocked:false,
+  skippedDeposit:false,skippedFood:false,session:state.voice.session+1
+ });
+ clearLegacyDraft();syncFormFromState();
+ const photoFiles=$("#gdrStudioPhotoFiles"),cameraFiles=$("#gdrStudioCameraFiles");
+ if(photoFiles)photoFiles.value="";if(cameraFiles)cameraFiles.value="";
+ const transcript=$("#gdrStudioVoiceTranscript");if(transcript)transcript.value="";
+ const reply=$("#gdrStudioVoiceReply");if(reply)reply.textContent="Hi! I’m GDR. Tell me about your property. I’ll help only when you choose Start speaking.";
+ const pending=$("#gdrStudioVoicePending");if(pending){pending.innerHTML="";pending.hidden=true;}
+ const confirmActions=$("#gdrStudioVoiceConfirmActions");if(confirmActions)confirmActions.hidden=true;
+ const preview=$("#gdrStudioPhotoPreview");if(preview){preview.innerHTML="";preview.hidden=true;}
+ const suggestions=$("#gdrStudioLocationSuggestions");if(suggestions){suggestions.innerHTML="";suggestions.hidden=true;}
+ renderPhotos();renderNearby();updateStep();message("");
+ setStatus("Manual entry · No previous listing details loaded");
 }
 function updateTypeCards(){
  $$("[data-gdr-property-type]").forEach(b=>{
@@ -544,11 +554,9 @@ async function open(voice){
   if(!dash||!dash.classList.contains("active")||!document.body.classList.contains("gd-owner-mode")){
    throw new Error("Open the Owner Dashboard to start a property listing.");
   }
-  const account=await getOwner();state.user=account.user;state.owner=account.owner;state.published=false;
-  state.submissionId=state.submissionId||uuid();
-  restoreDraft();
-  // Always reopen at the first manual-entry step while preserving saved values.
-  state.step=0;
+  const account=await getOwner();state.user=account.user;state.owner=account.owner;
+  // Every new listing starts clean; owners enter their own details.
+  resetNewListing();
   const root=studio();if(!root)throw new Error("Property Studio could not be loaded. Refresh and try again.");
   root.hidden=false;document.body.classList.add("gdr-property-studio-open");
   const dashSection=$("#dashboardSection");if(dashSection){dashSection.style.display="none";dashSection.setAttribute("aria-hidden","true");}
@@ -557,15 +565,39 @@ async function open(voice){
   if(voice)startVoice();
  }catch(e){message(e.message||"Could not open Property Studio.","error");const m=$("#backendMessage");if(m){m.textContent=e.message||"Could not open Property Studio.";m.className="backend-message error";}}
 }
+async function returnToOwnerDashboard(scrollToProperties){
+ stopVoice();restoreMapPanel();
+ const root=studio(),success=$("#gdrStudioSuccessView");
+ if(success)success.remove();
+ const main=$("#gdrStudioMain");if(main){main.hidden=false;main.style.removeProperty("display");}
+ const progress=$(".gdr-studio-progress-wrap",root);if(progress){progress.hidden=false;progress.style.removeProperty("display");}
+ if(root)root.hidden=true;
+ document.body.classList.remove("gdr-property-studio-open");
+ const dashboard=$("#dashboardSection");
+ if(dashboard){dashboard.style.display="block";dashboard.setAttribute("aria-hidden","false");}
+ // Remove a stale #login hash without navigating or touching the Supabase session.
+ if(String(window.location.hash||"").toLowerCase()==="#login"){
+  try{window.history.replaceState(window.history.state,document.title,window.location.pathname+window.location.search);}catch(e){}
+ }
+ try{
+  if(typeof window.renderActiveDashboard==="function")await window.renderActiveDashboard();
+  else{const owner=$("#ownerDashboard");if(owner){owner.classList.add("active");owner.style.display="block";}}
+ }catch(e){console.error("Owner dashboard refresh after listing failed",e);}
+ state.published=false;state.publishing=false;resetNewListing();
+ if(scrollToProperties)window.setTimeout(()=>$("#ownerPropertiesContainer")?.scrollIntoView({behavior:"smooth",block:"start"}),180);
+ else window.scrollTo({top:0,behavior:"instant"});
+}
 function close(){
  if(state.publishing)return;
- if(state.published){window.location.reload();return;}
+ if(state.published){returnToOwnerDashboard(false);return;}
  stopVoice();restoreMapPanel();
  const root=studio();if(root)root.hidden=true;
  document.body.classList.remove("gdr-property-studio-open");
  const dash=$("#dashboardSection");if(dash){dash.style.display="block";dash.setAttribute("aria-hidden","false");}
- window.scrollTo({top:0,behavior:"instant"});
- saveDraft();
+ if(String(window.location.hash||"").toLowerCase()==="#login"){
+  try{window.history.replaceState(window.history.state,document.title,window.location.pathname+window.location.search);}catch(e){}
+ }
+ window.scrollTo({top:0,behavior:"instant"});saveDraft();
 }
 function selectedType(type){
  state.propertyType=type;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"propertyType"))state.voice.pending.propertyType=type;
@@ -904,6 +936,13 @@ function toggleVoiceMute(){
 function bindEvents(){
  const root=studio();if(!root||root.dataset.bound==="1")return;root.dataset.bound="1";
  renderLiveVoiceForm();
+ // Disable browser-saved suggestions for all listing inputs.
+ $$("input,select,textarea",root).forEach(el=>{
+  el.setAttribute("autocomplete","off");
+  el.setAttribute("autocorrect","off");
+  el.setAttribute("autocapitalize","off");
+  if(el.id&&!el.name)el.name="gdr_manual_"+el.id;
+ });
  root.addEventListener("click",e=>{
   const type=e.target.closest("[data-gdr-property-type]");if(type){selectedType(type.dataset.gdrPropertyType);return;}
   const config=e.target.closest("[data-gdr-configuration]");if(config){setConfiguration(config.dataset.gdrConfiguration);return;}
@@ -1031,11 +1070,16 @@ async function publish(){
 function showSuccess(property){
  const root=studio();if(!root)return;
  state.published=true;
- const body=$("#gdrStudioMain");
- if(body)body.innerHTML=
-  '<div class="gdr-studio-success"><div class="gdr-studio-success-mark">✓</div><span>GHARDEKHO PROPERTY STUDIO</span><h1>Your property is submitted.</h1><p>Your listing is saved in My Properties with <strong>Pending verification</strong> status. It will follow the existing GharDekho listing and occupancy workflow.</p><div class="gdr-studio-success-id">Property reference <b>'+escapeHtml(property.id||"Saved")+'</b></div><button type="button" id="gdrStudioViewInventory">View My Properties</button><button type="button" class="gdr-studio-success-secondary" id="gdrStudioSuccessClose">Back to Dashboard</button></div>';
- $("#gdrStudioViewInventory")?.addEventListener("click",()=>{try{sessionStorage.setItem("gdr_studio_open_inventory","1");}catch(e){}window.location.reload();});
- $("#gdrStudioSuccessClose")?.addEventListener("click",()=>window.location.reload());
+ const main=$("#gdrStudioMain"),progress=$(".gdr-studio-progress-wrap",root);
+ if(main){main.hidden=true;main.style.display="none";}
+ if(progress){progress.hidden=true;progress.style.display="none";}
+ let view=$("#gdrStudioSuccessView");
+ if(!view){view=document.createElement("section");view.id="gdrStudioSuccessView";view.className="gdr-studio-success";root.appendChild(view);}
+ view.hidden=false;
+ view.innerHTML=
+  '<div class="gdr-studio-success-mark">✓</div><span>GHARDEKHO PROPERTY STUDIO</span><h1>Your property is submitted.</h1><p>Your listing is saved in My Properties with <strong>Pending verification</strong> status. It is available in your existing Owner Dashboard.</p><div class="gdr-studio-success-id">Property reference <b>'+escapeHtml(property.id||"Saved")+'</b></div><button type="button" id="gdrStudioViewInventory">View My Properties</button><button type="button" class="gdr-studio-success-secondary" id="gdrStudioSuccessClose">Back to Dashboard</button>';
+ $("#gdrStudioViewInventory")?.addEventListener("click",()=>returnToOwnerDashboard(true));
+ $("#gdrStudioSuccessClose")?.addEventListener("click",()=>returnToOwnerDashboard(false));
 }
 async function init(){
  const mount=$("#gdrPropertyStudioMount");
