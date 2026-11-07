@@ -380,8 +380,8 @@
       if(window.GDRMapVoiceAssistant)return resolve(window.GDRMapVoiceAssistant);
       const existing=document.querySelector('script[data-gdr-map-voice]');
       if(existing){existing.addEventListener("load",()=>resolve(window.GDRMapVoiceAssistant),{once:true});existing.addEventListener("error",()=>reject(new Error("GDR voice assistant could not load.")),{once:true});return;}
-      const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-smart-search3";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
-      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-smart-search3";script.defer=true;script.dataset.gdrMapVoice="true";
+      const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-map-ux1";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
+      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-map-ux1";script.defer=true;script.dataset.gdrMapVoice="true";
       script.onload=()=>window.GDRMapVoiceAssistant?resolve(window.GDRMapVoiceAssistant):reject(new Error("GDR voice assistant did not initialize."));
       script.onerror=()=>reject(new Error("GDR voice assistant could not load."));document.head.appendChild(script);
     });
