@@ -115,7 +115,7 @@ jobs:
         run: |
           set -euo pipefail
           trap 'echo "FAILED at line $LINENO: $BASH_COMMAND"' ERR
-          BASE_URL="https://ghardekhorenters-com.od-dwivedi11.workers.dev"
+          BASE_URL="https://ghardekhorenters.com"
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-root.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/index.html?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html
