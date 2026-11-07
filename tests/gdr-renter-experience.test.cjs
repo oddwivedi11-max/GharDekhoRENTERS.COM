@@ -44,6 +44,10 @@ test('Madhya Pradesh state-plus-city voice request resolves to the requested cit
   assert.equal(p.location, 'Indore');
   assert.equal(p.stayType, 'home');
 });
+test('state normalization preserves a locality when a city and state are spoken together', () => {
+  const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
+  assert.equal(p.location, 'Patel Nagar Bhopal');
+});
 test('spoken renter search is one-shot, stop-safe and submits the existing real search form', () => {
   assert.ok(js.includes('rec.continuous=false'));
   assert.ok(js.includes('state.voiceSession'));
