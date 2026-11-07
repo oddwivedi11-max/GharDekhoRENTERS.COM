@@ -6,6 +6,9 @@
   Strict-Transport-Security: max-age=31536000
   Content-Security-Policy-Report-Only: default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com https://cdn.jsdelivr.net; img-src 'self' data: blob: https:; font-src 'self' data: https://fonts.gstatic.com; connect-src 'self' https://gktmaiwqvtusnegevdle.supabase.co https://photon.komoot.io https://nominatim.openstreetmap.org https://api.postalpincode.in; frame-ancestors 'none'
 
+/ Cache-Control: no-cache, must-revalidate
+/index.html
+  Cache-Control: no-cache, must-revalidate
 /assets/gdr-renter-experience.js
   Cache-Control: no-cache, must-revalidate
 /assets/gdr-map-experience.js
