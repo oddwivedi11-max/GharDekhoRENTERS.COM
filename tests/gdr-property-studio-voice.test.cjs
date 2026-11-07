@@ -83,8 +83,13 @@ test("owner voice interprets partly furnished wording as semi-furnished",()=>{
  assert.ok(js.includes('/semi|partly|partially|thoda/'));
 });
 
-test("owner voice assistant remains available outside the step-specific form panels",()=>{
- assert.ok(markup.indexOf('class="gdr-studio-voice"')<markup.indexOf('data-gdr-studio-panel="0"'));
+test("manual listing panels come first and optional voice assistance follows them",()=>{
+ const voice=markup.indexOf('class="gdr-studio-voice"');
+ const first=markup.indexOf('data-gdr-studio-panel="0"');
+ const preview=markup.indexOf('data-gdr-studio-panel="4"');
+ const footer=markup.indexOf('class="gdr-studio-footer"');
+ assert.ok(first>=0&&preview>first&&voice>preview&&footer>voice);
+ assert.ok(markup.includes("Manual entry is the primary option"));
  assert.ok(js.includes('roomType:"gdrStudioRoomType"'));
  assert.ok(js.includes('availableBeds:"gdrStudioAvailableBeds"'));
  assert.ok(js.includes('foodIncluded:"gdrStudioFoodIncluded"'));
