@@ -33,7 +33,7 @@ function normalizeSearchText(value){
   return out;
  };
  const raw=String(value||"").toLowerCase().normalize("NFKC");
- const aliases={"सिंगरौली":"singrauli","इंदौर":"indore","रीवा":"rewa","भोपाल":"bhopal","जबलपुर":"jabalpur","ग्वालियर":"gwalior","उज्जैन":"ujjain","सतना":"satna","देवास":"dewas","सीधी":"sidhi"};
+ const aliases={"सिंगरौली":"singrauli","इंदौर":"indore","रीवा":"rewa","भोपाल":"bhopal","जबलपुर":"jabalpur","ग्वालियर":"gwalior","उज्जैन":"ujjain","सतना":"satna","देवास":"dewas","सीधी":"sidhi","बड़े":"bade","बड़ा":"bada","बड़ा":"bada","नगर":"nagar","पटेल":"patel","वैढ़न":"waidhan","विंध्यनगर":"vindhyanagar","मध्य":"madhya","प्रदेश":"pradesh"};
  const latin=raw.replace(/[\u0900-\u097F]+/gu,word=>aliases[word]||transliterateWord(word));
  const normalized=latin.replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
  return normalized;
@@ -76,11 +76,13 @@ function filterAssistantListings(rows,prefs){
   return true;
  }).sort((a,b)=>(number(a.rent)??Number.POSITIVE_INFINITY)-(number(b.rent)??Number.POSITIVE_INFINITY));
 }
-async function searchAssistantListings(prefs,raw){
+async function searchAssistantListings(prefs,raw,target){
  const id=++state.assistantSearchId,assistant=$("gdrxAssistant"),reviewBox=$("gdrxReview");
- if(!assistant||!reviewBox)return [];
+ if((!assistant||!reviewBox)&&!target)return [];
  let panel=$("gdrxAssistantResults");
- if(!panel){panel=document.createElement("section");panel.id="gdrxAssistantResults";panel.className="gdrx-assistant-results";panel.setAttribute("aria-live","polite");reviewBox.insertAdjacentElement("afterend",panel);}
+ if(!panel){panel=document.createElement("section");panel.id="gdrxAssistantResults";panel.className="gdrx-assistant-results";panel.setAttribute("aria-live","polite");}
+ if(target){if(panel.parentElement!==target)target.append(panel);}
+ else if(!panel.isConnected)reviewBox.insertAdjacentElement("afterend",panel);
  panel.replaceChildren();
  const language=detectReplyLanguage(raw||"");
  const loading=document.createElement("p");loading.className="gdrx-assistant-results-status";loading.textContent=language==="hi"?"मैं GharDekho database में उपलब्ध घर खोज रहा हूँ…":"Searching actual available homes in GharDekho…";panel.append(loading);
@@ -165,7 +167,7 @@ function parseRequest(raw){
  else{
   const min=n.match(/(?:at least|minimum|min|above|more than|greater than|कम से कम|से ज्यादा|से अधिक)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i);
   if(min)p.minBudget=min[1].replace(/,/g,"");
-  const max=n.match(/(?:under|below|up to|upto|maximum|max|budget|not more than|less than|तक|से कम)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i);
+  const max=n.match(/(?:under|below|up to|upto|maximum|max|budget|not more than|less than|ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|तक)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i);
   if(max)p.maxBudget=max[1].replace(/,/g,"");
   if(!p.maxBudget){const amount=n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये|रु\.?)/i);if(amount)p.maxBudget=amount[1].replace(/,/g,"");}
  }
