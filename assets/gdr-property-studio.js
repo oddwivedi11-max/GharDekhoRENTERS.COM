@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-voiceassistant1";
+const VERSION="20261107-voiceassistant2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -11,7 +11,7 @@ const state={
   submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null,voice:{active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,turnText:"",finalText:"",interimText:"",pending:{},awaitingConfirmation:false,lastReply:"",lastQuestion:"",lastField:"",muted:false,language:"hi",session:0,permissionBlocked:false,skippedDeposit:false,skippedFood:false}
 };
 const typeLabels={
- apartment:"Apartment / Flat",independent_house:"Independent House",villa:"Villa",
+ apartment:"Apartment / Flat",independent_house:"Independent House",villa:"Villa",room:"Room",
  pg:"PG",hostel:"Hostel",other:"Other"
 };
 const configurations=["1 RK","1 BHK","2 BHK","3 BHK","4 BHK","5+ BHK"];
@@ -565,7 +565,8 @@ function close(){
 function selectedType(type){
  state.propertyType=type;
  if(type==="other")state.configuration="Other";
- else if(type==="pg"||type==="hostel")state.configuration="";
+ else if(type==="room")state.configuration="";
+ else if(type==="pg"||type==="hostel"||type==="room")state.configuration="";
  else if(state.configuration==="Other")state.configuration="";
  updateTypeCards();updateConfigurationCards();updateConditionalFields();saveDraft();
 }
@@ -592,19 +593,19 @@ function setVoiceReply(text){
 function speakVoice(text,after){
  state.voice.lastReply=text;
  const reply=$("#gdrStudioVoiceReply");if(reply)reply.textContent=text;
- if(state.voice.muted||!window.speechSynthesis||!window.SpeechSynthesisUtterance){if(typeof after==="function")after();return;}
+ if(state.voice.muted||!window.speechSynthesis||!window.SpeechSynthesisUtterance){state.voice.speaking=false;if(typeof after==="function")after();return;}
  try{
   window.speechSynthesis.cancel();state.voice.speaking=true;
-  if(state.recognition){const oldRecognition=state.recognition;state.recognition=null;state.recording=false;state.voice.session++;try{oldRecognition.stop();}catch(e){}}
+  if(state.recognition){const oldRecognition=state.recognition;state.recognition=null;state.recording=false;state.voice.session++;try{oldRecognition.abort?oldRecognition.abort():oldRecognition.stop();}catch(e){}}
   const utterance=new SpeechSynthesisUtterance(text),language=state.voice.language==="en"?"en-IN":"hi-IN";
   utterance.lang=language;utterance.rate=.96;utterance.pitch=1;
   const voices=window.speechSynthesis.getVoices?window.speechSynthesis.getVoices():[];
   const voice=voices.find(v=>String(v.lang||"").toLowerCase()===language.toLowerCase())||voices.find(v=>String(v.lang||"").toLowerCase().startsWith(state.voice.language==="en"?"en":"hi"));
   if(voice)utterance.voice=voice;
-  utterance.onend=()=>{state.voice.speaking=false;if(typeof after==="function")after();else scheduleVoiceRestart(250);};
-  utterance.onerror=()=>{state.voice.speaking=false;if(typeof after==="function")after();else scheduleVoiceRestart(250);};
+  utterance.onend=()=>{state.voice.speaking=false;if(typeof after==="function")after();};
+  utterance.onerror=()=>{state.voice.speaking=false;if(typeof after==="function")after();};
   window.speechSynthesis.speak(utterance);
- }catch(error){state.voice.speaking=false;if(typeof after==="function")after();else scheduleVoiceRestart(250);}
+ }catch(error){state.voice.speaking=false;if(typeof after==="function")after();}
 }
 function amountFromText(text){
  const s=String(text||"").toLowerCase().replace(/,/g," ");
@@ -669,16 +670,35 @@ function renderVoicePending(){
  entries.forEach(([key,value])=>{const row=document.createElement("div"),label=document.createElement("span"),val=document.createElement("b");label.textContent=voiceFieldLabel(key);val.textContent=voiceFieldValue(key,value);row.append(label,val);box.appendChild(row);});
 }
 function currentVoiceValue(key){return ({propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,furnishing:state.furnishing,address:state.address,pincode:state.pincode,roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,availableBeds:state.availableBeds,foodIncluded:state.foodIncluded})[key]||"";}
-function applyVoicePending(){
- const pending={...state.voice.pending};
- Object.entries(pending).forEach(([key,value])=>{
+function applyVoiceValues(pending){
+ const values=pending||{};
+ Object.entries(values).forEach(([key,value])=>{
   if(key==="propertyType")selectedType(value);
   else if(key==="configuration")setConfiguration(value);
-  else if(key==="address"){state.address=value;state.lat=null;state.lng=null;const el=$("#gdrStudioLocation");if(el)el.value=value;searchAddress(value);}
-  else if(key==="pincode"){state.pincode=value;const el=$("#gdrStudioPincode");if(el)el.value=value;}
-  else if(["rent","deposit","furnishing","roomType","gender","totalBeds","availableBeds","foodIncluded"].includes(key)){state[key]=value;const ids={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",roomType:"gdrStudioRoomType",gender:"gdrStudioGender",totalBeds:"gdrStudioTotalBeds",availableBeds:"gdrStudioAvailableBeds",foodIncluded:"gdrStudioFoodIncluded"};const el=$("#"+ids[key]);if(el)el.value=value;}
+  else if(key==="address"){
+   state.address=value;state.lat=null;state.lng=null;
+   const el=$("#gdrStudioLocation");if(el){el.value=value;el.dispatchEvent(new Event("input",{bubbles:true}));}
+  }else if(key==="pincode"){
+   state.pincode=value;const el=$("#gdrStudioPincode");if(el){el.value=value;el.dispatchEvent(new Event("input",{bubbles:true}));}
+  }else if(["rent","deposit","furnishing","roomType","gender","totalBeds","availableBeds","foodIncluded"].includes(key)){
+   state[key]=value;
+   const ids={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",roomType:"gdrStudioRoomType",gender:"gdrStudioGender",totalBeds:"gdrStudioTotalBeds",availableBeds:"gdrStudioAvailableBeds",foodIncluded:"gdrStudioFoodIncluded"};
+   const el=$("#"+ids[key]);if(el){el.value=value;el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}));}
+  }
  });
- syncFormFromState();saveDraft();state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();
+ syncFormFromState();saveDraft();
+ const stepFor={propertyType:0,configuration:0,rent:1,deposit:1,furnishing:1,address:2,pincode:2};
+ const firstKey=Object.keys(values).find(key=>Object.prototype.hasOwnProperty.call(stepFor,key));
+ if(firstKey){
+  state.step=stepFor[firstKey];updateStep();
+  const focusIds={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",address:"gdrStudioLocation",pincode:"gdrStudioPincode"};
+  const focus=$("#"+(focusIds[firstKey]||"gdrStudioStepTitle"));
+  setTimeout(()=>{focus?.focus?.({preventScroll:true});focus?.scrollIntoView?.({behavior:"smooth",block:"center"});},80);
+ }
+}
+function applyVoicePending(){
+ applyVoiceValues(state.voice.pending);
+ state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();
 }
 function nextVoiceQuestion(){
  const home=["apartment","independent_house","villa","other"].includes(state.propertyType);let field="",question="";
@@ -699,81 +719,131 @@ function nextVoiceQuestion(){
 function isVoiceYes(text){return /^(haan|han|ha|yes|yeah|correct|right|bilkul|sahi|correct hai|that's right|ठीक|हाँ|हां|जी|सही|बिल्कुल)(?:[\s,.!?]|$)/i.test(String(text||"").trim());}
 function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नही|गलत)(?:[\s,.!?]|$)/i.test(String(text||"").trim());}
 function processVoiceTurn(text){
- const raw=String(text||"").trim();if(!raw)return;state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
+ const raw=String(text||"").trim();if(!raw)return;
+ state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;
+ state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
  if(/\b(start again|restart|dobara shuru)\b|फिर से शुरू/.test(lower)){state.voice.finalText="";state.voice.turnText="";state.voice.interimText="";state.voice.pending={};state.voice.awaitingConfirmation=false;updateVoiceTranscript();renderVoicePending();speakVoice(voiceText("ठीक है, नई शुरुआत करते हैं। अपनी property के बारे में बताइए।","Let's start again. Tell me about your property."));return;}
- if(/\b(go back|back one step|peeche jao)\b|पीछे जाओ/.test(lower)){goToStep(state.step-1);speakVoice(voiceText("ठीक है, पिछले step पर आ गए हैं।","Okay, I've moved to the previous step."));return;}
- if(/\b(continue listing|next step|aage chalo)\b|आगे चलो/.test(lower)){goToStep(state.step+1);speakVoice(voiceText("ठीक है, listing के अगले step पर चलते हैं।","Okay, moving to the next listing step."));return;}
- if(/\b(stop listening|stop microphone|band karo|mic band)\b|रोक दो|बंद करो/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Okay, I stopped listening. Press Start speaking when you want to continue."));return;}
+ if(/\b(go back|back one step|peeche jao)\b|पीछे जाओ/.test(lower)){state.step=Math.max(0,state.step-1);updateStep();speakVoice(voiceText("ठीक है, पिछले step पर आ गए हैं।","Okay, I've moved to the previous step."));return;}
+ if(/\b(continue listing|next step|aage chalo)\b|आगे चलो/.test(lower)){state.step=Math.min(4,state.step+1);updateStep();speakVoice(voiceText("ठीक है, listing के अगले step पर चलते हैं।","Okay, moving to the next listing step."));return;}
+ if(/\b(stop listening|stop microphone|band karo|mic band)\b|रोक दो|बंद करो/.test(lower)){stopVoice();setVoiceReply(voiceText("ठीक है, microphone रोक दिया है।","Okay, I stopped listening."));return;}
  if(/\b(repeat|say again|dobara bolo|phir se bolo|फिर से बोलो|दोहराओ)\b/.test(lower)){speakVoice(state.voice.lastQuestion||state.voice.lastReply);return;}
- if(/\b(show details|details dikhao|meri details|सब दिखाओ|जानकारी दिखाओ)\b/.test(lower)){const keys=["propertyType","configuration","address","rent","deposit","furnishing"];const summary=keys.map(k=>currentVoiceValue(k)?voiceFieldLabel(k)+": "+voiceFieldValue(k,currentVoiceValue(k)):"").filter(Boolean).join(". ");speakVoice(summary||voiceText("अभी कोई detail confirm नहीं हुई है।","No details have been confirmed yet."));return;}
+ if(/\b(show details|details dikhao|meri details|सब दिखाओ|जानकारी दिखाओ)\b/.test(lower)){const keys=["propertyType","configuration","address","rent","deposit","furnishing"];const summary=keys.map(k=>currentVoiceValue(k)?voiceFieldLabel(k)+": "+voiceFieldValue(k,currentVoiceValue(k)):"").filter(Boolean).join(". ");speakVoice(summary||voiceText("अभी कोई detail नहीं भरी गई है।","No details have been entered yet."));return;}
  if(/\b(submit|publish|list my property|property submit|publish my property)\b/.test(lower)||/सबमिट|पब्लिश/.test(lower)){speakVoice(voiceText("मैं आपकी property अपने आप publish नहीं करूँगा। Preview में details check करके Publish My Property दबाएँ।","I won't publish automatically. Review the preview and press Publish My Property yourself."));return;}
- if(state.voice.awaitingConfirmation&&isVoiceYes(raw)){applyVoicePending();speakVoice(voiceText("ठीक है, ये details form में confirm कर दी हैं।","Confirmed. I have added these details to the form."),nextVoiceQuestion);return;}
+ if(state.voice.awaitingConfirmation&&isVoiceYes(raw)){
+  state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();
+  speakVoice(voiceText("ठीक है, details form में update हैं। अब अगली जानकारी लेते हैं।","Confirmed. The details are already updated in your form. Let's collect the next item."),nextVoiceQuestion);return;
+ }
  if(state.voice.awaitingConfirmation&&isVoiceNo(raw)){
   const correction=extractVoiceDetails(raw);
-  if(Object.keys(correction).length){state.voice.pending={...correction};renderVoicePending();const summary=Object.entries(state.voice.pending).map(([key,value])=>voiceFieldLabel(key)+" "+voiceFieldValue(key,value)).join(", ");speakVoice(voiceText("ठीक है, updated details ये हैं: ","Okay, the corrected details are: ")+summary+voiceText(". क्या अब सही हैं? हाँ या नहीं बोलें।",". Are these correct now? Say yes or no."));return;}
-  state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();speakVoice(voiceText("कोई बात नहीं। सही detail बताइए, मैं उसे दोबारा check करूँगा।","No problem. Tell me the correct detail and I'll check it again."));return;
+  if(Object.keys(correction).length){
+   state.voice.pending={...correction};applyVoiceValues(correction);renderVoicePending();
+   const summary=Object.entries(state.voice.pending).map(([key,value])=>voiceFieldLabel(key)+" "+voiceFieldValue(key,value)).join(", ");
+   speakVoice(voiceText("ठीक है, मैंने form में correction कर दिया है: ","Okay, I updated the form with: ")+summary+voiceText(". आप इसे manually भी edit कर सकते हैं। Confirm details दबाएँ।",". You can also edit it manually. Press Confirm details when ready."));
+   return;
+  }
+  state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();
+  speakVoice(voiceText("कोई बात नहीं। सही detail बताइए।","No problem. Tell me the correct detail."));return;
  }
  if(/\b(skip|chhodo)\b|छोड़ो|स्किप/.test(lower)){if(state.voice.lastField==="deposit"){state.voice.skippedDeposit=true;nextVoiceQuestion();return;}if(state.voice.lastField==="foodIncluded"){state.voice.skippedFood=true;nextVoiceQuestion();return;}speakVoice(voiceText("ठीक है, इस optional detail को बाद में भर सकते हैं।","Okay, you can fill this optional detail later."));return;}
  const extracted=extractVoiceDetails(raw);
  if(!Object.keys(extracted).length){speakVoice(voiceText("मैं आपकी बात पूरी तरह नहीं समझ पाया। कृपया property type, location या rent जैसी detail फिर से बताइए।","I couldn't identify a property detail. Please repeat the property type, location or rent."));return;}
- state.voice.pending={...state.voice.pending,...extracted};state.voice.awaitingConfirmation=true;renderVoicePending();
+ state.voice.pending={...state.voice.pending,...extracted};
+ applyVoiceValues(extracted);
+ state.voice.awaitingConfirmation=true;renderVoicePending();
  const summary=Object.entries(state.voice.pending).map(([key,value])=>voiceFieldLabel(key)+" "+voiceFieldValue(key,value)).join(", ");
- speakVoice(voiceText("मैंने ये details समझी हैं: ","I understood: ")+summary+voiceText(". क्या ये सही हैं? हाँ या नहीं बोलें।",". Are these correct? Say yes or no."));
-}
-function scheduleVoiceTurn(){
- if(state.voice.turnTimer)clearTimeout(state.voice.turnTimer);
- state.voice.turnTimer=setTimeout(()=>{const text=state.voice.turnText.trim();state.voice.turnText="";if(text)processVoiceTurn(text);},1100);
+ speakVoice(voiceText("मैंने details आपके actual form में update कर दी हैं: ","I updated these details in your actual form: ")+summary+voiceText(". आप अभी manually edit कर सकते हैं। Confirm details दबाकर आगे बढ़ें।",". You can edit them now. Press Confirm details to continue."));
 }
 function updateVoiceTranscript(){const area=$("#gdrStudioVoiceTranscript");if(area)area.value=[state.voice.finalText,state.voice.turnText,state.voice.interimText].filter(Boolean).join(" ").trim();}
-function scheduleVoiceRestart(delay){
- if(!state.voice.active||state.voice.manualStop||state.voice.permissionBlocked||state.voice.speaking)return;
- if(state.voice.restartTimer)clearTimeout(state.voice.restartTimer);
- state.voice.restartTimer=setTimeout(()=>{state.voice.restartTimer=null;startVoiceRecognition();},delay||350);
-}
+function updateVoiceTranscript(){const area=$("#gdrStudioVoiceTranscript");if(area)area.value=[state.voice.finalText,state.voice.turnText,state.voice.interimText].filter(Boolean).join(" ").trim();}
 function startVoiceRecognition(){
  if(!state.voice.active||state.voice.manualStop||state.voice.speaking||state.recognition)return;
  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Speech){setVoiceState("VOICE INPUT UNAVAILABLE",false);setVoiceReply(voiceText("इस browser में voice recognition उपलब्ध नहीं है। आप नीचे type कर सकते हैं।","Voice recognition is unavailable in this browser. You can type below instead."));return;}
- const rec=new Speech(),session=++state.voice.session;rec.lang=$("#gdrStudioVoiceLanguage")?.value||"hi-IN";rec.continuous=true;rec.interimResults=true;rec.maxAlternatives=1;state.recognition=rec;
- rec.onstart=()=>{if(session!==state.voice.session)return;state.recording=true;setVoiceState("LISTENING · SPEAK NATURALLY",true);const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("मैं सुन रहा हूँ। आप आराम से बोलिए; थोड़ी देर pause लेने पर mic बंद नहीं होगा।","I'm listening. Speak naturally; a short pause won't end your session.");};
+ if(!Speech){
+  state.voice.active=false;state.recording=false;setVoiceState("VOICE INPUT UNAVAILABLE",false);
+  setVoiceReply(voiceText("इस browser में voice recognition उपलब्ध नहीं है। नीचे type करके भी details भर सकते हैं।","Voice recognition is unavailable in this browser. You can type details below."));
+  return;
+ }
+ const rec=new Speech(),session=++state.voice.session;
+ rec.lang=$("#gdrStudioVoiceLanguage")?.value||"hi-IN";
+ rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=1;
+ state.recognition=rec;state.voice.turnText="";state.voice.interimText="";
+ rec.onstart=()=>{
+  if(session!==state.voice.session)return;
+  state.recording=true;setVoiceState("LISTENING · SPEAK NATURALLY",true);
+  const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("मैं सुन रहा हूँ। अपनी एक instruction बोलें; फिर microphone अपने आप बंद हो जाएगा।","Listening for one instruction. The microphone will stop automatically after this turn.");
+ };
  rec.onresult=e=>{
-  if(session!==state.voice.session)return;let interim="";
-  for(let i=e.resultIndex;i<e.results.length;i++){const result=e.results[i],spoken=result[0]&&result[0].transcript||"";if(result.isFinal&&spoken.trim())state.voice.turnText+=(state.voice.turnText?" ":"")+spoken.trim();else interim+=spoken;}
-  state.voice.interimText=interim;updateVoiceTranscript();if(state.voice.turnText.trim())scheduleVoiceTurn();
+  if(session!==state.voice.session)return;
+  let interim="";
+  for(let i=e.resultIndex;i<e.results.length;i++){
+   const result=e.results[i],spoken=result[0]&&result[0].transcript||"";
+   if(result.isFinal&&spoken.trim())state.voice.turnText+=(state.voice.turnText?" ":"")+spoken.trim();
+   else interim+=spoken;
+  }
+  state.voice.interimText=interim;updateVoiceTranscript();
  };
  rec.onerror=e=>{
-  if(session!==state.voice.session)return;const fatal=["not-allowed","service-not-allowed","audio-capture","language-not-supported"].includes(e.error);
-  if(fatal){state.voice.permissionBlocked=true;state.voice.active=false;state.recording=false;setVoiceState("MICROPHONE NEEDS ATTENTION",false);setVoiceReply(e.error==="not-allowed"||e.error==="service-not-allowed"?voiceText("Microphone permission blocked है। Chrome site settings में microphone allow करके दोबारा Start speaking दबाएँ।","Microphone permission is blocked. Allow it in Chrome site settings, then press Start speaking again."):voiceText("Microphone या selected language उपलब्ध नहीं है। Language बदलें या manually type करें।","The microphone or selected language is unavailable. Change the language or type manually."));}
-  else if(e.error==="network")setVoiceReply(voiceText("Browser speech recognition को network access नहीं मिल रहा। Connection check करें; manual typing उपलब्ध है।","Browser speech recognition needs a network connection. Check your connection; manual typing is still available."));
+  if(session!==state.voice.session)return;
+  state.voice.session++;state.voice.active=false;state.recording=false;state.recognition=null;
+  if(state.voice.turnTimer)clearTimeout(state.voice.turnTimer);
+  setVoiceState("MICROPHONE NEEDS ATTENTION",false);
+  const errors={
+   "not-allowed":voiceText("Microphone permission blocked है। Chrome site settings में अनुमति दें।","Microphone permission is blocked. Allow it in Chrome site settings."),
+   "service-not-allowed":voiceText("Browser speech recognition service blocked है। Network और browser settings check करें।","The browser speech recognition service is blocked. Check network and browser settings."),
+   "audio-capture":voiceText("Microphone device नहीं मिल रहा। Windows input device check करें।","No microphone input device was found. Check your Windows input device."),
+   "network":voiceText("Speech recognition service तक network connection नहीं पहुँच रहा। Internet check करें या text type करें।","The speech recognition service could not be reached. Check your internet connection or type instead."),
+   "no-speech":voiceText("कोई आवाज़ detect नहीं हुई। फिर से Start speaking दबाएँ।","No speech was detected. Press Start speaking and try again."),
+   "language-not-supported":voiceText("यह language browser में supported नहीं है। दूसरी language चुनें।","This language is not supported by the browser. Select another language.")
+  };
+  setVoiceReply(errors[e.error]||voiceText("Voice recognition error: "+String(e.error||"unknown"),"Voice recognition error: "+String(e.error||"unknown")));
  };
  rec.onend=()=>{
   if(session!==state.voice.session)return;
-  if(state.voice.interimText.trim()){state.voice.turnText+=(state.voice.turnText?" ":"")+state.voice.interimText.trim();state.voice.interimText="";updateVoiceTranscript();scheduleVoiceTurn();}
-  state.recognition=null;state.recording=false;
-  if(state.voice.active&&!state.voice.manualStop&&!state.voice.permissionBlocked&&!state.voice.speaking){setVoiceState("RECONNECTING MICROPHONE…",true);scheduleVoiceRestart(450);}
-  else if(state.voice.permissionBlocked)setVoiceState("MICROPHONE NEEDS ATTENTION",false);
-  else if(!state.voice.speaking)setVoiceState("READY",false);
+  const spoken=[state.voice.turnText,state.voice.interimText].filter(Boolean).join(" ").trim();
+  state.recognition=null;state.recording=false;state.voice.active=false;
+  state.voice.interimText="";state.voice.turnText="";
+  setVoiceState("READY · MICROPHONE OFF",false);
+  if(spoken)processVoiceTurn(spoken);
+  else{
+   const status=$("#gdrStudioVoiceStatus");
+   if(status)status.textContent=voiceText("Microphone बंद है। अगली बात कहने के लिए Start speaking दबाएँ।","Microphone is off. Press Start speaking for your next instruction.");
+  }
  };
- try{rec.start();}catch(error){state.recognition=null;state.recording=false;scheduleVoiceRestart(800);}
+ try{rec.start();}
+ catch(error){
+  state.voice.active=false;state.recording=false;state.recognition=null;state.voice.session++;
+  setVoiceState("READY · MICROPHONE OFF",false);
+  setVoiceReply(voiceText("Microphone start नहीं हो पाया: "+(error&&error.message||"unknown error"),"Could not start microphone: "+(error&&error.message||"unknown error")));
+ }
 }
 function startVoice(){
  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Speech){setVoiceState("VOICE INPUT UNAVAILABLE",false);setVoiceReply(voiceText("इस browser में voice input नहीं है। आप manually type कर सकते हैं।","Voice input is unavailable in this browser. You can type manually."));return;}
- if(state.voice.active&&state.recording)return;state.voice.manualStop=false;state.voice.permissionBlocked=false;state.voice.active=true;
- const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone शुरू हो रहा है…","Starting microphone…");setVoiceState("STARTING",true);speakVoice(voiceText("नमस्ते! मैं GDR हूँ। अपनी property के बारे में बताइए। मैं एक-एक करके ज़रूरी details पूछूँगा।","Hello! I’m GDR. Tell me about your property and I’ll ask for the details I need."),startVoiceRecognition);
+ if(!Speech){
+  setVoiceState("VOICE INPUT UNAVAILABLE",false);
+  setVoiceReply(voiceText("इस browser में voice input उपलब्ध नहीं है। नीचे manually type कर सकते हैं।","Voice input is unavailable in this browser. You can type manually below."));
+  return;
+ }
+ if(state.voice.active||state.recording)return;
+ state.voice.manualStop=false;state.voice.permissionBlocked=false;state.voice.active=true;
+ if(window.speechSynthesis)window.speechSynthesis.cancel();
+ state.voice.speaking=false;
+ const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone शुरू हो रहा है…","Starting microphone…");
+ setVoiceState("STARTING",true);startVoiceRecognition();
 }
 function stopVoice(){
  state.voice.active=false;state.voice.manualStop=true;state.recording=false;state.voice.session++;
  if(state.voice.restartTimer)clearTimeout(state.voice.restartTimer);state.voice.restartTimer=null;
  if(state.voice.turnTimer)clearTimeout(state.voice.turnTimer);state.voice.turnTimer=null;
- if(state.recognition){const rec=state.recognition;state.recognition=null;try{rec.stop();}catch(e){}}
- if(window.speechSynthesis)window.speechSynthesis.cancel();state.voice.speaking=false;setVoiceState("PAUSED",false);
- const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone रोक दिया गया है। दोबारा शुरू करने के लिए Start speaking दबाएँ।","Microphone paused. Press Start speaking to continue.");
+ if(state.recognition){const rec=state.recognition;state.recognition=null;try{rec.abort?rec.abort():rec.stop();}catch(e){}}
+ if(window.speechSynthesis)window.speechSynthesis.cancel();
+ state.voice.speaking=false;state.voice.interimText="";state.voice.turnText="";
+ setVoiceState("MICROPHONE OFF",false);
+ const status=$("#gdrStudioVoiceStatus");if(status)status.textContent=voiceText("Microphone पूरी तरह बंद है। अगली बार बोलने के लिए Start speaking दबाएँ।","Microphone is off. Press Start speaking when you want to speak again.");
 }
 function toggleVoiceMute(){
  state.voice.muted=!state.voice.muted;const btn=$("#gdrStudioVoiceMute");
  if(btn){btn.textContent=state.voice.muted?"🔇 Voice muted":"🔊 Voice on";btn.setAttribute("aria-pressed",state.voice.muted?"true":"false");}
- if(state.voice.muted&&window.speechSynthesis){window.speechSynthesis.cancel();state.voice.speaking=false;scheduleVoiceRestart(200);}
+ if(state.voice.muted&&window.speechSynthesis){window.speechSynthesis.cancel();state.voice.speaking=false;}
 }
 
 function bindEvents(){
@@ -808,7 +878,7 @@ function bindEvents(){
  $("#gdrStudioVoiceStop")?.addEventListener("click",stopVoice);
  $("#gdrStudioVoiceMute")?.addEventListener("click",toggleVoiceMute);
  $("#gdrStudioVoiceConfirm")?.addEventListener("click",()=>{applyVoicePending();speakVoice(voiceText("ठीक है, details confirm कर दी हैं।","Details confirmed."),nextVoiceQuestion);});
- $("#gdrStudioVoiceEdit")?.addEventListener("click",()=>{state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();speakVoice(voiceText("ठीक है, आप form में manually बदलाव कर सकते हैं।","Okay, you can edit the form manually."));});
+ $("#gdrStudioVoiceEdit")?.addEventListener("click",()=>{const keys=Object.keys(state.voice.pending||{}),steps={propertyType:0,configuration:0,rent:1,deposit:1,furnishing:1,address:2,pincode:2};const key=keys.find(k=>Object.prototype.hasOwnProperty.call(steps,k));state.voice.pending={};state.voice.awaitingConfirmation=false;renderVoicePending();syncFormFromState();state.step=key?steps[key]:0;updateStep();$("#gdrStudioMain")?.scrollIntoView({behavior:"smooth",block:"start"});speakVoice(voiceText("Form खुल गया है। सभी भरी हुई details सुरक्षित हैं; आप उन्हें manually edit कर सकते हैं।","The original form is open. Your entered details are preserved and you can edit them manually."));});
  $("#gdrStudioVoiceLanguage")?.addEventListener("change",e=>{state.voice.language=String(e.target.value||"hi-IN").startsWith("en")?"en":"hi";});
  $("#gdrStudioVoiceTranscript")?.addEventListener("input",e=>{state.voice.finalText=e.target.value;});
  $("#gdrStudioPublish")?.addEventListener("click",publish);
@@ -856,8 +926,8 @@ async function publish(){
   const coverUrl=photoUrls[0]||null;
   const propertyType=state.propertyType;
   const listingType=propertyType==="pg"?"pg":propertyType==="hostel"?"hostel":"home";
-  const config=propertyType==="other"?"Other":state.configuration;
-  const bhk=listingType==="home"?(config==="1 RK"||config==="1 BHK"?1:config==="2 BHK"?2:config==="3 BHK"?3:config==="4 BHK"?4:config==="5+ BHK"?5:1):null;
+  const config=propertyType==="other"?"Other":(propertyType==="room"?null:state.configuration);
+  const bhk=propertyType==="room"?null:(listingType==="home"?(config==="1 RK"||config==="1 BHK"?1:config==="2 BHK"?2:config==="3 BHK"?3:config==="4 BHK"?4:config==="5+ BHK"?5:1):null);
   const title=titleForListing();
   const params={
    p_submission_id:state.submissionId||uuid(),
