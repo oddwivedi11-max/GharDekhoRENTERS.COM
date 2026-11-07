@@ -800,7 +800,7 @@ function startVoiceRecognition(){
  };
  rec.onend=()=>{
   if(session!==state.voice.session)return;
-  const spoken=[state.voice.turnText,state.voice.interimText].filter(Boolean).join(" ").trim();
+  const spoken=String(state.voice.turnText||"").trim();
   state.recognition=null;state.recording=false;state.voice.active=false;
   state.voice.interimText="";state.voice.turnText="";
   setVoiceState("READY · MICROPHONE OFF",false);
