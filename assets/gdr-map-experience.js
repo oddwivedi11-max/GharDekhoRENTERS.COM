@@ -105,9 +105,9 @@
     setStatus((state.resolvedQuery||"Selected map location")+" · Location selected. Tap Search this area to find homes nearby.");
   }
   function markerIcon(p,selected){
-    const rent=Number(p.rent||0),short=rent>=100000?"₹"+(rent/100000).toFixed(1)+"L":rent>=1000?"₹"+(rent/1000).toFixed(rent%1000?1:0)+"k":money(rent);
+    const rent=Number(p.rent||0),short=money(rent);
     const pending=p.status==="pending"||p.verification_status==="pending";
-    return window.L.divIcon({className:"gdr-home-3d-marker-wrap",html:'<span class="gdr-home-3d-marker'+(pending?" gdr-home-pending":"")+(selected?" gdr-home-selected":"")+'"><span class="gdr-home-3d-roof"></span><span class="gdr-home-3d-body"><i></i><b></b><em></em></span><span class="gdr-home-3d-base"></span><span class="gdr-home-3d-price">'+short+'</span></span>',iconSize:[76,82],iconAnchor:[38,72]});
+    return window.L.divIcon({className:"gdr-home-3d-marker-wrap",html:'<span class="gdr-home-3d-marker'+(pending?" gdr-home-pending":"")+(selected?" gdr-home-selected":"")+'"><span class="gdr-home-3d-roof"></span><span class="gdr-home-3d-body"><i></i><b></b><em></em></span><span class="gdr-home-3d-base"></span><span class="gdr-home-3d-price">'+short+'</span></span>',iconSize:[96,82],iconAnchor:[48,72]});
   }
   function clearPreview(){const p=$("gdrMapPreview");if(p){p.hidden=true;p.replaceChildren();}}
   function showPreview(p){
@@ -214,34 +214,41 @@
     const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=true;
   }
   function showVoiceSearchResults(rows,point,label){
-    if(!state.renterMap)return {total:0,mapped:0};
+    if(!state.renterMap)return {total:0,mapped:0,unmapped:0};
     const items=Array.isArray(rows)?rows.filter(p=>p&&p.id):[];
     state.boundsRows=items.slice();
     const hasPoint=point&&validPoint(point.lat,point.lng);
+    const coordinates=items.filter(p=>validPoint(p.latitude,p.longitude)).map(p=>[Number(p.latitude),Number(p.longitude)]);
     let center;
     if(hasPoint){
       center=[Number(point.lat),Number(point.lng)];
       state.searchCenter=center;
       state.resolvedQuery=String(label||point.label||"Voice search");
-      const coordinates=items.filter(p=>validPoint(p.latitude,p.longitude)).map(p=>[Number(p.latitude),Number(p.longitude)]);
-      if(coordinates.length>1&&typeof state.renterMap.fitBounds==="function"){
-        state.renterMap.fitBounds(coordinates,{padding:[28,28],maxZoom:13});
-      }else{
-        const kind=String(point.properties&&(point.properties.type||point.properties.osm_value)||"").toLowerCase();
-        const cityLike=["city","town","administrative"].includes(kind);
-        state.renterMap.setView(center,cityLike?11:14,{animate:false});
-      }
     }else{
       const current=state.renterMap.getCenter();
       center=[Number(current.lat),Number(current.lng)];
       state.searchCenter=center;
       state.resolvedQuery=String(label||"Voice search");
     }
+    if(coordinates.length>1&&typeof state.renterMap.fitBounds==="function"){
+      state.renterMap.fitBounds(coordinates,{padding:[48,48],maxZoom:15,animate:false});
+    }else if(coordinates.length===1){
+      state.renterMap.setView(coordinates[0],16,{animate:false});
+      center=coordinates[0];
+      state.searchCenter=center;
+    }else if(hasPoint){
+      const kind=String(point.properties&&(point.properties.type||point.properties.osm_value)||"").toLowerCase();
+      const cityLike=["city","town","administrative"].includes(kind);
+      state.renterMap.setView(center,cityLike?11:14,{animate:false});
+    }
     renderMarkers(items,center,false);
     if(hasPoint)setRenterPin(point,label||point.label||"Voice search");
-    const mapped=items.filter(p=>validPoint(p.latitude,p.longitude)).length;
-    setStatus(items.length+" matching homes found for "+(label||"your voice search")+". "+mapped+" have map pins; all listings are available in List view.");
-    return {total:items.length,mapped};
+    const mapped=coordinates.length,unmapped=Math.max(0,items.length-mapped);
+    const count=$("gdrMapCount");
+    if(count)count.textContent=mapped+" homes on map"+(unmapped?" · "+unmapped+" without map pin":"");
+    setStatus(items.length+" matching homes found for "+(label||"your voice search")+". "+mapped+" displayed as price markers on the map"+(unmapped?"; "+unmapped+" listings have no verified coordinates and cannot be pinned.":"")+".");
+    const expand=$("gdrMapExpandRadius");if(expand)expand.hidden=true;
+    return {total:items.length,mapped,unmapped};
   }
   function applyRenterFilters(prefs){
     prefs=prefs||state.currentPrefs||{};
@@ -408,11 +415,13 @@
   }
   function ensureMapVoiceAssistant(){
     return new Promise((resolve,reject)=>{
+      if(!document.querySelector('link[data-gdr-map-voice-style]')){
+        const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-map-ux2";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
+      }
       if(window.GDRMapVoiceAssistant)return resolve(window.GDRMapVoiceAssistant);
       const existing=document.querySelector('script[data-gdr-map-voice]');
-      if(existing){existing.addEventListener("load",()=>resolve(window.GDRMapVoiceAssistant),{once:true});existing.addEventListener("error",()=>reject(new Error("GDR voice assistant could not load.")),{once:true});return;}
-      const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-map-ux1";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
-      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-map-ux1";script.defer=true;script.dataset.gdrMapVoice="true";
+      if(existing){existing.addEventListener("load",()=>window.GDRMapVoiceAssistant?resolve(window.GDRMapVoiceAssistant):reject(new Error("GDR voice assistant did not initialize.")),{once:true});existing.addEventListener("error",()=>reject(new Error("GDR voice assistant could not load.")),{once:true});return;}
+      const script=document.createElement("script");script.src="/assets/gdr-map-voice.js?v=20261107-map-ux2";script.defer=true;script.dataset.gdrMapVoice="true";
       script.onload=()=>window.GDRMapVoiceAssistant?resolve(window.GDRMapVoiceAssistant):reject(new Error("GDR voice assistant did not initialize."));
       script.onerror=()=>reject(new Error("GDR voice assistant could not load."));document.head.appendChild(script);
     });
