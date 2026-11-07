@@ -119,12 +119,10 @@ jobs:
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-ux1" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
-          grep -q 'api.searchTypedMapLocation()' /tmp/gdr-map-voice.js
-          grep -q 'api.getRenterVisibleProperties()' /tmp/gdr-map-voice.js
+          grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
+          grep -q 'get_public_properties' /tmp/gdr-renter-experience.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
           grep -q 'gdrMapVoiceResults' /tmp/gdr-map-voice.js
-          grep -q 'api.searchTypedMapLocation()' /tmp/gdr-map-voice.js
-          grep -q 'api.getRenterVisibleProperties()' /tmp/gdr-map-voice.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
           grep -q 'gdrMapVoiceResults' /tmp/gdr-map-voice.js
           grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js
