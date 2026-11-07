@@ -386,3 +386,5 @@ test('Singrauli city search uses the structured 486xxx PIN when a valid locality
   const results = helpers(fixtures,{location:'Singrauli',stayType:'home',bhk:'2'});
   assert.deepEqual(Array.from(results,row=>row.id),['remote-singrauli-pin']);
 });
+
+// CI executes these live-search regression cases before production deployment.
