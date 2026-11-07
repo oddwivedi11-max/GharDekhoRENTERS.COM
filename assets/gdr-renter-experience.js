@@ -291,8 +291,8 @@ function setRenterMicState(mic,listening){
  if(!mic)return;
  mic.classList.toggle("listening",!!listening);
  mic.setAttribute("aria-pressed",listening?"true":"false");
- mic.setAttribute("aria-label",listening?"Stop voice search":"Start voice search");
- mic.textContent=listening?"■ STOP LISTENING":"● FIND MY HOME BY SPEAKING";
+ mic.setAttribute("aria-label",listening?"Stop voice search":"Find a home by speaking");
+ mic.innerHTML=(listening?'<span class="gdrx-mic-visual is-listening" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path><path d="M3 8v5m18-5v5"></path></svg></span><span>Stop Listening</span>':'<span class="gdrx-mic-visual" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path><path d="M3 8v5m18-5v5"></path></svg></span><span>Find a Home by Speaking</span>');
 }
 function finishRenterVoice(target,mapMode,session,transcript){
  if(session!==state.voiceSession)return;
@@ -388,10 +388,32 @@ function startVoice(target,lang){
   if(status)status.textContent="Could not start microphone ("+(error&&error.name||"unknown error")+"). Check Chrome microphone permission or type your request.";
  }
 }
+function hideUpperAvailableRentalPanel(){
+ const hideMatches=()=>{
+  const headings=Array.from(document.querySelectorAll("h1,h2,h3,h4,h5,[role=heading]"));
+  headings.forEach(heading=>{
+   if(String(heading.textContent||"").replace(/\\s+/g," ").trim().toLowerCase()!=="available rental properties")return;
+   let node=heading;
+   for(let depth=0;depth<7&&node&&node!==document.body;depth++,node=node.parentElement){
+    const text=String(node.innerText||node.textContent||"").replace(/\\s+/g," ").trim();
+    if(/available rental properties/i.test(text)&&/loading properties/i.test(text)){
+     node.hidden=true;node.setAttribute("aria-hidden","true");node.setAttribute("data-gdr-hidden-duplicate-rentals","true");node.style.setProperty("display","none","important");
+     break;
+    }
+   }
+  });
+ };
+ hideMatches();
+ if(!window.__gdrAvailableRentalPanelObserver&&document.body){
+  window.__gdrAvailableRentalPanelObserver=new MutationObserver(hideMatches);
+  window.__gdrAvailableRentalPanelObserver.observe(document.body,{childList:true,subtree:true,characterData:true});
+ }
+}
 function mountFinder(){
+ hideUpperAvailableRentalPanel();
  const sec=$("renterFindHomeSection"),form=$("renterFindHomeForm");if(!sec||!form||$("gdrxFinder"))return;
  const box=document.createElement("section");box.id="gdrxFinder";box.className="gdrx-finder";
- box.innerHTML='<div class="gdrx-finder-heading"><span>GHARDEKHO SMART FINDER</span><h3>Tell GDR what home you are looking for.</h3><p>Talk naturally or type your requirements. Review the details, then search actual GharDekho listings.</p></div><div class="gdrx-choices"><button type="button" id="gdrxTalk"><i>✦</i><span><b>Find your home with GDR Assistant</b><small>Voice or text · Hindi, English & Hinglish</small></span><em>01</em></button><button type="button" id="gdrxManual"><i>⌕</i><span><b>Search yourself</b><small>Use the manual filters below</small></span><em>02</em></button></div><div class="gdrx-assistant" id="gdrxAssistant"><div class="gdrx-assistant-head"><div><span>● GDR ASSISTANT</span><h4>Tell GDR What Home You are Looking For</h4><p>Speak naturally. We will find homes that match your needs.</p></div><div class="gdrx-orb">⌂</div></div><div class="gdrx-assistant-greeting" id="gdrxWelcome" role="status">Hello! मैं GDR Assistant हूँ — GharDekho का आपका personal assistant. बताइए, आपको किस शहर या locality में घर चाहिए? मैं आपके लिए available rental homes खोज दूँगा।</div><label for="gdrxPrompt">DESCRIBE YOUR IDEAL HOME</label><textarea id="gdrxPrompt" rows="3" placeholder="Mujhe Patel Nagar Bhopal mein 2 BHK furnished flat chahiye. Budget 8000 rupees hai."></textarea><div class="gdrx-tools"><select id="gdrxLang" aria-label="Speech language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select><button type="button" id="gdrxMic">● FIND MY HOME BY SPEAKING</button><button type="button" id="gdrxUnderstand">Understand my request →</button></div><p id="gdrxStatus" role="status">Microphone is OFF until you click. It listens for one request, then stops. Text search always works.</p><div id="gdrxReview" hidden></div></div>';
+ box.innerHTML='<div class="gdrx-finder-heading"><span>GHARDEKHO SMART FINDER</span><h3>Tell GDR what home you are looking for.</h3><p>Talk naturally or type your requirements. Review the details, then search actual GharDekho listings.</p></div><div class="gdrx-choices"><button type="button" id="gdrxTalk"><i>✦</i><span><b>Find your home with GDR Assistant</b><small>Voice or text · Hindi, English & Hinglish</small></span><em>01</em></button><button type="button" id="gdrxManual"><i>⌕</i><span><b>Search yourself</b><small>Use the manual filters below</small></span><em>02</em></button></div><div class="gdrx-assistant" id="gdrxAssistant"><div class="gdrx-assistant-head"><div><span>● GDR ASSISTANT</span><h4>Tell GDR What Home You are Looking For</h4><p>Speak naturally. We will find homes that match your needs.</p></div><div class="gdrx-orb">⌂</div></div><div class="gdrx-assistant-greeting" id="gdrxWelcome" role="status">Hello! मैं GDR Assistant हूँ — GharDekho का आपका personal assistant. बताइए, आपको किस शहर या locality में घर चाहिए? मैं आपके लिए available rental homes खोज दूँगा।</div><label for="gdrxPrompt">DESCRIBE YOUR IDEAL HOME</label><textarea id="gdrxPrompt" rows="3" placeholder="Mujhe Patel Nagar Bhopal mein 2 BHK furnished flat chahiye. Budget 8000 rupees hai."></textarea><div class="gdrx-tools"><select id="gdrxLang" aria-label="Speech language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select><button type="button" id="gdrxMic" aria-label="Find a home by speaking" aria-pressed="false"><span class="gdrx-mic-visual" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path><path d="M3 8v5m18-5v5"></path></svg></span><span>Find a Home by Speaking</span></button><button type="button" id="gdrxUnderstand">Understand my request →</button></div><p id="gdrxStatus" role="status">Microphone is OFF until you click. It listens for one request, then stops. Text search always works.</p><div id="gdrxReview" hidden></div></div>';
  form.parentNode.insertBefore(box,form);
  $("gdrxTalk").onclick=()=>$("gdrxAssistant").scrollIntoView({behavior:"smooth",block:"start"});
  $("gdrxManual").onclick=()=>form.scrollIntoView({behavior:"smooth",block:"start"});
