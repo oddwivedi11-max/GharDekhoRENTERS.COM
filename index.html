@@ -13886,10 +13886,6 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 setRoleSpecificUI("owner");
             } else if (activeRole === "renter" && currentUser) {
                 document.body.classList.add("gd-renter-explore-mode");
-                const homeSection = document.getElementById("homeSection");
-                const propertiesSection = document.getElementById("propertiesSection");
-                if (homeSection) homeSection.style.display = "block";
-                if (propertiesSection) propertiesSection.style.display = "block";
             }
 
             /* Owner dashboard properties come from the owner inventory query.
@@ -14143,7 +14139,14 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                     </div>
                 </div>`;
 
+            // Property details is a focused view: keep the homepage, search hero,
+            // listing grid and authentication gateway out of the way while it is open.
+            ["loggedOutLanding","homeSection","propertiesSection","loginSection","gdAuthGateway"].forEach(id => {
+                const section = document.getElementById(id);
+                if (section) section.style.setProperty("display", "none", "important");
+            });
             details.style.display = "block";
+            details.setAttribute("aria-hidden", "false");
             content.querySelectorAll("[data-gdr-gallery-src]").forEach(button => {
                 button.addEventListener("click", () => {
                     const mainImage = document.getElementById("gdrPropertyDetailMainImage");
@@ -14160,6 +14163,15 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                         scrollToSection("dashboardSection");
                         return;
                     }
+                    const detailsSection = document.getElementById("propertyDetails");
+                    const homeSection = document.getElementById("homeSection");
+                    const propertiesSection = document.getElementById("propertiesSection");
+                    if (detailsSection) {
+                        detailsSection.style.display = "none";
+                        detailsSection.setAttribute("aria-hidden", "true");
+                    }
+                    if (homeSection) homeSection.style.display = "block";
+                    if (propertiesSection) propertiesSection.style.display = "block";
                     scrollToSection("propertiesSection");
                 });
             }
