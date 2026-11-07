@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-voiceassistant3";
+const VERSION="20261107-voiceassistant4";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -68,7 +68,7 @@ function syncFormFromState(){
  };
  Object.keys(values).forEach(id=>{const el=document.getElementById(id);if(el)el.value=values[id]??"";});
  const food=$("#gdrStudioFoodIncluded");if(food)food.value=state.foodIncluded||"";
- updateTypeCards();updateConfigurationCards();updateConditionalFields();updateLocationStatus();
+ updateTypeCards();updateConfigurationCards();updateConditionalFields();updateLocationStatus();renderLiveVoiceForm();
 }
 function updateTypeCards(){
  $$("[data-gdr-property-type]").forEach(b=>{
@@ -109,7 +109,7 @@ function setLocation(address,lat,lng,pincode){
  if(pincode)state.pincode=String(pincode).replace(/\D/g,"").slice(0,6);
  const input=$("#gdrStudioLocation");if(input)input.value=state.address;
  const pin=$("#gdrStudioPincode");if(pin)pin.value=state.pincode;
- updateLocationStatus();saveDraft();
+ updateLocationStatus();saveDraft();renderLiveVoiceForm();
  if(state.lat!==null&&state.lng!==null)loadNearbyPlaces();
 }
 function escapeHtml(value){
@@ -504,6 +504,7 @@ function renderPreview(){
 }
 function updateStep(){
  const root=studio();if(!root)return;
+ renderLiveVoiceForm();
  $$("[data-gdr-studio-panel]",root).forEach(p=>{p.hidden=Number(p.dataset.gdrStudioPanel)!==state.step;});
  $$("[data-gdr-studio-step-indicator]",root).forEach(el=>{
   const n=Number(el.dataset.gdrStudioStepIndicator);
@@ -563,14 +564,14 @@ function close(){
  saveDraft();
 }
 function selectedType(type){
- state.propertyType=type;
+ state.propertyType=type;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"propertyType"))state.voice.pending.propertyType=type;
  if(type==="other")state.configuration="Other";
  else if(type==="room")state.configuration="";
  else if(type==="pg"||type==="hostel")state.configuration="";
  else if(state.configuration==="Other")state.configuration="";
- updateTypeCards();updateConfigurationCards();updateConditionalFields();saveDraft();
+ updateTypeCards();updateConfigurationCards();updateConditionalFields();saveDraft();renderLiveVoiceForm();
 }
-function setConfiguration(value){state.configuration=value;updateConfigurationCards();saveDraft();}
+function setConfiguration(value){state.configuration=value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"configuration"))state.voice.pending.configuration=value;updateConfigurationCards();saveDraft();renderLiveVoiceForm();}
 function setCover(i){state.coverIndex=i;renderPhotos();saveDraft();}
 // Please review and correct every field before continuing; publishing remains a manual owner action.
 function detectVoiceLanguage(text){
@@ -663,6 +664,42 @@ function extractVoiceDetails(text){
 }
 function voiceFieldLabel(key){return ({propertyType:"Property type",configuration:"Configuration",rent:"Monthly rent",deposit:"Security deposit",furnishing:"Furnishing",address:"Location",pincode:"PIN code",roomType:"Room type",gender:"Guest preference",totalBeds:"Total beds",availableBeds:"Available beds",foodIncluded:"Meals"})[key]||key;}
 function voiceFieldValue(key,value){if(key==="propertyType")return typeLabels[value]||value;if(key==="rent"||key==="deposit")return formatINR(value);if(key==="foodIncluded")return value==="yes"?"Meals included":"No meals";return String(value);}
+
+function renderLiveVoiceForm(){
+ const box=$("#gdrStudioLiveFields");if(!box)return;
+ const fields=[
+  ["propertyType","Property type",typeLabels[state.propertyType]||"",0],
+  ["configuration","BHK / configuration",state.configuration||"",0],
+  ["rent","Monthly rent",state.rent?formatINR(state.rent):"",1],
+  ["deposit","Security deposit",state.deposit?formatINR(state.deposit):"",1],
+  ["address","Property location",state.address||"",2],
+  ["pincode","PIN code",state.pincode||"",2],
+  ["furnishing","Furnishing",state.furnishing||"",1]
+ ];
+ const required=["propertyType","address","rent"];
+ if(["apartment","independent_house","villa"].includes(state.propertyType))required.push("configuration");
+ const completed=required.filter(key=>!!currentVoiceValue(key)).length;
+ const percent=Math.round(completed/required.length*100);
+ const count=$("#gdrStudioLiveProgressText");
+ if(count)count.textContent=completed+" of "+required.length+" required details added";
+ const bar=$("#gdrStudioLiveProgressFill");if(bar)bar.style.width=percent+"%";
+ box.innerHTML=fields.map(([key,label,value,step])=>{
+  const filled=!!value;
+  return '<div class="gdr-studio-live-field'+(filled?' is-filled':'')+'">'+
+   '<span class="gdr-studio-live-field-copy"><small>'+escapeHtml(label)+'</small><strong>'+(filled?escapeHtml(value):'Not added yet')+'</strong></span>'+
+   '<button type="button" data-gdr-voice-edit="'+key+'" aria-label="Edit '+escapeHtml(label)+'">'+(filled?'✎ Edit':'＋ Add')+'</button>'+
+   '</div>';
+ }).join("");
+}
+function editVoiceField(key){
+ const steps={propertyType:0,configuration:0,rent:1,deposit:1,furnishing:1,address:2,pincode:2};
+ if(!Object.prototype.hasOwnProperty.call(steps,key))return;
+ state.step=steps[key];updateStep();
+ const ids={rent:"gdrStudioRent",deposit:"gdrStudioDeposit",furnishing:"gdrStudioFurnishing",address:"gdrStudioLocation",pincode:"gdrStudioPincode"};
+ const target=ids[key]?$("#"+ids[key]):(key==="configuration"?$("#gdrStudioConfigurationOptions"):$("#gdrStudioMain"));
+ target?.focus?.({preventScroll:true});target?.scrollIntoView?.({behavior:"smooth",block:"center"});
+}
+
 function renderVoicePending(){
  const box=$("#gdrStudioVoicePending"),actions=$("#gdrStudioVoiceConfirmActions");if(!box||!actions)return;
  const entries=Object.entries(state.voice.pending||{});if(!entries.length){box.hidden=true;actions.hidden=true;return;}
@@ -689,6 +726,7 @@ function applyVoiceValues(pending){
  });
  syncFormFromState();saveDraft();
  const stepFor={propertyType:0,configuration:0,rent:1,deposit:1,furnishing:1,address:2,pincode:2};
+ renderLiveVoiceForm();
  const firstKey=Object.keys(values).find(key=>Object.prototype.hasOwnProperty.call(stepFor,key));
  if(firstKey){
   state.step=stepFor[firstKey];updateStep();
@@ -722,7 +760,7 @@ function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नह
 function processVoiceTurn(text){
  const raw=String(text||"").trim();if(!raw)return;
  state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;
- state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
+ state.voice.interimText="";updateVoiceTranscript();if(/[ऀ-ॿ]/.test(raw))state.voice.language="hi";const lower=raw.toLowerCase();
  if(/\b(start again|restart|dobara shuru)\b|फिर से शुरू/.test(lower)){state.voice.finalText="";state.voice.turnText="";state.voice.interimText="";state.voice.pending={};state.voice.awaitingConfirmation=false;updateVoiceTranscript();renderVoicePending();speakVoice(voiceText("ठीक है, नई शुरुआत करते हैं। अपनी property के बारे में बताइए।","Let's start again. Tell me about your property."));return;}
  if(/\b(go back|back one step|peeche jao)\b|पीछे जाओ/.test(lower)){state.step=Math.max(0,state.step-1);updateStep();speakVoice(voiceText("ठीक है, पिछले step पर आ गए हैं।","Okay, I've moved to the previous step."));return;}
  if(/\b(continue listing|next step|aage chalo)\b|आगे चलो/.test(lower)){state.step=Math.min(4,state.step+1);updateStep();speakVoice(voiceText("ठीक है, listing के अगले step पर चलते हैं।","Okay, moving to the next listing step."));return;}
@@ -765,7 +803,7 @@ function startVoiceRecognition(){
   return;
  }
  const rec=new Speech(),session=++state.voice.session;
- rec.lang=$("#gdrStudioVoiceLanguage")?.value||"hi-IN";
+ rec.lang=String($("#gdrStudioVoiceLanguage")?.value||"hi-IN").startsWith("en")?"en-IN":"hi-IN";
  rec.continuous=false;rec.interimResults=true;rec.maxAlternatives=1;
  state.recognition=rec;state.voice.turnText="";state.voice.interimText="";
  rec.onstart=()=>{
@@ -849,25 +887,27 @@ function toggleVoiceMute(){
 
 function bindEvents(){
  const root=studio();if(!root||root.dataset.bound==="1")return;root.dataset.bound="1";
+ renderLiveVoiceForm();
  root.addEventListener("click",e=>{
   const type=e.target.closest("[data-gdr-property-type]");if(type){selectedType(type.dataset.gdrPropertyType);return;}
   const config=e.target.closest("[data-gdr-configuration]");if(config){setConfiguration(config.dataset.gdrConfiguration);return;}
+  const edit=e.target.closest("[data-gdr-voice-edit]");if(edit){editVoiceField(edit.dataset.gdrVoiceEdit);return;}
   const step=e.target.closest("[data-gdr-studio-goto]");if(step){goToStep(Number(step.dataset.gdrStudioGoto));return;}
  });
  $("#gdrStudioBack")?.addEventListener("click",()=>goToStep(state.step-1));
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
-  state.address=e.target.value;state.lat=null;state.lng=null;state.pincode="";const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();
+  state.address=e.target.value;state.lat=null;state.lng=null;state.pincode="";if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"address"))state.voice.pending.address=state.address;const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();renderLiveVoiceForm();
   if(searchTimer)clearTimeout(searchTimer);
   const q=e.target.value.trim();if(q.length<3){$("#gdrStudioLocationSuggestions").hidden=true;updateLocationStatus();return;}
   searchTimer=setTimeout(()=>searchAddress(q),350);
  });
- $("#gdrStudioPincode")?.addEventListener("input",e=>{state.pincode=e.target.value.replace(/\D/g,"").slice(0,6);e.target.value=state.pincode;saveDraft();});
+ $("#gdrStudioPincode")?.addEventListener("input",e=>{state.pincode=e.target.value.replace(/\D/g,"").slice(0,6);e.target.value=state.pincode;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"pincode"))state.voice.pending.pincode=state.pincode;saveDraft();renderLiveVoiceForm();});
  ["gdrStudioRent","gdrStudioDeposit","gdrStudioFurnishing","gdrStudioDescription","gdrStudioRoomType","gdrStudioGender","gdrStudioTotalBeds","gdrStudioAvailableBeds","gdrStudioFoodIncluded"].forEach(id=>{
   const el=document.getElementById(id);if(!el)return;
-  el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;saveDraft();});
-  el.addEventListener("change",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;saveDraft();});
+  el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();});
+  el.addEventListener("change",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();});
  });
  $("#gdrStudioUseGps")?.addEventListener("click",useGps);
  $("#gdrStudioOpenMap")?.addEventListener("click",openMap);

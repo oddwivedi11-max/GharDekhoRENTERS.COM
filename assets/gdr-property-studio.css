@@ -247,3 +247,43 @@ body.gdr-property-studio-open{overflow:hidden!important}
  .gdr-studio-voice-pending>div{align-items:flex-start}
 }
 @media(prefers-reduced-motion:reduce){#gdrStudioVoiceStart.is-recording::before{animation:none}}
+
+/* Owner Voice Assistant — prominent free browser voice controls and live editable form preview. */
+.gdr-studio-voice-head{align-items:flex-start}
+.gdr-studio-voice-controls{align-items:stretch}
+.gdr-studio-voice-controls select{min-width:180px}
+.gdr-studio-mic-button{display:flex!important;align-items:center;gap:12px;min-height:66px!important;padding:9px 18px!important;border:1px solid #c6a86d!important;border-radius:16px!important;background:linear-gradient(145deg,#1d5b43,#103a2b)!important;color:#fff!important;box-shadow:0 5px 0 #092b20,0 12px 24px rgba(16,58,43,.16)!important;text-align:left}
+.gdr-studio-mic-icon{display:grid;place-items:center;width:44px;height:44px;flex:0 0 44px;border:1px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(255,255,255,.12);font-size:23px}
+.gdr-studio-mic-copy{display:grid;gap:3px}
+.gdr-studio-mic-copy strong{font-size:13px}
+.gdr-studio-mic-copy small{color:#e0eee5;font-size:10px;font-weight:600}
+#gdrStudioVoiceStart.is-recording{background:linear-gradient(145deg,#b43e3c,#8d2929)!important;border-color:#8d2929!important}
+#gdrStudioVoiceStart.is-recording .gdr-studio-mic-icon{animation:gdrStudioMicPulse 1.2s infinite}
+.gdr-studio-stop-button{min-height:48px!important;align-self:center;background:#fff!important;border-color:#e1d4d0!important;color:#8e3c34!important}
+.gdr-studio-transcript-label{display:block;margin-top:12px;color:#536c5a;font-size:10px;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+.gdr-studio-live-form{margin-top:14px;padding:15px;border:1px solid #d9e5d8;border-radius:16px;background:#fff;box-shadow:0 8px 22px rgba(18,61,49,.045)}
+.gdr-studio-live-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px}
+.gdr-studio-live-head>div{display:grid;gap:4px}
+.gdr-studio-live-head strong{color:#194431;font-size:14px}
+.gdr-studio-live-head small{color:#77857a;font-size:11px;line-height:1.45}
+#gdrStudioLiveProgressText{color:#8a7046;font-size:10px;font-weight:850;text-align:right}
+.gdr-studio-live-track{height:6px;margin:12px 0;border-radius:99px;background:#edf1e9;overflow:hidden}
+#gdrStudioLiveProgressFill{display:block;width:0;height:100%;border-radius:99px;background:linear-gradient(90deg,#1c684d,#c9a86d);transition:width .25s ease}
+.gdr-studio-live-fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.gdr-studio-live-field{display:flex;align-items:center;justify-content:space-between;gap:9px;min-width:0;padding:10px;border:1px solid #e4eae1;border-radius:11px;background:#fafbf8}
+.gdr-studio-live-field.is-filled{border-color:#d4e5d3;background:#f4f9f1}
+.gdr-studio-live-field-copy{display:grid;gap:4px;min-width:0}
+.gdr-studio-live-field-copy small{color:#7a887b;font-size:10px}
+.gdr-studio-live-field-copy strong{color:#244632;font-size:12px;overflow-wrap:anywhere}
+.gdr-studio-live-field:not(.is-filled) .gdr-studio-live-field-copy strong{color:#9aa49a;font-weight:650}
+.gdr-studio-live-field button{flex:0 0 auto;min-height:32px;padding:0 9px;border:1px solid #d5e0d3;border-radius:9px;background:#fff;color:#31543a;font-size:10px;font-weight:850}
+@media(max-width:620px){
+ .gdr-studio-voice-controls{grid-template-columns:1fr 1fr}
+ .gdr-studio-voice-controls select{grid-column:1/-1;min-width:0;width:100%}
+ .gdr-studio-mic-button{grid-column:1/-1;width:100%;justify-content:flex-start;min-height:72px!important}
+ .gdr-studio-stop-button{width:100%}
+ .gdr-studio-live-fields{grid-template-columns:1fr}
+ .gdr-studio-live-head{display:grid}
+ #gdrStudioLiveProgressText{text-align:left}
+}
+@media(prefers-reduced-motion:reduce){#gdrStudioVoiceStart.is-recording .gdr-studio-mic-icon{animation:none}}
