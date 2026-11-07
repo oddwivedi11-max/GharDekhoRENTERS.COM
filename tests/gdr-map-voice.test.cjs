@@ -11,7 +11,7 @@ test('voice assistant loads inside the existing renter Explore Map', () => {
   assert.match(map, /ensureMapVoiceAssistant/);
   assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
   assert.match(voice, /GDRRenterExperience/);
-  assert.match(voice, /api\.searchTypedMapLocation\(\)/);
+  assert.match(voice, /assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
   assert.match(voice, /gdrMapVoiceResults/);
 });
 
@@ -41,15 +41,13 @@ test('common rental filters are delegated to the shared deterministic intent par
 });
 
 
-test('voice requests use the existing map search engine and render real map markers and list results', () => {
-  assert.match(voice, /api\.setRenterSearchPreferences\(filters\)/);
-  assert.match(voice, /api\.searchTypedMapLocation\(\)/);
-  assert.match(voice, /api\.searchAtCoordinates\(/);
-  assert.match(voice, /api\.getRenterVisibleProperties\(\)/);
-  assert.match(voice, /gdrMapListToggle/);
-  assert.doesNotMatch(voice, /assistant\.searchAssistantListings/);
+test('voice searches the complete public inventory and renders matching home cards under the microphone', () => {
+  assert.match(voice, /assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
+  assert.match(voice, /gdrMapVoiceResults/);
+  assert.doesNotMatch(voice, /api\.searchTypedMapLocation\(\)/);
+  assert.match(renter, /client\.rpc\("get_public_properties"\)/);
+  assert.match(renter, /searchAssistantListings\(prefs,raw,target\)/);
   assert.match(map, /get_available_map_properties_in_bounds/);
-  assert.match(map, /renderMarkers\(rows,state\.searchCenter\)/);
 });
 test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
   assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
