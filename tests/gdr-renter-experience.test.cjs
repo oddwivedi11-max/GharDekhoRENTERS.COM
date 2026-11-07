@@ -50,6 +50,18 @@ test('state normalization preserves a locality when a city and state are spoken 
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
+test('GDR assistant preloads and caches public inventory to avoid waiting for each search', () => {
+  assert.match(js, /const publicInventoryCache=\{data:null,loadedAt:0,promise:null\}/);
+  assert.match(js, /const PUBLIC_INVENTORY_TTL_MS=20000/);
+  assert.match(js, /function loadPublicInventory\(\)/);
+  assert.match(js, /if\(publicInventoryCache\.promise\)return publicInventoryCache\.promise/);
+  assert.match(js, /client\.rpc\("get_public_properties"\)/);
+  assert.match(js, /function warmPublicInventory\(\)/);
+  assert.match(js, /mountCompare\(\);warmPublicInventory\(\)/);
+  assert.match(js, /const inventory=await loadPublicInventory\(\)/);
+  assert.match(js, /10000\);\}\)\s*\]\)\.then\(response/);
+});
+
 test('typed GDR assistant searches immediately and automatically reveals the property results', () => {
   assert.ok(js.includes('review($("gdrxPrompt").value,{autoSearch:true})'), 'the main assistant action starts a real search without a second confirmation click');
   assert.ok(js.includes('Find matching homes →'), 'the primary action clearly communicates that it searches');
