@@ -179,7 +179,7 @@ test('map search calls the live Supabase viewport RPC and enforces map bounds an
   assert.match(map, /Search this area/);
 });
 test('map results exclude occupied inventory and deduplicate property ids', () => {
-  assert.match(map, /status!=="verified"&&status!=="pending"/);
+  assert.match(map, /verification==="pending"&&status!=="pending"/);
   assert.match(map, /unique\.has\(String\(p\.id\)\)/);
   assert.match(mapMigration, /released_at is null/);
 });
