@@ -3,7 +3,7 @@
 /* GDR_COMPARE_AUTOFILL_V2: seed the clicked home with up to two nearest visible real listings. */
 if(window.GDRRenterExperience)return;
 const $=id=>document.getElementById(id),esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi",assistantSearchId:0};
+const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi",assistantSearchId:0,assistantAbortController:null};
 const publicInventoryCache={data:null,loadedAt:0,promise:null};
 const PUBLIC_INVENTORY_TTL_MS=20000;
 let comparePickerRows=[],comparePickerLoading=false,comparePickerError="",comparePickerQuery="",comparePickerBhk="",comparePickerFurnishing="";
@@ -15,23 +15,15 @@ function loadPublicInventory(){
  if(!client||typeof client.rpc!=="function")return Promise.reject(new Error("Property database is not ready. Please refresh and try again."));
  let timeoutId=0;
  publicInventoryCache.promise=Promise.race([
-  client.rpc("get_public_properties"),
+  client.rpc("search_public_properties_for_assistant",{p_search_text:null,p_min_rent:null,p_max_rent:null,p_bhk:null,p_listing_type:null,p_property_type:null,p_furnishing:null,p_limit:100,p_offset:0}),
   new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("The property database is taking too long. Please try again.")),10000);})
  ]).then(response=>{
   if(response&&response.error)throw response.error;
-  const rows=Array.isArray(response&&response.data)?response.data:[];
-  publicInventoryCache.data=rows;
-  publicInventoryCache.loadedAt=Date.now();
-  return rows;
- }).finally(()=>{
-  if(timeoutId)clearTimeout(timeoutId);
-  publicInventoryCache.promise=null;
- });
+  const payload=response&&response.data;
+  if(!payload||!Array.isArray(payload.results))throw new Error("The property database returned an invalid response.");
+  publicInventoryCache.data=payload.results;publicInventoryCache.loadedAt=Date.now();return publicInventoryCache.data;
+ }).finally(()=>{if(timeoutId)clearTimeout(timeoutId);publicInventoryCache.promise=null;});
  return publicInventoryCache.promise;
-}
-function warmPublicInventory(){
- if(!window.__gdrSupabaseClient||typeof window.__gdrSupabaseClient.rpc!=="function")return;
- loadPublicInventory().catch(error=>console.info("GDR background property prefetch deferred:",error&&error.message||error));
 }
 
 function toast(s){let n=$("gdrxToast");if(!n){n=document.createElement("div");n.id="gdrxToast";n.className="gdrx-toast";document.body.appendChild(n)}n.textContent=s;n.classList.add("on");clearTimeout(n.t);n.t=setTimeout(()=>n.classList.remove("on"),2600)}
@@ -127,72 +119,90 @@ function filterAssistantListings(rows,prefs){
 
 async function searchAssistantListings(prefs,raw,target){
  const searchId=++state.assistantSearchId;
- const language=detectReplyLanguage(raw||"");
- const location=String(prefs&&prefs.location||"").trim();
+ if(state.assistantAbortController){try{state.assistantAbortController.abort();}catch(_){}state.assistantAbortController=null;}
+ const language=detectReplyLanguage(raw||""),location=String(prefs&&prefs.location||"").trim();
  const section=$("propertiesSection"),container=$("propertiesContainer");
  const setStatus=message=>{
-  if(target){
-   target.replaceChildren();
-   const summary=document.createElement("p");
-   summary.className="gdr-map-voice-result-summary";
-   summary.textContent=message;
-   target.append(summary);
-  }
-  const status=$("gdrxStatus");
-  if(status)status.textContent=message;
+  if(target){target.replaceChildren();const summary=document.createElement("p");summary.className="gdr-map-voice-result-summary";summary.textContent=message;target.append(summary);}
+  const status=$("gdrxStatus");if(status)status.textContent=message;
  };
  const setInventorySummary=message=>{
   if(!section||!container)return;
   let node=$("gdrVoiceInventorySummary");
-  if(!node){
-   node=document.createElement("p");
-   node.id="gdrVoiceInventorySummary";
-   node.className="small-text";
-   const subtitle=section.querySelector(":scope > .small-text");
-   if(subtitle)subtitle.insertAdjacentElement("afterend",node);
-   else section.insertBefore(node,container);
-  }
+  if(!node){node=document.createElement("p");node.id="gdrVoiceInventorySummary";node.className="small-text";const subtitle=section.querySelector(":scope > .small-text");if(subtitle)subtitle.insertAdjacentElement("afterend",node);else section.insertBefore(node,container);}
   node.textContent=message;
  };
- if(!section||!container||typeof window.renderVoicePropertyResults!=="function"){
-  setStatus("The existing Available Rental Properties section is not ready. Please refresh and try again.");
-  return [];
+ if(!section||!container||typeof window.renderVoicePropertyResults!=="function"){setStatus("The existing Available Rental Properties section is not ready. Please refresh and try again.");return [];}
+ const client=window.__gdrSupabaseClient;
+ if(!client||typeof client.rpc!=="function"){setStatus("Property database is not ready. Please refresh and try again.");return [];}
+ const pageSize=100;let loadedRows=[],totalCount=0,loadingMore=false;
+ const getPagination=()=>{let node=$("propertyPagination");if(!node){node=document.createElement("div");node.id="propertyPagination";node.className="property-pagination";container.insertAdjacentElement("afterend",node);}return node;};
+ const requestPage=async offset=>{
+  const controller=typeof AbortController!=="undefined"?new AbortController():null;state.assistantAbortController=controller;let timeoutId=0;
+  try{
+   const rpc=client.rpc("search_public_properties_for_assistant",{
+    p_search_text:normalizeSearchText(location),
+    p_min_rent:prefs&&prefs.minBudget?Number(prefs.minBudget):null,
+    p_max_rent:prefs&&prefs.maxBudget?Number(prefs.maxBudget):null,
+    p_bhk:prefs&&prefs.bhk?Number(prefs.bhk):null,
+    p_listing_type:prefs&&prefs.stayType?prefs.stayType:null,
+    p_property_type:prefs&&prefs.propertyType?prefs.propertyType:null,
+    p_furnishing:prefs&&prefs.furnishing?prefs.furnishing:null,
+    p_limit:pageSize,p_offset:offset
+   });
+   const request=controller&&rpc&&typeof rpc.abortSignal==="function"?rpc.abortSignal(controller.signal):rpc;
+   const response=await Promise.race([Promise.resolve(request),new Promise((_,reject)=>{timeoutId=setTimeout(()=>{if(controller)controller.abort();reject(new Error("Property search timed out after 12 seconds. Please retry your search."));},12000);})]);
+   if(searchId!==state.assistantSearchId)return {rows:[],totalCount:0};
+   if(response&&response.error)throw response.error;
+   const payload=response&&response.data;if(!payload||!Array.isArray(payload.results))throw new Error("The property search returned an invalid response. Please retry.");
+   return {rows:payload.results,totalCount:Number(payload.total_count)||0};
+  }finally{if(timeoutId)clearTimeout(timeoutId);if(state.assistantAbortController===controller)state.assistantAbortController=null;}
+ };
+ const updatePagination=()=>{
+  const pagination=getPagination();pagination.replaceChildren();if(loadedRows.length>=totalCount)return;
+  const remaining=totalCount-loadedRows.length,button=document.createElement("button");
+  button.type="button";button.className="gdrx-assistant-load-more";
+  button.textContent=language==="hi"?"और "+remaining+" properties दिखाएँ":"Load "+remaining+" more properties";
+  button.style.cssText="display:block;margin:16px auto;padding:11px 18px;border:1px solid #d8c7a6;border-radius:10px;background:#fff9ef;color:#173f35;font:inherit;font-weight:600;cursor:pointer";
+  button.addEventListener("click",()=>loadMore(button));pagination.append(button);
+ };
+ const renderLoadedRows=()=>{
+  loadedRows.totalCount=totalCount;window.renderVoicePropertyResults(loadedRows);
+  const mapApi=window.GDRMapExperience;if(mapApi&&typeof mapApi.showVoiceSearchResults==="function")mapApi.showVoiceSearchResults(loadedRows,null,location||"Assistant search");
+  updatePagination();
+ };
+ const describeCount=()=>language==="hi"?(location?location+" में ":"")+"कुल "+totalCount+" matching properties मिली हैं। अभी "+loadedRows.length+" दिखाई जा रही हैं.":"Found "+totalCount+" matching properties"+(location?" in "+location:"")+". Showing "+loadedRows.length+" so far.";
+ async function loadMore(button){
+  if(loadingMore||loadedRows.length>=totalCount||searchId!==state.assistantSearchId)return;
+  loadingMore=true;if(button)button.disabled=true;setStatus(language==="hi"?"बाकी matching properties load कर रहा हूँ…":"Loading the remaining matching properties…");
+  try{
+   const page=await requestPage(loadedRows.length);if(searchId!==state.assistantSearchId)return;
+   const known=new Set(loadedRows.map(row=>String(row.id)));
+   page.rows.forEach(row=>{if(row&&row.id&&!known.has(String(row.id))){known.add(String(row.id));loadedRows.push(row);}});
+   totalCount=page.totalCount;renderLoadedRows();const message=describeCount();
+   setInventorySummary(message+" Available Rental Properties section में असली listings दिखाई गई हैं।");setStatus(message);
+  }catch(error){if(searchId!==state.assistantSearchId)return;setStatus(String(error&&error.message||"More properties could not be loaded. Please retry."));if(button)button.disabled=false;console.error("GDR assistant pagination failed:",error);}
+  finally{loadingMore=false;}
  }
- setInventorySummary(language==="hi"?"GharDekho database में आपकी शर्तों के अनुसार असली listings खोजी जा रही हैं…":"Searching the live GharDekho rental inventory…");
+ setInventorySummary(language==="hi"?"आपकी शर्तों के अनुसार database में उपलब्ध properties खोजी जा रही हैं…":"Searching available properties on the server…");
  container.innerHTML='<div class="loading-text">Searching matching rental properties…</div>';
- const pagination=$("propertyPagination");if(pagination)pagination.innerHTML="";
+ const pagination=$("propertyPagination");if(pagination)pagination.replaceChildren();
  setStatus(language==="hi"?"आपकी शर्तों के अनुसार database में घर खोज रहा हूँ…":"Searching the live property database for your exact requirements…");
  try{
-  const inventory=await loadPublicInventory();
-  const inventoryMayBeTruncated=inventory.length>=100;
-  const rows=filterAssistantListings(inventory,prefs);
-  if(searchId!==state.assistantSearchId)return [];
-  window.renderVoicePropertyResults(rows);
-  const count=rows.length;
-  const message=count
-   ?(language==="hi"?"बिल्कुल! "+(location?location+" में ":"")+count+" matching rental properties मिली हैं। असली listings नीचे Available Rental Properties section में दिखाई गई हैं।":"I found "+count+" matching rental "+(count===1?"property":"properties")+(location?" in "+location:"")+". The actual listings are displayed in Available Rental Properties below.")
-   :(language==="hi"?(location?location+" में ":"")+"इन filters के साथ कोई matching available property नहीं मिली। Available Rental Properties section में empty result दिखाया गया है।":"No matching available properties were found"+(location?" in "+location:"")+" with these filters. The Available Rental Properties section shows the empty state.");
-  setInventorySummary(count+" matching "+(count===1?"rental property":"rental properties")+" found"+(location?" in "+location:"")+". Showing actual results in Available Rental Properties below.");
-  const capNotice=inventoryMayBeTruncated?(language==="hi"?"ध्यान दें: database का मौजूदा public search अधिकतम 100 listings लौटाता है, इसलिए यह सूची अधूरी हो सकती है।":"Warning: the current public database search returns at most 100 listings, so this result may be incomplete."):"";
-  setStatus(message+(capNotice?" "+capNotice:""));
-  if(inventoryMayBeTruncated)setInventorySummary(count+" matching "+(count===1?"rental property":"rental properties")+" found. Warning: the existing public database function is capped at 100 records; results may be incomplete.");
-  if(!target)speakAssistantReply(message+(capNotice?" "+capNotice:""),language);
-  requestAnimationFrame(()=>{
-   if(searchId!==state.assistantSearchId)return;
-   section.scrollIntoView({behavior:window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});
-  });
-  return rows;
+  const page=await requestPage(0);if(searchId!==state.assistantSearchId)return [];
+  loadedRows=page.rows.filter(row=>row&&row.id);totalCount=page.totalCount;renderLoadedRows();
+  const message=describeCount();setInventorySummary(message+" Available Rental Properties section में वास्तविक matching listings दिखाई गई हैं।");setStatus(message);
+  if(!target)speakAssistantReply(message,language);
+  requestAnimationFrame(()=>{if(searchId!==state.assistantSearchId)return;section.scrollIntoView({behavior:window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"});});
+  return loadedRows;
  }catch(error){
   if(searchId!==state.assistantSearchId)return [];
   const message=String(error&&error.message||"The property search could not be completed. Please try again.");
-  window.renderVoicePropertyResults([],message);
-  setInventorySummary("Property search failed. No successful results were returned.");
-  setStatus(message);
-  console.error("GDR database property search failed:",error);
-  if(target)throw error;
-  return [];
+  window.renderVoicePropertyResults([],message);setInventorySummary("Property search failed. No successful results were returned.");setStatus(message);
+  console.error("GDR database voice search failed:",error);if(target)throw error;return [];
  }
 }
+
 
 function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
@@ -730,7 +740,7 @@ function ensureAssistantResultStyles(){
  const link=document.createElement("link");link.rel="stylesheet";link.href="/assets/gdr-renter-experience.css?v=20261107-smart-assistant-results-1";link.dataset.gdrxAssistantResultStyles="true";document.head.appendChild(link);
 }
 function bind(){
- ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();warmPublicInventory();$("renterDashboard")?.classList.add("gdrx-premium");
+ ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
  const results=$("propertiesContainer");if(results&&!results.dataset.gdrxScoreObserver){results.dataset.gdrxScoreObserver="1";let scoreFrame=0;new MutationObserver(()=>{if(scoreFrame)return;scoreFrame=requestAnimationFrame(()=>{scoreFrame=0;applyManualScores();});}).observe(results,{childList:true,subtree:true})}
  const form=$("renterFindHomeForm");if(form&&!form.dataset.gdrxScoreCapture){form.dataset.gdrxScoreCapture="1";form.addEventListener("submit",()=>{state.parsed={location:$("renterSearchLocation")?.value||"",bhk:$("renterSearchBhk")?.value||"",furnishing:$("renterSearchFurnishing")?.value||"",stayType:$("renterStayType")?.value||"",minBudget:$("renterMinBudget")?.value||"",maxBudget:$("renterMaxBudget")?.value||""};setTimeout(applyManualScores,1000)})}
  const fbtn=$("renterFindHomeBtn");if(fbtn&&!fbtn.dataset.gdrx){fbtn.dataset.gdrx="1";fbtn.addEventListener("click",openFind)}

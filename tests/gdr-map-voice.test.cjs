@@ -50,7 +50,7 @@ test('voice searches the public inventory and renders results in Available Renta
   assert.match(voice, /gdrMapVoiceResults/);
   assert.doesNotMatch(voice, /api\.searchTypedMapLocation\(\)/);
   assert.match(voice, /api\.showVoiceSearchResults\(rows,point,location\)/);
-  assert.match(renter, /client\.rpc\("get_public_properties"\)/);
+  assert.match(renter, /client\.rpc\("search_public_properties_for_assistant"/);
   assert.match(renter, /searchAssistantListings\(prefs,raw,target\)/);
   assert.match(renter, /window\.renderVoicePropertyResults\(rows\)/);
   assert.match(renter, /propertiesSection/);
@@ -66,7 +66,8 @@ test('voice searches the public inventory and renders results in Available Renta
 });
 test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
   assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
-  assert.match(map, /gdr-map-voice\.js\?v=20261107-map-voice5/);
+  assert.match(map, /gdr-map-voice\.js\?v=20261107-map-voice6/);
+  assert.match(voice, /rows\.totalCount\?\?rows\.length/);
   assert.match(voice, /gdr-map-voice-mic-icon/);
   assert.match(voice, /<svg viewBox="0 0 24 24"/);
 });

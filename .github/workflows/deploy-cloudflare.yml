@@ -37,10 +37,10 @@ jobs:
           path = Path("index.html")
           source = path.read_text(encoding="utf-8")
           assets = [
-              ("gdr-renter-experience.js", "20261107-compare-picker2"),
+              ("gdr-renter-experience.js", "20261107-server-search1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
               ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
-              ("gdr-map-experience.js", "20261107-map-compare-button1"),
+              ("gdr-map-experience.js", "20261107-map-voice-loader6"),
           ]
           for asset, version in assets:
               pattern = r'(/assets/' + re.escape(asset) + r')(?:\?v=[^"\s>]*)?'
@@ -114,7 +114,7 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
-          grep -q 'gdr-map-experience.js?v=20261107-map-compare-button1' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261107-map-voice-loader6' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js
@@ -124,11 +124,11 @@ jobs:
           grep -q 'searchRenterArea(undefined,true)' /tmp/gdr-map-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice5" -o /tmp/gdr-map-voice.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice6" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
-          grep -q 'const VERSION="20261107-map-voice5"' /tmp/gdr-map-voice.js
-          grep -q 'const VERSION="20261107-map-voice5"' /tmp/gdr-map-voice.js
+          grep -q 'const VERSION="20261107-map-voice6"' /tmp/gdr-map-voice.js
+          grep -q 'const VERSION="20261107-map-voice6"' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
@@ -149,11 +149,12 @@ jobs:
           grep -q '#gdrMapVoiceAssistant.gdr-map-voice{' /tmp/gdr-map-voice.css
           grep -q 'background:#FFF9EF!important' /tmp/gdr-map-voice.css
           grep -q 'color:#173F35!important' /tmp/gdr-map-voice.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-compare-picker2" -o /tmp/gdr-renter-experience.js
-          grep -q 'get_public_properties' /tmp/gdr-renter-experience.js
-          grep -q 'PUBLIC_INVENTORY_TTL_MS=20000' /tmp/gdr-renter-experience.js
-          grep -q 'function warmPublicInventory()' /tmp/gdr-renter-experience.js
-          grep -q 'const inventory=await loadPublicInventory()' /tmp/gdr-renter-experience.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-server-search1" -o /tmp/gdr-renter-experience.js
+          grep -q 'search_public_properties_for_assistant' /tmp/gdr-renter-experience.js
+          grep -q 'p_limit:pageSize' /tmp/gdr-renter-experience.js
+          grep -q 'p_offset:offset' /tmp/gdr-renter-experience.js
+          grep -q 'function loadMore(button)' /tmp/gdr-renter-experience.js
+          if grep -Eq 'get_public_properties|warmPublicInventory' /tmp/gdr-renter-experience.js; then echo 'Legacy page-load inventory prefetch is still present.'; exit 1; fi
           grep -q 'window.renderVoicePropertyResults(rows)' /tmp/gdr-renter-experience.js
           grep -q 'Available Rental Properties below' /tmp/gdr-renter-experience.js
           grep -q 'const hindiCityLead=clean.match' /tmp/gdr-renter-experience.js
@@ -172,7 +173,7 @@ jobs:
           grep -q 'gdrx-finder' /tmp/gdr-renter-experience.css
           grep -q 'FINAL ACCEPTANCE FIX: three distinct renter dashboard identities' /tmp/gdr-renter-experience.css
           grep -q 'background:linear-gradient(135deg,#fffdf7 0%,#f7f0e2 58%,#efe4cf 100%)' /tmp/gdr-renter-experience.css
-          grep -q 'gdr-renter-experience.js?v=20261107-compare-picker2' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-server-search1' /tmp/gdr-live-index.html
           grep -q 'gdr-renter-dashboard-visual-fix-v4' /tmp/gdr-live-index.html
           grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-index.html
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
@@ -225,7 +226,7 @@ jobs:
           if grep -q 'scheduleVoiceRestart' /tmp/gdr-property-studio.js; then echo 'Automatic owner microphone restart still present.'; exit 1; fi
           grep -q 'speechSynthesis' /tmp/gdr-property-studio.js
           grep -q 'SpeechRecognition' /tmp/gdr-property-studio.js
-          grep -q 'gdr-renter-experience.js?v=20261107-compare-picker2' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-server-search1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261107-voiceassistant1" -o /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-topbar' /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-voice-assistant' /tmp/gdr-property-studio.css

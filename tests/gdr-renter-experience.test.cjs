@@ -7,6 +7,7 @@ const map = fs.readFileSync('assets/gdr-map-experience.js', 'utf8');
 const mapVoice = fs.readFileSync('assets/gdr-map-voice.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
+const assistantSearchMigration = fs.readFileSync('supabase/migrations/20261107150000_gdr_assistant_server_search.sql', 'utf8');
 const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
 const css = fs.readFileSync('assets/gdr-renter-experience.css', 'utf8');
 const normalizeStart = js.indexOf('function normalizeSearchText(value){');
@@ -50,16 +51,19 @@ test('state normalization preserves a locality when a city and state are spoken 
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
-test('GDR assistant preloads and caches public inventory to avoid waiting for each search', () => {
-  assert.match(js, /const publicInventoryCache=\{data:null,loadedAt:0,promise:null\}/);
-  assert.match(js, /const PUBLIC_INVENTORY_TTL_MS=20000/);
-  assert.match(js, /function loadPublicInventory\(\)/);
-  assert.match(js, /if\(publicInventoryCache\.promise\)return publicInventoryCache\.promise/);
-  assert.match(js, /client\.rpc\("get_public_properties"\)/);
-  assert.match(js, /function warmPublicInventory\(\)/);
-  assert.match(js, /mountCompare\(\);warmPublicInventory\(\)/);
-  assert.match(js, /const inventory=await loadPublicInventory\(\)/);
-  assert.match(js, /10000\);\}\)\s*\]\)\.then\(response/);
+test('GDR assistant uses indexed server-side pagination and never preloads the full public inventory', () => {
+  assert.match(js, /search_public_properties_for_assistant/);
+  assert.match(js, /p_limit:pageSize/);
+  assert.match(js, /p_offset:offset/);
+  assert.match(js, /total_count/);
+  assert.match(js, /assistantAbortController/);
+  assert.match(js, /AbortController/);
+  assert.match(js, /function loadMore\(button\)/);
+  assert.doesNotMatch(js, /get_public_properties|warmPublicInventory/);
+  assert.match(assistantSearchMigration, /CREATE INDEX IF NOT EXISTS properties_assistant_search_tsv_idx/i);
+  assert.match(assistantSearchMigration, /search_public_properties_for_assistant/);
+  assert.match(assistantSearchMigration, /REVOKE ALL ON FUNCTION/i);
+  assert.match(assistantSearchMigration, /GRANT EXECUTE ON FUNCTION/i);
 });
 
 test('typed GDR assistant searches immediately and automatically reveals the property results', () => {
