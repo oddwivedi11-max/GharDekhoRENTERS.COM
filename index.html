@@ -14146,6 +14146,12 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 if (section) section.style.setProperty("display", "none", "important");
             });
             details.style.display = "block";
+            content.querySelectorAll("[data-gdr-gallery-src]").forEach(button => {
+                button.addEventListener("click", () => {
+                    const mainImage = document.getElementById("gdrPropertyDetailMainImage");
+                    if (mainImage) mainImage.src = button.getAttribute("data-gdr-gallery-src");
+                });
+            });
             details.setAttribute("aria-hidden", "false");
             content.querySelectorAll("[data-gdr-gallery-src]").forEach(button => {
                 button.addEventListener("click", () => {
