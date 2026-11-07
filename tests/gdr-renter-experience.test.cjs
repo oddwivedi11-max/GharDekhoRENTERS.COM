@@ -240,8 +240,8 @@ test('assistant district results can show a genuine listing without map coordina
 
 
 test('dashboard initialization does not rescan the entire document for every DOM mutation', () => {
-  assert.doesNotMatch(js, /new MutationObserver\\(bind\\)\\.observe\\(document\\.body/);
+  assert.equal(js.includes('new MutationObserver(bind).observe(document.body'), false);
   assert.doesNotMatch(js, /__gdrAvailableRentalPanelObserver/);
-  assert.match(js, /scoreFrame=requestAnimationFrame\\(\\(\\)=>\\{scoreFrame=0;applyManualScores\\(\\);\\}\\)/);
-  assert.match(js, /document\.addEventListener\("DOMContentLoaded",bind\)/);
+  assert.ok(js.includes('scoreFrame=requestAnimationFrame(()=>{scoreFrame=0;applyManualScores();})'));
+  assert.ok(js.includes('document.addEventListener("DOMContentLoaded",bind)'));
 });
