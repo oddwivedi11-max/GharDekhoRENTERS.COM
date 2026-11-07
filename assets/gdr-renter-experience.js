@@ -57,7 +57,7 @@ function filterAssistantListings(rows,prefs){
   if(!available)return false;
   if((String(row.listing_type||"home").toLowerCase()==="pg"||String(row.listing_type||"home").toLowerCase()==="hostel")&&number(row.available_beds)!==null&&number(row.available_beds)<=0)return false;
   if((String(row.listing_type||"home").toLowerCase()==="pg"||String(row.listing_type||"home").toLowerCase()==="hostel")&&number(row.available_beds)===null)return false;
-  const haystack=normalizeSearchText([row.location,row.address].filter(Boolean).join(" "));
+  const haystack=normalizeSearchText([row.location,row.address,row.city,row.district,row.state,row.postcode].filter(Boolean).join(" "));
   if(tokens.length&&!tokens.every(token=>haystack.split(" ").includes(token)))return false;
   if(requestedCities.length){
    const address=normalizeSearchText(row.address||"");
@@ -99,6 +99,16 @@ async function searchAssistantListings(prefs,raw,target){
   const title=document.createElement("h4");title.textContent=(location?location+" — ":"")+rows.length+" Available "+(rows.length===1?"Home":"Homes");
   const count=document.createElement("span");count.className="gdrx-assistant-results-count";count.textContent=String(rows.length);
   heading.append(title,count);panel.append(heading);
+  if(target){
+   const mapped=rows.filter(property=>property.latitude!=null&&property.longitude!=null&&Number.isFinite(Number(property.latitude))&&Number.isFinite(Number(property.longitude))).length;
+   const summary=document.createElement("p");summary.className="gdrx-assistant-results-status";
+   summary.textContent=rows.length
+    ?(language==="hi"?"मैप पर "+mapped+" घरों के price markers दिखाए जा रहे हैं। कुल "+rows.length+" matching listings मिलीं।":"Showing "+mapped+" mapped home price markers. "+rows.length+" matching listings found.")
+    :(language==="hi"?"इस location में matching घर नहीं मिले। कृपया locality या filters बदलें।":"No matching homes found. Try another locality or adjust the filters.");
+   panel.append(summary);
+   const status=$("gdrxStatus");if(status)status.textContent=summary.textContent;
+   return rows;
+  }
   if(!rows.length){
    const empty=document.createElement("p");empty.className="gdrx-assistant-results-empty";
    empty.textContent=language==="hi"?"इस location में अभी कोई matching available home नहीं मिला। कृपया locality या filters बदलकर देखें।":"No matching available homes were found in this location. Try another locality or adjust your filters.";
@@ -147,7 +157,7 @@ function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
   const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
  const p={raw:original,location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:"",propertyType:"",radiusKm:null,useMyLocation:false,familyFriendly:false};
- const bhk=n.match(/\b([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|कमरे)\b/);if(bhk)p.bhk=bhk[1];
+ const bhk=n.match(/(?:^|\s)([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|कमरे)(?=\s|$|[^a-z0-9])/i);if(bhk)p.bhk=bhk[1];
  const radius=n.match(/(?:within|radius(?: of)?|around|के अंदर|तक)\s*(\d+(?:\.\d+)?)\s*(?:km|kms|kilomet(?:er|re)s?|किलोमीटर|कि\.?मी\.?)\b/i)||n.match(/\b(\d+(?:\.\d+)?)\s*(?:km|kms|kilomet(?:er|re)s?|किलोमीटर)\s*(?:के अंदर|तक|radius)?/i);
  if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
  if(/\b(pg|paying guest)\b|पीजी/.test(n))p.stayType="pg";
@@ -171,6 +181,8 @@ function parseRequest(raw){
    ||n.match(/(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})\s*(?:(?:rupees?|rs\.?|रुपये|रु\.?)\s*)?(?:ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|तक)/i);
   if(max)p.maxBudget=max[1].replace(/,/g,"");
   if(!p.maxBudget){const amount=n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये|रु\.?)/i);if(amount)p.maxBudget=amount[1].replace(/,/g,"");}
+  if(!p.maxBudget){const compact=n.match(/(\d+(?:\.\d+)?)\s*k\s*(?:ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|under|below)/i);if(compact)p.maxBudget=String(Math.round(Number(compact[1])*1000));}
+  if(!p.maxBudget&&/दस\s*हजार/.test(n)&&/(से कम|के कम|से नीचे|के नीचे)/.test(n))p.maxBudget="10000";
  }
  if(/\b(my|current) location\b|मेरी लोकेशन|मेरी जगह|मेरे पास/.test(n))p.useMyLocation=true;
  if(/\b(college|university)\b|कॉलेज|विश्वविद्यालय/.test(n))p.nearby="college";
@@ -182,12 +194,25 @@ function parseRequest(raw){
  let m=clean.match(/\b(?:near|around|in|at)\b\s+(.+?)(?=\s+(?:under|below|upto|up to|budget|maximum|max|minimum|min|above|at least|more than|furnished|unfurnished|semi|[1-5]\s*(?:bhk|bed|bedroom)|pg|hostel|flat|apartment|house|villa|room|within|radius|around|college|hospital|market|railway|family)\b|$)/i);
  if(m)p.location=m[1].replace(/[.,!?]+$/,"").trim();
  if(!p.location){
-  m=clean.match(/^(.+?)\s+(?:mein|me|में)(?=\s|$)/i);
-  if(m)p.location=m[1].replace(/[.,!?]+$/,"").trim();
+  const hindiCityLead=clean.match(/^(.+?)\s+(?:में|mein)\s+(.+)$/i);
+  if(hindiCityLead){
+   const cityPart=hindiCityLead[1].replace(/[.,!?]+$/,"").trim();
+   let localityPart=hindiCityLead[2].trim();
+   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितने|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|कमरे)|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein)(?=\s|$)/i);
+   if(stop>=0)localityPart=localityPart.slice(0,stop).trim();
+   localityPart=localityPart.replace(/\s+(?:के|की|का)$/i,"").trim();
+   p.location=localityPart?localityPart+", "+cityPart:cityPart;
+  }
  }
  if(!p.location){
   m=clean.match(/^(.+?)\s+(?:ke paas|ke pass|के पास)(?=\s|$)/i);
   if(m)p.location=m[1].replace(/[.,!?]+$/,"").trim();
+ }
+ if(!p.location){
+  const cityToken=normalizeSearchText(clean);
+  const cities=[["bhopal","Bhopal"],["singrauli","Singrauli"],["indore","Indore"],["jabalpur","Jabalpur"],["gwalior","Gwalior"],["ujjain","Ujjain"],["rewa","Rewa"],["satna","Satna"],["dewas","Dewas"],["sidhi","Sidhi"]];
+  const city=cities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(cityToken));
+  if(city)p.location=city[1];
  }
  if(/^(?:my|current) location$/i.test(p.location))p.location="";
  // Resolve common Madhya Pradesh state-plus-city phrases to the actual requested city.
