@@ -4,6 +4,35 @@
 if(window.GDRRenterExperience)return;
 const $=id=>document.getElementById(id),esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi",assistantSearchId:0};
+const publicInventoryCache={data:null,loadedAt:0,promise:null};
+const PUBLIC_INVENTORY_TTL_MS=20000;
+function loadPublicInventory(){
+ const now=Date.now();
+ if(publicInventoryCache.data&&now-publicInventoryCache.loadedAt<PUBLIC_INVENTORY_TTL_MS)return Promise.resolve(publicInventoryCache.data);
+ if(publicInventoryCache.promise)return publicInventoryCache.promise;
+ const client=window.__gdrSupabaseClient;
+ if(!client||typeof client.rpc!=="function")return Promise.reject(new Error("Property database is not ready. Please refresh and try again."));
+ let timeoutId=0;
+ publicInventoryCache.promise=Promise.race([
+  client.rpc("get_public_properties"),
+  new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("The property database is taking too long. Please try again.")),10000);})
+ ]).then(response=>{
+  if(response&&response.error)throw response.error;
+  const rows=Array.isArray(response&&response.data)?response.data:[];
+  publicInventoryCache.data=rows;
+  publicInventoryCache.loadedAt=Date.now();
+  return rows;
+ }).finally(()=>{
+  if(timeoutId)clearTimeout(timeoutId);
+  publicInventoryCache.promise=null;
+ });
+ return publicInventoryCache.promise;
+}
+function warmPublicInventory(){
+ if(!window.__gdrSupabaseClient||typeof window.__gdrSupabaseClient.rpc!=="function")return;
+ loadPublicInventory().catch(error=>console.info("GDR background property prefetch deferred:",error&&error.message||error));
+}
+
 function toast(s){let n=$("gdrxToast");if(!n){n=document.createElement("div");n.id="gdrxToast";n.className="gdrx-toast";document.body.appendChild(n)}n.textContent=s;n.classList.add("on");clearTimeout(n.t);n.t=setTimeout(()=>n.classList.remove("on"),2600)}
 function openFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(!f)return;document.body.classList.add("gd-renter-explore-mode");f.hidden=false;f.style.display="block";if(d)d.style.display="none";f.scrollIntoView({behavior:"smooth",block:"start"})}
 function closeFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(f){f.hidden=true;f.style.display="none"}document.body.classList.remove("gd-renter-explore-mode");if(d){d.style.display="block";d.scrollIntoView({behavior:"smooth",block:"start"})}}
@@ -133,17 +162,7 @@ async function searchAssistantListings(prefs,raw,target){
  const pagination=$("propertyPagination");if(pagination)pagination.innerHTML="";
  setStatus(language==="hi"?"आपकी शर्तों के अनुसार database में घर खोज रहा हूँ…":"Searching the live property database for your exact requirements…");
  try{
-  const client=window.__gdrSupabaseClient;
-  if(!client||typeof client.rpc!=="function")throw new Error("Property database is not ready. Please refresh and try again.");
-  let timeoutId,response;
-  try{
-   response=await Promise.race([
-    client.rpc("get_public_properties"),
-    new Promise((_,reject)=>{timeoutId=setTimeout(()=>reject(new Error("The property database took too long to respond. Please try again.")),15000);})
-   ]);
-  }finally{if(timeoutId)clearTimeout(timeoutId);}
-  if(response.error)throw response.error;
-  const inventory=Array.isArray(response.data)?response.data:[];
+  const inventory=await loadPublicInventory();
   const inventoryMayBeTruncated=inventory.length>=100;
   const rows=filterAssistantListings(inventory,prefs);
   if(searchId!==state.assistantSearchId)return [];
@@ -670,7 +689,7 @@ function ensureAssistantResultStyles(){
  const link=document.createElement("link");link.rel="stylesheet";link.href="/assets/gdr-renter-experience.css?v=20261107-smart-assistant-results-1";link.dataset.gdrxAssistantResultStyles="true";document.head.appendChild(link);
 }
 function bind(){
- ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
+ ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();warmPublicInventory();$("renterDashboard")?.classList.add("gdrx-premium");
  const results=$("propertiesContainer");if(results&&!results.dataset.gdrxScoreObserver){results.dataset.gdrxScoreObserver="1";let scoreFrame=0;new MutationObserver(()=>{if(scoreFrame)return;scoreFrame=requestAnimationFrame(()=>{scoreFrame=0;applyManualScores();});}).observe(results,{childList:true,subtree:true})}
  const form=$("renterFindHomeForm");if(form&&!form.dataset.gdrxScoreCapture){form.dataset.gdrxScoreCapture="1";form.addEventListener("submit",()=>{state.parsed={location:$("renterSearchLocation")?.value||"",bhk:$("renterSearchBhk")?.value||"",furnishing:$("renterSearchFurnishing")?.value||"",stayType:$("renterStayType")?.value||"",minBudget:$("renterMinBudget")?.value||"",maxBudget:$("renterMaxBudget")?.value||""};setTimeout(applyManualScores,1000)})}
  const fbtn=$("renterFindHomeBtn");if(fbtn&&!fbtn.dataset.gdrx){fbtn.dataset.gdrx="1";fbtn.addEventListener("click",openFind)}
