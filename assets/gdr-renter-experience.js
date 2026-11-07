@@ -55,7 +55,7 @@ function parseRequest(raw){
  if(/\b(independent house)\b|स्वतंत्र मकान/.test(n))p.propertyType="independent_house";
  else if(/\b(villa)\b/.test(n))p.propertyType="villa";
  else if(/\b(apartment|flat)\b|अपार्टमेंट|फ्लैट/.test(n))p.propertyType="apartment";
- else if(/\b(single\\s+)?room\\b|कमरा|कमरे/.test(n))p.propertyType="room";
+ else if(/\b(single\s+)?room\\b|कमरा|कमरे/.test(n))p.propertyType="room";
  const range=n.match(/(?:between|from|budget)?\s*(?:₹|rs\.?\s*)?([\d,]{3,8})\s*(?:to|and|-)\s*(?:₹|rs\.?\s*)?([\d,]{3,8})/i);
  if(range){p.minBudget=range[1].replace(/,/g,"");p.maxBudget=range[2].replace(/,/g,"");}
  else{
