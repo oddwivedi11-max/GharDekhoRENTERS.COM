@@ -168,6 +168,10 @@ function review(raw,options){
  if(options&&options.autoSearch){
   if(!p.location&&!p.useMyLocation){status.textContent="I understood the filters, but I still need a city or locality before searching. Please add one below.";return false;}
   status.textContent="Voice request understood. Applying your filters and searching actual GharDekho listings…";
+  const replyLanguage=detectReplyLanguage(raw),spokenReply=replyLanguage==="hi"
+   ?"समझ गया। मैं "+(p.location||"आपकी चुनी हुई location")+" में उपलब्ध rental homes खोज रहा हूँ।"
+   :"Got it. I'm searching available rental homes in "+(p.location||"your selected location")+".";
+  speakAssistantReply(spokenReply,replyLanguage);
  }else status.textContent="Extracted with a local parser. You can edit any field before searching.";
  $("gdrxEdit").onclick=()=>$("renterFindHomeForm").scrollIntoView({behavior:"smooth",block:"start"});
  $("gdrxFind").onclick=()=>$("renterFindHomeForm").requestSubmit();
