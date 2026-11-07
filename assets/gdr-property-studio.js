@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-voiceassistant6";
+const VERSION="20261107-manualfirst1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -545,10 +545,12 @@ async function open(voice){
   const account=await getOwner();state.user=account.user;state.owner=account.owner;state.published=false;
   state.submissionId=state.submissionId||uuid();
   restoreDraft();
+  // Always reopen at the first manual-entry step while preserving saved values.
+  state.step=0;
   const root=studio();if(!root)throw new Error("Property Studio could not be loaded. Refresh and try again.");
   root.hidden=false;document.body.classList.add("gdr-property-studio-open");
   const dashSection=$("#dashboardSection");if(dashSection){dashSection.style.display="none";dashSection.setAttribute("aria-hidden","true");}
-  updateStep();window.scrollTo({top:0,behavior:"instant"});
+  updateStep();root.scrollTop=0;root.scrollTo({top:0,behavior:"instant"});window.scrollTo({top:0,behavior:"instant"});
   wrapMapCallback();
   if(voice)startVoice();
  }catch(e){message(e.message||"Could not open Property Studio.","error");const m=$("#backendMessage");if(m){m.textContent=e.message||"Could not open Property Studio.";m.className="backend-message error";}}
