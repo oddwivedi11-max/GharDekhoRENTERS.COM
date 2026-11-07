@@ -236,9 +236,9 @@ test('renter dashboard final visual overrides provide readable hero and premium 
 
 test('GDR Smart Finder greets renters as their personal assistant and searches the live public inventory', () => {
   assert.match(js, /Hello! मैं GDR Assistant हूँ — GharDekho का आपका personal assistant/);
-  assert.match(js, /client\.rpc\("get_public_properties"\)/);
+  assert.match(js, /client\.rpc\("search_public_properties_for_assistant"/);
   assert.match(js, /searchAssistantListings\(p,raw\)/);
-  assert.ok(js.includes('window.renderVoicePropertyResults(rows)'));
+  assert.ok(js.includes('window.renderVoicePropertyResults(loadedRows)'));
   assert.doesNotMatch(js, /gdrx-assistant-property-card/);
   assert.match(js, /filterAssistantListings/);
 });
