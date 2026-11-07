@@ -553,7 +553,7 @@ function renderComparePicker(){
  const base=filterAssistantListings(comparePickerRows,{});
  const rows=base.filter(p=>{
   if(!p||p.id==null||selected.has(String(p.id)))return false;
-  if(comparePickerBhk){const bhk=Number(p.bhk||p.bedrooms||p.bhk_configuration||0);if(comparePickerBhk==="5"?bhk<5:bhk!==Number(comparePickerBhk))return false}
+  if(comparePickerBhk){const bhk=normalizedPropertyBhk(p);if(bhk===null||(comparePickerBhk==="5"?bhk<5:bhk!==Number(comparePickerBhk)))return false}
   if(comparePickerFurnishing&&String(p.furnishing||"").trim().toLowerCase()!==comparePickerFurnishing.toLowerCase())return false;
   if(tokens.length){const hay=normalizeSearchText([p.title,p.name,p.location,p.address,p.pincode,p.bhk,p.furnishing,p.property_type,p.listing_type,p.rent].filter(Boolean).join(" "));if(!tokens.every(token=>hay.includes(token)))return false}
   return true;
