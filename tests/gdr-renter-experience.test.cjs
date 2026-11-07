@@ -44,7 +44,7 @@ test('Madhya Pradesh state-plus-city voice request resolves to the requested cit
   assert.equal(p.location, 'Indore');
   assert.equal(p.stayType, '');
 });
-test('state normalization preserves a locality' when a city and state are spoken together', () => {
+test('state normalization preserves a locality when a city and state are spoken together', () => {
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
@@ -70,7 +70,8 @@ test('voice parser distinguishes Room from Apartment for renter searches', () =>
 });
 test('spoken follow-up filters preserve the previously selected city and stay type', () => {
   assert.ok(js.includes('const extracted=parseRequest(raw),previous=state.parsed||{}'));
-  assert.ok(js.includes('if(!extracted[key])p[key]=previous[key]||""'));
+  assert.ok(js.includes('if(!extracted[key]&&!(broadHomes&&(key==="stayType"||key==="propertyType")))p[key]=previous[key]||""'));
+  assert.ok(js.includes('if(broadHomes){p.stayType="";p.propertyType="";}'));
 });
 test('renter search applies an exact property type filter to real inventory', () => {
   assert.ok(index.includes('id="renterSearchPropertyType"'));
