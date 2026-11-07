@@ -158,6 +158,7 @@ test('Hindi all-property command resolves Singrauli and clears restrictive listi
 test('Locality-only Hindi/Hinglish all-property commands retain the requested locality', () => {
   assert.equal(parseRequest('मुझे पटेल नगर की सारी प्रॉपर्टी दिखाओ').location, 'पटेल नगर');
   assert.equal(parseRequest('Patel Nagar Bhopal ki saari properties').location, 'Patel Nagar Bhopal');
+  assert.equal(parseRequest('Mujhe Patel Nagar Bhopal ki saari properties dikhao').location, 'Patel Nagar Bhopal');
 });
 test('Find Home review clears previous filters for Hindi jitne bhi property requests', () => {
   assert.ok(js.includes('जितने\\s+भी') && js.includes('jitne\\s+bhi'));
