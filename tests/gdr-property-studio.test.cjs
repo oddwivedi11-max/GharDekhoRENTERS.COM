@@ -86,7 +86,7 @@ test("Property Studio saves drafts, uploads owner-scoped photos and uses the sec
 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261107-voiceassistant1\"/);
+  assert.match(studio, /const VERSION=\"20261107-voiceassistant2\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
