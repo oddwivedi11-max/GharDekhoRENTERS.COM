@@ -7,6 +7,7 @@ const map = fs.readFileSync('assets/gdr-map-experience.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
 const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
+const css = fs.readFileSync('assets/gdr-renter-experience.css', 'utf8');
 const normalizeStart = js.indexOf('function normalizeSearchText(value){');
 const start = js.indexOf('function parseRequest(raw){');
 const end = js.indexOf('\nfunction setValue', start);
@@ -244,4 +245,11 @@ test('dashboard initialization does not rescan the entire document for every DOM
   assert.doesNotMatch(js, /__gdrAvailableRentalPanelObserver/);
   assert.ok(js.includes('scoreFrame=requestAnimationFrame(()=>{scoreFrame=0;applyManualScores();})'));
   assert.ok(js.includes('document.addEventListener("DOMContentLoaded",bind)'));
+});
+
+test('mobile Smart Finder property cards use a vertical layout with a readable three-action row', () => {
+  assert.match(css, /#gdrxAssistantResults \.gdrx-assistant-property-card\{[\s\S]*?flex-direction:column!important/);
+  assert.match(css, /grid-template-columns:repeat\(3,minmax\(0,1fr\)\)!important/);
+  assert.match(css, /writing-mode:horizontal-tb!important/);
+  assert.match(css, /overflow-wrap:normal!important/);
 });
