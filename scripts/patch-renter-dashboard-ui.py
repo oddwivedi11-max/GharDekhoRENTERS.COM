@@ -1,3 +1,4 @@
+# Trigger downstream production workflows from the fully patched main branch.
 from pathlib import Path
 
 INDEX = Path("index.html")
