@@ -132,7 +132,11 @@ jobs:
           grep -q 'gdrMapVoiceResults' /tmp/gdr-map-voice.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
           grep -q 'gdrMapVoiceResults' /tmp/gdr-map-voice.js
-          grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js
+          grep -q 'r.continuous=false' /tmp/gdr-map-voice.js
+          grep -q 'setTimeout(finishTurn,450)' /tmp/gdr-map-voice.js
+          grep -q 'if(!current)state.finalText=spoken' /tmp/gdr-map-voice.js
+          grep -q 'prefs={...state.prefs}' /tmp/gdr-map-voice.js
+          if grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js; then echo 'Legacy slow interim speech finalizer is still present.'; exit 1; fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-map-ux2" -o /tmp/gdr-map-voice.css
           grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
           grep -q 'background:linear-gradient(145deg,#103d32 0%,#0b3028 100%)' /tmp/gdr-map-voice.css
