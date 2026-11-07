@@ -29,8 +29,8 @@ function extractIntent(raw){
    if(parsed[key]!==undefined&&parsed[key]!==null&&parsed[key]!=="")prefs[key]=parsed[key];
   });
   const request=String(raw||"");
-  if(/\\b(?:any|all)\\s+(?:bhk|bedrooms?)\\b|(?:कोई भी|सभी)\\s*(?:बीएचके|बेडरूम)|सभी प्रकार के घर/i.test(request))delete prefs.bhk;
-  if(/\\b(?:clear|remove|reset)\\s+(?:budget|rent)\\b|बजट हटाओ|किराया हटाओ/i.test(request)){delete prefs.minBudget;delete prefs.maxBudget;}
+  if(/\b(?:any|all)\s+(?:bhk|bedrooms?)\b|(?:कोई भी|सभी)\s*(?:बीएचके|बेडरूम)|सभी प्रकार के घर/i.test(request))delete prefs.bhk;
+  if(/\b(?:clear|remove|reset)\s+(?:budget|rent)\b|बजट हटाओ|किराया हटाओ/i.test(request)){delete prefs.minBudget;delete prefs.maxBudget;}
   return {prefs,location:String(parsed.location||""),nearMe:!!parsed.useMyLocation,radiusKm:parsed.radiusKm==null?null:Number(parsed.radiusKm),raw:request};
  }
  return {prefs:{...state.prefs},location:String(raw||"").trim(),nearMe:false,radiusKm:null,raw:String(raw||"")};
@@ -170,7 +170,8 @@ async function runTurn(raw){
  }catch(error){
   if(searchId!==state.searchId)return;
   console.error("GDR database voice search failed:",error);
-  status(error.message||text("Search पूरी नहीं हो सकी। दोबारा कोशिश करें।","Search could not be completed. Please try again."),"error");
+  const message=error.message||text("Search पूरी नहीं हो सकी। दोबारा कोशिश करें।","Search could not be completed. Please try again.");
+  status(message,"error");speak(message);
  }
 }
 function mount(panel){
