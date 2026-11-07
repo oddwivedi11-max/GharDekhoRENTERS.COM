@@ -40,7 +40,7 @@ jobs:
               ("gdr-renter-experience.js", "20261107-renter-search3"),
               ("gdr-renter-experience.css", "20261107-mobile-card1"),
               ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
-              ("gdr-map-experience.js", "20261107-map-voice4"),
+              ("gdr-map-experience.js", "20261107-map-voice5"),
           ]
           for asset, version in assets:
               pattern = r'(/assets/' + re.escape(asset) + r')(?:\?v=[^"\s>]*)?'
@@ -114,18 +114,21 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/login" -o /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
-          grep -q 'gdr-map-experience.js?v=20261107-map-voice4' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261107-map-voice5' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js
           grep -q 'fitBounds(coordinates,{padding:\[48,48\],maxZoom:15,animate:false})' /tmp/gdr-map-experience.js
+          grep -q 'SATELLITE_URL' /tmp/gdr-map-experience.js
+          grep -q 'radiusBounds(state.searchCenter)' /tmp/gdr-map-experience.js
+          grep -q 'searchRenterArea(undefined,true)' /tmp/gdr-map-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice4" -o /tmp/gdr-map-voice.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice5" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
-          grep -q 'const VERSION="20261107-map-voice4"' /tmp/gdr-map-voice.js
-          grep -q 'const VERSION="20261107-map-voice4"' /tmp/gdr-map-voice.js
+          grep -q 'const VERSION="20261107-map-voice5"' /tmp/gdr-map-voice.js
+          grep -q 'const VERSION="20261107-map-voice5"' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
@@ -138,9 +141,11 @@ jobs:
           grep -q 'if(!current)state.finalText=spoken' /tmp/gdr-map-voice.js
           grep -q 'prefs={...state.prefs}' /tmp/gdr-map-voice.js
           if grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js; then echo 'Legacy slow interim speech finalizer is still present.'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-map-ux2" -o /tmp/gdr-map-voice.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-map-ux3" -o /tmp/gdr-map-voice.css
           grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
-          grep -q 'background:linear-gradient(145deg,#103d32 0%,#0b3028 100%)' /tmp/gdr-map-voice.css
+          grep -q '#gdrMapVoiceAssistant .gdr-map-voice-head h3' /tmp/gdr-map-voice.css
+          grep -q '#gdrMapVoiceAssistant .gdr-map-voice-mic' /tmp/gdr-map-voice.css
+          grep -q 'leaflet-control-layers' /tmp/gdr-map-voice.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-renter-search3" -o /tmp/gdr-renter-experience.js
           grep -q 'get_public_properties' /tmp/gdr-renter-experience.js
           grep -q 'window.renderVoicePropertyResults(rows)' /tmp/gdr-renter-experience.js
