@@ -206,6 +206,33 @@ test('viewport browsing retains the full inventory and preserves the selected lo
   assert.ok(map.includes("state.browseInventory=null"));
 });
 
+test('voice result list keeps every property after map viewport refresh and sorts mappable homes by distance', () => {
+  assert.ok(map.includes('browseCenter:null'));
+  assert.ok(map.includes('function sortBrowseInventoryForList(rows,center)'));
+  assert.ok(map.includes('renderMarkers(rows,origin,false,true,listRows)'));
+  assert.ok(map.includes('Distance unavailable'));
+  const vm = require('node:vm');
+  const start = map.indexOf('function sortBrowseInventoryForList(rows,center){');
+  const end = map.indexOf('function renderBrowseViewport()', start);
+  assert.ok(start >= 0 && end > start, 'full-inventory list sorter must exist');
+  const sorter = vm.runInNewContext(
+    'const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);' +
+    'const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;' +
+    'const distanceKm=(a,b)=>{const rad=n=>n*Math.PI/180,dLat=rad(b[0]-a[0]),dLng=rad(b[1]-a[1]);const x=Math.sin(dLat/2)**2+Math.cos(rad(a[0]))*Math.cos(rad(b[0]))*Math.sin(dLng/2)**2;return 6371*2*Math.atan2(Math.sqrt(x),Math.sqrt(1-x));};' +
+    map.slice(start,end) + ';sortBrowseInventoryForList'
+  );
+  const rows = [
+    {id:'far',latitude:24.09,longitude:82.6247},
+    {id:'near',latitude:24.073,longitude:82.6247},
+    {id:'middle',latitude:24.08,longitude:82.6247},
+    {id:'no-pin'}
+  ];
+  const sorted = sorter(rows,[24.0725,82.6247]);
+  assert.deepEqual(Array.from(sorted,row=>row.id),['near','middle','far','no-pin']);
+  assert.equal(sorted[3].gdrDistanceKm,null);
+});
+
+
 
 test('map cluster marker always displays the exact number of nearby listings', () => {
   const start = map.indexOf('function makeLayer(map){');
