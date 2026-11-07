@@ -376,6 +376,7 @@
   }
   async function openRenterMap(){
     const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel");if(!dashboard||!panel)return;
+    const trigger=$("renterExploreMapBtn");if(trigger){trigger.setAttribute("aria-controls","gdrExploreMapPanel");trigger.setAttribute("aria-expanded","true");}
     dashboard.classList.add("gdr-map-mode");panel.hidden=false;
     try{
       await ensureLeaflet();initRenterMap();await ensureMapVoiceAssistant();window.GDRMapVoiceAssistant.mount(panel);requestAnimationFrame(()=>state.renterMap&&state.renterMap.invalidateSize());
@@ -385,7 +386,14 @@
       else setStatus("Tap anywhere on the map to place your starting location, then tap Search this area. You can also search a city, locality or PIN code.");
     }catch(error){console.error("GDR map initialization failed:",error);setStatus("The interactive map could not load. Check your connection and try again.");}
   }
-  function closeRenterMap(){const d=$("renterDashboard"),p=$("gdrExploreMapPanel");if(window.GDRMapVoiceAssistant)window.GDRMapVoiceAssistant.destroy();if(p)p.hidden=true;if(d)d.classList.remove("gdr-map-mode");clearPreview();}
+  function closeRenterMap(){
+    const dashboard=$("renterDashboard"),panel=$("gdrExploreMapPanel"),trigger=$("renterExploreMapBtn");
+    if(window.GDRMapVoiceAssistant)window.GDRMapVoiceAssistant.destroy();
+    if(panel)panel.hidden=true;
+    if(dashboard)dashboard.classList.remove("gdr-map-mode");
+    if(trigger){trigger.setAttribute("aria-expanded","false");try{trigger.focus({preventScroll:true});}catch(_){trigger.focus();}}
+    clearPreview();
+  }
   function setupPlaceSearch(inputId,panelId,onSelect,kind){
     const input=$(inputId),panel=$(panelId);if(!input||!panel)return;
     const timerKey=kind==="owner"?"ownerSearchTimer":"searchTimer",controllerKey=kind==="owner"?"ownerSearchController":"searchController";
