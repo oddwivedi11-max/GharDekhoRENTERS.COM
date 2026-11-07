@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-manualfirst1";
+const VERSION="20261107-stepnav3d1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -510,10 +510,12 @@ function updateStep(){
   const n=Number(el.dataset.gdrStudioStepIndicator);
   el.classList.toggle("is-current",n===state.step);el.classList.toggle("is-complete",n<state.step);
  });
- const back=$("#gdrStudioBack"),next=$("#gdrStudioNext"),publish=$("#gdrStudioPublish");
+ const back=$("#gdrStudioBack"),formNext=$("#gdrStudioFormNext"),assistantNext=$("#gdrStudioNext"),publish=$("#gdrStudioPublish"),navStep=$("#gdrStudioNavStep");
  if(back)back.hidden=state.step===0;
- if(next)next.hidden=state.step===4;
+ if(formNext)formNext.hidden=state.step===4;
+ if(assistantNext)assistantNext.hidden=state.step===4;
  if(publish)publish.hidden=state.step!==4;
+ if(navStep)navStep.textContent=String(state.step+1);
  if(state.step===4)renderPreview();
  const title=$("#gdrStudioStepTitle");
  if(title)title.textContent=["Property type","Rent details","Property location","Property photos","Review your listing"][state.step];
@@ -909,6 +911,7 @@ function bindEvents(){
   const step=e.target.closest("[data-gdr-studio-goto]");if(step){goToStep(Number(step.dataset.gdrStudioGoto));return;}
  });
  $("#gdrStudioBack")?.addEventListener("click",()=>goToStep(state.step-1));
+ $("#gdrStudioFormNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
@@ -1022,7 +1025,7 @@ async function publish(){
   message(e.message||"Your property could not be published. Your draft is saved; please try again.","error");
  }finally{
   state.publishing=false;
-  const btn=$("#gdrStudioPublish");if(btn){btn.disabled=false;btn.textContent="Publish My Property";}
+  const btn=$("#gdrStudioPublish");if(btn){btn.disabled=false;btn.textContent="Submit Your Property";}
  }
 }
 function showSuccess(property){
