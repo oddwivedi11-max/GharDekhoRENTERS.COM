@@ -146,7 +146,9 @@ function parseRequest(raw){
  if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
  if(/\b(pg|paying guest)\b|पीजी/.test(n))p.stayType="pg";
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
- else if(/\b(flat|apartment|houses?|homes?|villa|room)\b|फ्लैट|मकान|घर|कमरा/.test(n))p.stayType="home";
+ else if(/\b(flat|apartment|independent house|villa|room)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा/.test(n))p.stayType="home";
+ // Generic home/house/घर requests mean all available rental listing types.
+ if(/(?:all|every|any)\s+(?:available\s+)?(?:homes?|houses?|properties)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:घर|मकान|प्रॉपर्टी|प्रॉपर्टीज)/i.test(original))p.stayType="";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
  else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
  else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
@@ -234,17 +236,19 @@ function speakAssistantReply(message,language){
  }catch(error){console.info("GDR spoken response is unavailable in this browser.",error);}
 }
 
-function setValue(id,v){const el=$(id);if(!el||v==null||v==="")return;el.value=String(v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))}
+function setValue(id,v,allowEmpty){const el=$(id);if(!el||v==null||(v===""&&!allowEmpty))return;el.value=String(v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))}
 function applyToForm(p){
- setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType);setValue("renterSearchPropertyType",p.propertyType);setValue("renterSearchBhk",p.bhk);setValue("renterSearchFurnishing",p.furnishing);
+ setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType,true);setValue("renterSearchPropertyType",p.propertyType,true);setValue("renterSearchBhk",p.bhk);setValue("renterSearchFurnishing",p.furnishing);
  if(p.minBudget){setValue("renterMinBudgetPreset","custom");setValue("renterMinBudgetCustom",p.minBudget);setValue("renterMinBudget",p.minBudget)}
  if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget);setValue("renterMaxBudget",p.maxBudget)}
 }
 function review(raw,options){
  const extracted=parseRequest(raw),previous=state.parsed||{};
  const p={...previous,...extracted,raw:String(raw||"")};
+ const broadHomes=/(?:all|every|any)\s+(?:available\s+)?(?:homes?|houses?|properties)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:घर|मकान|प्रॉपर्टी|प्रॉपर्टीज)/i.test(String(raw||""));
+ if(broadHomes){p.stayType="";p.propertyType="";}
  ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{
-  if(!extracted[key])p[key]=previous[key]||"";
+  if(!extracted[key]&&!broadHomes)p[key]=previous[key]||"";
  });
  p.radiusKm=extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm;
  p.useMyLocation=!!(extracted.useMyLocation||previous.useMyLocation);
