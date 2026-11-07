@@ -210,6 +210,21 @@ test('assistant search keeps property cards visible if optional map rendering fa
   assert.match(render, /catch\(error\)\{console\.warn\("GDR assistant list results are ready; map rendering was skipped:"/);
 });
 
+
+test('assistant RPC response normalization preserves all valid records and tolerates JSON wrapper shapes', () => {
+  assert.match(js, /function normalizeAssistantSearchPayload\(value\)/);
+  assert.match(js, /function normalizeAssistantPropertyRows\(value\)/);
+  assert.match(js, /payload\.data\?\?payload\.payload\?\?payload\.result/);
+  assert.match(js, /row\.property_id\?\?row\.propertyId/);
+  assert.match(js, /loadedRows=normalizeAssistantPropertyRows\(page\.rows\)/);
+  assert.match(js, /normalizeAssistantPropertyRows\(page\.rows\)\.forEach/);
+});
+
+test('Cloudflare deploy forces a fresh browser cache key for assistant property rendering', () => {
+  assert.match(workflow, /gdr-renter-experience\.js", "20261107-assistant-results-render1"/);
+  assert.match(workflow, /gdr-renter-experience\.js\?v=20261107-assistant-results-render1/);
+});
+
 test('assistant result analytics use actual loaded listing and verification fields', () => {
   assert.match(js, /const setAssistantAnalytics=\(rows,count\)=>/);
   assert.match(js, /Total matching/);
