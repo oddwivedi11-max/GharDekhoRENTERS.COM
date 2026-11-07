@@ -52,3 +52,22 @@ test("owner voice UI includes reply, confirmation, mute and transcript controls"
 test("PG and hostel voice listing keeps its room and bed fields",()=>{
  for(const field of ['field="roomType"','field="gender"','field="totalBeds"','field="availableBeds"','field="foodIncluded"'])assert.ok(js.includes(field));
 });
+
+test("owner voice assistant has a prominent microphone and three language choices",()=>{
+ assert.ok(markup.includes('class="gdr-studio-mic-button"'));
+ assert.ok(markup.includes('value="hi-IN-hinglish"'));
+ assert.ok(markup.includes('value="en-IN"'));
+ assert.ok(markup.includes('id="gdrStudioVoiceStop"'));
+});
+test("owner voice form preview shows live fields and manual edit controls",()=>{
+ assert.ok(markup.includes('id="gdrStudioLiveFields"'));
+ assert.ok(js.includes("function renderLiveVoiceForm()"));
+ assert.ok(js.includes('data-gdr-voice-edit'));
+ assert.ok(js.includes("function editVoiceField(key)"));
+ assert.ok(js.includes("renderLiveVoiceForm();"));
+ assert.ok(css.includes(".gdr-studio-live-field"));
+});
+test("owner voice uses only browser-native recognition locales and retains explicit mic start",()=>{
+ assert.ok(js.includes('startsWith("en")?"en-IN":"hi-IN"'));
+ assert.ok(js.includes('$("#gdrStudioVoiceStart")?.addEventListener("click",startVoice)'));
+});
