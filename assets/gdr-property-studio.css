@@ -287,3 +287,15 @@ body.gdr-property-studio-open{overflow:hidden!important}
  #gdrStudioLiveProgressText{text-align:left}
 }
 @media(prefers-reduced-motion:reduce){#gdrStudioVoiceStart.is-recording .gdr-studio-mic-icon{animation:none}}
+
+
+/* Owner profile action: match the renter profile control without changing layout. */
+#ownerDashboard .owner-profile-card #ownerEditProfileBtn{
+ display:inline-flex;align-items:center;justify-content:center;min-height:46px;padding:0 19px;
+ border:1px solid #c7ad79;border-radius:12px;background:linear-gradient(145deg,#fffdf7,#f0e4c9);
+ color:#173d34;font-size:13px;font-weight:900;white-space:nowrap;
+ box-shadow:0 5px 0 #a88c58,0 10px 20px rgba(68,53,29,.12);cursor:pointer;
+}
+#ownerDashboard .owner-profile-card #ownerEditProfileBtn:hover{transform:translateY(-2px);box-shadow:0 7px 0 #a88c58,0 14px 22px rgba(68,53,29,.15)}
+#ownerDashboard .owner-profile-card #ownerEditProfileBtn:focus-visible{outline:3px solid #b99756;outline-offset:3px}
+@media(max-width:760px){#ownerDashboard .owner-profile-card .dashboard-card-heading{align-items:stretch;flex-direction:column;gap:12px}#ownerDashboard .owner-profile-card #ownerEditProfileBtn{width:100%;min-height:48px}}
