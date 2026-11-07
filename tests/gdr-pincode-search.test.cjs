@@ -39,12 +39,12 @@ test("PIN 486889's two real listings are both eligible under Home + All properti
 test("renter map clusters show a 3D house and exact listing count",()=>{
  const map=fs.readFileSync(path.join(__dirname,"..","assets","gdr-map-experience.js"),"utf8");
  const css=fs.readFileSync(path.join(__dirname,"..","assets","gdr-map-experience.css"),"utf8");
- assert.match(map,/iconCreateFunction:function\\(cluster\\)/);
- assert.match(map,/cluster\\.getChildCount\\(\\)/);
- assert.match(map,/gdr-home-3d-cluster-count/);
- assert.match(map,/zoomToBoundsOnClick:true/);
- assert.match(map,/maxClusterRadius:function\\(zoom\\)/);
- assert.match(css,/\\.gdr-home-3d-cluster-wrap/);
- assert.match(css,/\\.gdr-home-3d-cluster-back/);
- assert.match(css,/\\.gdr-home-3d-cluster-count/);
+ assert.ok(map.includes("iconCreateFunction:function(cluster)"));
+ assert.ok(map.includes("cluster.getChildCount()"));
+ assert.ok(map.includes("gdr-home-3d-cluster-count"));
+ assert.ok(map.includes("zoomToBoundsOnClick:true"));
+ assert.ok(map.includes("maxClusterRadius:function(zoom)"));
+ assert.ok(css.includes(".gdr-home-3d-cluster-wrap"));
+ assert.ok(css.includes(".gdr-home-3d-cluster-back"));
+ assert.ok(css.includes(".gdr-home-3d-cluster-count"));
 });
