@@ -55,7 +55,7 @@ function filterAssistantListings(rows,prefs){
  const p=prefs||{},query=normalizeSearchText(p.location||""),tokens=query.split(" ").filter(Boolean);
  const groups={
   bhopal:{center:[23.2599,77.4126],radiusKm:55,cities:["bhopal"],areas:["patel nagar","indrapuri","chhatrasal nagar","huzur tahsil"],postalPrefixes:["462"]},
-  singrauli:{center:[24.0724946,82.6246537],radiusKm:70,cities:["singrauli","singruali"],areas:["waidhan","vindhyanagar","vindhya nagar","rajmata chun kumari stadium","dav road","d a v road"],postalPrefixes:["486"]}
+  singrauli:{center:[24.0724946,82.6246537],radiusKm:120,cities:["singrauli","singruali"],areas:["waidhan","vindhyanagar","vindhya nagar","rajmata chun kumari stadium","dav road","d a v road"],postalPrefixes:["486"]}
  };
  const phrase=(text,value)=>(" "+String(text||"")+" ").includes(" "+String(value||"")+" ");
  const selected=Object.values(groups).find(g=>g.cities.some(x=>tokens.includes(x))||g.areas.some(x=>phrase(query,x)));
@@ -65,7 +65,8 @@ function filterAssistantListings(rows,prefs){
  (Array.isArray(rows)?rows:[]).forEach(x=>{if(x&&x.id&&!unique.has(String(x.id)))unique.set(String(x.id),x);});
  return Array.from(unique.values()).filter(row=>{
   const status=String(row.status||"").toLowerCase(),verification=String(row.verification_status||"").toLowerCase();
-  const allowed=(verification==="verified"&&row.owner_verified===true&&(status==="verified"||status==="soon_available"))||(verification==="pending"&&status==="pending");
+  const unavailable=["occupied","rejected","removed","deleted","unavailable","released"].includes(status)||!!row.released_at;
+  const allowed=!unavailable&&((verification==="verified"&&row.owner_verified===true)||(verification==="pending"&&status==="pending"));
   if(!allowed)return false;
   const type=String(row.listing_type||"home").toLowerCase();
   if((type==="pg"||type==="hostel")&&(num(row.available_beds)===null||num(row.available_beds)<=0))return false;
