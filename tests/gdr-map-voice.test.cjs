@@ -59,7 +59,7 @@ test('voice searches the public inventory and renders results in Available Renta
   assert.match(map, /function showVoiceSearchResults\(rows,point,label\)/);
   assert.match(map, /renderMarkers\(mappedItems,center,false,false,listRows\)/);
   assert.match(map, /fitBounds\(coordinates,\{padding:\[48,48\],maxZoom:15,animate:false\}\)/);
-  assert.match(map, /homes on map/);
+  assert.match(map, /map pins · /);
   assert.match(map, /const rent=Number\(p\.rent\|\|0\),short=money\(rent\)/);
   assert.match(map, /if\(!p\|\|!validPoint\(p\.latitude,p\.longitude\)\)return/);
   assert.match(map, /if\(pan&&state\.renterMap&&validPoint\(p\.latitude,p\.longitude\)\)/);
@@ -171,7 +171,7 @@ test('voice inventory stays cached and renter map automatically filters markers 
   assert.ok(map.includes('function filterBrowseInventoryToBounds(rows,bounds,center,prefs)'));
   assert.ok(map.includes('bounds.contains(point)'));
   assert.ok(map.includes('function renderBrowseViewport()'));
-  assert.ok(map.includes('renderMarkers(rows,origin,false,true)'));
+  assert.ok(map.includes('renderMarkers(rows,origin,false,true,listRows)'));
   assert.ok(map.includes('state.browseTimer=setTimeout(()=>{state.browseTimer=null;renderBrowseViewport();},120)'));
   assert.ok(map.includes('state.browseInventory=items.slice()'));
   assert.ok(map.includes('invalidateSize({pan:false})'));
