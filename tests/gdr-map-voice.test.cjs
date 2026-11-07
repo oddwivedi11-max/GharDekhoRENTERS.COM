@@ -179,7 +179,7 @@ test('voice inventory stays cached and renter map automatically filters markers 
 
 test('viewport browsing shows Bhopal homes after zooming in without applying the 5 km search radius', () => {
   const start = map.indexOf('function filterBrowseInventoryToBounds(rows,bounds,center,prefs){');
-  const end = map.indexOf('\\n  function renderBrowseViewport()', start);
+  const end = map.indexOf('function renderBrowseViewport()', start);
   assert.ok(start >= 0 && end > start, 'viewport filter helper must exist');
   const vm = require('node:vm');
   const filter = vm.runInNewContext(
