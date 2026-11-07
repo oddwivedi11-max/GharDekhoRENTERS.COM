@@ -75,7 +75,7 @@ test.describe('GDR renter map voice UI', () => {
     });
     await page.locator('#gdrMapVoiceSearch').click();
     await expect(page.locator('#gdrMapVoiceResults')).toContainText('1 homes');
-    await expect(page.locator('#gdrMapVoiceResultsList')).toHaveCount(0);
+    await expect(page.locator('.gdr-map-voice-results-list')).toHaveCount(1);
     await page.locator('.gdr-map-voice-results-list').click();
     await expect(page.locator('#gdrMapLayout')).toHaveClass(/gdr-list-mode/);
     const prefs = await page.evaluate(() => window.__mapVoicePrefs);
