@@ -126,10 +126,27 @@ if 'id="gdrPropertyStudioMount"' not in source:
         raise SystemExit("Stopped safely: closing body tag missing.")
     source = source[:body_pos] + '<div id="gdrPropertyStudioMount"></div>\n' + source[body_pos:]
 
+# Manual listing is the only primary hero action. Voice remains available
+# inside Property Studio, after the complete manual listing panels.
+hero_voice_button = '      <button type="button" id="gdrListPropertySpeak">♬ List by Speaking</button>\n'
+if hero_voice_button in source:
+    source = source.replace(hero_voice_button, "", 1)
+    print("Moved voice listing out of the primary owner hero.")
+elif 'id="gdrListPropertySpeak"' in source:
+    raise SystemExit("Stopped safely: voice listing button was found outside the expected hero.")
+else:
+    print("Already applied: voice listing is secondary to manual listing.")
+
+replace_once(
+    '<button type="button" class="secondary-button" id="ownerEditProfileBtn">✏️ Edit details</button>',
+    '<button type="button" class="secondary-button" id="ownerEditProfileBtn">✏️ Edit Profile</button>',
+    "label owner profile action clearly"
+)
+
 css_ref_v1 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">'
 css_ref_v2 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio2">'
 css_ref_v3 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio3">'
-css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-voiceassistant2">'
+css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-ownerprofile1">'
 if css_ref_v4 not in source:
     if css_ref_v3 in source:
         source = source.replace(css_ref_v3, css_ref_v4, 1)
@@ -184,13 +201,20 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant6" defer></script>'
-old_script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261107-manualfirst1" defer></script>'
+old_script_refs = [
+    '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant6" defer></script>',
+    '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>'
+]
 if script_ref not in source:
-    if old_script_ref in source:
-        source = source.replace(old_script_ref, script_ref, 1)
-        print("Updated: refresh Property Studio controller asset")
-    else:
+    replaced = False
+    for old_script_ref in old_script_refs:
+        if old_script_ref in source:
+            source = source.replace(old_script_ref, script_ref, 1)
+            print("Updated: refresh manual-first Property Studio controller asset")
+            replaced = True
+            break
+    if not replaced:
         body_pos = source.rfind("</body>")
         if body_pos < 0:
             raise SystemExit("Stopped safely: closing body tag missing.")
