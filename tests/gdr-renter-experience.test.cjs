@@ -208,6 +208,7 @@ test('all-property speech in Hindi and Hinglish clears stale home, BHK and furni
     'सिंगरौली की सारी प्रॉपर्टीज दिखाओ',
     'Singrauli mein sab properties dikhao',
     'Singrauli mein jitni bhi properties hain dikhao',
+    'भोपाल पटेल नगर में जितनी प्रॉपर्टीज है दिखाओ',
     'मुझे सिंगरौली में सभी प्रॉपर्टीज दिखाओ'
   ]) {
     const p = parseRequest(phrase);
