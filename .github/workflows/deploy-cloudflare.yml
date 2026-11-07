@@ -89,6 +89,7 @@ jobs:
           node --check assets/gdr-owner-current-renters-dashboard.js
           node --check assets/gdr-owner-renter-page.js
           node --check assets/gdr-owner-payments.js
+          node --test tests/gdr-smart-rent-payment.test.cjs
           node --check tests/gdr-owner-ui-navigation-regression.test.cjs
           node --test tests/gdr-owner-ui-navigation-regression.test.cjs
           node --test tests/gdr-owner-dashboard-navigation.test.cjs
