@@ -175,3 +175,31 @@ test('voice inventory stays cached and renter map automatically filters markers 
   assert.match(map, /invalidateSize\\(\\{pan:false\\}\\)/);
   assert.match(map, /Showing "\\+rows\\.length\\+" of "\\+total\\+" mapped homes in the current map view/);
 });
+
+
+test('viewport browsing shows Bhopal homes after zooming in without applying the 5 km search radius', () => {
+  const start = map.indexOf('function filterBrowseInventoryToBounds(rows,bounds,center,prefs){');
+  const end = map.indexOf('\\n  function renderBrowseViewport()', start);
+  assert.ok(start >= 0 && end > start, 'viewport filter helper must exist');
+  const vm = require('node:vm');
+  const filter = vm.runInNewContext(
+    'const validPoint=(lat,lng)=>Number.isFinite(Number(lat))&&Number.isFinite(Number(lng))&&Number(lat)>=-90&&Number(lat)<=90&&Number(lng)>=-180&&Number(lng)<=180;'+
+    'const distanceKm=(a,b)=>Math.hypot((a[0]-b[0])*111,(a[1]-b[1])*102);'+
+    map.slice(start,end)+';filterBrowseInventoryToBounds'
+  );
+  const inventory = [
+    {id:'bhopal-1',latitude:23.25,longitude:77.40,rent:7000,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home'},
+    {id:'bhopal-2',latitude:23.30,longitude:77.45,rent:9000,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home'},
+    {id:'singrauli-1',latitude:24.20,longitude:82.60,rent:8000,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home'}
+  ];
+  const bhopalBounds = {contains: point => point[0] >= 23.1 && point[0] <= 23.4 && point[1] >= 77.2 && point[1] <= 77.6};
+  const rows = filter(inventory,bhopalBounds,[23.25,77.40],{});
+  assert.deepEqual(Array.from(rows, row => row.id), ['bhopal-1','bhopal-2']);
+  assert.ok(rows.some(row => row.gdrDistanceKm >= 0));
+});
+
+test('viewport browsing retains the full inventory and preserves the selected location pin', () => {
+  assert.match(map, /state\\.browseInventory=items\\.slice\\(\\)/);
+  assert.match(map, /if\\(state\\.renterPin&&preservePin!==true\\)/);
+  assert.match(map, /state\\.browseInventory=null/);
+});
