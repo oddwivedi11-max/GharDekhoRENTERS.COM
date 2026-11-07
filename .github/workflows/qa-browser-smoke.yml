@@ -53,5 +53,14 @@ jobs:
       - name: Install Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Run read-only responsive smoke tests
+      - name: Run read-only responsive and production-load diagnostics
         run: npx playwright test tests/
+
+      - name: Upload Playwright failure diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdr-browser-failure-diagnostics
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
