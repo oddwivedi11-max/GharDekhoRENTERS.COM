@@ -650,3 +650,35 @@
 .gdrx-picker-more,.gdrx-picker-limit{grid-column:1/-1;margin:3px;color:#758176;font-size:10px}
 .gdrx-picker-limit{color:#9a6d35;font-weight:800}
 @media(max-width:760px){.gdrx-compare-picker-controls{grid-template-columns:1fr 1fr}.gdrx-compare-picker-controls input{grid-column:1/-1}.gdrx-compare-picker-results{grid-template-columns:1fr;max-height:240px}.gdrx-picker-property>img{width:48px;height:46px;flex-basis:48px}.gdrx-picker-add{padding:0 7px}}
+
+
+/* GDR assistant: database-backed analytics shown with every voice/text result. */
+.gdrx-assistant-analytics{
+ margin:14px 0 16px;
+ padding:15px;
+ border:1px solid #dce6dc;
+ border-radius:15px;
+ background:#f6faf5;
+ color:#254838;
+}
+.gdrx-assistant-analytics[hidden]{display:none!important}
+.gdrx-analytics-heading{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:11px}
+.gdrx-analytics-heading>div{display:grid;gap:4px;min-width:0}
+.gdrx-analytics-heading>div>span{color:#a17c3d;font-size:9px;font-weight:900;letter-spacing:.14em}
+.gdrx-analytics-heading>div>strong{color:#173f35;font-size:15px;overflow-wrap:anywhere}
+.gdrx-analytics-heading>small{flex:0 0 auto;color:#718078;font-size:10px;font-weight:800}
+.gdrx-analytics-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.gdrx-analytics-metric{display:grid;gap:4px;min-width:0;padding:10px;border:1px solid #e2e9df;border-radius:11px;background:#fff}
+.gdrx-analytics-metric span{color:#748078;font-size:9px;font-weight:700}
+.gdrx-analytics-metric strong{color:#174735;font-size:17px;line-height:1.15;overflow-wrap:anywhere}
+.gdrx-analytics-line{margin:6px 0;color:#405d4c;font-size:10px;line-height:1.5;overflow-wrap:anywhere}
+.gdrx-analytics-line b{color:#244a38}
+.gdrx-analytics-line span{color:#718078}
+.gdrx-analytics-note{margin:8px 0 0;padding-top:8px;border-top:1px solid #e2e9df;color:#68786c;font-size:10px;line-height:1.5}
+@media(max-width:760px){
+ .gdrx-assistant-analytics{padding:12px;margin:11px 0 14px}
+ .gdrx-analytics-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:7px}
+ .gdrx-analytics-metric{padding:9px}
+ .gdrx-analytics-metric strong{font-size:16px}
+ .gdrx-analytics-heading>div>strong{font-size:13px}
+}
