@@ -1,8 +1,8 @@
 (function(){
 "use strict";
-const VERSION="20261107-map-voice3";
+const VERSION="20261107-map-voice4";
 const $=id=>document.getElementById(id);
-const state={root:null,recognition:null,active:false,finalText:"",interimText:"",silenceTimer:null,session:0,searchId:0,executed:"",language:"hi-IN",muted:false,city:"",prefs:{},speaking:false,manualStop:false};
+const state={root:null,recognition:null,active:false,finalText:"",interimText:"",silenceTimer:null,session:0,searchId:0,executed:"",language:"hi-IN",muted:false,city:"",prefs:{},speaking:false,lastError:""};
 const text=(hi,en)=>state.language==="en-IN"?en:hi;
 function status(message,kind){const el=$("gdrMapVoiceStatus");if(el){el.textContent=message||"";el.dataset.state=kind||"idle";}}
 function transcript(){const el=$("gdrMapVoiceTranscript");if(el)el.value=[state.finalText,state.interimText].filter(Boolean).join(" ").trim();}
@@ -24,13 +24,16 @@ function normalize(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u0
 function extractIntent(raw){
  const assistant=window.GDRRenterExperience;
  if(assistant&&typeof assistant.parseRequest==="function"){
-  const parsed=assistant.parseRequest(raw)||{},prefs=parsed.location?{}:{...state.prefs};
+  const parsed=assistant.parseRequest(raw)||{},prefs={...state.prefs};
   ["minBudget","maxBudget","bhk","furnishing","stayType","propertyType"].forEach(key=>{
    if(parsed[key]!==undefined&&parsed[key]!==null&&parsed[key]!=="")prefs[key]=parsed[key];
   });
-  return {prefs,location:String(parsed.location||""),nearMe:!!parsed.useMyLocation,radiusKm:parsed.radiusKm==null?null:Number(parsed.radiusKm),raw:String(raw||"")};
+  const request=String(raw||"");
+  if(/\\b(?:any|all)\\s+(?:bhk|bedrooms?)\\b|(?:कोई भी|सभी)\\s*(?:बीएचके|बेडरूम)|सभी प्रकार के घर/i.test(request))delete prefs.bhk;
+  if(/\\b(?:clear|remove|reset)\\s+(?:budget|rent)\\b|बजट हटाओ|किराया हटाओ/i.test(request)){delete prefs.minBudget;delete prefs.maxBudget;}
+  return {prefs,location:String(parsed.location||""),nearMe:!!parsed.useMyLocation,radiusKm:parsed.radiusKm==null?null:Number(parsed.radiusKm),raw:request};
  }
- return {prefs:{...state.prefs},location:String(raw||"").trim(),nearMe:false,raw:String(raw||"")};
+ return {prefs:{...state.prefs},location:String(raw||"").trim(),nearMe:false,radiusKm:null,raw:String(raw||"")};
 }
 function setMic(on){
  state.active=on;
@@ -46,20 +49,23 @@ function setMic(on){
 }
 function finishTurn(){
  if(state.silenceTimer){clearTimeout(state.silenceTimer);state.silenceTimer=null;}
- const final=String(state.finalText||"").trim()||String(state.interimText||"").trim();
- state.interimText="";transcript();setMic(false);
- if(state.recognition){const r=state.recognition;state.recognition=null;state.session++;try{r.stop();}catch(_){}}
+ const final=String(state.finalText||"").trim();
+ state.interimText="";transcript();
+ const recognition=state.recognition;state.recognition=null;state.session++;
+ if(recognition){try{recognition.stop();}catch(_){}}
+ setMic(false);
  if(final&&final!==state.executed){state.executed=final;runTurn(final);}
- else if(!final)status(text("आवाज़ साफ़ नहीं मिली। कृपया दोबारा बोलें।","I couldn't hear a clear request. Please try again."),"error");
+ else if(!final)status(state.lastError||text("आवाज़ का final transcript नहीं मिला। कृपया दोबारा बोलें।","No final speech transcript was received. Please try again."),state.lastError?"error":"error");
 }
 function startListening(){
+ if(state.active||state.recognition)return;
  const Speech=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!Speech){status(text("इस browser में voice recognition उपलब्ध नहीं है। नीचे लिखकर Search करें।","Voice recognition is unavailable in this browser. Type below and search."),"error");$("gdrMapVoiceTranscript")?.focus();return;}
+ if(!Speech){status(text("इस browser में speech recognition उपलब्ध नहीं है। आप नीचे लिखकर Search कर सकते हैं।","Speech recognition is unavailable in this browser. You can type and search below."),"error");$("gdrMapVoiceTranscript")?.focus();return;}
  if(!window.isSecureContext){status("Microphone requires a secure HTTPS connection.","error");return;}
- if(state.recognition){try{state.recognition.stop();}catch(_){}state.recognition=null;}
- state.finalText="";state.interimText="";state.executed="";state.manualStop=false;transcript();
- const r=new Speech(),session=++state.session;state.recognition=r;state.active=true;setMic(true);r.lang=state.language;r.continuous=true;r.interimResults=true;r.maxAlternatives=1;
- r.onstart=()=>{if(session!==state.session)return;setMic(true);status(text("सुन रहा हूँ… बोलिए, रुकने पर अपने आप search होगा।","Listening… speak naturally. Search starts automatically after you pause."),"listening");};
+ state.finalText="";state.interimText="";state.executed="";state.lastError="";transcript();
+ const r=new Speech(),session=++state.session;state.recognition=r;state.active=true;setMic(true);
+ r.lang=state.language;r.continuous=false;r.interimResults=true;r.maxAlternatives=3;
+ r.onstart=()=>{if(session!==state.session)return;setMic(true);status(text("सुन रहा हूँ… अपना पूरा सवाल बोलें। बोलना पूरा होते ही search शुरू होगा।","Listening… say your complete request. Search starts as soon as speech recognition finishes."),"listening");};
  r.onresult=e=>{
   if(session!==state.session)return;
   let interim="";
@@ -68,23 +74,44 @@ function startListening(){
    if(!spoken)continue;
    if(item.isFinal){
     const current=normalize(state.finalText),next=normalize(spoken);
-    if(!current||current===next||current.endsWith(" "+next))continue;
-    if(next.startsWith(current+" "))state.finalText=spoken;
-    else state.finalText=(state.finalText?state.finalText+" ":"")+spoken;
-   }else interim+= (interim?" ":"")+spoken;
+    if(!current)state.finalText=spoken;
+    else if(next===current||current.endsWith(" "+next)){}
+    else if(next.startsWith(current+" "))state.finalText=spoken;
+    else state.finalText=(state.finalText+" "+spoken).trim();
+    state.interimText="";
+   }else interim+=(interim?" ":"")+spoken;
   }
-  state.interimText=interim;transcript();
-  if(state.silenceTimer)clearTimeout(state.silenceTimer);
-  if(state.finalText.trim()||state.interimText.trim())state.silenceTimer=setTimeout(finishTurn,1800);
+  if(interim&&!state.finalText)state.interimText=interim;
+  transcript();
+  if(state.finalText.trim()){
+   if(state.silenceTimer)clearTimeout(state.silenceTimer);
+   state.silenceTimer=setTimeout(finishTurn,450);
+  }
  };
  r.onerror=e=>{
   if(session!==state.session)return;
-  const fatal=["not-allowed","service-not-allowed","audio-capture","language-not-supported"].includes(e.error);
-  if(fatal){state.session++;state.active=false;state.recognition=null;setMic(false);status(e.error==="not-allowed"||e.error==="service-not-allowed"?text("Microphone permission blocked है। Browser site settings में अनुमति दें।","Microphone permission is blocked. Allow it in browser site settings."):text("Microphone उपलब्ध नहीं है। Text search इस्तेमाल करें।","Microphone is unavailable. Use text search."),"error");}
-  else if(e.error==="network")status(text("Browser speech recognition को network चाहिए। Connection check करें।","Browser speech recognition needs a network connection. Check your connection."),"error");
+  const messages={
+   "not-allowed":text("Microphone permission blocked है। Browser site settings में Microphone Allow करें।","Microphone permission is blocked. Allow it in browser site settings."),
+   "service-not-allowed":text("इस browser में speech service अनुमति नहीं मिली। Microphone permission और browser settings जाँचें।","The browser speech service is not permitted. Check microphone permission and browser settings."),
+   "audio-capture":text("Microphone नहीं मिला। सही input device connect करके दोबारा कोशिश करें।","No microphone was detected. Connect an input device and try again."),
+   "language-not-supported":text("चुनी हुई भाषा speech recognition में उपलब्ध नहीं है। Language बदलें।","The selected language is unavailable for speech recognition. Change the language."),
+   "network":text("Browser speech recognition service तक network connection नहीं पहुँच पाया। Connection जाँचें और फिर कोशिश करें।","The browser speech recognition service could not be reached. Check your connection and retry."),
+   "no-speech":text("कोई आवाज़ detect नहीं हुई। Mic दबाकर फिर बोलें।","No speech was detected. Tap the microphone and try again.")
+  };
+  state.lastError=messages[e.error]||text("Speech recognition में समस्या आई: "+String(e.error||"unknown"),"Speech recognition error: "+String(e.error||"unknown"));
+  status(state.lastError,"error");
  };
- r.onend=()=>{if(session!==state.session)return;state.recognition=null;if(state.silenceTimer){clearTimeout(state.silenceTimer);state.silenceTimer=setTimeout(finishTurn,350);}else if(state.finalText.trim()||state.interimText.trim())finishTurn();else{setMic(false);status(text("फिर से बोलने के लिए mic दबाएँ।","Tap the mic to speak again."),"idle");}};
- try{r.start();}catch(e){state.recognition=null;setMic(false);status(text("Microphone start नहीं हो पाया। दोबारा कोशिश करें।","Could not start the microphone. Please try again."),"error");}
+ r.onend=()=>{
+  if(session!==state.session)return;
+  state.recognition=null;
+  if(state.silenceTimer){clearTimeout(state.silenceTimer);state.silenceTimer=null;}
+  if(state.finalText.trim()){finishTurn();return;}
+  setMic(false);
+  if(state.lastError){status(state.lastError,"error");return;}
+  state.active=false;status(text("आवाज़ पूरी तरह समझ नहीं आई। Mic दबाकर दोबारा बोलें।","I couldn't recognize a complete request. Tap the mic and try again."),"error");
+ };
+ try{r.start();}
+ catch(error){state.recognition=null;state.active=false;setMic(false);state.lastError=text("Microphone शुरू नहीं हो पाया। दोबारा कोशिश करें।","The microphone could not start. Please try again.");status(state.lastError,"error");}
 }
 async function runTurn(raw){
  const assistant=window.GDRRenterExperience,api=window.GDRMapExperience;
@@ -100,7 +127,8 @@ async function runTurn(raw){
  }
  const target=$("gdrMapVoiceResults"),searchId=++state.searchId;
  if(target)target.replaceChildren();
- status(text("आपकी बात समझ रहा हूँ और GharDekho की असली listings खोज रहा हूँ…","Understanding your request and searching real GharDekho listings…"),"processing");
+ status(text("समझ गया। आपकी बताई location और filters के अनुसार असली घर खोज रहा हूँ…","Got it. Searching real homes using your location and filters…"),"processing");
+  speak(text("समझ गया। "+(location?location+" में ":"")+"आपकी बताई शर्तों के अनुसार घर खोज रहा हूँ।","Got it. Searching homes "+(location?"in "+location+" ":"")+"using your requested filters."));
  try{
   let rows=[];
   if(intent.nearMe){
@@ -148,7 +176,7 @@ async function runTurn(raw){
 function mount(panel){
  if(!panel||state.root)return;
  const root=document.createElement("section");root.className="gdr-map-voice";root.id="gdrMapVoiceAssistant";
- root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">GHARDEKHO SMART HOME ASSISTANT</span><h3>Find your home by talking naturally</h3><p>Say a locality, BHK and budget in Hindi, Hinglish or English. Results appear below.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="बड़े नगर में 2 BHK घर दिखाओ या Singrauli में 10,000 से कम rent वाले घर…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start map voice search" aria-pressed="false"><span class="gdr-map-voice-mic-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path></svg></span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search map</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p><div id="gdrMapVoiceResults" class="gdr-map-voice-results" aria-live="polite"></div>';
+ root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">GHARDEKHO SMART HOME ASSISTANT</span><h3>Find your home by talking naturally</h3><p>Say a locality, BHK and budget in Hindi, Hinglish or English. Results appear below.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="बोलें या यहाँ अपनी property search लिखें…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start map voice search" aria-pressed="false"><span class="gdr-map-voice-mic-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path></svg></span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search map</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite">नमस्ते! मैं GDRS, आपका GharDekho Personal Property Assistant हूँ। आप 1, 2, 3 या 4 BHK, location और rent budget बोल सकते हैं।</p><div id="gdrMapVoiceResults" class="gdr-map-voice-results" aria-live="polite"></div>';
  const heading=panel.querySelector(".gdr-map-head, .gdr-map-header, .gdr-explore-map-header, header");
  if(heading&&heading.parentNode===panel)heading.insertAdjacentElement("afterend",root);else panel.insertBefore(root,panel.firstChild);
  state.root=root;
