@@ -130,7 +130,7 @@ test('voice assistant replies in the language used by the speaker', () => {
 });
 test('map assistant speaks responses and retains search context for follow-up filters', () => {
   assert.match(mapVoice, /speechSynthesis\.speak/);
-  assert.match(mapVoice, /prefs=parsed\.location\?\{\}:\{\.\.\.state\.prefs\}/);
+  assert.match(mapVoice, /prefs=\{\.\.\.state\.prefs\}/);
   assert.match(mapVoice, /const intent=extractIntent\(raw\),location=intent\.location\|\|state\.city/);
   assert.match(mapVoice, /assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
   assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
