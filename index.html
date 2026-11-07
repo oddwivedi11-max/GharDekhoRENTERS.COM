@@ -9556,6 +9556,7 @@ body.gd-profile-editor-lock .gd-property-editor.active{display:grid!important}
             </div>
 
             <form id="renterFindHomeForm" class="renter-preference-form" novalidate>
+                <input id="renterSearchPropertyType" type="hidden" value="">
                 <div class="renter-form-section">
                     <div class="renter-form-section-title"><span>01</span><div><strong>Where?</strong><small>City, district, area or PIN code</small></div></div>
                     <label class="renter-preference-field renter-preference-wide">
@@ -13468,6 +13469,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
             const status = document.getElementById("locationStatus");
             const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
             const listingType = document.getElementById("listingTypeSelect")?.value || "";
+            const renterPropertyType = document.getElementById("renterSearchPropertyType")?.value || "";
 
             if (!navigator.geolocation) {
                 if (status) status.textContent = "Location is not supported by this browser.";
@@ -13744,6 +13746,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
 
                 const propertyBhk = Number(property.bhk);
                 const listingTypeMatch = !listingType || (property.listing_type || "home") === listingType;
+                const propertyTypeMatch = !renterPropertyType || String(property.property_type || "").toLowerCase() === renterPropertyType;
                 const bhkMatch = !bhk || (String(bhk) === "5+" ? propertyBhk >= 5 : (Number(bhk) === 5 ? propertyBhk >= 5 : propertyBhk === Number(bhk)));
 
                 const rent = Number(property.rent);
@@ -13772,7 +13775,7 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
                 const propertyFood = String(property.food_included ?? "").toLowerCase();
                 const foodMatch = !renterFoodPreference || propertyFood === renterFoodPreference.toLowerCase() || (renterFoodPreference === "yes" && propertyFood === "true") || (renterFoodPreference === "no" && propertyFood === "false");
 
-                return locationMatch && listingTypeMatch && bhkMatch && budgetMatch && furnishingMatch && propertyStatusMatch && roomTypeMatch && genderMatch && foodMatch;
+                return locationMatch && listingTypeMatch && propertyTypeMatch && bhkMatch && budgetMatch && furnishingMatch && propertyStatusMatch && roomTypeMatch && genderMatch && foodMatch;
             });
 
             // A PIN is an explicit location request. If the renter's saved or
@@ -21202,7 +21205,7 @@ body.gd-renter-find-page-open #renterFindHomeSection{
       return;
     }
     msg.textContent="Finding matching homes…";
-    const prefs={location,minBudget:minRaw,maxBudget:maxRaw,stayType:$("renterStayType").value,bhk:$("renterSearchBhk").value,furnishing:$("renterSearchFurnishing").value,status:$("renterSearchStatus").value,roomType:$("renterRoomType").value,gender:$("renterGenderPreference").value,food:$("renterFoodPreference").value,radius:(typeof $("renterSearchRadius")!=="undefined" && $("renterSearchRadius")) ? $("renterSearchRadius").value : "3"};
+    const prefs={location,minBudget:minRaw,maxBudget:maxRaw,stayType:$("renterStayType").value,propertyType:$("renterSearchPropertyType")?.value||"",bhk:$("renterSearchBhk").value,furnishing:$("renterSearchFurnishing").value,status:$("renterSearchStatus").value,roomType:$("renterRoomType").value,gender:$("renterGenderPreference").value,food:$("renterFoodPreference").value,radius:(typeof $("renterSearchRadius")!=="undefined" && $("renterSearchRadius")) ? $("renterSearchRadius").value : "3"};
     localStorage.setItem("gdrRenterSearchPreferences",JSON.stringify(prefs));
     $("locationInput").value=location;
     $("listingTypeSelect").value=prefs.stayType;
