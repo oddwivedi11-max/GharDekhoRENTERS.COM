@@ -120,7 +120,6 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-ux1" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
-          grep -q 'get_public_properties' /tmp/gdr-renter-experience.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
           grep -q 'gdrMapVoiceResults' /tmp/gdr-map-voice.js
           grep -q 'gdr-map-voice-mic-icon' /tmp/gdr-map-voice.js
@@ -129,6 +128,7 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-map-ux1" -o /tmp/gdr-map-voice.css
           grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-renter-intent5" -o /tmp/gdr-renter-experience.js
+          grep -q 'get_public_properties' /tmp/gdr-renter-experience.js
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
           grep -q 'toggleCompare' /tmp/gdr-renter-experience.js
           grep -q 'GDR_COMPARE_AUTOFILL_V2' /tmp/gdr-renter-experience.js
