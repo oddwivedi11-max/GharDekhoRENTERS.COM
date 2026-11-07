@@ -16,11 +16,11 @@ test('voice assistant loads inside the existing renter Explore Map', () => {
 });
 
 test('voice recognition is single-utterance, final-transcript-only, and has typed fallback', () => {
-  assert.match(voice, /window\\.SpeechRecognition\\|\\|window\\.webkitSpeechRecognition/);
-  assert.match(voice, /r\\.continuous=false/);
-  assert.match(voice, /if\\(!current\\)state\\.finalText=spoken/);
-  assert.match(voice, /setTimeout\\(finishTurn,450\\)/);
-  assert.doesNotMatch(voice, /setTimeout\\(finishTurn,1800\\)/);
+  assert.match(voice, /window\.SpeechRecognition\|\|window\.webkitSpeechRecognition/);
+  assert.match(voice, /r\.continuous=false/);
+  assert.match(voice, /if\(!current\)state\.finalText=spoken/);
+  assert.match(voice, /setTimeout\(finishTurn,450\)/);
+  assert.doesNotMatch(voice, /setTimeout\(finishTurn,1800\)/);
   assert.match(voice, /gdrMapVoiceSearch/);
   assert.match(voice, /SpeechSynthesisUtterance/);
   assert.match(voice, /hi-IN/);
@@ -70,9 +70,9 @@ test('map voice places its assistant directly below the map heading and uses an 
   assert.match(voice, /<svg viewBox="0 0 24 24"/);
 });
 test('speech finalization never submits an interim-only partial transcript', () => {
-  assert.match(voice, /const final=String\\(state\\.finalText\\|\\|""\\)\\.trim\\(\\)/);
-  assert.match(voice, /if\\(!current\\)state\\.finalText=spoken/);
-  assert.match(voice, /current\\.endsWith\\(" "\\+next\\)/);
+  assert.match(voice, /const final=String\(state\.finalText\|\|" "\)\.trim\(\)/);
+  assert.match(voice, /if\(!current\)state\.finalText=spoken/);
+  assert.match(voice, /current\.endsWith\(" "\+next\)/);
 });
 test('Hindi and Hinglish speech phrases retain locality, BHK and rent filters', () => {
   const start = renter.indexOf('function normalizeSearchText(value){');
@@ -122,9 +122,10 @@ test('map voice keeps its markers while rental cards render in the shared Availa
 });
 
 
+
 test('4 BHK and conversational location changes are parsed without losing prior filters', () => {
   const start = renter.indexOf('function normalizeSearchText(value){');
-  const end = renter.indexOf('\\nfunction detectReplyLanguage', start);
+  const end = renter.indexOf('\nfunction detectReplyLanguage', start);
   const vm = require('node:vm');
   const helpers = vm.runInNewContext(renter.slice(start, end) + '; ({normalizeSearchText,parseRequest})');
   const numeric = helpers.parseRequest('Show me 4 BHK homes in Singrauli');
