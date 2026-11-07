@@ -225,10 +225,21 @@ test('assistant result analytics use actual loaded listing and verification fiel
 test('city-wide microphone searches discard stale form filters and the previous assistant request', () => {
   assert.match(js, /const autoSearch=!!\(options&&options\.autoSearch\)/);
   assert.match(js, /previous=autoSearch\?\{\}:\(state\.parsed\|\|\{\}\)/);
-  assert.match(js, /if\(!mapMode\)state\.parsed=null/);
+  assert.match(js, /if\(!mapMode\)\{\s*state\.parsed=null;/);
   assert.match(js, /resetKeys=\(broadAllListings\|\|broadHomes\|\|resetLocationFilters\)\?/);
   assert.match(js, /setValue\("renterMinBudgetPreset","",true\)/);
   assert.match(js, /setValue\("renterMaxBudgetPreset","",true\)/);
+});
+
+test('starting a new renter voice search clears the visible previous city and every old form filter', () => {
+  const start = js.indexOf('function startVoice(target,lang){');
+  const end = js.indexOf('function hideUpperAvailableRentalPanel', start);
+  const voice = js.slice(start, end);
+  assert.match(voice, /clearRenterSearchFilters\(\)/);
+  assert.match(voice, /const locationField=\$\("renterSearchLocation"\)/);
+  assert.match(voice, /locationField\.value=""/);
+  assert.match(voice, /state\.parsed=null/);
+  assert.match(js, /function clearRenterSearchFilters\(\)/);
 });
 
 test('all-property Hinglish requests tolerate common phrasing and clean the Ajay speech prefix before Singrauli', () => {

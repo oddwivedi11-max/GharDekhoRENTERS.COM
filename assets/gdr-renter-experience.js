@@ -500,7 +500,13 @@ function startVoice(target,lang){
  if(state.recognition){try{state.recognition.abort?state.recognition.abort():state.recognition.stop();}catch(_){}}
  state.voiceSession++;const session=state.voiceSession;
  state.voiceActive=true;state.voiceDraft="";
- if(!mapMode)state.parsed=null; // Every new renter microphone session is a fresh request, not a stale-filter follow-up.
+ if(!mapMode){
+  state.parsed=null; // Every new renter microphone session is a fresh request, not a stale-filter follow-up.
+  // Clear the visible Find Home form as well as assistant memory so an old city never looks preselected.
+  clearRenterSearchFilters();
+  const locationField=$("renterSearchLocation");
+  if(locationField){locationField.value="";locationField.dispatchEvent(new Event("input",{bubbles:true}));locationField.dispatchEvent(new Event("change",{bubbles:true}));}
+ }
  const transcriptField=$(target);if(transcriptField){transcriptField.value="";transcriptField.dispatchEvent(new Event("input",{bubbles:true}));}
  const chosen=mapMode?($("gdrxMapLang")?.value||state.lang):(lang||state.lang);
  const r=new API();state.recognition=r;r.lang=chosen;r.continuous=false;r.interimResults=true;r.maxAlternatives=1;
