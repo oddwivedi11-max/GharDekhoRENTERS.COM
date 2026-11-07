@@ -1,5 +1,14 @@
 const { test, expect } = require('@playwright/test');
 
+async function exposeAuthenticatedRenterDashboard(page) {
+  await page.evaluate(() => {
+    const shell = document.getElementById('dashboardSection');
+    if (shell) { shell.hidden = false; shell.style.display = 'block'; shell.setAttribute('aria-hidden', 'false'); }
+    const renter = document.getElementById('renterDashboard');
+    if (renter) { renter.hidden = false; renter.style.display = 'block'; }
+  });
+}
+
 test.describe('GDR map-first experience structure', () => {
   test('renter map entry and map controls are present exactly once', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
@@ -51,6 +60,7 @@ test.describe('GDR map-first experience structure', () => {
 
   test('renter map initializes without guessing a location or requesting GPS', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await exposeAuthenticatedRenterDashboard(page);
     await page.evaluate(() => {
       const center = { lat: 23.2599, lng: 77.4126 };
       const makeMap = element => {
@@ -131,6 +141,7 @@ test.describe('GDR map-first experience structure', () => {
 
   test('Saved Properties stays hidden until its dashboard shortcut is clicked', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await exposeAuthenticatedRenterDashboard(page);
     const section = page.locator('#renterSavedPropertiesSection');
     await expect(section).toHaveCSS('display', 'none');
     await page.locator('#renterSavedPropertiesBtn').evaluate(button => button.click());
