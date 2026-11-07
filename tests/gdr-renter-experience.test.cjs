@@ -114,7 +114,7 @@ test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', ()
   assert.equal(p.location, 'Singrauli');
   assert.equal(p.stayType, '');
 });
-test('voice assistant replies' in the language used by the speaker', () => {
+test('voice assistant replies in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
   const end = js.indexOf('function setValue', start);
   assert.ok(start >= 0 && end > start, 'voice response helpers are present');
