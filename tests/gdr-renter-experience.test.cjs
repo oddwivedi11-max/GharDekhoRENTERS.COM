@@ -253,3 +253,32 @@ test('mobile Smart Finder property cards use a vertical layout with a readable t
   assert.match(css, /writing-mode:horizontal-tb!important/);
   assert.match(css, /overflow-wrap:normal!important/);
 });
+
+
+test('Renter Edit Profile is a single action below the main renter dashboard content', () => {
+  const welcomeStart = index.indexOf('<div class="renter-welcome-card">');
+  const actionsStart = index.indexOf('<div class="renter-dashboard-actions">', welcomeStart);
+  const welcomeMarkup = index.slice(welcomeStart, actionsStart);
+  const savedStart = index.indexOf('id="renterSavedPropertiesSection"');
+  const editButton = index.indexOf('id="renterEditProfileBtn"');
+  assert.ok(welcomeStart >= 0 && actionsStart > welcomeStart, 'renter welcome card is present');
+  assert.doesNotMatch(welcomeMarkup, /renterEditProfileBtn/, 'Edit Profile is not inside the welcome card');
+  assert.ok(savedStart >= 0 && editButton > savedStart, 'Edit Profile is positioned after the renter dashboard content');
+  assert.equal((index.match(/id="renterEditProfileBtn"/g) || []).length, 1, 'only one Edit Profile button exists');
+  assert.match(index, /getElementById\("renterEditProfileBtn"\)\?\.addEventListener\("click", openRenterProfileEditor\)/);
+  assert.match(index, /getElementById\("renterProfileForm"\)\?\.addEventListener\("submit", saveRenterProfile\)/);
+});
+
+test('Renter dashboard action colors match the approved beige Map and forest-green Nearby palette', () => {
+  assert.match(index, /#renterDashboard #renterExploreMapBtn[\s\S]*?background:#E8D8C3!important;border:1px solid #D5C1A8!important;color:#493A2B!important/);
+  assert.match(index, /#renterDashboard #renterLiveNearbyBtn,[\s\S]*?background:#174B35!important;border:1px solid #103B2A!important;color:#fff!important/);
+  assert.match(index, /#renterDashboard #renterLiveNearbyBtn:hover[\s\S]*?background:#103B2A!important/);
+});
+
+test('Renter welcome and account-edit cards remain responsive without replacing the existing profile editor', () => {
+  assert.match(index, /Find a Home That Fits for You/);
+  assert.match(index, /class="renter-account-edit-card"/);
+  assert.match(index, /@media\(max-width:760px\)[\s\S]*?renter-account-edit-card\{align-items:stretch!important;flex-direction:column!important/);
+  assert.match(index, /id="renterProfileEditor"/);
+});
+
