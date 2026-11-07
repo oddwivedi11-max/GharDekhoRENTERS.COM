@@ -32,7 +32,10 @@ function extractIntent(raw){
   const allListings=/(?:\b(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties|listings|homes|houses)\b|(?:जितने\s+भी|सभी|सारे|सारी)\s*(?:उपलब्ध\s*)?(?:प्रॉपर्टी|प्रॉपर्टीज|लिस्टिंग|घर|मकान))/i.test(request);
   if(allListings){["bhk","minBudget","maxBudget","furnishing","stayType","propertyType"].forEach(key=>delete prefs[key]);}
   if(/\b(?:any|all)\s+(?:bhk|bedrooms?)\b|(?:कोई भी|सभी)\s*(?:बीएचके|बेडरूम)|सभी प्रकार के घर/i.test(request))delete prefs.bhk;
-  if(/\b(?:clear|remove|reset)\s+(?:budget|rent)\b|बजट हटाओ|किराया हटाओ/i.test(request)){delete prefs.minBudget;delete prefs.maxBudget;}
+  if(/\b(?:clear|remove|reset)\s+(?:budget|rent)\b|\b(?:budget|rent)\s+(?:hatao|remove)\b|बजट हटाओ|किराया हटाओ/i.test(request)){delete prefs.minBudget;delete prefs.maxBudget;}
+  if(/\b(?:clear|remove|reset)\s+(?:bhk|bedrooms?)\b|\b(?:bhk|bedroom)\s+(?:hatao|remove)\b|बीएचके हटाओ|बेडरूम हटाओ/i.test(request))delete prefs.bhk;
+  if(/\b(?:clear|remove|reset)\s+(?:furnishing|furnished)\b|\bfurnishing\s+(?:hatao|remove)\b|फर्निशिंग हटाओ/i.test(request))delete prefs.furnishing;
+  if(/\b(?:clear|remove|reset)\s+(?:property type|flat type|home type)\b|प्रॉपर्टी टाइप हटाओ/i.test(request)){delete prefs.propertyType;delete prefs.stayType;}
   return {prefs,location:String(parsed.location||""),nearMe:!!parsed.useMyLocation,radiusKm:parsed.radiusKm==null?null:Number(parsed.radiusKm),raw:request};
  }
  return {prefs:{...state.prefs},location:String(raw||"").trim(),nearMe:false,radiusKm:null,raw:String(raw||"")};
@@ -135,6 +138,8 @@ async function runTurn(raw){
   let rows=[],mapSummary=null;
   if(intent.nearMe){
    if(!api||typeof api.searchAtCoordinates!=="function")throw new Error(text("Nearby map search अभी उपलब्ध नहीं है।","Nearby map search is not available right now."));
+   if(typeof api.setRenterSearchPreferences==="function")api.setRenterSearchPreferences(state.prefs);
+   if(intent.radiusKm!=null&&typeof api.setRenterRadius==="function")api.setRenterRadius(intent.radiusKm,true);
    const position=await new Promise((resolve,reject)=>{
     if(!navigator.geolocation){reject(new Error("This browser does not support location access."));return;}
     navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
