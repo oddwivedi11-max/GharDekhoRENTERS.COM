@@ -54,6 +54,23 @@ test('spoken renter search is one-shot, stop-safe and submits the existing real 
   assert.match(js, /Chrome speech recognition could not reach its speech service/);
 });
 
+test('voice parser distinguishes Room from Apartment for renter searches', () => {
+  const room = parseRequest('Patel Nagar Bhopal mein single room rent par dikhao');
+  assert.equal(room.stayType, 'home');
+  assert.equal(room.propertyType, 'room');
+  const apartment = parseRequest('Show me an apartment in Indore');
+  assert.equal(apartment.propertyType, 'apartment');
+});
+test('spoken follow-up filters preserve the previously selected city and stay type', () => {
+  assert.match(js, /const extracted=parseRequest\\(raw\\),previous=state\\.parsed\\|\\|\\{\\}/);
+  assert.match(js, /if\\(!extracted\\[key\\]\\)p\\[key\\]=previous\\[key\\]\\|\\|""/);
+});
+test('renter search applies an exact property type filter to real inventory', () => {
+  assert.match(index, /id="renterSearchPropertyType"/);
+  assert.match(index, /propertyType:\$\\("renterSearchPropertyType"\\)/);
+  assert.match(index, /const propertyTypeMatch = !renterPropertyType/);
+  assert.match(index, /locationMatch && listingTypeMatch && propertyTypeMatch/);
+});
 test('Hindi locality search requires all meaningful locality words, not a generic shared token', () => {
   assert.match(index, /const typedLocationMatch = typedTerms\.every\(term =>/);
 });
