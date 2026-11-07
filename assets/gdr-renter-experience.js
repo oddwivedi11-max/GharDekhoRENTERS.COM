@@ -223,12 +223,20 @@ function parseRequest(raw){
   if(hindiCityLead){
    const cityPart=hindiCityLead[1].replace(/[.,!?]+$/,"").trim();
    let localityPart=hindiCityLead[2].trim();
-   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी|jitni\s+bhi|jitne\s+bhi|जितने|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|बेडरूम|बेड\s*रूम|कमरे)|प्रॉपर्टीज़?|properties|listings|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|rental|rent|houses?|homes?|properties?|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
+   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी|jitni\s+bhi|jitne\s+bhi|जितनी|जितने|जितना|jitni|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|बेडरूम|बेड\s*रूम|कमरे)|प्रॉपर्टीज़?|properties|listings|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|rental|rent|houses?|homes?|properties?|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
    if(stop>=0)localityPart=localityPart.slice(0,stop).trim();
    localityPart=localityPart.replace(/\s+(?:के|की|का)$/i,"").trim();
    const cityKey=normalizeSearchText(cityPart);
-   const resolvedCity=cityKey==="singrauli"?"Singrauli":cityPart;
-   p.location=localityPart?localityPart+", "+resolvedCity:resolvedCity;
+   const knownCities=[["bhopal","Bhopal"],["singrauli","Singrauli"],["indore","Indore"],["jabalpur","Jabalpur"],["gwalior","Gwalior"],["ujjain","Ujjain"],["rewa","Rewa"],["satna","Satna"],["dewas","Dewas"],["sidhi","Sidhi"]];
+   const city=knownCities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(cityKey));
+   if(/[a-z]/i.test(cityPart)){
+    p.location=city&&cityKey===city[0]&&localityPart?localityPart+", "+cityPart:cityPart;
+   }else{
+    const localityFromCity=city?cityKey.replace(new RegExp("(?:^| )"+city[0]+"(?: |$)","g")," ").replace(/\\b(madhya pradesh|m p|mp)\\b/g," ").replace(/\\s+/g," ").trim():"";
+    const resolvedCity=city?(cityKey==="singrauli"?"Singrauli":cityKey===city[0]?cityPart:city[1]):cityPart;
+    const resolvedLocality=localityPart||localityFromCity;
+    p.location=resolvedLocality?resolvedLocality+", "+resolvedCity:resolvedCity;
+   }
   }
  }
  if(!p.location){
