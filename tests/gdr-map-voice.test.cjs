@@ -57,7 +57,7 @@ test('voice searches the public inventory and renders results in Available Renta
   assert.doesNotMatch(renter, /gdrx-assistant-property-card/);
   assert.match(map, /get_available_map_properties_in_bounds/);
   assert.match(map, /function showVoiceSearchResults\(rows,point,label\)/);
-  assert.match(map, /renderMarkers\(items,center,false\)/);
+  assert.match(map, /renderMarkers\(mappedItems,center,false,false,listRows\)/);
   assert.match(map, /fitBounds\(coordinates,\{padding:\[48,48\],maxZoom:15,animate:false\}\)/);
   assert.match(map, /homes on map/);
   assert.match(map, /const rent=Number\(p\.rent\|\|0\),short=money\(rent\)/);
@@ -167,7 +167,7 @@ test('all-properties voice requests clear stale BHK, budget, furnishing and home
 
 
 test('voice inventory stays cached and renter map automatically filters markers to the current viewport on zoom or pan', () => {
-  assert.ok(map.includes('browseInventory:null, browseTimer:null'));
+  assert.ok(map.includes('browseInventory:null, browseCenter:null, browseTimer:null'));
   assert.ok(map.includes('function filterBrowseInventoryToBounds(rows,bounds,center,prefs)'));
   assert.ok(map.includes('bounds.contains(point)'));
   assert.ok(map.includes('function renderBrowseViewport()'));
