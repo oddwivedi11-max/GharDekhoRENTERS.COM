@@ -177,7 +177,7 @@ async function searchAssistantListings(prefs,raw,target){
 
 function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
-  const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:ab|now|then|also|aur|और|अब|तो|फिर|अच्छा|ठीक है)\s*/i,"").replace(/^(?:a|an)\s+/i,"").trim();
+  const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:ab|now|then|also|aur|और|अब|तो|फिर|अच्छा|ठीक है)\s*/i,"").replace(/^(?:a|an)\s+/i,"").replace(/\s+(?:मुझे|मुझको|मेरे लिए|मेरी लिए|please|plz)$/i,"").trim();
  const p={raw:original,location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:"",propertyType:"",radiusKm:null,useMyLocation:false,familyFriendly:false};
  const numericBhk=n.match(/(?:^|\s)([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|बेडरूम|बेड\s*रूम|कमरे|कमरा)(?=\s|$|[^a-z0-9])/i);
  const wordBhk=n.match(/(?:^|\s)(one|two|three|four|five|एक|दो|तीन|चार|पाँच|पांच)\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|बेडरूम|बेड\s*रूम)?(?=\s|$|[,.!?])/i);
@@ -189,7 +189,7 @@ function parseRequest(raw){
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
  else if(/\b(flat|apartment|independent house|villa|room|home|house|houses|homes)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा|घर|मकान/.test(n))p.stayType="home";
  // Only explicit all-properties requests clear the home/PG/hostel type filter.
- if(/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:properties|listings)|(?:सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज|लिस्टिंग)/i.test(original))p.stayType="";
+ if(/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:properties|listings)|(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी)\s*(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|लिस्टिंग)/i.test(original))p.stayType="";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
  else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
  else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
@@ -223,10 +223,12 @@ function parseRequest(raw){
   if(hindiCityLead){
    const cityPart=hindiCityLead[1].replace(/[.,!?]+$/,"").trim();
    let localityPart=hindiCityLead[2].trim();
-   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितने|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|बेडरूम|बेड\s*रूम|कमरे)|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|rental|rent|houses?|homes?|properties?|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
+   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी|jitni\s+bhi|jitne\s+bhi|जितने|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|बेडरूम|बेड\s*रूम|कमरे)|प्रॉपर्टीज़?|properties|listings|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|rental|rent|houses?|homes?|properties?|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
    if(stop>=0)localityPart=localityPart.slice(0,stop).trim();
    localityPart=localityPart.replace(/\s+(?:के|की|का)$/i,"").trim();
-   p.location=localityPart?localityPart+", "+cityPart:cityPart;
+   const cityKey=normalizeSearchText(cityPart);
+   const resolvedCity=cityKey==="singrauli"?"Singrauli":cityPart;
+   p.location=localityPart?localityPart+", "+resolvedCity:resolvedCity;
   }
  }
  if(!p.location){

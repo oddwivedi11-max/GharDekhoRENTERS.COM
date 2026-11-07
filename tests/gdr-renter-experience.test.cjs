@@ -395,3 +395,27 @@ test('Singrauli city-wide search includes the wider district area while excludin
   assert.match(js, /const unavailable=\["occupied","rejected","removed","deleted","unavailable","released"\]/);
   assert.match(js, /verification==="verified"&&row\.owner_verified===true/);
 });
+
+
+test('Hindi city-first all-property request in Singrauli resolves the city and clears accidental filters', () => {
+  const examples = [
+    ['सिंगरौली में जितनी भी प्रॉपर्टीज है मुझे', ''],
+    ['सिंगरौली में जितनी भी प्रॉपर्टीज हैं मुझे दिखाओ', ''],
+    ['मुझे सिंगरौली में सभी प्रॉपर्टीज दिखाओ', ''],
+    ['सिंगरौली में जितने भी घर हैं दिखाओ', 'home']
+  ];
+  for (const [phrase, expectedStayType] of examples) {
+    const parsed = parseRequest(phrase);
+    assert.equal(parsed.location, 'Singrauli', phrase);
+    assert.equal(parsed.stayType, expectedStayType, phrase);
+    assert.equal(parsed.bhk, '', phrase);
+    assert.equal(parsed.maxBudget, '', phrase);
+    assert.equal(parsed.propertyType, '', phrase);
+  }
+});
+
+test('Hindi city-first locality searches retain the locality while stripping all-property wording', () => {
+  const parsed = parseRequest('भोपाल में पटेल नगर की जितनी भी प्रॉपर्टीज हैं मुझे दिखाओ');
+  assert.equal(parsed.location, 'पटेल नगर, भोपाल');
+  assert.equal(parsed.stayType, '');
+});
