@@ -114,7 +114,7 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/login" -o /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
-          grep -q 'gdr-map-experience.js?v=20261107-map-voice5' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261107-map-voice6' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js
