@@ -128,6 +128,7 @@ async function searchAssistantListings(prefs,raw,target){
   setStatus("The existing Available Rental Properties section is not ready. Please refresh and try again.");
   return [];
  }
+ ensurePropertyResultsVisible(section);
  setInventorySummary(language==="hi"?"GharDekho database में आपकी शर्तों के अनुसार असली listings खोजी जा रही हैं…":"Searching the live GharDekho rental inventory…");
  container.innerHTML='<div class="loading-text">Searching matching rental properties…</div>';
  const pagination=$("propertyPagination");if(pagination)pagination.innerHTML="";
@@ -444,13 +445,15 @@ function startVoice(target,lang){
  }
 }
 function hideUpperAvailableRentalPanel(){
- // One bounded pass is enough: observing the entire document here caused repeated
- // full-page heading scans while property cards and dashboard panels were updating.
+ // Only hide a genuinely separate duplicate panel. The canonical #propertiesSection
+ // is the single shared results surface for assistant and manual searches.
  const headings=document.querySelectorAll("h1,h2,h3,h4,h5,[role=heading]");
  for(const heading of headings){
   if(String(heading.textContent||"").replace(/\\s+/g," ").trim().toLowerCase()!=="available rental properties")continue;
+  if(heading.closest&&heading.closest("#propertiesSection"))continue;
   let node=heading;
   for(let depth=0;depth<7&&node&&node!==document.body;depth++,node=node.parentElement){
+   if(node.id==="propertiesSection"||(node.querySelector&&node.querySelector("#propertiesSection")))break;
    const text=String(node.textContent||"").replace(/\\s+/g," ").trim();
    if(/available rental properties/i.test(text)&&/loading properties/i.test(text)){
     node.hidden=true;node.setAttribute("aria-hidden","true");node.setAttribute("data-gdr-hidden-duplicate-rentals","true");node.style.setProperty("display","none","important");
@@ -458,6 +461,18 @@ function hideUpperAvailableRentalPanel(){
    }
   }
  }
+}
+function ensurePropertyResultsVisible(section){
+ if(!section)return false;
+ // Recover from the previous duplicate-panel cleanup, which could accidentally
+ // mark the canonical results section as hidden before the first search.
+ if(section.hasAttribute("data-gdr-hidden-duplicate-rentals")){
+  section.hidden=false;
+  section.removeAttribute("aria-hidden");
+  section.removeAttribute("data-gdr-hidden-duplicate-rentals");
+  section.style.removeProperty("display");
+ }
+ return true;
 }
 function mountFinder(){
  hideUpperAvailableRentalPanel();
