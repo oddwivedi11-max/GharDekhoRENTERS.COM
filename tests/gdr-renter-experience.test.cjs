@@ -29,10 +29,10 @@ test('Hindi locality searches transliterate into Latin inventory text instead of
   assert.ok(normalize('अजय पटेल नगर').split(' ').every(term => inventory.includes(term)));
 });
 
-test('Hindi Smart Finder generic home request keeps stay type unrestricted', () => {
+test('Hindi generic house requests search available homes', () => {
   const p = parseRequest('अजय पटेल नगर में जितने भी घर है दिखाओ');
   assert.equal(p.location, 'अजय पटेल नगर');
-  assert.equal(p.stayType, '');
+  assert.equal(p.stayType, 'home');
 });
 
 test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
@@ -44,13 +44,13 @@ test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
 test('Madhya Pradesh state-plus-city voice request resolves to the requested city and executes search', () => {
   const p = parseRequest('मध्य प्रदेश के इंदौर में जितने भी rental houses available हैं दिखाओ');
   assert.equal(p.location, 'Indore');
-  assert.equal(p.stayType, '');
+  assert.equal(p.stayType, 'home');
 });
 test('state normalization preserves a locality when a city and state are spoken together', () => {
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
-test('spoken renter search is one-shot, stop-safe and submits the existing real search form', () => {
+test('spoken renter search is one-shot, stop-safe and uses the direct database search', () => {
   assert.ok(js.includes('r.continuous=false'));
   assert.ok(js.includes('state.voiceDraft=finalTranscript.trim()'));
   assert.ok(js.includes('const transcript=finalTranscript.trim()'));
@@ -59,7 +59,8 @@ test('spoken renter search is one-shot, stop-safe and submits the existing real 
   assert.ok(js.includes('r.abort?r.abort():r.stop()'));
   assert.ok(js.includes('review(finalText,{autoSearch:true})'));
   assert.ok(js.includes('speakAssistantReply(spokenReply,replyLanguage)'));
-  assert.ok(js.includes('form.requestSubmit()'));
+  assert.ok(js.includes('searchAssistantListings(p,raw)'));
+  assert.doesNotMatch(js, /form\\.requestSubmit\\(\\);searchAssistantListings/);
   assert.ok(js.includes('Chrome speech recognition could not reach its speech service'));
 });
 
@@ -73,7 +74,7 @@ test('voice parser distinguishes Room from Apartment for renter searches', () =>
 test('spoken follow-up filters preserve the previously selected city and stay type', () => {
   assert.ok(js.includes('const extracted=parseRequest(raw),previous=state.parsed||{}'));
   assert.ok(js.includes('if(!extracted[key]&&!(broadHomes&&(key==="stayType"||key==="propertyType")))p[key]=previous[key]||""'));
-  assert.ok(js.includes('if(broadHomes){p.stayType="";p.propertyType="";}'));
+  assert.ok(js.includes('if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}'));
 });
 test('renter search applies an exact property type filter to real inventory', () => {
   assert.ok(index.includes('id="renterSearchPropertyType"'));
@@ -115,7 +116,7 @@ test('map has one dedicated voice assistant microphone and status surface', () =
 test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
   const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
   assert.equal(p.location, 'Singrauli');
-  assert.equal(p.stayType, '');
+  assert.equal(p.stayType, 'home');
 });
 test('voice assistant replies in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
@@ -214,7 +215,8 @@ test('GDR Smart Finder greets renters as their personal assistant and searches t
   assert.match(js, /Hello! मैं GDR Assistant हूँ — GharDekho का आपका personal assistant/);
   assert.match(js, /client\.rpc\("get_public_properties"\)/);
   assert.match(js, /searchAssistantListings\(p,raw\)/);
-  assert.ok(js.includes('rows.length===1?"Home":"Homes"'));
+  assert.ok(js.includes('window.renderVoicePropertyResults(rows)'));
+  assert.doesNotMatch(js, /gdrx-assistant-property-card/);
   assert.match(js, /filterAssistantListings/);
 });
 
@@ -301,9 +303,12 @@ test('voice intent understands numeric, word-based and Hindi BHK requests', () =
 });
 
 test('location filters include Waidhan, Vindhyanagar and Singrauli spelling variants while rejecting distant false pins', () => {
-  const start = js.indexOf('function filterAssistantListings(rows,prefs){');
-  const end = js.indexOf('\\nasync function searchAssistantListings', start);
-  const helpers = vm.runInNewContext(js.slice(normalizeStart, start) + js.slice(start, end) + '; ({normalizeSearchText,filterAssistantListings})');
+  const filterStart = js.indexOf('function filterAssistantListings(rows,prefs){');
+  const filterEnd = js.indexOf('async function searchAssistantListings', filterStart);
+  const normalizerStart = js.indexOf('function normalizeSearchText(value){');
+  const parserStart = js.indexOf('function parseRequest(raw){', normalizerStart);
+  assert.ok(normalizerStart >= 0 && parserStart > normalizerStart && filterEnd > filterStart);
+  const helpers = vm.runInNewContext(js.slice(normalizerStart, parserStart) + js.slice(filterStart, filterEnd) + '; ({normalizeSearchText,filterAssistantListings})');
   const fixtures = [
     {id:'singrauli-core',location:'Rajmata Chun Kumari Stadium, Waidhan, Singrauli, Madhya Pradesh',latitude:24.0688,longitude:82.6255,bhk:2,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home',rent:2588},
     {id:'vindhyanagar',location:'DAV Road, Vindhyanagar, Singrauli, Madhya Pradesh',latitude:null,longitude:null,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:6000},
@@ -317,9 +322,11 @@ test('location filters include Waidhan, Vindhyanagar and Singrauli spelling vari
 });
 
 test('Patel Nagar Bhopal returns available 2 BHK homes and excludes occupied homes and a Delhi pin', () => {
-  const start = js.indexOf('function filterAssistantListings(rows,prefs){');
-  const end = js.indexOf('\\nasync function searchAssistantListings', start);
-  const helpers = vm.runInNewContext(js.slice(normalizeStart, start) + js.slice(start, end) + '; filterAssistantListings');
+  const filterStart = js.indexOf('function filterAssistantListings(rows,prefs){');
+  const filterEnd = js.indexOf('async function searchAssistantListings', filterStart);
+  const normalizerStart = js.indexOf('function normalizeSearchText(value){');
+  const parserStart = js.indexOf('function parseRequest(raw){', normalizerStart);
+  const helpers = vm.runInNewContext(js.slice(normalizerStart, parserStart) + js.slice(filterStart, filterEnd) + '; filterAssistantListings');
   const fixtures = [
     {id:'patel-pending',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:23.2557,longitude:77.5021,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:6000},
     {id:'patel-verified',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:23.2557,longitude:77.5021,bhk:2,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home',rent:7777},
@@ -333,20 +340,18 @@ test('Patel Nagar Bhopal returns available 2 BHK homes and excludes occupied hom
 
 test('voice results reuse the Available Rental Properties renderer instead of duplicate assistant cards', () => {
   const start=js.indexOf('async function searchAssistantListings(prefs,raw,target){');
-  const end=js.indexOf('\\nfunction parseRequest',start);
+  const end=js.indexOf('function parseRequest(raw){',start);
   const search=js.slice(start,end);
   assert.ok(start>=0&&end>start);
-  assert.match(search,/window\\.renderVoicePropertyResults\\(rows\\)/);
+  assert.match(search,/window\.renderVoicePropertyResults\(rows\)/);
   assert.match(search,/propertiesSection/);
   assert.match(search,/propertiesContainer/);
   assert.match(search,/gdrVoiceInventorySummary/);
-  assert.match(search,/scrollIntoView\\(\\{behavior:"smooth",block:"start"\\}\\)/);
+  assert.match(search,/scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
   assert.doesNotMatch(search,/gdrx-assistant-property-card/);
 });
 
 test('map voice responses identify the actual Available Rental Properties section', () => {
-  assert.match(map,/Available Rental Properties below/);
-  assert.match(map,/assistant\\.searchAssistantListings\\(\\{\\.\\.\\.state\\.prefs,location\\},raw,target\\)/);
+  assert.match(mapVoice,/Available Rental Properties below/);
+  assert.match(mapVoice,/assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
 });
-
-
