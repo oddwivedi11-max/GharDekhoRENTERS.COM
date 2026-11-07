@@ -685,7 +685,7 @@ function renderCompareStudio(){
   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove";remove.onclick=()=>{state.compare=state.compare.filter((_,i)=>i!==index);renderCompare();if(state.compare.length<2){studio.hidden=true;document.body.classList.remove("gdrx-studio-open")}else renderCompareStudio()};
   const replace=document.createElement("button");replace.type="button";replace.textContent="Replace";replace.onclick=()=>{const options=getNearbyCompareProperties();showReplaceOptions(index,options)};
   controls.append(replace,remove);top.append(img,name,price,controls);col.append(top);
-  fields.forEach(f=>{const row=document.createElement("div");row.className="gdrx-matrix-value";const val=document.createElement("span");val.textContent=f.get(p);if(f.kind==="low"&&f.raw){const nums=state.compare.map(x=>Number(f.raw(x))).filter(v=>Number.isFinite(v)&&v>=0);if(nums.length>1&&Number(f.raw(p))===Math.min(...nums))row.classList.add("is-best")};row.append(val);col.append(row)});
+  fields.forEach(f=>{const row=document.createElement("div");row.className="gdrx-matrix-value";row.dataset.label=f.label;const val=document.createElement("span");val.textContent=f.get(p);if(f.kind==="low"&&f.raw){const nums=state.compare.map(x=>Number(f.raw(x))).filter(v=>Number.isFinite(v)&&v>=0);if(nums.length>1&&Number(f.raw(p))===Math.min(...nums))row.classList.add("is-best")};row.append(val);col.append(row)});
   columns.append(col);
  });
  matrix.append(labels,columns);studio.append(matrix);
