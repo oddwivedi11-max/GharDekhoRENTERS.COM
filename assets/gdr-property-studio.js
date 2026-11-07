@@ -760,7 +760,7 @@ function isVoiceNo(text){return /^(nahi|nahin|no|wrong|galat|नहीं|नह
 function processVoiceTurn(text){
  const raw=String(text||"").trim();if(!raw)return;
  state.voice.finalText=(state.voice.finalText?state.voice.finalText+" ":"")+raw;
- state.voice.interimText="";updateVoiceTranscript();state.voice.language=detectVoiceLanguage(raw);const lower=raw.toLowerCase();
+ state.voice.interimText="";updateVoiceTranscript();if(/[ऀ-ॿ]/.test(raw))state.voice.language="hi";const lower=raw.toLowerCase();
  if(/\b(start again|restart|dobara shuru)\b|फिर से शुरू/.test(lower)){state.voice.finalText="";state.voice.turnText="";state.voice.interimText="";state.voice.pending={};state.voice.awaitingConfirmation=false;updateVoiceTranscript();renderVoicePending();speakVoice(voiceText("ठीक है, नई शुरुआत करते हैं। अपनी property के बारे में बताइए।","Let's start again. Tell me about your property."));return;}
  if(/\b(go back|back one step|peeche jao)\b|पीछे जाओ/.test(lower)){state.step=Math.max(0,state.step-1);updateStep();speakVoice(voiceText("ठीक है, पिछले step पर आ गए हैं।","Okay, I've moved to the previous step."));return;}
  if(/\b(continue listing|next step|aage chalo)\b|आगे चलो/.test(lower)){state.step=Math.min(4,state.step+1);updateStep();speakVoice(voiceText("ठीक है, listing के अगले step पर चलते हैं।","Okay, moving to the next listing step."));return;}
