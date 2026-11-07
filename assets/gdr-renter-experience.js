@@ -154,7 +154,7 @@ function parseRequest(raw){
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
  else if(/\b(flat|apartment|independent house|villa|room)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा/.test(n))p.stayType="home";
  // Generic home/house/घर requests mean all available rental listing types.
- if(/(?:all|every|any)\s+(?:available\s+)?(?:homes?|houses?|properties)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:घर|मकान|प्रॉपर्टी|प्रॉपर्टीज)/i.test(original))p.stayType="";
+ if(/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:homes?|houses?|properties)|(?:jitne\s+bhi|sabhi|saare|saari)\s+(?:available\s+)?(?:rental\s+)?(?:homes?|houses?|properties)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:घर|मकान|प्रॉपर्टी|प्रॉपर्टीज)/i.test(original))p.stayType="";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
  else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
  else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
