@@ -19,32 +19,34 @@ declare
 begin
   v_definition := pg_get_functiondef(v_signature);
 
-  if position('''apartment'',''independent_house'',''villa'',''pg'',''hostel'',''other''' in v_definition) = 0 then
-    raise exception 'Could not locate the existing Property Studio property-type validation safely.';
+  -- The repository migration may be replayed by a later CLI sync because
+  -- production was applied through the Supabase migration API. Make it safe
+  -- to run more than once.
+  if position('''room''' in v_definition) = 0 then
+    if position('''apartment'',''independent_house'',''villa'',''pg'',''hostel'',''other''' in v_definition) = 0 then
+      raise exception 'Could not locate the existing Property Studio property-type validation safely.';
+    end if;
+
+    v_definition := replace(
+      v_definition,
+      '''apartment'',''independent_house'',''villa'',''pg'',''hostel'',''other''',
+      '''apartment'',''independent_house'',''villa'',''pg'',''hostel'',''other'',''room'''
+    );
+
+    v_definition := replace(
+      v_definition,
+      'when p_property_type = ''other'' then 1',
+      'when p_property_type in (''other'',''room'') then 1'
+    );
+
+    v_definition := replace(
+      v_definition,
+      'case when p_property_type = ''other'' then null else v_effective_bhk end',
+      'case when p_property_type in (''other'',''room'') then null else v_effective_bhk end'
+    );
+
+    execute v_definition;
   end if;
-
-  v_definition := replace(
-    v_definition,
-    '''apartment'',''independent_house'',''villa'',''pg'',''hostel'',''other''',
-    '''apartment'',''independent_house'',''villa'',''pg'',''hostel'',''other'',''room'''
-  );
-
-  -- Room is a home listing without a BHK value. Keep the existing insert path
-  -- compatible by passing the existing fallback BHK to owner_add_property,
-  -- then persist NULL BHK for the Room record just as Other listings do.
-  v_definition := replace(
-    v_definition,
-    'when p_property_type = ''other'' then 1',
-    'when p_property_type in (''other'',''room'') then 1'
-  );
-
-  v_definition := replace(
-    v_definition,
-    'case when p_property_type = ''other'' then null else v_effective_bhk end',
-    'case when p_property_type in (''other'',''room'') then null else v_effective_bhk end'
-  );
-
-  execute v_definition;
 end $$;
 
 commit;
