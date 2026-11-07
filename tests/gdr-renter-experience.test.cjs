@@ -470,3 +470,9 @@ test('premium compare studio exposes add, replace, nearby discovery and comparis
 test('map compare action has a dedicated premium button class', () => {
   assert.match(map, /gdr-map-compare-btn/);
 });
+
+test('comparison insights disclose amenities and equal-weight value criteria', () => {
+  assert.match(js, /Most listed amenities/);
+  assert.match(js, /Best overall value/);
+  assert.match(js, /equal-weight ranking of monthly rent \+ recorded maintenance and distance/);
+});
