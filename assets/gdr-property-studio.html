@@ -1,7 +1,7 @@
 <section id="gdrPropertyStudio" hidden aria-label="GharDekho Property Studio">
   <header class="gdr-studio-topbar">
     <div class="gdr-studio-brand"><span class="gdr-studio-brand-mark">⌂</span><span><small>GHARDEKHO</small><strong>PROPERTY STUDIO</strong></span></div>
-    <div class="gdr-studio-top-actions"><span id="gdrStudioDraftStatus" class="gdr-studio-draft-status">Your draft saves automatically</span><button type="button" id="gdrStudioClose" class="gdr-studio-close">← Owner Dashboard</button></div>
+    <div class="gdr-studio-top-actions"><span id="gdrStudioDraftStatus" class="gdr-studio-draft-status">Manual entry · No previous listing details loaded</span><button type="button" id="gdrStudioClose" class="gdr-studio-close">← Owner Dashboard</button></div>
   </header>
   <div class="gdr-studio-progress-wrap">
     <div class="gdr-studio-stepper" aria-label="Listing progress">
@@ -36,26 +36,26 @@
       <div id="gdrStudioPgDetails" class="gdr-studio-pg-details" hidden>
         <h3 class="gdr-studio-panel-title">A few stay details</h3><p class="gdr-studio-panel-subtitle">These details are needed for PG and Hostel listings.</p>
         <div class="gdr-studio-field-grid">
-          <label class="gdr-studio-field"><span>Room type</span><select id="gdrStudioRoomType"><option value="">Choose room type</option><option value="Single">Single</option><option value="Double">Double sharing</option><option value="Triple">Triple sharing</option><option value="Shared">Shared room</option></select></label>
-          <label class="gdr-studio-field"><span>Who can stay?</span><select id="gdrStudioGender"><option value="">Choose preference</option><option value="Any">Anyone</option><option value="Male">Male</option><option value="Female">Female</option></select></label>
-          <label class="gdr-studio-field"><span>Total beds</span><input id="gdrStudioTotalBeds" type="number" min="1" max="1000" inputmode="numeric" placeholder="e.g. 10"></label>
-          <label class="gdr-studio-field"><span>Available beds</span><input id="gdrStudioAvailableBeds" type="number" min="0" max="1000" inputmode="numeric" placeholder="e.g. 7"></label>
-          <label class="gdr-studio-field"><span>Meals</span><select id="gdrStudioFoodIncluded"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label>
+          <label class="gdr-studio-field"><span>Room type</span><select id="gdrStudioRoomType" autocomplete="off"><option value="">Choose room type</option><option value="Single">Single</option><option value="Double">Double sharing</option><option value="Triple">Triple sharing</option><option value="Shared">Shared room</option></select></label>
+          <label class="gdr-studio-field"><span>Who can stay?</span><select id="gdrStudioGender" autocomplete="off"><option value="">Choose preference</option><option value="Any">Anyone</option><option value="Male">Male</option><option value="Female">Female</option></select></label>
+          <label class="gdr-studio-field"><span>Total beds</span><input id="gdrStudioTotalBeds" type="number" autocomplete="off" min="1" max="1000" inputmode="numeric" placeholder="e.g. 10"></label>
+          <label class="gdr-studio-field"><span>Available beds</span><input id="gdrStudioAvailableBeds" type="number" autocomplete="off" min="0" max="1000" inputmode="numeric" placeholder="e.g. 7"></label>
+          <label class="gdr-studio-field"><span>Meals</span><select id="gdrStudioFoodIncluded" autocomplete="off"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label>
         </div>
       </div>
       <section class="gdr-studio-panel" data-gdr-studio-panel="1" hidden>
       <h2 class="gdr-studio-panel-title">How much rent would you like?</h2><p class="gdr-studio-panel-subtitle">Enter the monthly rent. Security deposit is optional.</p>
       <div class="gdr-studio-field-grid">
-        <label class="gdr-studio-field"><span>Monthly rent (₹) *</span><input id="gdrStudioRent" type="number" min="1" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 8000" required><small>Rent expected every month.</small></label>
-        <label class="gdr-studio-field"><span>Security deposit (₹) <small>Optional</small></span><input id="gdrStudioDeposit" type="number" min="0" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 16000"><small>Leave blank if you have not decided.</small></label>
-         <label class="gdr-studio-field"><span>Furnishing</span><select id="gdrStudioFurnishing"><option value="">Choose furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-furnished</option><option value="Unfurnished">Unfurnished</option></select><small>Select the current furnishing condition.</small></label>
+        <label class="gdr-studio-field"><span>Monthly rent (₹) *</span><input id="gdrStudioRent" type="number" autocomplete="off" min="1" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 8000" required><small>Rent expected every month.</small></label>
+        <label class="gdr-studio-field"><span>Security deposit (₹) <small>Optional</small></span><input id="gdrStudioDeposit" type="number" autocomplete="off" min="0" max="10000000" step="1" inputmode="numeric" placeholder="e.g. 16000"><small>Leave blank if you have not decided.</small></label>
+         <label class="gdr-studio-field"><span>Furnishing</span><select id="gdrStudioFurnishing" autocomplete="off"><option value="">Choose furnishing</option><option value="Furnished">Furnished</option><option value="Semi-Furnished">Semi-furnished</option><option value="Unfurnished">Unfurnished</option></select><small>Select the current furnishing condition.</small></label>
       </div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="2" hidden>
       <h2 class="gdr-studio-panel-title">Where is your property?</h2><p class="gdr-studio-panel-subtitle">Search the address, use GPS or choose the exact point on the map.</p>
       <div class="gdr-studio-field-grid">
-        <label class="gdr-studio-field gdr-studio-field-wide"><span>Property address / locality *</span><input id="gdrStudioLocation" type="text" maxlength="300" autocomplete="off" placeholder="Search area, locality, city or PIN code"><div id="gdrStudioLocationSuggestions" hidden></div></label>
-        <label class="gdr-studio-field"><span>PIN code <small>Optional</small></span><input id="gdrStudioPincode" type="text" inputmode="numeric" maxlength="6" placeholder="6-digit PIN code"></label>
+        <label class="gdr-studio-field gdr-studio-field-wide"><span>Property address / locality *</span><input id="gdrStudioLocation" type="text" autocomplete="off" maxlength="300" autocomplete="off" placeholder="Search area, locality, city or PIN code"><div id="gdrStudioLocationSuggestions" hidden></div></label>
+        <label class="gdr-studio-field"><span>PIN code <small>Optional</small></span><input id="gdrStudioPincode" type="text" autocomplete="off" inputmode="numeric" maxlength="6" placeholder="6-digit PIN code"></label>
       </div>
       <div class="gdr-studio-location-actions"><button type="button" id="gdrStudioUseGps">◎ Use Current Location</button><button type="button" id="gdrStudioOpenMap">⌖ Select on Map</button></div>
       <p id="gdrStudioLocationStatus" class="gdr-studio-location-status" aria-live="polite">Choose a search result, use GPS or place the pin on the map.</p>
@@ -67,7 +67,7 @@
       <div class="gdr-studio-photo-actions"><button type="button" id="gdrStudioChoosePhotos">▧ Upload Photos</button><button type="button" id="gdrStudioTakePhotos">◎ Take Photos</button></div>
       <input id="gdrStudioPhotoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><input id="gdrStudioCameraFiles" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden>
       <p class="gdr-studio-photo-note">JPG, PNG or WEBP · Maximum 5 MB each · No stock images or photos of other properties.</p><div id="gdrStudioPhotoPreview" hidden></div>
-      <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
+      <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" autocomplete="off" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
       <h2 class="gdr-studio-panel-title">Review before publishing</h2><p class="gdr-studio-panel-subtitle">Check the details carefully. Your listing will be saved in My Properties and follow the existing verification process.</p><div id="gdrStudioPreview"></div>
@@ -76,7 +76,7 @@
         <div class="gdr-studio-voice-head"><div><strong>Optional: Fill details by speaking</strong><small>Manual entry is the primary option. If you need help, use the optional microphone to tell GDR your details.</small></div><span aria-hidden="true">🎙️</span></div>
         <div class="gdr-studio-voice-controls"><select id="gdrStudioVoiceLanguage" aria-label="Voice language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English</option></select><button type="button" id="gdrStudioVoiceStart">Start speaking</button><button type="button" id="gdrStudioVoiceStop">Stop</button></div>
         <p id="gdrStudioVoiceStatus" aria-live="polite">Microphone is OFF by default. Press Start speaking for one instruction, then review and edit the form before publishing.</p>
-        <textarea id="gdrStudioVoiceTranscript" placeholder="Your spoken words will appear here…" aria-label="Voice transcript"></textarea>
+        <textarea id="gdrStudioVoiceTranscript" autocomplete="off" placeholder="Your spoken words will appear here…" aria-label="Voice transcript"></textarea>
         <div id="gdrStudioVoiceAssistant" class="gdr-studio-voice-assistant" aria-live="polite">
           <div class="gdr-studio-voice-assistant-top"><span class="gdr-studio-voice-state" id="gdrStudioVoiceState">MICROPHONE OFF</span><button type="button" id="gdrStudioVoiceMute" aria-pressed="false">🔊 Voice on</button></div>
           <p id="gdrStudioVoiceReply">Hi! I’m GDR. Tell me about your property in your own words. I’ll ask only for the details I still need.</p>
