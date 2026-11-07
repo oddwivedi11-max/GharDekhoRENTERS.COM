@@ -56,6 +56,7 @@ test('spoken renter search is one-shot, stop-safe and submits the existing real 
   assert.ok(js.includes('function stopRenterVoice'));
   assert.ok(js.includes('r.abort?r.abort():r.stop()'));
   assert.ok(js.includes('review(finalText,{autoSearch:true})'));
+  assert.ok(js.includes('speakAssistantReply(spokenReply,replyLanguage)'));
   assert.ok(js.includes('form.requestSubmit()'));
   assert.ok(js.includes('Chrome speech recognition could not reach its speech service'));
 });
