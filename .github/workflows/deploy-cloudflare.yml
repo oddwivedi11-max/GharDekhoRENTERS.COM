@@ -119,7 +119,7 @@ jobs:
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-smart-search3" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
-          grep -q 'assistant.searchAssistantListings(filters,raw,target)' /tmp/gdr-map-voice.js
+          grep -q 'assistant.searchAssistantListings({...state.prefs,location},raw,target)' /tmp/gdr-map-voice.js
           grep -q 'gdrMapVoiceResults' /tmp/gdr-map-voice.js
           grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-smart-search3" -o /tmp/gdr-map-voice.css
