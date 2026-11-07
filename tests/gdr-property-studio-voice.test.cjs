@@ -6,6 +6,7 @@ const root=path.join(__dirname,"..");
 const js=fs.readFileSync(path.join(root,"assets/gdr-property-studio.js"),"utf8");
 const markup=fs.readFileSync(path.join(root,"assets/gdr-property-studio.txt"),"utf8");
 const css=fs.readFileSync(path.join(root,"assets/gdr-property-studio.css"),"utf8");
+const index=fs.readFileSync(path.join(root,"index.html"),"utf8");
 
 test("owner voice recognition is one-shot and never automatically restarts",()=>{
  assert.ok(js.includes("rec.continuous=false"));
@@ -93,4 +94,23 @@ test("manual listing panels come first and optional voice assistance follows the
  assert.ok(js.includes('roomType:"gdrStudioRoomType"'));
  assert.ok(js.includes('availableBeds:"gdrStudioAvailableBeds"'));
  assert.ok(js.includes('foodIncluded:"gdrStudioFoodIncluded"'));
+});
+
+test("owner listing hero makes manual listing primary and keeps voice only in the optional form",()=>{
+ const hero=index.slice(index.indexOf('id="gdrListPropertyHero"'),index.indexOf("</section>",index.indexOf('id="gdrListPropertyHero"')));
+ assert.ok(hero.includes('id="gdrListPropertyStart"'));
+ assert.ok(!hero.includes('id="gdrListPropertySpeak"'));
+ assert.ok(markup.includes("Manual entry is the primary option"));
+ assert.ok(markup.indexOf('class="gdr-studio-voice"')>markup.indexOf('data-gdr-studio-panel="4"'));
+ assert.ok(index.includes('gdr-property-studio.js?v=20261107-manualfirst1'));
+ assert.ok(index.includes('gdr-property-studio.css?v=20261107-ownerprofile1'));
+});
+test("owner profile edit remains connected to its existing secure update flow",()=>{
+ assert.ok(index.includes('id="ownerEditProfileBtn">✏️ Edit Profile</button>'));
+ assert.ok(index.includes('id="ownerProfileForm"'));
+ assert.ok(index.includes('id="ownerProfileEditor"'));
+ assert.ok(index.includes('rpc("update_my_owner_profile"'));
+ assert.ok(index.includes('addEventListener("submit", saveOwnerProfile)'));
+ assert.ok(index.includes('addEventListener("click", openOwnerProfileEditor)'));
+ assert.ok(css.includes("#ownerDashboard .owner-profile-card #ownerEditProfileBtn"));
 });
