@@ -36,7 +36,7 @@ jobs:
           path = Path("index.html")
           source = path.read_text(encoding="utf-8")
           assets = [
-              ("gdr-renter-experience.js", "20261107-voicefix1"),
+              ("gdr-renter-experience.js", "20261107-voicefix2"),
               ("gdr-renter-experience.css", "20261107-renter-ui-fix3"),
               ("gdr-rental-suite-v2.js", "20261107-dashboardui1"),
               ("gdr-map-experience.js", "20261107-voice1"),
@@ -122,18 +122,19 @@ jobs:
           grep -q 'setTimeout(finishTurn,1800)' /tmp/gdr-map-voice.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.css?v=20261107-voice1" -o /tmp/gdr-map-voice.css
           grep -q 'gdr-map-voice-mic' /tmp/gdr-map-voice.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-voicefix1" -o /tmp/gdr-renter-experience.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.js?v=20261107-voicefix2" -o /tmp/gdr-renter-experience.js
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
           grep -q 'toggleCompare' /tmp/gdr-renter-experience.js
           grep -q 'GDR_COMPARE_AUTOFILL_V2' /tmp/gdr-renter-experience.js
           grep -q 'r.continuous=false' /tmp/gdr-renter-experience.js
           grep -q 'review(finalText,{autoSearch:true})' /tmp/gdr-renter-experience.js
+          grep -q 'state.voiceDraft=finalTranscript.trim()' /tmp/gdr-renter-experience.js
           grep -q 'Chrome speech recognition could not reach its speech service' /tmp/gdr-renter-experience.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-renter-experience.css?v=20261107-renter-ui-fix3" -o /tmp/gdr-renter-experience.css
           grep -q 'gdrx-finder' /tmp/gdr-renter-experience.css
           grep -q 'FINAL ACCEPTANCE FIX: three distinct renter dashboard identities' /tmp/gdr-renter-experience.css
           grep -q 'background:linear-gradient(135deg,#fffdf7 0%,#f7f0e2 58%,#efe4cf 100%)' /tmp/gdr-renter-experience.css
-          grep -q 'gdr-renter-experience.js?v=20261107-voicefix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-voicefix2' /tmp/gdr-live-index.html
           grep -q 'gdr-renter-dashboard-visual-fix-v4' /tmp/gdr-live-index.html
           grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-index.html
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
@@ -171,26 +172,27 @@ jobs:
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
           grep -q 'List Your Property' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.js?v=20261107-voiceassistant2' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261107-voiceassistant3' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261107-voiceassistant1' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-dashboardui1' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-voiceassistant2" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-voiceassistant3" -o /tmp/gdr-property-studio.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
           grep -q 'continuous=false' /tmp/gdr-property-studio.js
           grep -q 'interimResults=true' /tmp/gdr-property-studio.js
           grep -q 'processVoiceTurn' /tmp/gdr-property-studio.js
           grep -q 'function applyVoiceValues' /tmp/gdr-property-studio.js
+          grep -q 'String(state.voice.turnText||"").trim()' /tmp/gdr-property-studio.js
           if grep -q 'scheduleVoiceRestart' /tmp/gdr-property-studio.js; then echo 'Automatic owner microphone restart still present.'; exit 1; fi
           grep -q 'speechSynthesis' /tmp/gdr-property-studio.js
           grep -q 'SpeechRecognition' /tmp/gdr-property-studio.js
-          grep -q 'gdr-renter-experience.js?v=20261107-voicefix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-voicefix2' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261107-voiceassistant1" -o /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-topbar' /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-voice-assistant' /tmp/gdr-property-studio.css
           grep -q 'gdr-moveout-notice' /tmp/gdr-property-studio.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261107-voiceassistant2" -o /tmp/gdr-property-studio.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261107-voiceassistant3" -o /tmp/gdr-property-studio.html
           grep -q 'data-gdr-property-type="room"' /tmp/gdr-property-studio.html
           grep -q 'Microphone is OFF by default' /tmp/gdr-property-studio.html
           grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
