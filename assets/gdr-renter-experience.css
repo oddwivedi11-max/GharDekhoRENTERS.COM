@@ -633,3 +633,20 @@
  .gdrx-studio-actions>button{padding:0 8px;font-size:10px}
 }
 @media(prefers-reduced-motion:reduce){.gdrx-compare-now,.gdr-map-compare-btn{transition:none!important}}
+
+.gdrx-compare-picker-controls{display:grid;grid-template-columns:minmax(180px,1fr) 125px 155px;gap:8px;margin:10px 0}
+.gdrx-compare-picker-controls input,.gdrx-compare-picker-controls select{width:100%;min-width:0;height:39px;padding:0 11px;border:1px solid #d9e1d6;border-radius:10px;background:#fff;color:#294c3d;font:inherit;font-size:11px;outline:none}
+.gdrx-compare-picker-controls input:focus,.gdrx-compare-picker-controls select:focus{border-color:#b89654;box-shadow:0 0 0 3px rgba(184,150,84,.14)}
+.gdrx-compare-picker-results{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;max-height:270px;overflow:auto;padding:2px 2px 4px}
+.gdrx-picker-property{display:flex;align-items:center;gap:9px;min-width:0;padding:8px;border:1px solid #e0e7dc;border-radius:12px;background:#fff}
+.gdrx-picker-property>img{width:54px;height:51px;flex:0 0 54px;object-fit:cover;border-radius:8px;background:#edf0e9}
+.gdrx-picker-details{display:grid;gap:3px;min-width:0;flex:1}
+.gdrx-picker-details strong{overflow:hidden;color:#234a3b;font-size:10px;text-overflow:ellipsis;white-space:nowrap}
+.gdrx-picker-details b{color:#98763d;font-size:10px}
+.gdrx-picker-details span{display:-webkit-box;overflow:hidden;color:#7b877e;font-size:9px;line-height:1.35;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.gdrx-picker-add{flex:0 0 auto;min-height:31px;padding:0 9px;border:1px solid #c9b071;border-radius:9px;background:#1c513f;color:#fff8e8;font-size:10px;font-weight:900;cursor:pointer}
+.gdrx-picker-add:disabled{opacity:.45;cursor:not-allowed}
+.gdrx-picker-retry{padding:7px 12px;border:1px solid #c9b071;border-radius:9px;background:#1c513f;color:#fff;font-size:10px;font-weight:800}
+.gdrx-picker-more,.gdrx-picker-limit{grid-column:1/-1;margin:3px;color:#758176;font-size:10px}
+.gdrx-picker-limit{color:#9a6d35;font-weight:800}
+@media(max-width:760px){.gdrx-compare-picker-controls{grid-template-columns:1fr 1fr}.gdrx-compare-picker-controls input{grid-column:1/-1}.gdrx-compare-picker-results{grid-template-columns:1fr;max-height:240px}.gdrx-picker-property>img{width:48px;height:46px;flex-basis:48px}.gdrx-picker-add{padding:0 7px}}
