@@ -366,7 +366,7 @@ test('voice results reuse the Available Rental Properties renderer instead of du
   const end=js.indexOf('function parseRequest(raw){',start);
   const search=js.slice(start,end);
   assert.ok(start>=0&&end>start);
-  assert.match(search,/window\.renderVoicePropertyResults\(rows\)/);
+  assert.match(search,/window\.renderVoicePropertyResults\(loadedRows\)/);
   assert.match(search,/propertiesSection/);
   assert.match(search,/propertiesContainer/);
   assert.match(search,/gdrVoiceInventorySummary/);
