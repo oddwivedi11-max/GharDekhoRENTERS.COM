@@ -24,7 +24,7 @@ function normalize(s){return String(s||"").normalize("NFD").replace(/[\u0300-\u0
 function extractIntent(raw){
  const assistant=window.GDRRenterExperience;
  if(assistant&&typeof assistant.parseRequest==="function"){
-  const parsed=assistant.parseRequest(raw)||{},prefs={...state.prefs};
+  const parsed=assistant.parseRequest(raw)||{},prefs=parsed.location?{}:{...state.prefs};
   ["minBudget","maxBudget","bhk","furnishing","stayType","propertyType"].forEach(key=>{
    if(parsed[key]!==undefined&&parsed[key]!==null&&parsed[key]!=="")prefs[key]=parsed[key];
   });
@@ -87,73 +87,59 @@ function startListening(){
  try{r.start();}catch(e){state.recognition=null;setMic(false);status(text("Microphone start नहीं हो पाया। दोबारा कोशिश करें।","Could not start the microphone. Please try again."),"error");}
 }
 async function runTurn(raw){
- const api=window.GDRMapExperience;
- if(!api||typeof api.searchTypedMapLocation!=="function"||typeof api.getRenterVisibleProperties!=="function"){
-  status(text("Map Search अभी load हो रहा है। कृपया एक बार फिर कोशिश करें।","Map Search is still loading. Please try again."),"error");return;
+ const assistant=window.GDRRenterExperience,api=window.GDRMapExperience;
+ if(!assistant||typeof assistant.searchAssistantListings!=="function"){
+  status(text("Smart Home Search अभी load हो रहा है। कृपया दोबारा कोशिश करें।","Smart Home Search is still loading. Please try again."),"error");return;
  }
  const intent=extractIntent(raw),location=intent.location||state.city;
  if(intent.location)state.city=intent.location;
  state.prefs={...intent.prefs};
  if(!location&&!intent.nearMe){
-  status(text("Location साफ़ समझ नहीं आई। कृपया locality और शहर बोलें, जैसे बड़े नगर, सिंगरौली।","I couldn't identify the location. Please say the locality and city, such as Bade Nagar, Singrauli."),"error");
+  status(text("Location साफ़ समझ नहीं आई। कृपया locality और शहर बोलें, जैसे बड़े नगर या सिंगरौली।","I couldn't identify the location. Please say the locality and city, such as Bade Nagar or Singrauli."),"error");
   speak(text("कृपया locality और शहर का नाम दोबारा बोलें।","Please repeat the locality and city name."));return;
  }
  const target=$("gdrMapVoiceResults"),searchId=++state.searchId;
  if(target)target.replaceChildren();
- status(text("आपकी बात समझ रहा हूँ और map पर असली listings खोज रहा हूँ…","Understanding your request and searching real listings on the map…"),"processing");
+ status(text("आपकी बात समझ रहा हूँ और GharDekho की असली listings खोज रहा हूँ…","Understanding your request and searching real GharDekho listings…"),"processing");
  try{
-  const filters={...state.prefs};
-  if(typeof api.setRenterSearchPreferences==="function")api.setRenterSearchPreferences(filters);
-  if(Number.isFinite(intent.radiusKm)&&intent.radiusKm>0&&typeof api.setRenterRadius==="function")api.setRenterRadius(intent.radiusKm,true);
-  let result;
+  let rows=[];
   if(intent.nearMe){
-   status(text("आपकी current location की अनुमति माँग रहा हूँ…","Requesting permission for your current location…"),"processing");
+   if(!api||typeof api.searchAtCoordinates!=="function")throw new Error(text("Nearby map search अभी उपलब्ध नहीं है।","Nearby map search is not available right now."));
    const position=await new Promise((resolve,reject)=>{
     if(!navigator.geolocation){reject(new Error("This browser does not support location access."));return;}
     navigator.geolocation.getCurrentPosition(resolve,reject,{enableHighAccuracy:true,timeout:12000,maximumAge:60000});
    });
-   result=await api.searchAtCoordinates(position.coords.latitude,position.coords.longitude,"My location");
+   if(searchId!==state.searchId)return;
+   const point=await api.searchAtCoordinates(position.coords.latitude,position.coords.longitude,"My location");
+   rows=Array.isArray(point)?point:(api.getRenterVisibleProperties()||[]);
+   if(target){
+    const note=document.createElement("p");
+    note.textContent=rows.length?text("आपके आसपास के घर map और list में दिख रहे हैं।","Nearby homes are shown on the map and list."):text("आपके आसपास कोई matching home नहीं मिला।","No matching homes found nearby.");
+    target.append(note);
+   }
   }else{
-   const place=$("gdrMapPlaceSearch");
-   if(!place)throw new Error("The map location field is unavailable. Close and reopen Explore Map.");
-   place.value=location;
-   result=await api.searchTypedMapLocation();
+   rows=await assistant.searchAssistantListings({...state.prefs,location},raw,target);
   }
   if(searchId!==state.searchId)return;
-  if(result===false)throw new Error(text("इस location को map पर खोजा नहीं जा सका। दूसरी locality या PIN code आज़माएँ।","That location could not be found on the map. Try another locality or PIN code."));
-  const rows=api.getRenterVisibleProperties()||[];
-  const count=rows.length,placeName=intent.nearMe?"आपकी current location":location||"your current location";
-  if(target){
-   const heading=document.createElement("strong");
-   heading.textContent=count?text(placeName+" में "+count+" homes मिले","Found "+count+" homes near "+placeName):text(placeName+" में matching homes नहीं मिले","No matching homes found near "+placeName);
-   const detail=document.createElement("p");
-   detail.textContent=count?text("Homes के markers map पर दिख रहे हैं। सभी listings देखने के लिए List view चुनें।","Property markers are shown on the map. Choose List view to browse all matching listings."):text("Radius बढ़ाएँ या दूसरी locality चुनकर दोबारा search करें।","Expand the radius or choose another locality and search again.");
-   target.append(heading,detail);
-   if(count){
-    const listButton=document.createElement("button");listButton.type="button";listButton.className="gdr-map-voice-results-list";
-    listButton.textContent=text("सभी homes की list देखें","View all homes");
-    listButton.addEventListener("click",()=>{const toggle=$("gdrMapListToggle");if(toggle)toggle.click();});
-    target.append(listButton);
-   }
-  }
+  if(!Array.isArray(rows))throw new Error(text("Property search response सही नहीं मिला।","The property search returned an invalid response."));
+  const count=rows.length,place=intent.nearMe?text("आपकी current location","your current location"):location;
   if(count){
-   status(text(placeName+" में "+count+" matching homes map पर दिख रहे हैं।","Showing "+count+" matching homes on the map near "+placeName+"."),"success");
-   speak(text(placeName+" में "+count+" घर मिले हैं। उनके markers map पर दिख रहे हैं।","Found "+count+" homes near "+placeName+". Their markers are visible on the map."));
+   status(text(place+" में "+count+" matching घर मिले हैं। नीचे उनकी rent और details देखें।","Found "+count+" matching homes in "+place+". See their rent and details below."),"success");
+   speak(text(place+" में "+count+" घर मिले हैं। उनकी details नीचे दिखाई गई हैं।","Found "+count+" homes in "+place+". Their details are shown below."));
   }else{
-   status(text(placeName+" में कोई matching home नहीं मिला। Radius या filters बदलकर देखें।","No matching homes found near "+placeName+". Try changing the radius or filters."),"empty");
-   speak(text("इस location में matching घर नहीं मिले। आप radius बढ़ा सकते हैं।","No matching homes were found here. You can expand the radius."));
+   status(text(place+" में इन filters के साथ कोई matching घर नहीं मिला। Location या filters जाँचें।","No matching homes found in "+place+" with these filters. Check the location or filters."),"empty");
+   speak(text("इस location में matching घर नहीं मिले। आप locality या budget बदलकर बोल सकते हैं।","No matching homes found. You can try another locality or budget."));
   }
  }catch(error){
   if(searchId!==state.searchId)return;
-  console.error("GDR map voice search failed:",error);
-  if(target){const message=document.createElement("p");message.textContent=error&&error.message?error.message:"Map search could not be completed. Please try again.";target.append(message);}
-  status(error&&error.message?error.message:text("Search पूरी नहीं हो सकी। दोबारा कोशिश करें।","Search could not be completed. Please try again."),"error");
+  console.error("GDR database voice search failed:",error);
+  status(error.message||text("Search पूरी नहीं हो सकी। दोबारा कोशिश करें।","Search could not be completed. Please try again."),"error");
  }
 }
 function mount(panel){
  if(!panel||state.root)return;
  const root=document.createElement("section");root.className="gdr-map-voice";root.id="gdrMapVoiceAssistant";
- root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">GHARDEKHO MAP ASSISTANT</span><h3>Find a home with your map</h3><p>Speak naturally in Hindi, English or Hinglish, or type your location and preferences.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="बड़े नगर में 2 BHK घर दिखाओ या Singrauli में 10,000 से कम rent वाले घर…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start map voice search" aria-pressed="false"><span class="gdr-map-voice-mic-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path></svg></span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search map</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p><div id="gdrMapVoiceResults" class="gdr-map-voice-results" aria-live="polite"></div>';
+ root.innerHTML='<div class="gdr-map-voice-head"><div><span class="gdr-map-voice-kicker">GHARDEKHO SMART HOME ASSISTANT</span><h3>Find your home by talking naturally</h3><p>Say a locality, BHK and budget in Hindi, Hinglish or English. Results appear below.</p></div><label class="gdr-map-voice-language">Language<select id="gdrMapVoiceLanguage"><option value="hi-IN">हिंदी / Hinglish</option><option value="en-IN">English (India)</option></select></label></div><div class="gdr-map-voice-controls"><textarea id="gdrMapVoiceTranscript" rows="2" placeholder="बड़े नगर में 2 BHK घर दिखाओ या Singrauli में 10,000 से कम rent वाले घर…" aria-label="Voice transcript or typed property search"></textarea><button type="button" id="gdrMapVoiceMic" class="gdr-map-voice-mic" aria-label="Start map voice search" aria-pressed="false"><span class="gdr-map-voice-mic-icon" aria-hidden="true"><svg viewBox="0 0 24 24" focusable="false"><rect x="9" y="2.5" width="6" height="12" rx="3"></rect><path d="M5.5 10.5v1.2a6.5 6.5 0 0 0 13 0v-1.2M12 18.2v3.3m-4 0h8"></path></svg></span><span class="gdr-map-voice-mic-label">Speak</span></button></div><div class="gdr-map-voice-footer"><span id="gdrMapVoiceStatus" class="gdr-map-voice-status" data-state="idle" role="status" aria-live="polite">Tap the microphone to speak, or type a search.</span><div><button type="button" id="gdrMapVoiceSearch" class="gdr-map-voice-search">Search map</button><button type="button" id="gdrMapVoiceMute" class="gdr-map-voice-mute" aria-pressed="false">Mute voice</button></div></div><p id="gdrMapVoiceReply" class="gdr-map-voice-reply" aria-live="polite"></p><div id="gdrMapVoiceResults" class="gdr-map-voice-results" aria-live="polite"></div>';
  const heading=panel.querySelector(".gdr-map-head, .gdr-map-header, .gdr-explore-map-header, header");
  if(heading&&heading.parentNode===panel)heading.insertAdjacentElement("afterend",root);else panel.insertBefore(root,panel.firstChild);
  state.root=root;
