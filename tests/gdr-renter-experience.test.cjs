@@ -50,6 +50,13 @@ test('state normalization preserves a locality when a city and state are spoken 
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
+test('typed GDR assistant searches immediately and automatically reveals the property results', () => {
+  assert.ok(js.includes('review($("gdrxPrompt").value,{autoSearch:true})'), 'the main assistant action starts a real search without a second confirmation click');
+  assert.ok(js.includes('Find matching homes →'), 'the primary action clearly communicates that it searches');
+  assert.ok(js.includes('Searching matching homes now… Results will open automatically below.'), 'the review state explains that results are loading automatically');
+  assert.ok(js.includes('section.scrollIntoView({behavior:window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches?"auto":"smooth",block:"start"})'), 'the actual Available Rental Properties section is brought into view after results render');
+});
+
 test('spoken renter search is one-shot, stop-safe and uses the direct database search', () => {
   assert.ok(js.includes('r.continuous=false'));
   assert.ok(js.includes('state.voiceDraft=finalTranscript.trim()'));
