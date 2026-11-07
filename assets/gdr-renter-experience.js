@@ -141,7 +141,19 @@ function applyToForm(p){
  if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget);setValue("renterMaxBudget",p.maxBudget)}
 }
 function review(raw,options){
- const p=parseRequest(raw);
+ const extracted=parseRequest(raw),previous=state.parsed||{};
+ const p={...previous,...extracted,raw:String(raw||"")};
+ ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{
+  if(!extracted[key])p[key]=previous[key]||"";
+ });
+ p.radiusKm=extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm;
+ p.useMyLocation=!!(extracted.useMyLocation||previous.useMyLocation);
+ p.familyFriendly=!!(extracted.familyFriendly||previous.familyFriendly);
+ if(/\\b(reset|clear|start over|new search)\\b|फिल्टर हटाओ|नई खोज/i.test(String(raw||""))){
+  state.parsed=null;
+  ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{if(!extracted[key])p[key]="";});
+  p.radiusKm=extracted.radiusKm??null;p.useMyLocation=!!extracted.useMyLocation;p.familyFriendly=!!extracted.familyFriendly;
+ }
  if(!p.location&&!p.maxBudget&&!p.bhk&&!p.stayType&&!p.furnishing){
   $("gdrxStatus").textContent="I couldn't identify a location or filter. Please add a city, area, budget, BHK or property type.";
   return false;
