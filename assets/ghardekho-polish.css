@@ -70,3 +70,107 @@ button:not(:disabled):active{transform:translateY(1px)!important}
  .property-card,.gd-landing-features article,.gd-role-choice{transition:none!important}
  .loading-text{animation:none!important}
 }
+
+/* 2026-11-07: Mobile property-card layout repair.
+   Keep listing content readable and action labels horizontal on narrow screens. */
+@media (max-width: 680px) {
+  .property-grid {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 16px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+  }
+  .property-grid > .property-card,
+  .property-card {
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: stretch !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    overflow: hidden !important;
+    box-sizing: border-box !important;
+  }
+  .property-card-image {
+    display: block !important;
+    flex: 0 0 auto !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    height: clamp(150px, 48vw, 220px) !important;
+    min-height: 150px !important;
+    object-fit: cover !important;
+  }
+  .property-card-body {
+    display: flex !important;
+    flex: 1 1 auto !important;
+    flex-direction: column !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    padding: 16px !important;
+    box-sizing: border-box !important;
+    overflow-wrap: anywhere !important;
+    word-break: normal !important;
+  }
+  .property-card-body h2,
+  .property-card-body h3,
+  .property-card-body h4,
+  .property-card-body p,
+  .property-card-body strong,
+  .property-card-body span {
+    max-width: 100% !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+    white-space: normal !important;
+  }
+  .property-card-body h2,
+  .property-card-body h3,
+  .property-card-body h4 {
+    line-height: 1.3 !important;
+  }
+  .property-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-items: stretch !important;
+    gap: 8px !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    margin-top: auto !important;
+    padding-top: 14px !important;
+  }
+  .property-actions button,
+  .property-actions a,
+  .favorite-property-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 100% !important;
+    min-width: 0 !important;
+    min-height: 44px !important;
+    height: auto !important;
+    padding: 9px 6px !important;
+    box-sizing: border-box !important;
+    white-space: normal !important;
+    word-break: normal !important;
+    overflow-wrap: anywhere !important;
+    writing-mode: horizontal-tb !important;
+    text-orientation: mixed !important;
+    font-size: clamp(11px, 3vw, 13px) !important;
+    line-height: 1.2 !important;
+    text-align: center !important;
+  }
+}
+@media (max-width: 360px) {
+  .property-actions {
+    gap: 5px !important;
+  }
+  .property-actions button,
+  .property-actions a,
+  .favorite-property-btn {
+    padding-inline: 3px !important;
+    font-size: 10px !important;
+  }
+}
