@@ -91,7 +91,8 @@ function parseRequest(raw){
  ];
  const matchedCity=knownCities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(locationKey));
  if(matchedCity&&/(madhya pradesh|m p|mp|मध्य प्रदेश)/i.test(original)){
-  p.location=String(p.location||"").replace(/मध्य\s*प्रदेश|madhya\s+pradesh|\bmp\b/ig," ").replace(/\bke\b|के/ig," ").replace(/\s+/g," ").trim()||matchedCity[1];
+  const withoutState=String(p.location||"").replace(/मध्य\s*प्रदेश|madhya\s+pradesh|\bmp\b/ig," ").replace(/\bke\b|के/ig," ").replace(/\s+/g," ").trim();
+  p.location=normalizeSearchText(withoutState)===matchedCity[0]?matchedCity[1]:(withoutState||matchedCity[1]);
  }else if(!p.location&&matchedCity){
   p.location=matchedCity[1];
  }
