@@ -27,6 +27,7 @@ jobs:
         run: |
           python3 scripts/patch-owner-dashboard-refresh.py
           python3 scripts/patch-property-studio.py
+          python3 scripts/patch-renter-dashboard-ui.py
 
       - name: Version the GDR voice and map assets in the production HTML
         run: |
@@ -55,8 +56,8 @@ jobs:
           if ! git diff --quiet -- index.html; then
             git config user.name "github-actions[bot]"
             git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-            git add index.html
-            git commit -m "Fix owner dashboard property refresh"
+            git add index.html tests/gdr-renter-experience.test.cjs
+            git commit -m "Apply renter dashboard UI refinement"
             git push origin HEAD:main
           else
             echo "index.html already contains the owner dashboard fix."
