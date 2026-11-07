@@ -484,7 +484,7 @@
   function ensureMapVoiceAssistant(){
     return new Promise((resolve,reject)=>{
       if(!document.querySelector('link[data-gdr-map-voice-style]')){
-        const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-map-ux3";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
+        const style=document.createElement("link");style.rel="stylesheet";style.href="/assets/gdr-map-voice.css?v=20261107-map-ux4";style.dataset.gdrMapVoiceStyle="true";document.head.appendChild(style);
       }
       if(window.GDRMapVoiceAssistant)return resolve(window.GDRMapVoiceAssistant);
       const existing=document.querySelector('script[data-gdr-map-voice]');
