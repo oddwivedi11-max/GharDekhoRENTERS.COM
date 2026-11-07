@@ -168,7 +168,7 @@ async function searchAssistantListings(prefs,raw,target){
  };
  const renderLoadedRows=()=>{
   loadedRows.totalCount=totalCount;window.renderVoicePropertyResults(loadedRows);
-  const mapApi=window.GDRMapExperience;if(mapApi&&typeof mapApi.showVoiceSearchResults==="function")mapApi.showVoiceSearchResults(loadedRows,null,location||"Assistant search");
+  if(!target){const mapApi=window.GDRMapExperience;if(mapApi&&typeof mapApi.showVoiceSearchResults==="function")mapApi.showVoiceSearchResults(loadedRows,null,location||"Assistant search");}
   updatePagination();
  };
  const describeCount=()=>language==="hi"?(location?location+" में ":"")+"कुल "+totalCount+" matching properties मिली हैं। अभी "+loadedRows.length+" दिखाई जा रही हैं.":"Found "+totalCount+" matching properties"+(location?" in "+location:"")+". Showing "+loadedRows.length+" so far.";
