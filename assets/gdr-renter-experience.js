@@ -167,7 +167,8 @@ function parseRequest(raw){
  else{
   const min=n.match(/(?:at least|minimum|min|above|more than|greater than|कम से कम|से ज्यादा|से अधिक)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i);
   if(min)p.minBudget=min[1].replace(/,/g,"");
-  const max=n.match(/(?:under|below|up to|upto|maximum|max|budget|not more than|less than|ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|तक)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i);
+  const max=n.match(/(?:under|below|up to|upto|maximum|max|budget|not more than|less than|ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|तक)\s*(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})/i)
+   ||n.match(/(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})\s*(?:ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|तक)/i);
   if(max)p.maxBudget=max[1].replace(/,/g,"");
   if(!p.maxBudget){const amount=n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये|रु\.?)/i);if(amount)p.maxBudget=amount[1].replace(/,/g,"");}
  }
