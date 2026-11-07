@@ -4,6 +4,7 @@ const fs = require('node:fs');
 const vm = require('node:vm');
 const js = fs.readFileSync('assets/gdr-renter-experience.js', 'utf8');
 const map = fs.readFileSync('assets/gdr-map-experience.js', 'utf8');
+const mapVoice = fs.readFileSync('assets/gdr-map-voice.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
 const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
@@ -104,11 +105,12 @@ test('map API exports a real radius setter so initialization cannot fail', () =>
   assert.match(map, /function setRenterRadius\(value,skipSearch\)/);
   assert.match(map, /setRenterRadius,getRenterVisibleProperties/);
 });
-test('map voice uses its own microphone and status elements', () => {
-  assert.match(js, /micId=mapMode\?"gdrxMapMic":"gdrxMic"/);
-  assert.match(js, /statusId=mapMode\?"gdrxMapStatus":"gdrxStatus"/);
-  assert.match(js, /function runMapSearch\(rawOverride\)/);
-  assert.match(js, /await api\.searchTypedMapLocation\(\)/);
+test('map has one dedicated voice assistant microphone and status surface', () => {
+  assert.match(mapVoice, /id="gdrMapVoiceMic"/);
+  assert.match(mapVoice, /id="gdrMapVoiceStatus"/);
+  assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
+  assert.doesNotMatch(js, /toolbar\.appendChild\(w\)/);
+  assert.doesNotMatch(js, /function runMapSearch\(rawOverride\)/);
 });
 test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
   const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
@@ -125,10 +127,12 @@ test('voice assistant replies in the language used by the speaker', () => {
   assert.match(helpers.assistantReply('hi', 3, 'सिंगरौली'), /मुझे 3 उपलब्ध/);
   assert.match(helpers.assistantReply('en', 2, 'Bhopal'), /I found 2 available/);
 });
-test('map assistant speaks responses and preserves previous location for follow-up filters', () => {
-  assert.match(js, /speechSynthesis\.speak/);
-  assert.match(js, /const parsed=parseRequest\(raw\),previous=state\.lastMapSearch\|\|\{\}/);
-  assert.match(js, /await api\.openRenterMap\(\)/);
+test('map assistant speaks responses and retains search context for follow-up filters', () => {
+  assert.match(mapVoice, /speechSynthesis\.speak/);
+  assert.match(mapVoice, /prefs=parsed\.location\?\{\}:\{\.\.\.state\.prefs\}/);
+  assert.match(mapVoice, /const intent=extractIntent\(raw\),location=intent\.location\|\|state\.city/);
+  assert.match(mapVoice, /assistant\.searchAssistantListings\(\{\.\.\.state\.prefs,location\},raw,target\)/);
+  assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
 });
 test('map voice supports an explicit spoken search radius', () => {
   const p = parseRequest('2 BHK under 8000 near Patel Nagar within 3 km');
@@ -187,7 +191,7 @@ test('renter dashboard keeps Explore Map and Explore Nearby as separate actions'
   assert.match(index, /id="renterExploreMapBtn"/);
   assert.match(index, /id="renterLiveNearbyBtn"/);
   assert.match(index, /<strong>Explore Nearby<\/strong>/);
-  assert.match(js, /mapBtn\.addEventListener\("click"/);
+  assert.match(map, /renterExploreMapBtn.*addEventListener\("click",openRenterMap\)/);
   assert.match(index, /action\.addEventListener\("click",event=>\{/);
   assert.match(index, /function showPanel\(\)/);
 });
