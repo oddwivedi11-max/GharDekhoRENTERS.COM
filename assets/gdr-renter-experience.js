@@ -114,9 +114,11 @@ async function searchAssistantListings(prefs,raw){
     const actions=document.createElement("div");actions.className="gdrx-assistant-property-actions";
     const details=document.createElement("button");details.type="button";details.textContent="View details";
     details.addEventListener("click",()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(property.id);else if(typeof window.openPropertyDetailsModal==="function")window.openPropertyDetailsModal(property.id);else toast("Property details are not available right now.");});
+    const save=document.createElement("button");save.type="button";save.textContent="♡ Save";
+    save.addEventListener("click",async()=>{const db=window.__gdrSupabaseClient;if(!db||!db.auth){toast("Please sign in as a renter to save this home.");return;}save.disabled=true;try{const auth=await db.auth.getUser(),user=auth&&auth.data&&auth.data.user;if(!user){toast("Please sign in as a renter to save this home.");return;}const saved=await db.from("saved_properties").upsert({user_id:user.id,property_id:property.id},{onConflict:"user_id,property_id",ignoreDuplicates:true});if(saved.error)throw saved.error;save.textContent="✓ Saved";toast("Home saved to your account.");}catch(error){console.error("GDR assistant save failed:",error);toast("Could not save this home. Please try again.");}finally{save.disabled=false;}});
     const compare=document.createElement("button");compare.type="button";compare.textContent="Compare";
     compare.addEventListener("click",()=>toggleCompare(property));
-    actions.append(details,compare);body.append(name,rent,address,meta,badge,actions);card.append(image,body);grid.append(card);
+    actions.append(details,save,compare);body.append(name,rent,address,meta,badge,actions);card.append(image,body);grid.append(card);
    });
    panel.append(grid);
   }
