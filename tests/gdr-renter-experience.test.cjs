@@ -388,3 +388,10 @@ test('Singrauli city search uses the structured 486xxx PIN when a valid locality
 });
 
 // CI executes these live-search regression cases before production deployment.
+
+
+test('Singrauli city-wide search includes the wider district area while excluding occupied homes', () => {
+  assert.match(js, /singrauli:\{center:\[24\.0724946,82\.6246537\],radiusKm:120/);
+  assert.match(js, /const unavailable=\["occupied","rejected","removed","deleted","unavailable","released"\]/);
+  assert.match(js, /verification==="verified"&&row\.owner_verified===true/);
+});
