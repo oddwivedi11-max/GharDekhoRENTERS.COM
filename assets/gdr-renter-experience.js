@@ -152,7 +152,7 @@ function parseRequest(raw){
  if(radius)p.radiusKm=Math.max(.5,Math.min(10,Number(radius[1])));
  if(/\b(pg|paying guest)\b|पीजी/.test(n))p.stayType="pg";
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
- else if(/\b(flat|apartment|independent house|villa|room|home|house|homes|houses)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा|घर|मकान/.test(n))p.stayType="home";
+ else if(/\b(flat|apartment|independent house|villa|room)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा/.test(n))p.stayType="home";
  // Generic home/house/घर requests mean all available rental listing types.
  if(/(?:all|every|any)\s+(?:available\s+)?(?:homes?|houses?|properties)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:घर|मकान|प्रॉपर्टी|प्रॉपर्टीज)/i.test(original))p.stayType="";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
