@@ -181,7 +181,7 @@ function parseRequest(raw){
    ||n.match(/(?:₹|rs\.?\s*|rupees?\s*|रुपये\s*)?([\d,]{3,8})\s*(?:(?:rupees?|rs\.?|रुपये|रु\.?)\s*)?(?:ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|तक)/i);
   if(max)p.maxBudget=max[1].replace(/,/g,"");
   if(!p.maxBudget){const amount=n.match(/([\d,]{3,8})\s*(?:rupees?|rs\.?|रुपये|रु\.?)/i);if(amount)p.maxBudget=amount[1].replace(/,/g,"");}
-  if(!p.maxBudget){const compact=n.match(/(\d+(?:\.\d+)?)\s*k\s*(?:ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे|under|below)/i);if(compact)p.maxBudget=String(Math.round(Number(compact[1])*1000));}
+  if(!p.maxBudget){const compact=n.match(/(?:under|below|upto|up to)\s*(\d+(?:\.\d+)?)\s*k|(\d+(?:\.\d+)?)\s*k\s*(?:ke kam|se kam|ke neeche|se neeche|के कम|से कम|के नीचे|से नीचे)/i);if(compact)p.maxBudget=String(Math.round(Number(compact[1]||compact[2])*1000));}
   if(!p.maxBudget&&/दस\s*हजार/.test(n)&&/(से कम|के कम|से नीचे|के नीचे)/.test(n))p.maxBudget="10000";
  }
  if(/\b(my|current) location\b|मेरी लोकेशन|मेरी जगह|मेरे पास/.test(n))p.useMyLocation=true;
