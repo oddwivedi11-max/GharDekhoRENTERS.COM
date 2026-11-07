@@ -257,7 +257,7 @@ function parseRequest(raw){
  else if(/\b(hostel)\b|हॉस्टल/.test(n))p.stayType="hostel";
  else if(/\b(flat|apartment|independent house|villa|room|home|house|houses|homes)\b|फ्लैट|अपार्टमेंट|स्वतंत्र मकान|विला|कमरा|घर|मकान/.test(n))p.stayType="home";
  // Only explicit all-properties requests clear the home/PG/hostel type filter.
- if(/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:properties|listings)|(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी)\s*(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|लिस्टिंग)/i.test(original))p.stayType="";
+ if(/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties?|listings?)|(?:jitni(?:\s+bhi)?|jitne(?:\s+bhi)?|jitna(?:\s+bhi)?|saari|sari|saare|sabhi|sab)\s+(?:(?:available|rental)\s+)*(?:properties?|property|listings?)|(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी)\s*(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|लिस्टिंग)/i.test(original))p.stayType="";
  if(/\b(semi[\s-]?furnished)\b|सेमी फर्निश/.test(n))p.furnishing="Semi-Furnished";
  else if(/\b(unfurnished)\b|अनफर्निश/.test(n))p.furnishing="Unfurnished";
  else if(/\b(furnished)\b|फर्निश/.test(n))p.furnishing="Furnished";
@@ -291,7 +291,7 @@ function parseRequest(raw){
   if(hindiCityLead){
    const cityPart=hindiCityLead[1].replace(/[.,!?]+$/,"").trim();
    let localityPart=hindiCityLead[2].trim();
-   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी|jitni\s+bhi|jitne\s+bhi|जितनी|जितने|जितना|jitni|sabhi|saare|saari|jitne|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|बेडरूम|बेड\s*रूम|कमरे)|प्रॉपर्टीज़?|properties|listings|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|rental|rent|houses?|homes?|properties?|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
+   const stop=localityPart.search(/(?:^|\s)(?:(?:के|की|का)\s+)?(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी|jitni\s+bhi|jitne\s+bhi|saari|sari|saare|sabhi|sab|जितनी|जितने|जितना|jitni|sirf|only|[1-5]\s*(?:bhk|bed(?:room)?s?|बीएचके|बेडरूम|बेड\s*रूम|कमरे)|प्रॉपर्टीज़?|properties|listings|घर|मकान|फ्लैट|अपार्टमेंट|दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find|available|rent|किराये|रेंट|under|below|upto|budget|से कम|के कम|से नीचे|के नीचे|में|mein|me|rental|rent|houses?|homes?|properties?|\d[\d,]*(?:\.\d+)?\s*(?:k|rupees?|rs\.?|रुपये|रु\.?)?|दस\s*हजार)(?=\s|$)/i);
    if(stop>=0)localityPart=localityPart.slice(0,stop).trim();
    localityPart=localityPart.replace(/\s+(?:के|की|का)$/i,"").trim();
    const cityKey=normalizeSearchText(cityPart);
@@ -344,6 +344,13 @@ function parseRequest(raw){
   const requestedLocality=localityOnlyRequest[1].replace(/[.,!?]+$/,"").trim();
   if(requestedLocality)p.location=requestedLocality;
  }
+ // Speech recognition occasionally prepends a spoken name/filler before a known city.
+ // In a city-wide all-properties request, do not send that noise as a required DB token.
+ const allInventoryIntent=/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties?|listings?)|(?:jitni(?:\s+bhi)?|jitne(?:\s+bhi)?|jitna(?:\s+bhi)?|saari|sari|saare|sabhi|sab)\s+(?:(?:available|rental)\s+)*(?:properties?|property|listings?|homes?|houses?)|(?:सभी|सारे|सारी|जितनी\s+भी|जितने\s+भी|जितना\s+भी)\s*(?:उपलब्ध\s+)?(?:रेंटल\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|लिस्टिंग|घर|मकान)/i.test(original);
+ if(allInventoryIntent){
+  const noisyCityPrefix=String(p.location||"").match(/^ajay\s*,\s*(Singrauli|Bhopal|Indore|Jabalpur|Gwalior|Ujjain|Rewa|Satna|Dewas|Sidhi)$/i);
+  if(noisyCityPrefix)p.location=noisyCityPrefix[1].charAt(0).toUpperCase()+noisyCityPrefix[1].slice(1).toLowerCase();
+ }
  return p;
 }
 
@@ -388,28 +395,29 @@ function setValue(id,v,allowEmpty){const el=$(id);if(!el||v==null||(v===""&&!all
 function applyToForm(p){
  setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType,true);setValue("renterSearchPropertyType",p.propertyType,true);setValue("renterSearchBhk",p.bhk,true);setValue("renterSearchFurnishing",p.furnishing,true);
  setValue("renterMinBudget",p.minBudget||"",true);setValue("renterMaxBudget",p.maxBudget||"",true);
- if(p.minBudget){setValue("renterMinBudgetPreset","custom");setValue("renterMinBudgetCustom",p.minBudget)}
- if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget)}
+ if(p.minBudget){setValue("renterMinBudgetPreset","custom");setValue("renterMinBudgetCustom",p.minBudget)}else{setValue("renterMinBudgetPreset","",true);setValue("renterMinBudgetCustom","",true)}
+ if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget)}else{setValue("renterMaxBudgetPreset","",true);setValue("renterMaxBudgetCustom","",true)}
 }
 function review(raw,options){
- const extracted=parseRequest(raw),previous=state.parsed||{};
+ const autoSearch=!!(options&&options.autoSearch);
+ const extracted=parseRequest(raw),previous=autoSearch?{}:(state.parsed||{});
  const p={...previous,...extracted,raw:String(raw||"")};
  const requestText=String(raw||"");
- const broadAllListings=/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties|listings)|(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari)\s+(?:(?:उपलब्ध|available|रेंटल|rental)\s+)*(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings)/i.test(requestText);
- const broadHomes=/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:homes?|houses?)|(?:jitne\s+bhi|sabhi|saare|saari)\s+(?:available\s+)?(?:ghar|makaan|homes?|houses?)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:घर|मकान)/i.test(requestText);
+ const broadAllListings=/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:properties?|listings?)|(?:jitni(?:\s+bhi)?|jitne(?:\s+bhi)?|jitna(?:\s+bhi)?|saari|sari|saare|sabhi|sab)\s+(?:(?:available|rental)\s+)*(?:properties?|property|listings?)|(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari)\s+(?:(?:उपलब्ध|available|रेंटल|rental)\s+)*(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties?|property|listings?)/i.test(requestText);
+ const broadHomes=/(?:all|every|any)\s+(?:(?:available|rental)\s+)*(?:homes?|houses?)|(?:jitne(?:\s+bhi)?|jitni(?:\s+bhi)?|saari|sari|saare|sabhi|sab)\s+(?:available\s+)?(?:ghar|makaan|homes?|houses?)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:घर|मकान)/i.test(requestText);
  const resetListingType=broadAllListings||broadHomes;
  if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}
  const locationChanged=!!(extracted.location&&normalizeSearchText(extracted.location)!==normalizeSearchText(previous.location||""));
  const locationOnlyRequest=!!extracted.location&&!extracted.minBudget&&!extracted.maxBudget&&!extracted.bhk&&!extracted.furnishing&&!extracted.stayType&&!extracted.propertyType&&!extracted.nearby;
  const resetLocationFilters=locationChanged||locationOnlyRequest;
- const resetKeys=broadAllListings?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetLocationFilters?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetListingType?["stayType","propertyType"]:[];
+ const resetKeys=(broadAllListings||broadHomes||resetLocationFilters)?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetListingType?["stayType","propertyType"]:[];
  ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{
   if(!extracted[key]&&!resetKeys.includes(key))p[key]=previous[key]||"";
   else if(resetKeys.includes(key)&&!extracted[key])p[key]="";
  });
- p.radiusKm=(broadAllListings||resetLocationFilters)?(extracted.radiusKm??null):(extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm);
- p.useMyLocation=(broadAllListings||locationChanged)?!!extracted.useMyLocation:!!(extracted.useMyLocation||previous.useMyLocation);
- p.familyFriendly=(broadAllListings||locationChanged)?!!extracted.familyFriendly:!!(extracted.familyFriendly||previous.familyFriendly);
+ p.radiusKm=(broadAllListings||broadHomes||resetLocationFilters)?(extracted.radiusKm??null):(extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm);
+ p.useMyLocation=(broadAllListings||broadHomes||locationChanged)?!!extracted.useMyLocation:!!(extracted.useMyLocation||previous.useMyLocation);
+ p.familyFriendly=(broadAllListings||broadHomes||locationChanged)?!!extracted.familyFriendly:!!(extracted.familyFriendly||previous.familyFriendly);
  if(/\\b(reset|clear|start over|new search)\\b|फिल्टर हटाओ|नई खोज/i.test(String(raw||""))){
   state.parsed=null;
   ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{if(!extracted[key])p[key]="";});
@@ -492,21 +500,25 @@ function startVoice(target,lang){
  if(state.recognition){try{state.recognition.abort?state.recognition.abort():state.recognition.stop();}catch(_){}}
  state.voiceSession++;const session=state.voiceSession;
  state.voiceActive=true;state.voiceDraft="";
+ if(!mapMode)state.parsed=null; // Every new renter microphone session is a fresh request, not a stale-filter follow-up.
+ const transcriptField=$(target);if(transcriptField){transcriptField.value="";transcriptField.dispatchEvent(new Event("input",{bubbles:true}));}
  const chosen=mapMode?($("gdrxMapLang")?.value||state.lang):(lang||state.lang);
  const r=new API();state.recognition=r;r.lang=chosen;r.continuous=false;r.interimResults=true;r.maxAlternatives=1;
- let finalTranscript="",interimTranscript="",finished=false;
+ const finalSegments=[];let finalTranscript="",interimTranscript="",finished=false;
  setRenterMicState(mic,true);
  if(status){status.dataset.voiceError="0";status.textContent="Listening… बोलिए / I'm listening. Press Stop to end the microphone session.";}
  r.onstart=()=>{if(session!==state.voiceSession)return;setRenterMicState(mic,true);};
  r.onresult=e=>{
   if(session!==state.voiceSession||finished)return;
-  for(let i=e.resultIndex||0;i<e.results.length;i++){
-   const item=e.results[i],value=item&&item[0]&&item[0].transcript||"";
-   if(item.isFinal&&value.trim())finalTranscript+=(finalTranscript?" ":"")+value.trim();
-   else if(value.trim())interimTranscript=value.trim();
+  interimTranscript="";
+  for(let i=0;i<e.results.length;i++){
+   const item=e.results[i],value=String(item&&item[0]&&item[0].transcript||"").trim();
+   if(item&&item.isFinal){finalSegments[i]=value;}
+   else{finalSegments[i]="";if(value)interimTranscript=value;}
   }
-  state.voiceDraft=finalTranscript.trim();
-  const field=$(target);if(field){field.value=state.voiceDraft;field.dispatchEvent(new Event("input",{bubbles:true}));}
+  finalTranscript=finalSegments.filter(Boolean).join(" ").replace(/\s+/g," ").trim();
+  state.voiceDraft=finalTranscript;
+  const field=$(target);if(field){field.value=[finalTranscript,interimTranscript].filter(Boolean).join(" ").trim();field.dispatchEvent(new Event("input",{bubbles:true}));}
  };
  r.onerror=e=>{
   if(session!==state.voiceSession||finished)return;

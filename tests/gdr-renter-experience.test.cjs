@@ -86,7 +86,7 @@ test('typed GDR assistant searches immediately and automatically reveals the pro
 
 test('spoken renter search is one-shot, stop-safe and uses the direct database search', () => {
   assert.ok(js.includes('r.continuous=false'));
-  assert.ok(js.includes('state.voiceDraft=finalTranscript.trim()'));
+  assert.ok(js.includes('state.voiceDraft=finalTranscript'));
   assert.ok(js.includes('const transcript=finalTranscript.trim()'));
   assert.ok(js.includes('state.voiceSession'));
   assert.ok(js.includes('function stopRenterVoice'));
@@ -106,8 +106,9 @@ test('voice parser distinguishes Room from Apartment for renter searches', () =>
   assert.equal(apartment.propertyType, 'apartment');
 });
 test('spoken follow-up filters preserve the previously selected city and stay type', () => {
-  assert.ok(js.includes('const extracted=parseRequest(raw),previous=state.parsed||{}'));
-  assert.ok(js.includes('const resetKeys=broadAllListings?'));
+  assert.ok(js.includes('const autoSearch=!!(options&&options.autoSearch)'));
+  assert.ok(js.includes('previous=autoSearch?{}:(state.parsed||{})'));
+  assert.ok(js.includes('const resetKeys=(broadAllListings||broadHomes||resetLocationFilters)?'));
   assert.ok(js.includes('if(!extracted[key]&&!resetKeys.includes(key))p[key]=previous[key]||""'));
   assert.ok(js.includes('if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}'));
 });
@@ -165,7 +166,7 @@ test('a new location-only Find Home request clears filters carried over from the
   assert.match(js, /const locationChanged=!!\(extracted\.location&&normalizeSearchText\(extracted\.location\)!==normalizeSearchText\(previous\.location\|\|""\)\)/);
   assert.match(js, /locationOnlyRequest=!!extracted\.location/);
   assert.match(js, /resetLocationFilters=locationChanged\|\|locationOnlyRequest/);
-  assert.match(js, /resetLocationFilters\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
+  assert.match(js, /resetKeys=\(broadAllListings\|\|broadHomes\|\|resetLocationFilters\)\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
   assert.match(js, /setValue\("renterSearchBhk",p\.bhk,true\)/);
   assert.match(js, /setValue\("renterSearchFurnishing",p\.furnishing,true\)/);
   assert.match(js, /function bindLocationOnlySearchReset\(\)/);
@@ -177,7 +178,7 @@ test('a new location-only Find Home request clears filters carried over from the
 
 test('Find Home review clears previous filters for Hindi jitne bhi property requests', () => {
   assert.ok(js.includes('जितने\\s+भी') && js.includes('jitne\\s+bhi'));
-  assert.ok(js.includes('const resetKeys=broadAllListings'));
+  assert.ok(js.includes('const resetKeys=(broadAllListings||broadHomes||resetLocationFilters)?'));
   assert.ok(js.includes('setValue("renterMinBudget",p.minBudget||"",true)'));
 });
 test('assistant city-level search expands Singrauli and Bhopal locality aliases without relaxing listing eligibility', () => {
@@ -218,6 +219,42 @@ test('assistant result analytics use actual loaded listing and verification fiel
   assert.match(js, /Owner verified:/);
   assert.match(css, /gdrx-assistant-analytics/);
   assert.match(css, /@media\(max-width:760px\)[\s\S]*?gdrx-analytics-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+});
+
+
+test('city-wide microphone searches discard stale form filters and the previous assistant request', () => {
+  assert.match(js, /const autoSearch=!!\(options&&options\.autoSearch\)/);
+  assert.match(js, /previous=autoSearch\?\{\}:\(state\.parsed\|\|\{\}\)/);
+  assert.match(js, /if\(!mapMode\)state\.parsed=null/);
+  assert.match(js, /resetKeys=\(broadAllListings\|\|broadHomes\|\|resetLocationFilters\)\?/);
+  assert.match(js, /setValue\("renterMinBudgetPreset","",true\)/);
+  assert.match(js, /setValue\("renterMaxBudgetPreset","",true\)/);
+});
+
+test('all-property Hinglish requests tolerate common phrasing and clean the Ajay speech prefix before Singrauli', () => {
+  const cases = [
+    'Singrauli mein jitni bhi properties hain dikhao',
+    'Singrauli me saari property mere ko show karo',
+    'Singrauli me sari properties dikhao',
+    'Singrauli all properties',
+    'मुझे सिंगरौली मध्य प्रदेश में जितने भी प्रॉपर्टीज है दिखाओ',
+    'ajay, Singrauli mein saari properties dikhao'
+  ];
+  for (const input of cases) {
+    const parsed = parseRequest(input);
+    assert.equal(parsed.location, 'Singrauli', input);
+    assert.equal(parsed.stayType, '', input);
+    assert.equal(parsed.bhk, '', input);
+    assert.equal(parsed.furnishing, '', input);
+  }
+});
+
+test('speech recognition replaces final segments by index instead of appending duplicate result events', () => {
+  assert.match(js, /const finalSegments=\[\]/);
+  assert.match(js, /for\(let i=0;i<e\.results\.length;i\+\+\)/);
+  assert.match(js, /finalSegments\[i\]=value/);
+  assert.match(js, /finalTranscript=finalSegments\.filter\(Boolean\)\.join\(" "\)/);
+  assert.match(js, /transcriptField\.value=""/);
 });
 
 test('voice assistant replies in the language used by the speaker', () => {
