@@ -52,7 +52,7 @@ test('voice searches the public inventory and renders results in Available Renta
   assert.match(voice, /api\.showVoiceSearchResults\(rows,point,location\)/);
   assert.match(renter, /client\.rpc\("search_public_properties_for_assistant"/);
   assert.match(renter, /searchAssistantListings\(prefs,raw,target\)/);
-  assert.match(renter, /window\.renderVoicePropertyResults\(rows\)/);
+  assert.match(renter, /window\.renderVoicePropertyResults\((?:rows|loadedRows)\)/);
   assert.match(renter, /propertiesSection/);
   assert.doesNotMatch(renter, /gdrx-assistant-property-card/);
   assert.match(map, /get_available_map_properties_in_bounds/);
@@ -115,7 +115,7 @@ test('legacy map microphone is removed so only one map voice UI can mount', () =
 });
 
 test('map voice keeps its markers while rental cards render in the shared Available Rental Properties section', () => {
-  assert.match(renter, /window\.renderVoicePropertyResults\(rows\)/);
+  assert.match(renter, /window\.renderVoicePropertyResults\((?:rows|loadedRows)\)/);
   assert.match(renter, /gdrVoiceInventorySummary/);
   assert.match(renter, /target\.append\(summary\)/);
   assert.doesNotMatch(renter, /gdrx-assistant-property-card/);
