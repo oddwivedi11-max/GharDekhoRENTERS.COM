@@ -5,7 +5,7 @@
   const state = {
     renterMap:null, ownerMap:null, renterLayer:null, radiusCircle:null,
     ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, renterPin:null, inventory:[], boundsRows:[], visible:[],
-    searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false, resolvedQuery:"",
+    searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false, resolvedQuery:"", mapSearchId:0, locationSearchId:0,
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null,
     currentPrefs:{}, selectedPropertyId:null, markerById:new Map(), lastSearchBounds:null
@@ -291,24 +291,33 @@
   async function searchTypedMapLocation(){
     const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
     if(!query)return searchRenterArea();
-    const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Locating…";}
+    const locationSearchId=++state.locationSearchId,button=$("gdrMapSearchAreaBtn");
+    if(button){button.disabled=true;button.textContent="Locating…";}
+    state.boundsRows=[];state.visible=[];
+    if(state.renterMap)renderMarkers([],state.searchCenter||INDIA_CENTER);
+    setStatus("Finding "+query+" on the map…");
     try{
       const point=await resolveMapQuery(query);
+      if(locationSearchId!==state.locationSearchId)return false;
       setRenterPin(point,point.label||query);
       const kind=String(point.properties&&(point.properties.type||point.properties.osm_value)||"").toLowerCase();
       const cityLike=["city","town","administrative"].includes(kind);
       state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false});
+      state.resolvedQuery=point.label||query;
       return await searchRenterArea();
     }catch(error){
+      if(locationSearchId!==state.locationSearchId)return false;
       console.warn("GDR map location search failed:",error);
+      state.boundsRows=[];state.visible=[];renderMarkers([],state.searchCenter||INDIA_CENTER);
       setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");
       return false;
-    }finally{if(button){button.disabled=false;button.textContent="Search this area";}}
+    }finally{if(locationSearchId===state.locationSearchId&&button){button.disabled=false;button.textContent="Search this area";}}
   }
   async function searchRenterArea(prefs){
     if(!state.renterMap)return false;
     if(prefs)state.currentPrefs=Object.assign({},prefs);
-    const button=$("gdrMapSearchAreaBtn");if(button){button.disabled=true;button.textContent="Searching…";}
+    const requestId=++state.mapSearchId,button=$("gdrMapSearchAreaBtn");
+    if(button){button.disabled=true;button.textContent="Searching…";}
     setStatus("Searching genuine available homes in the visible map area…");
     try{
       const center=state.renterMap.getCenter();
@@ -317,17 +326,20 @@
       const bounds=state.renterMap.getBounds();
       if(!bounds||!bounds.getSouthWest||!bounds.getNorthEast)throw new Error("Map boundaries are unavailable. Move or zoom the map and retry.");
       state.lastSearchBounds=bounds;
-      state.boundsRows=await fetchBounds(bounds,state.searchCenter,state.currentPrefs);
-      const rows=applyRenterFilters(state.currentPrefs);
-      if(!rows.length)setStatus("No rental homes found in this area. Try expanding your search radius.");
-      return rows;
+      const rows=await fetchBounds(bounds,state.searchCenter,state.currentPrefs);
+      if(requestId!==state.mapSearchId)return false;
+      state.boundsRows=rows;
+      const visible=applyRenterFilters(state.currentPrefs);
+      if(!visible.length)setStatus("No rental homes found in this area. Try expanding your search radius.");
+      return visible;
     }catch(error){
+      if(requestId!==state.mapSearchId)return false;
       console.error("GDR map search failed:",error);
       state.boundsRows=[];state.visible=[];
       renderMarkers([],state.searchCenter||[INDIA_CENTER[0],INDIA_CENTER[1]]);
       setStatus(error&&error.message?error.message:"Properties could not be loaded. Please try again.");
       return false;
-    }finally{if(button){button.disabled=false;button.textContent="Search this area";}}
+    }finally{if(requestId===state.mapSearchId&&button){button.disabled=false;button.textContent="Search this area";}}
   }
   function setRenterSearchPreferences(prefs){state.currentPrefs=Object.assign({},prefs||{});return state.currentPrefs;}
   function setRenterRadius(value,skipSearch){
