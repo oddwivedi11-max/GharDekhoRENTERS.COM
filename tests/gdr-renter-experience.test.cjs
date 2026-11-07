@@ -455,3 +455,18 @@ test('Patel Nagar Bhopal assistant search returns only real available records wi
   const rows = helpers.filterAssistantListings(inventory,{location:intent.location});
   assert.deepEqual(Array.from(rows,row=>row.id),['patel-pending-home','patel-pending-hostel','patel-verified-home']);
 });
+
+
+test('premium compare studio exposes add, replace, nearby discovery and comparison actions', () => {
+  assert.match(js, /function getNearbyCompareProperties\(\)/);
+  assert.match(js, /function addCompareProperty\(p\)/);
+  assert.match(js, /function openCompareStudio\(\)/);
+  assert.match(js, /function showReplaceOptions\(index,options\)/);
+  assert.match(js, /gdrxCompareNow/);
+  assert.match(js, /gdrxCompareNearby/);
+  assert.match(js, /gdrxCompareStudio/);
+  assert.match(js, /sessionStorage\.setItem\("gdrxCompareHomes"/);
+});
+test('map compare action has a dedicated premium button class', () => {
+  assert.match(map, /gdr-map-compare-btn/);
+});
