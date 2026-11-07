@@ -135,7 +135,7 @@
     const meta=[p.bhk?p.bhk+" BHK":"",p.furnishing||"",p.listing_type&&p.listing_type!=="home"?p.listing_type.toUpperCase():"Home",Number.isFinite(p.gdrDistanceKm)?p.gdrDistanceKm.toFixed(1)+" km away":""].filter(Boolean).join(" · ");
     copy.append(node("p","",meta));if(Number.isFinite(Number(p.gdrMatchScore)))copy.append(node("p","gdr-map-match-score",p.gdrMatchScore+"% preference match"));copy.append(node("p","",statusOf(p)+" · "+(p.owner_verified?"Verified owner":"Owner verification pending")+" · Owner contact is shared only through the approved visit flow."));
     main.append(img,copy);
-    const actions=node("div","gdr-map-preview-actions"),details=node("button","gdr-map-details-btn","View details"),favorite=node("button","gdr-map-details-btn","♡ Save"),compare=node("button","gdr-map-details-btn","＋ Compare"),close=node("button","gdr-map-dismiss-btn","Close");
+    const actions=node("div","gdr-map-preview-actions"),details=node("button","gdr-map-details-btn","View details"),favorite=node("button","gdr-map-details-btn","♡ Save"),compare=node("button","gdr-map-compare-btn","＋ Compare"),close=node("button","gdr-map-dismiss-btn","Close");
     details.type="button";details.addEventListener("click",()=>{
       if(typeof window.openPropertyDetails==="function"){window.openPropertyDetails(p.id);return;}
       if(details.dataset.expanded==="1")return;
