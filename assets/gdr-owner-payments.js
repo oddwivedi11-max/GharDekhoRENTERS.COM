@@ -4,7 +4,7 @@ const $=(id,root=document)=>root.getElementById(id);
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:2}).format(Number(v||0));
 const client=()=>window.__gdrSupabaseClient||window.supabaseClient||null;
-const qrUrl=path=>client().storage.from("owner-payment-qr").getPublicUrl(path).data.publicUrl;
+const qrUrl=path=>String(path||"").indexOf("http")===0?path:client().storage.from("owner-payment-qr").getPublicUrl(path).data.publicUrl;
 let root=null,owner=null,properties=[],occupancies=[],settings=[],payments=[],charges=[],activeProperty="all",filterStatus="all",search="",tab="overview",busy=false,chargeBusy=false;
 function injectButton(){
  // My Payments is already a command-centre tile. Remove the old second launcher.
