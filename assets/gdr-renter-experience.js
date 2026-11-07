@@ -307,7 +307,10 @@ function parseRequest(raw){
    const localityFromCity=localityTokens.join(" ");
    const resolvedCity=city?city[1]:cityPart;
    const cityPartWithoutState=cityPart.replace(/\s+(?:madhya\s+pradesh|m\s*p|mp|india|district)\b.*$/i,"").trim();
-   if(/[a-z]/i.test(cityPart)&&localityTokens.length){
+   const hindiCityLabels={bhopal:"भोपाल",singrauli:"सिंगरौली",indore:"इंदौर",jabalpur:"जबलपुर",gwalior:"ग्वालियर",ujjain:"उज्जैन",rewa:"रीवा",satna:"सतना",dewas:"देवास",sidhi:"सीधी"};
+   if(localityPart&&/[\u0900-\u097F]/.test(localityPart)){
+    p.location=localityPart+", "+(city?hindiCityLabels[city[0]]||city[1]:resolvedCity);
+   }else if(/[a-z]/i.test(cityPart)&&localityTokens.length){
     p.location=cityPartWithoutState;
    }else{
     const resolvedLocality=localityPart||localityFromCity;
