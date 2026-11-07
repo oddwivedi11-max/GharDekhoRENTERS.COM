@@ -347,7 +347,7 @@ function speakAssistantReply(message,language){
 
 function setValue(id,v,allowEmpty){const el=$(id);if(!el||v==null||(v===""&&!allowEmpty))return;el.value=String(v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))}
 function applyToForm(p){
- setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType,true);setValue("renterSearchPropertyType",p.propertyType,true);setValue("renterSearchBhk",p.bhk);setValue("renterSearchFurnishing",p.furnishing);
+ setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType,true);setValue("renterSearchPropertyType",p.propertyType,true);setValue("renterSearchBhk",p.bhk,true);setValue("renterSearchFurnishing",p.furnishing,true);
  setValue("renterMinBudget",p.minBudget||"",true);setValue("renterMaxBudget",p.maxBudget||"",true);
  if(p.minBudget){setValue("renterMinBudgetPreset","custom");setValue("renterMinBudgetCustom",p.minBudget)}
  if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget)}
@@ -360,14 +360,15 @@ function review(raw,options){
  const broadHomes=/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:homes?|houses?)|(?:jitne\s+bhi|sabhi|saare|saari)\s+(?:available\s+)?(?:ghar|makaan|homes?|houses?)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:घर|मकान)/i.test(requestText);
  const resetListingType=broadAllListings||broadHomes;
  if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}
- const resetKeys=broadAllListings?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetListingType?["stayType","propertyType"]:[];
+ const locationChanged=!!(extracted.location&&normalizeSearchText(extracted.location)!==normalizeSearchText(previous.location||""));
+ const resetKeys=broadAllListings?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:locationChanged?["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"]:resetListingType?["stayType","propertyType"]:[];
  ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{
   if(!extracted[key]&&!resetKeys.includes(key))p[key]=previous[key]||"";
   else if(resetKeys.includes(key)&&!extracted[key])p[key]="";
  });
- p.radiusKm=broadAllListings?null:(extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm);
- p.useMyLocation=broadAllListings?false:!!(extracted.useMyLocation||previous.useMyLocation);
- p.familyFriendly=broadAllListings?false:!!(extracted.familyFriendly||previous.familyFriendly);
+ p.radiusKm=(broadAllListings||locationChanged)?(extracted.radiusKm??null):(extracted.radiusKm==null?(previous.radiusKm??null):extracted.radiusKm);
+ p.useMyLocation=(broadAllListings||locationChanged)?!!extracted.useMyLocation:!!(extracted.useMyLocation||previous.useMyLocation);
+ p.familyFriendly=(broadAllListings||locationChanged)?!!extracted.familyFriendly:!!(extracted.familyFriendly||previous.familyFriendly);
  if(/\\b(reset|clear|start over|new search)\\b|फिल्टर हटाओ|नई खोज/i.test(String(raw||""))){
   state.parsed=null;
   ["location","minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"].forEach(key=>{if(!extracted[key])p[key]="";});
@@ -755,8 +756,38 @@ function ensureAssistantResultStyles(){
  if(document.querySelector("link[data-gdrx-assistant-result-styles]"))return;
  const link=document.createElement("link");link.rel="stylesheet";link.href="/assets/gdr-renter-experience.css?v=20261107-smart-assistant-results-1";link.dataset.gdrxAssistantResultStyles="true";document.head.appendChild(link);
 }
+
+function clearRenterSearchFilters(){
+ const blankSelect=(id,label)=>{
+  const el=$(id);if(!el||!el.options)return;
+  let option=Array.from(el.options).find(item=>String(item.value)==="");
+  if(!option){option=document.createElement("option");option.value="";option.textContent=label;el.insertBefore(option,el.firstChild);}
+  el.value="";
+  el.dispatchEvent(new Event("input",{bubbles:true}));
+  el.dispatchEvent(new Event("change",{bubbles:true}));
+ };
+ [["renterMinBudgetPreset","No minimum"],["renterMaxBudgetPreset","No maximum"],["renterStayType","All property types"],["renterSearchPropertyType","Any property type"],["renterSearchBhk","Any BHK"],["renterSearchFurnishing","Any furnishing"]].forEach(([id,label])=>blankSelect(id,label));
+ ["renterMinBudget","renterMaxBudget","renterMinBudgetCustom","renterMaxBudgetCustom"].forEach(id=>{
+  const el=$(id);if(!el)return;el.value="";el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}));
+ });
+}
+function bindLocationOnlySearchReset(){
+ const location=$("renterSearchLocation");if(!location||location.dataset.gdrLocationResetBound)return;
+ location.dataset.gdrLocationResetBound="1";
+ let baseline=normalizeSearchText(location.value||""),cleared=false;
+ const resetIfLocationChanged=()=>{
+  const current=normalizeSearchText(location.value||"");
+  if(!current||current===baseline){cleared=false;return;}
+  if(!cleared){clearRenterSearchFilters();cleared=true;toast("New location selected. Searching all property types and budgets; you can reapply filters below.");}
+ };
+ location.addEventListener("focus",()=>{baseline=normalizeSearchText(location.value||"");cleared=false;});
+ location.addEventListener("input",resetIfLocationChanged);
+ location.addEventListener("change",resetIfLocationChanged);
+ location.addEventListener("blur",()=>{resetIfLocationChanged();baseline=normalizeSearchText(location.value||"");cleared=false;});
+}
+
 function bind(){
- ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
+ bindLocationOnlySearchReset();ensureAssistantResultStyles();moveEditProfileToAccount();addSupport();mountFinder();mountCompare();$("renterDashboard")?.classList.add("gdrx-premium");
  const results=$("propertiesContainer");if(results&&!results.dataset.gdrxScoreObserver){results.dataset.gdrxScoreObserver="1";let scoreFrame=0;new MutationObserver(()=>{if(scoreFrame)return;scoreFrame=requestAnimationFrame(()=>{scoreFrame=0;applyManualScores();});}).observe(results,{childList:true,subtree:true})}
  const form=$("renterFindHomeForm");if(form&&!form.dataset.gdrxScoreCapture){form.dataset.gdrxScoreCapture="1";form.addEventListener("submit",()=>{state.parsed={location:$("renterSearchLocation")?.value||"",bhk:$("renterSearchBhk")?.value||"",furnishing:$("renterSearchFurnishing")?.value||"",stayType:$("renterStayType")?.value||"",minBudget:$("renterMinBudget")?.value||"",maxBudget:$("renterMaxBudget")?.value||""};setTimeout(applyManualScores,1000)})}
  const fbtn=$("renterFindHomeBtn");if(fbtn&&!fbtn.dataset.gdrx){fbtn.dataset.gdrx="1";fbtn.addEventListener("click",openFind)}
