@@ -187,6 +187,39 @@ test('assistant city-level search expands Singrauli and Bhopal locality aliases 
   assert.ok(cityLocalitySearchMigration.includes('not exists('));
   assert.ok(cityLocalitySearchMigration.includes("p.status='verified'"));
 });
+
+test('voice auto-search safely runs even when review mode omits the manual action buttons', () => {
+  const start = js.indexOf('function review(raw,options){');
+  const end = js.indexOf('function setRenterMicState', start);
+  assert.ok(start >= 0 && end > start, 'assistant review handler is present');
+  const review = js.slice(start, end);
+  assert.match(review, /const editButton=\$\("gdrxEdit"\);\s*if\(editButton\)/);
+  assert.match(review, /const findButton=\$\("gdrxFind"\);\s*if\(findButton\)/);
+  assert.match(review, /if\(options&&options\.autoSearch\)void searchAssistantListings\(p,raw\)/);
+  assert.doesNotMatch(review, /\$\("gdrxEdit"\)\.onclick/);
+  assert.doesNotMatch(review, /\$\("gdrxFind"\)\.onclick/);
+});
+
+test('assistant search keeps property cards visible if optional map rendering fails', () => {
+  const start = js.indexOf('const renderLoadedRows=()=>{');
+  const end = js.indexOf('const describeCount=', start);
+  assert.ok(start >= 0 && end > start);
+  const render = js.slice(start, end);
+  assert.ok(render.indexOf('window.renderVoicePropertyResults(loadedRows)') < render.indexOf('try{mapApi.showVoiceSearchResults'));
+  assert.match(render, /catch\(error\)\{console\.warn\("GDR assistant list results are ready; map rendering was skipped:"/);
+});
+
+test('assistant result analytics use actual loaded listing and verification fields', () => {
+  assert.match(js, /function setAssistantAnalytics\(rows,count\)/);
+  assert.match(js, /Total matching/);
+  assert.match(js, /Property verification:/);
+  assert.match(js, /Listed rent range:/);
+  assert.match(js, /Map-ready/);
+  assert.match(js, /Owner verified:/);
+  assert.match(css, /gdrx-assistant-analytics/);
+  assert.match(css, /@media\(max-width:760px\)[\s\S]*?gdrx-analytics-grid\{grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+});
+
 test('voice assistant replies in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
   const end = js.indexOf('function setValue', start);
