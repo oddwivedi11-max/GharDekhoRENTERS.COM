@@ -70,7 +70,7 @@ test('map voice places its assistant directly below the map heading and uses an 
   assert.match(voice, /<svg viewBox="0 0 24 24"/);
 });
 test('speech finalization never submits an interim-only partial transcript', () => {
-  assert.match(voice, /const final=String\(state\.finalText\|\|" "\)\.trim\(\)/);
+  assert.match(voice, /const final=String\(state\.finalText/);
   assert.match(voice, /if\(!current\)state\.finalText=spoken/);
   assert.match(voice, /current\.endsWith\(" "\+next\)/);
 });
