@@ -29,6 +29,7 @@ on:
       - "fix/gdr-voice-autosearch-and-analytics"
       - "fix/gdr-fresh-voice-search-and-transcript-dedupe"
       - "fix/clear-visible-renter-filters-on-new-voice-search"
+      - "fix/assistant-property-results-render-and-cache-bust"
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
   workflow_dispatch:
