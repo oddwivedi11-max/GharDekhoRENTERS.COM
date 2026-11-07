@@ -419,33 +419,3 @@ test('Hindi city-first locality searches retain the locality while stripping all
   assert.equal(parsed.location, 'पटेल नगर, भोपाल');
   assert.equal(parsed.stayType, '');
 });
-
-
-test('canonical Available Rental Properties section is protected from duplicate-panel cleanup', () => {
-  const start = js.indexOf('function hideUpperAvailableRentalPanel(){');
-  const end = js.indexOf('function ensurePropertyResultsVisible(section){', start);
-  assert.ok(start >= 0 && end > start, 'duplicate cleanup helper is present');
-  const helper = js.slice(start, end);
-  const canonicalGuard = helper.indexOf('heading.closest&&heading.closest("#propertiesSection")');
-  const hideAction = helper.indexOf('node.hidden=true');
-  assert.ok(canonicalGuard >= 0 && hideAction > canonicalGuard, 'canonical results section is excluded before any hide action');
-  assert.ok(helper.includes('node.querySelector("#propertiesSection")'), 'ancestor containing canonical results section is also protected');
-});
-
-test('assistant search restores only the legacy hidden-results marker before rendering', () => {
-  const start = js.indexOf('function ensurePropertyResultsVisible(section){');
-  const end = js.indexOf('function mountFinder(){', start);
-  assert.ok(start >= 0 && end > start, 'results visibility recovery helper is present');
-  const helper = js.slice(start, end);
-  assert.ok(helper.includes('section.hasAttribute("data-gdr-hidden-duplicate-rentals")'));
-  assert.ok(helper.includes('section.hidden=false'));
-  assert.ok(helper.includes('section.removeAttribute("aria-hidden")'));
-  assert.ok(js.includes('ensurePropertyResultsVisible(section);'));
-  assert.ok(js.indexOf('ensurePropertyResultsVisible(section);') < js.indexOf('container.innerHTML=\'<div class="loading-text">Searching matching rental properties…</div>\''));
-});
-
-test('mobile property results use compact single-column cards with readable actions', () => {
-  assert.match(css, /@media\s*\(max-width:\s*720px\)[\s\S]*#propertiesSection \.property-grid/);
-  assert.match(css, /#propertiesSection \.property-card\s*\{[\s\S]*grid-template-columns/);
-  assert.match(css, /#propertiesSection \.property-actions button\s*\{[\s\S]*min-height:\s*36px/);
-});

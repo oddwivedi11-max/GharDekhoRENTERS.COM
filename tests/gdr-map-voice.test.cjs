@@ -203,3 +203,23 @@ test('viewport browsing retains the full inventory and preserves the selected lo
   assert.ok(map.includes("if(state.renterPin&&preservePin!==true)"));
   assert.ok(map.includes("state.browseInventory=null"));
 });
+
+
+test('map cluster marker always displays the exact number of nearby listings', () => {
+  const start = map.indexOf('function makeLayer(map){');
+  const end = map.indexOf('async function fetchInventory()', start);
+  assert.ok(start >= 0 && end > start, 'renter marker cluster setup exists');
+  const layer = map.slice(start, end);
+  assert.match(layer, /zoomToBoundsOnClick:true/);
+  assert.match(layer, /spiderfyOnMaxZoom:true/);
+  assert.match(layer, /maxClusterRadius:function\(zoom\)/);
+  assert.match(layer, /if\(zoom>=16\)return 0/);
+  assert.match(layer, /cluster\.getChildCount\(\)/);
+  assert.match(layer, /gdr-home-3d-cluster-count/);
+  assert.match(layer, /count\+" rental homes in this area"/);
+});
+
+test('cluster count badge is visible and legible on the GharDekho house marker', () => {
+  assert.match(mapCss, /\.gdr-home-3d-cluster-count\s*\{[\s\S]*background:#123d35[\s\S]*color:#fff/);
+  assert.match(mapCss, /\.gdr-home-3d-cluster-count\s*\{[\s\S]*position:absolute[\s\S]*z-index:5/);
+});

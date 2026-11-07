@@ -56,12 +56,19 @@
     return window.L.markerClusterGroup({
       showCoverageOnHover:false,
       spiderfyOnMaxZoom:true,
-      maxClusterRadius:48,
-      // Never show the numeric "2 / 3 / 4" bubble. A clustered group of
-      // nearby listings is represented by the same 3D GharDekho house motif.
-      iconCreateFunction:function(){
-        const html='<span class="gdr-home-3d-cluster"><span class="gdr-home-3d-cluster-back"></span><span class="gdr-home-3d-roof"></span><span class="gdr-home-3d-body"><i></i><b></b><em></em></span><span class="gdr-home-3d-base"></span></span>';
-        return window.L.divIcon({className:"gdr-home-3d-cluster-wrap",html,iconSize:[76,72],iconAnchor:[38,54]});
+      zoomToBoundsOnClick:true,
+      // Keep nearby homes grouped only while zoomed out. The cluster badge
+      // always exposes the exact number of listings represented by that house.
+      // At street-level zoom, separate homes into their own markers.
+      maxClusterRadius:function(zoom){
+        if(zoom>=16)return 0;
+        if(zoom>=13)return 18;
+        return 34;
+      },
+      iconCreateFunction:function(cluster){
+        const count=cluster&&typeof cluster.getChildCount==="function"?cluster.getChildCount():0;
+        const html='<span class="gdr-home-3d-cluster"><span class="gdr-home-3d-cluster-back"></span><span class="gdr-home-3d-roof"></span><span class="gdr-home-3d-body"><i></i><b></b><em></em></span><span class="gdr-home-3d-base"></span><span class="gdr-home-3d-cluster-count" aria-hidden="true">'+count+'</span></span>';
+        return window.L.divIcon({className:"gdr-home-3d-cluster-wrap",html,iconSize:[76,72],iconAnchor:[38,54],title:count+" rental homes in this area"});
       }
     }).addTo(map);
   }
