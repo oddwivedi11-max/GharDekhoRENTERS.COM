@@ -11,7 +11,7 @@ test('voice assistant loads inside the existing renter Explore Map', () => {
   assert.match(map, /ensureMapVoiceAssistant/);
   assert.match(map, /GDRMapVoiceAssistant\.mount\(panel\)/);
   assert.match(voice, /GDRRenterExperience/);
-  assert.match(voice, /searchAssistantListings\(filters,raw,target\)/);
+  assert.match(voice, /api\.searchTypedMapLocation\(\)/);
   assert.match(voice, /gdrMapVoiceResults/);
 });
 
@@ -25,7 +25,7 @@ test('voice recognition has automatic silence finalization and typed fallback', 
 });
 
 test('voice UI has responsive controls and accessible microphone state', () => {
-  assert.match(css, /grid-template-columns:minmax\(0,1fr\) 104px/);
+  assert.match(css, /grid-template-columns:minmax\(0,1fr\) 86px/);
   assert.match(css, /@media\(max-width:620px\)/);
   assert.match(css, /\.gdr-map-voice-mic\.is-listening/);
   assert.match(voice, /aria-pressed/);
@@ -41,10 +41,24 @@ test('common rental filters are delegated to the shared deterministic intent par
 });
 
 
-test('voice requests use the database-backed assistant and do not use a map-radius-only search', () => {
-  assert.match(voice, /assistant\.searchAssistantListings\(filters,raw,target\)/);
-  assert.doesNotMatch(voice, /api\.searchAtCoordinates/);
-  assert.doesNotMatch(voice, /api\.filterVisibleByLocation/);
+test('voice requests use the existing map search engine and render real map markers and list results', () => {
+  assert.match(voice, /api\.setRenterSearchPreferences\(filters\)/);
+  assert.match(voice, /api\.searchTypedMapLocation\(\)/);
+  assert.match(voice, /api\.searchAtCoordinates\(/);
+  assert.match(voice, /api\.getRenterVisibleProperties\(\)/);
+  assert.match(voice, /gdrMapListToggle/);
+  assert.doesNotMatch(voice, /assistant\.searchAssistantListings/);
+  assert.match(map, /get_available_map_properties_in_bounds/);
+  assert.match(map, /renderMarkers\(rows,state\.searchCenter\)/);
+});
+test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
+  assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
+  assert.match(voice, /gdr-map-voice-mic-icon/);
+  assert.match(voice, /<svg viewBox="0 0 24 24"/);
+});
+test('speech finalization prefers final speech and does not append interim text twice', () => {
+  assert.match(voice, /const final=String\(state\.finalText\|\|""\)\.trim\(\)\|\|String\(state\.interimText\|\|""\)\.trim\(\)/);
+  assert.match(voice, /current\.endsWith\(" "\+next\)/);
 });
 
 test('Hindi and Hinglish speech phrases retain locality, BHK and rent filters', () => {
