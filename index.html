@@ -13469,7 +13469,6 @@ function showNoNearbyPropertiesPopup(radiusKm, contextLabel="your area"){
             const status = document.getElementById("locationStatus");
             const radiusKm = Number(document.getElementById("radiusSelect")?.value || 3);
             const listingType = document.getElementById("listingTypeSelect")?.value || "";
-            const renterPropertyType = document.getElementById("renterSearchPropertyType")?.value || "";
 
             if (!navigator.geolocation) {
                 if (status) status.textContent = "Location is not supported by this browser.";
