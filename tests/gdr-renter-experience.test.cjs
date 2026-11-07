@@ -286,3 +286,67 @@ test('Renter welcome and account-edit cards remain responsive without replacing 
   assert.match(index, /id="renterProfileEditor"/);
 });
 
+
+test('voice intent understands numeric, word-based and Hindi BHK requests', () => {
+  const twoBhk = parseRequest('Mujhe Patel Nagar mein 2 BHK houses dikhao');
+  assert.equal(twoBhk.bhk, '2');
+  assert.equal(twoBhk.stayType, 'home');
+  assert.equal(twoBhk.location, 'Patel Nagar');
+  const twoBedroom = parseRequest('मुझे सिंगरौली में 2 बेडरूम घर दिखाओ');
+  assert.equal(twoBedroom.bhk, '2');
+  assert.equal(twoBedroom.stayType, 'home');
+  const wordBhk = parseRequest('Show me two bedroom homes in Singrauli');
+  assert.equal(wordBhk.bhk, '2');
+  assert.equal(wordBhk.stayType, 'home');
+});
+
+test('location filters include Waidhan, Vindhyanagar and Singrauli spelling variants while rejecting distant false pins', () => {
+  const start = js.indexOf('function filterAssistantListings(rows,prefs){');
+  const end = js.indexOf('\\nasync function searchAssistantListings', start);
+  const helpers = vm.runInNewContext(js.slice(normalizeStart, start) + js.slice(start, end) + '; ({normalizeSearchText,filterAssistantListings})');
+  const fixtures = [
+    {id:'singrauli-core',location:'Rajmata Chun Kumari Stadium, Waidhan, Singrauli, Madhya Pradesh',latitude:24.0688,longitude:82.6255,bhk:2,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home',rent:2588},
+    {id:'vindhyanagar',location:'DAV Road, Vindhyanagar, Singrauli, Madhya Pradesh',latitude:null,longitude:null,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:6000},
+    {id:'saved-spelling',location:'DAV Road Singruali',latitude:null,longitude:null,bhk:2,status:'pending',verification_status:'pending',owner_verified:false,listing_type:'home',rent:2626},
+    {id:'waidhan-only',location:'Waidhan, Madhya Pradesh',latitude:24.0794,longitude:82.5731,bhk:3,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:2700},
+    {id:'wrong-city',location:'Singrauli, Madhya Pradesh',latitude:28.6450,longitude:77.1692,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000},
+    {id:'occupied',location:'Singrauli, Madhya Pradesh',latitude:24.07,longitude:82.62,bhk:2,status:'occupied',verification_status:'verified',owner_verified:true,listing_type:'home',rent:5000}
+  ];
+  const results = helpers.filterAssistantListings(fixtures,{location:'Singrauli',stayType:'home',bhk:'2'});
+  assert.deepEqual(Array.from(results,row=>row.id),['singrauli-core','saved-spelling','vindhyanagar']);
+});
+
+test('Patel Nagar Bhopal returns available 2 BHK homes and excludes occupied homes and a Delhi pin', () => {
+  const start = js.indexOf('function filterAssistantListings(rows,prefs){');
+  const end = js.indexOf('\\nasync function searchAssistantListings', start);
+  const helpers = vm.runInNewContext(js.slice(normalizeStart, start) + js.slice(start, end) + '; filterAssistantListings');
+  const fixtures = [
+    {id:'patel-pending',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:23.2557,longitude:77.5021,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:6000},
+    {id:'patel-verified',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:23.2557,longitude:77.5021,bhk:2,status:'verified',verification_status:'verified',owner_verified:true,listing_type:'home',rent:7777},
+    {id:'patel-delhi-pin',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:28.6450,longitude:77.1692,bhk:2,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',rent:7000},
+    {id:'patel-occupied',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:23.2557,longitude:77.5021,bhk:2,status:'occupied',verification_status:'verified',owner_verified:true,listing_type:'home',rent:5000},
+    {id:'patel-hostel',location:'Patel Nagar, Bhopal, Madhya Pradesh',latitude:23.2557,longitude:77.5021,bhk:null,status:'pending',verification_status:'pending',owner_verified:true,listing_type:'hostel',available_beds:10,rent:8000}
+  ];
+  const results = helpers(fixtures,{location:'Patel Nagar Bhopal',stayType:'home',bhk:'2'});
+  assert.deepEqual(Array.from(results,row=>row.id),['patel-pending','patel-verified']);
+});
+
+test('voice results reuse the Available Rental Properties renderer instead of duplicate assistant cards', () => {
+  const start=js.indexOf('async function searchAssistantListings(prefs,raw,target){');
+  const end=js.indexOf('\\nfunction parseRequest',start);
+  const search=js.slice(start,end);
+  assert.ok(start>=0&&end>start);
+  assert.match(search,/window\\.renderVoicePropertyResults\\(rows\\)/);
+  assert.match(search,/propertiesSection/);
+  assert.match(search,/propertiesContainer/);
+  assert.match(search,/gdrVoiceInventorySummary/);
+  assert.match(search,/scrollIntoView\\(\\{behavior:"smooth",block:"start"\\}\\)/);
+  assert.doesNotMatch(search,/gdrx-assistant-property-card/);
+});
+
+test('map voice responses identify the actual Available Rental Properties section', () => {
+  assert.match(map,/Available Rental Properties below/);
+  assert.match(map,/assistant\\.searchAssistantListings\\(\\{\\.\\.\\.state\\.prefs,location\\},raw,target\\)/);
+});
+
+

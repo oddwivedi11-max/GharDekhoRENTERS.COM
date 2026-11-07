@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261107-map-ux2";
+const VERSION="20261107-map-voice3";
 const $=id=>document.getElementById(id);
 const state={root:null,recognition:null,active:false,finalText:"",interimText:"",silenceTimer:null,session:0,searchId:0,executed:"",language:"hi-IN",muted:false,city:"",prefs:{},speaking:false,manualStop:false};
 const text=(hi,en)=>state.language==="en-IN"?en:hi;
@@ -133,8 +133,8 @@ async function runTurn(raw){
   if(!Array.isArray(rows))throw new Error(text("Property search response सही नहीं मिला।","The property search returned an invalid response."));
   const count=rows.length,place=intent.nearMe?text("आपकी current location","your current location"):location;
   if(count){
-   status(text(place+" में "+count+" matching घर मिले हैं। नीचे उनकी rent और details देखें।","Found "+count+" matching homes in "+place+". See their rent and details below."),"success");
-   speak(text(place+" में "+count+" घर मिले हैं। उनकी details नीचे दिखाई गई हैं।","Found "+count+" homes in "+place+". Their details are shown below."));
+   status(text(place+" में "+count+" matching घर मिले हैं। नीचे Available Rental Properties section में उनकी details देखें।","Found "+count+" matching homes in "+place+". Their actual property cards are shown in Available Rental Properties below."),"success");
+   speak(text(place+" में "+count+" घर मिले हैं। उनकी details नीचे Available Rental Properties में दिखाई गई हैं।","Found "+count+" homes in "+place+". Their actual property cards are displayed in Available Rental Properties below."));
   }else{
    status(text(place+" में इन filters के साथ कोई matching घर नहीं मिला। Location या filters जाँचें।","No matching homes found in "+place+" with these filters. Check the location or filters."),"empty");
    speak(text("इस location में matching घर नहीं मिले। आप locality या budget बदलकर बोल सकते हैं।","No matching homes found. You can try another locality or budget."));
