@@ -162,3 +162,16 @@ test('all-properties voice requests clear stale BHK, budget, furnishing and home
   assert.match(voice, /mapSummary=api\.showVoiceSearchResults\(rows,point,location\)/);
   assert.match(voice, /mapSummary\.unmapped/);
 });
+
+
+test('voice inventory stays cached and renter map automatically filters markers to the current viewport on zoom or pan', () => {
+  assert.match(map, /browseInventory:null, browseTimer:null/);
+  assert.match(map, /function filterBrowseInventoryToBounds\\(rows,bounds,center,prefs\\)/);
+  assert.match(map, /bounds\\.contains\\(point\\)/);
+  assert.match(map, /function renderBrowseViewport\\(\\)/);
+  assert.match(map, /renderMarkers\\(rows,origin,false,true\\)/);
+  assert.match(map, /state\\.browseTimer=setTimeout\\(\\(\\)=>\\{state\\.browseTimer=null;renderBrowseViewport\\(\\);\\},120\\)/);
+  assert.match(map, /state\\.browseInventory=items\\.slice\\(\\)/);
+  assert.match(map, /invalidateSize\\(\\{pan:false\\}\\)/);
+  assert.match(map, /Showing "\\+rows\\.length\\+" of "\\+total\\+" mapped homes in the current map view/);
+});
