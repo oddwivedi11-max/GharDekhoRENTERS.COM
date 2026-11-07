@@ -207,7 +207,7 @@ test('GDR Smart Finder greets renters as their personal assistant and searches t
   assert.match(js, /Hello! मैं GDR Assistant हूँ — GharDekho का आपका personal assistant/);
   assert.match(js, /client\.rpc\("get_public_properties"\)/);
   assert.match(js, /searchAssistantListings\(p,raw\)/);
-  assert.match(js, /Available Homes/);
+  assert.match(js, /Available \\\"\+\(rows.length===1\?\"Home\":\"Homes\"\)/);
   assert.match(js, /filterAssistantListings/);
 });
 
