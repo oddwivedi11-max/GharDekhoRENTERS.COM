@@ -616,3 +616,20 @@
  #gdrxAssistantResults .gdrx-assistant-property-actions{gap:5px!important}
  #gdrxAssistantResults .gdrx-assistant-property-actions button{padding-inline:2px!important;font-size:10px!important}
 }
+
+@media(max-width:760px){
+ .gdrx-compare-tray{bottom:7px;width:calc(100vw - 14px);max-height:82vh;padding:13px;border-radius:17px}
+ .gdrx-tray-top h3{font-size:18px}.gdrx-tray-top p{font-size:10px}
+ .gdrx-tray-selected{grid-template-columns:1fr;gap:7px;margin:10px 0}
+ .gdrx-tray-property{padding:7px}.gdrx-tray-property img{width:48px;height:44px;flex-basis:48px}
+ .gdrx-tray-bottom{align-items:stretch}.gdrx-compare-now{padding:0 13px}
+ .gdrx-studio-header{gap:10px}.gdrx-studio-header h2{font-size:23px}
+ .gdrx-comparison-matrix{grid-template-columns:112px minmax(0,1fr);overflow:hidden}
+ .gdrx-matrix-labels{grid-template-rows:205px repeat(12,minmax(62px,auto))}
+ .gdrx-matrix-property{grid-template-rows:205px repeat(12,minmax(62px,auto));min-width:190px}
+ .gdrx-matrix-property-head{padding:9px}.gdrx-matrix-property-head img{height:83px}
+ .gdrx-matrix-label,.gdrx-matrix-value{padding:8px;font-size:10px}
+ .gdrx-matrix-label-head{font-size:8px;padding:8px}
+ .gdrx-studio-actions>button{padding:0 8px;font-size:10px}
+}
+@media(prefers-reduced-motion:reduce){.gdrx-compare-now,.gdr-map-compare-btn{transition:none!important}}
