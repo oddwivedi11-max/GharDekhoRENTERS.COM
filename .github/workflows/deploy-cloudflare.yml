@@ -156,7 +156,7 @@ jobs:
           grep -q 'function loadMore(button)' /tmp/gdr-renter-experience.js
           if grep -Eq 'get_public_properties|warmPublicInventory' /tmp/gdr-renter-experience.js; then echo 'Legacy page-load inventory prefetch is still present.'; exit 1; fi
           grep -q 'window.renderVoicePropertyResults(loadedRows)' /tmp/gdr-renter-experience.js
-          grep -q 'Available Rental Properties below' /tmp/gdr-renter-experience.js
+          grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
           grep -q 'const hindiCityLead=clean.match' /tmp/gdr-renter-experience.js
           if grep -q 'toolbar.appendChild(w)' /tmp/gdr-renter-experience.js; then echo 'Duplicate legacy map microphone is still present.'; exit 1; fi
           grep -q 'Tell GDR What Home' /tmp/gdr-renter-experience.js
