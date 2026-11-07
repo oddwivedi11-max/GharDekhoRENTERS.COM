@@ -7,10 +7,11 @@ const map = fs.readFileSync('assets/gdr-map-experience.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
 const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
+const normalizeStart = js.indexOf('function normalizeSearchText(value){');
 const start = js.indexOf('function parseRequest(raw){');
 const end = js.indexOf('\nfunction setValue', start);
-assert.ok(start >= 0 && end > start, 'local parser is present');
-const parseRequest = vm.runInNewContext(js.slice(start, end) + '; parseRequest');
+assert.ok(normalizeStart >= 0 && start > normalizeStart && end > start, 'local parser and normalizer are present');
+const parseRequest = vm.runInNewContext(js.slice(normalizeStart, start) + js.slice(start, end) + '; parseRequest');
 
 
 test('Hindi locality searches transliterate into Latin inventory text instead of becoming an empty match', () => {
@@ -36,6 +37,21 @@ test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
   const p = parseRequest('Mujhe Patel Nagar Bhopal mein 2 BHK furnished flat chahiye. Budget 8000 rupees hai aur college paas hona chahiye.');
   assert.equal(p.location, 'Patel Nagar Bhopal'); assert.equal(p.maxBudget, '8000'); assert.equal(p.bhk, '2');
   assert.equal(p.furnishing, 'Furnished'); assert.equal(p.stayType, 'home'); assert.equal(p.nearby, 'college');
+});
+
+test('Madhya Pradesh state-plus-city voice request resolves to the requested city and executes search', () => {
+  const p = parseRequest('मध्य प्रदेश के इंदौर में जितने भी rental houses available हैं दिखाओ');
+  assert.equal(p.location, 'Indore');
+  assert.equal(p.stayType, 'home');
+});
+test('spoken renter search is one-shot, stop-safe and submits the existing real search form', () => {
+  assert.match(js, /rec\\.continuous=false/);
+  assert.match(js, /state\\.voiceSession/);
+  assert.match(js, /function stopRenterVoice/);
+  assert.match(js, /r\\.abort\\?r\\.abort\\(\\):r\\.stop\\(\\)/);
+  assert.match(js, /review\\(finalText,\\{autoSearch:true\\}\\)/);
+  assert.match(js, /form\\.requestSubmit\\(\\)/);
+  assert.match(js, /Chrome speech recognition could not reach its speech service/);
 });
 
 test('Hindi locality search requires all meaningful locality words, not a generic shared token', () => {
@@ -69,7 +85,7 @@ test('map voice uses its own microphone and status elements', () => {
 });
 test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
   const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
-  assert.equal(p.location, 'सिंगरौली मध्य प्रदेश');
+  assert.equal(p.location, 'Singrauli');
 });
 test('voice assistant replies in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
