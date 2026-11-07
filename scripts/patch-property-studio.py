@@ -146,9 +146,13 @@ replace_once(
 css_ref_v1 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio1">'
 css_ref_v2 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio2">'
 css_ref_v3 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-studio3">'
+css_ref_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-voiceassistant2">'
 css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-ownerprofile1">'
 if css_ref_v4 not in source:
-    if css_ref_v3 in source:
+    if css_ref_old in source:
+        source = source.replace(css_ref_old, css_ref_v4, 1)
+        print("Updated: refresh owner profile and Property Studio styles")
+    elif css_ref_v3 in source:
         source = source.replace(css_ref_v3, css_ref_v4, 1)
         print("Updated: refresh conversational Property Studio voice styles")
     elif css_ref_v2 in source:
