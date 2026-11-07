@@ -106,8 +106,9 @@ test('voice parser distinguishes Room from Apartment for renter searches', () =>
   assert.equal(apartment.propertyType, 'apartment');
 });
 test('spoken follow-up filters preserve the previously selected city and stay type', () => {
-  assert.ok(js.includes('const extracted=parseRequest(raw),previous=state.parsed||{}'));
-  assert.ok(js.includes('const resetKeys=broadAllListings?'));
+  assert.ok(js.includes('const autoSearch=!!(options&&options.autoSearch)'));
+  assert.ok(js.includes('previous=autoSearch?{}:(state.parsed||{})'));
+  assert.ok(js.includes('const resetKeys=(broadAllListings||broadHomes||resetLocationFilters)?'));
   assert.ok(js.includes('if(!extracted[key]&&!resetKeys.includes(key))p[key]=previous[key]||""'));
   assert.ok(js.includes('if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}'));
 });
@@ -165,7 +166,7 @@ test('a new location-only Find Home request clears filters carried over from the
   assert.match(js, /const locationChanged=!!\(extracted\.location&&normalizeSearchText\(extracted\.location\)!==normalizeSearchText\(previous\.location\|\|""\)\)/);
   assert.match(js, /locationOnlyRequest=!!extracted\.location/);
   assert.match(js, /resetLocationFilters=locationChanged\|\|locationOnlyRequest/);
-  assert.match(js, /resetLocationFilters\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
+  assert.match(js, /resetKeys=\(broadAllListings\|\|broadHomes\|\|resetLocationFilters\)\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
   assert.match(js, /setValue\("renterSearchBhk",p\.bhk,true\)/);
   assert.match(js, /setValue\("renterSearchFurnishing",p\.furnishing,true\)/);
   assert.match(js, /function bindLocationOnlySearchReset\(\)/);
@@ -177,7 +178,7 @@ test('a new location-only Find Home request clears filters carried over from the
 
 test('Find Home review clears previous filters for Hindi jitne bhi property requests', () => {
   assert.ok(js.includes('जितने\\s+भी') && js.includes('jitne\\s+bhi'));
-  assert.ok(js.includes('const resetKeys=broadAllListings'));
+  assert.ok(js.includes('const resetKeys=(broadAllListings||broadHomes||resetLocationFilters)?'));
   assert.ok(js.includes('setValue("renterMinBudget",p.minBudget||"",true)'));
 });
 test('assistant city-level search expands Singrauli and Bhopal locality aliases without relaxing listing eligibility', () => {
