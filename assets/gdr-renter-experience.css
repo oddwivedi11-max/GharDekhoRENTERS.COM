@@ -378,3 +378,99 @@
 #renterDashboard .renter-account-edit-stack{display:flex!important;flex-direction:column!important;align-items:flex-start!important;gap:8px!important;min-width:0!important}
 #renterDashboard .renter-account-edit-stack .renter-edit-profile-compact{display:inline-flex!important;min-height:34px!important;margin:0!important;padding:7px 12px!important;background:#f6f0e2!important;color:#153d35!important;border:1px solid #d7bd82!important;border-radius:10px!important;box-shadow:0 3px 0 #987d4e!important;font-weight:850!important;white-space:nowrap!important}
 @media(max-width:620px){#renterDashboard .renter-welcome-card{align-items:flex-start!important}#renterDashboard .renter-account-edit-stack{gap:6px!important}}
+
+
+/* 2026-11-07 FINAL ACCEPTANCE FIX: three distinct renter dashboard identities. */
+/* Welcome card is intentionally light ivory; dark green belongs only to Nearby. */
+#renterDashboard .renter-welcome-card,
+#renterDashboard.gdrx-premium .renter-welcome-card{
+  background:linear-gradient(135deg,#fffdf7 0%,#f7f0e2 58%,#efe4cf 100%)!important;
+  border:1px solid #dfcfad!important;
+  color:#242923!important;
+  box-shadow:0 16px 38px rgba(77,61,36,.10)!important;
+}
+#renterDashboard .renter-welcome-card .renter-welcome-copy h3,
+#renterDashboard.gdrx-premium .renter-welcome-card .renter-welcome-copy h3{
+  color:#202722!important;
+  font-weight:900!important;
+  text-shadow:none!important;
+  line-height:1.08!important;
+}
+#renterDashboard .renter-welcome-card .renter-welcome-copy p,
+#renterDashboard.gdrx-premium .renter-welcome-card .renter-welcome-copy p{
+  color:#50584f!important;
+  font-weight:600!important;
+}
+#renterDashboard .renter-welcome-card .dashboard-section-kicker,
+#renterDashboard.gdrx-premium .renter-welcome-card .dashboard-section-kicker{
+  color:#896b35!important;
+  font-weight:900!important;
+  letter-spacing:.16em!important;
+}
+/* Nearby retains the forest-green identity with readable white copy. */
+#renterDashboard #renterLiveNearbyBtn,
+#renterDashboard.gdrx-premium #renterLiveNearbyBtn{
+  background:linear-gradient(135deg,#123d35 0%,#0b3029 100%)!important;
+  border:1px solid #34745a!important;
+  color:#fff!important;
+}
+#renterDashboard #renterLiveNearbyBtn strong,
+#renterDashboard #renterLiveNearbyBtn small,
+#renterDashboard #renterLiveNearbyBtn .renter-action-arrow,
+#renterDashboard #renterLiveNearbyBtn .renter-live-action-copy em{
+  color:#f5fff8!important;
+}
+#renterDashboard #renterLiveNearbyBtn .renter-action-icon,
+#renterDashboard #renterLiveNearbyBtn .renter-live-radar-icon{
+  background:#e5f0e7!important;color:#174b39!important;
+}
+/* Explore Map is champagne/gold and never inherits the Nearby green. */
+#renterDashboard #renterExploreMapBtn,
+#renterDashboard.gdrx-premium #renterExploreMapBtn{
+  background:linear-gradient(135deg,#fff7e7 0%,#f2e2bd 100%)!important;
+  border:1px solid #d6b36b!important;
+  color:#382817!important;
+}
+#renterDashboard #renterExploreMapBtn strong,
+#renterDashboard #renterExploreMapBtn small,
+#renterDashboard #renterExploreMapBtn .renter-action-arrow{
+  color:#382817!important;
+}
+#renterDashboard #renterExploreMapBtn .renter-action-icon{
+  background:#fffaf0!important;color:#79552d!important;
+  box-shadow:inset 0 1px 0 #fff,0 6px 13px rgba(121,85,45,.13)!important;
+}
+#renterDashboard #renterExploreMapBtn:hover{
+  filter:brightness(1.015)!important;
+}
+#renterDashboard .renter-account-edit-stack{
+  display:flex!important;flex-direction:column!important;
+  align-items:flex-end!important;gap:7px!important;min-width:0!important;
+}
+#renterDashboard .renter-account-edit-stack .renter-edit-profile-compact{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  min-height:34px!important;margin:0!important;padding:7px 12px!important;
+  background:#f6f0e2!important;color:#153d35!important;
+  border:1px solid #d7bd82!important;border-radius:10px!important;
+  font-weight:850!important;white-space:nowrap!important;
+}
+@media(max-width:760px){
+  #renterDashboard .renter-welcome-card{
+    align-items:flex-start!important;flex-wrap:wrap!important;
+    gap:16px!important;min-width:0!important;
+  }
+  #renterDashboard .renter-welcome-copy{min-width:0!important;width:100%!important}
+  #renterDashboard .renter-welcome-copy h3{
+    font-size:clamp(1.55rem,6.5vw,2.35rem)!important;
+    overflow-wrap:anywhere!important;
+  }
+  #renterDashboard .renter-welcome-copy p{
+    font-size:14px!important;line-height:1.55!important;
+    overflow-wrap:anywhere!important;
+  }
+  #renterDashboard .renter-account-edit-stack{
+    align-items:flex-start!important;max-width:100%!important;
+  }
+  #renterDashboard #renterExploreMapBtn,
+  #renterDashboard #renterLiveNearbyBtn{min-width:0!important;max-width:100%!important}
+}
