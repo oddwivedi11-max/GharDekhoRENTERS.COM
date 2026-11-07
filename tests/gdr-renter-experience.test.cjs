@@ -8,6 +8,7 @@ const mapVoice = fs.readFileSync('assets/gdr-map-voice.js', 'utf8');
 const index = fs.readFileSync('index.html', 'utf8');
 const mapMigration = fs.readFileSync('supabase/migrations/20261107120000_available_map_search.sql', 'utf8');
 const assistantSearchMigration = fs.readFileSync('supabase/migrations/20261107150000_gdr_assistant_server_search.sql', 'utf8');
+const cityLocalitySearchMigration = fs.readFileSync('supabase/migrations/20261107162245_expand_assistant_city_locality_search.sql', 'utf8');
 const rentalSuite = fs.readFileSync('assets/gdr-rental-suite-v2.js', 'utf8');
 const css = fs.readFileSync('assets/gdr-renter-experience.css', 'utf8');
 const normalizeStart = js.indexOf('function normalizeSearchText(value){');
@@ -146,10 +147,29 @@ test('map has one dedicated voice assistant microphone and status surface', () =
   assert.doesNotMatch(js, /toolbar\.appendChild\(w\)/);
   assert.doesNotMatch(js, /function runMapSearch\(rawOverride\)/);
 });
-test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
-  const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
+test('Hindi all-property command resolves Singrauli and clears restrictive listing filters', () => {
+  const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी प्रॉपर्टीज है दिखाओ');
   assert.equal(p.location, 'Singrauli');
-  assert.equal(p.stayType, 'home');
+  assert.equal(p.stayType, '');
+  assert.equal(p.bhk, '');
+  assert.equal(p.furnishing, '');
+});
+test('Locality-only Hindi/Hinglish all-property commands retain the requested locality', () => {
+  assert.equal(parseRequest('मुझे पटेल नगर की सारी प्रॉपर्टी दिखाओ').location, 'पटेल नगर');
+  assert.equal(parseRequest('Patel Nagar Bhopal ki saari properties').location, 'Patel Nagar Bhopal');
+});
+test('Find Home review clears previous filters for Hindi jitne bhi property requests', () => {
+  assert.match(js, /जितने\\s\\+भी\\|जितनी\\s\\+भी\\|जितना\\s\\+भी\\|jitne\\s\\+bhi/);
+  assert.match(js, /const resetKeys=broadAllListings/);
+  assert.match(js, /setValue\\("renterMinBudget",p\\.minBudget\\|\\|"",true\\)/);
+});
+test('assistant city-level search expands Singrauli and Bhopal locality aliases without relaxing listing eligibility', () => {
+  assert.match(cityLocalitySearchMigration, /waidhan\\|vindhyanagar/);
+  assert.match(cityLocalitySearchMigration, /dav\\[\\[:space:\\]\\]\\+road/);
+  assert.match(cityLocalitySearchMigration, /patel\\[\\[:space:\\]\\]\\+nagar/);
+  assert.match(cityLocalitySearchMigration, /not exists \\(/
+  );
+  assert.match(cityLocalitySearchMigration, /p\\.status = 'verified'/);
 });
 test('voice assistant replies in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
