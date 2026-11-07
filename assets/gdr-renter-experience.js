@@ -149,7 +149,7 @@ async function searchAssistantListings(prefs,raw,target){
   if(id!==state.assistantSearchId)return [];
   panel.replaceChildren();const message=document.createElement("p");message.className="gdrx-assistant-results-error";message.textContent=error&&error.message?error.message:"The property search could not be completed. Please try again.";panel.append(message);
   const status=$("gdrxStatus");if(status)status.textContent=message.textContent;
-  console.error("GDR Smart Finder database search failed:",error);return [];
+  console.error("GDR Smart Finder database search failed:",error);if(target)throw error;return [];
  }
 }
 
