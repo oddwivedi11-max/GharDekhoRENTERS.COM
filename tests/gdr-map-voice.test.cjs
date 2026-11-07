@@ -65,7 +65,7 @@ test('voice searches the public inventory and renders results in Available Renta
 });
 test('map voice places its assistant directly below the map heading and uses an SVG microphone', () => {
   assert.match(voice, /\.gdr-map-head, \.gdr-map-header/);
-  assert.match(map, /20261107-map-voice3/);
+  assert.match(map, /gdr-map-voice.js\\?v=20261107-map-voice4/);
   assert.match(voice, /gdr-map-voice-mic-icon/);
   assert.match(voice, /<svg viewBox="0 0 24 24"/);
 });
