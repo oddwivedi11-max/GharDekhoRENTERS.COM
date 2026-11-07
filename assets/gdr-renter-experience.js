@@ -63,8 +63,8 @@ function filterAssistantListings(rows,prefs){
    const address=normalizeSearchText(row.address||"");
    const addressCities=knownCities.filter(city=>new RegExp("(?:^| )"+city+"(?: |$)").test(address));
    if(addressCities.some(city=>!requestedCities.includes(city)))return false;
-   const center=cityCenters[requestedCities[0]],lat=Number(row.latitude),lng=Number(row.longitude);
-   if(center&&Number.isFinite(lat)&&Number.isFinite(lng)&&distanceKm(center,[lat,lng])>120)return false;
+   const center=cityCenters[requestedCities[0]],hasCoordinates=row.latitude!=null&&row.longitude!=null&&row.latitude!==""&&row.longitude!=="",lat=Number(row.latitude),lng=Number(row.longitude);
+   if(center&&hasCoordinates&&Number.isFinite(lat)&&Number.isFinite(lng)&&distanceKm(center,[lat,lng])>120)return false;
   }
   const rent=number(row.rent),min=number(p.minBudget),max=number(p.maxBudget);
   if(min!==null&&rent!==null&&rent<min)return false;
