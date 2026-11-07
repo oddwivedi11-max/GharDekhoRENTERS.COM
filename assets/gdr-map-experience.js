@@ -5,12 +5,12 @@
   const state = {
     renterMap:null, ownerMap:null, renterLayer:null, radiusCircle:null,
     ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, renterPin:null, inventory:[], boundsRows:[], visible:[],
-    searchCenter:null, radiusKm:5, viewportRpc:null, loadedOnce:false, resolvedQuery:"", mapSearchId:0, locationSearchId:0,
+    searchCenter:null, radiusKm:5, searchUsesRadius:false, viewportRpc:null, loadedOnce:false, resolvedQuery:"", mapSearchId:0, locationSearchId:0,
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null,
     currentPrefs:{}, selectedPropertyId:null, markerById:new Map(), lastSearchBounds:null
   };
-  const INDIA_CENTER=[22.9734,78.6569], TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png";
+  const INDIA_CENTER=[22.9734,78.6569], TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", SATELLITE_URL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", LABELS_URL="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
   const PHOTON="https://photon.komoot.io/api/";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
@@ -42,7 +42,14 @@
       catch(error){console.warn("Marker clustering unavailable; standard markers will be used.",error);}
     }
   }
-  function addTiles(map){window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}).addTo(map);}
+  function addTiles(map){
+    const street=window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
+    const satellite=window.L.tileLayer(SATELLITE_URL,{maxZoom:19,className:"gdr-satellite-tiles",attribution:'Imagery &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, Maxar, Earthstar Geographics and the GIS User Community'});
+    const labels=window.L.tileLayer(LABELS_URL,{maxZoom:19,opacity:.82,attribution:'Labels &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>'});
+    const hybrid=window.L.layerGroup([satellite,labels]).addTo(map);
+    window.L.control.layers({"Standard map":street,"Satellite":satellite,"Satellite + labels":hybrid},null,{position:"topright",collapsed:true}).addTo(map);
+    map._gdrBaseLayers={street,satellite,hybrid};
+  }
   function makeLayer(map){
     if(!window.L.markerClusterGroup)return window.L.layerGroup().addTo(map);
     return window.L.markerClusterGroup({
@@ -78,10 +85,11 @@
     (Array.isArray(result.data)?result.data:[]).forEach(p=>{
       if(!p||!p.id||!validPoint(p.latitude,p.longitude))return;
       if(p.released_at)return;
-      const status=String(p.status||"").toLowerCase();
-      if(status!=="verified"&&status!=="pending")return;
-      if(status==="verified"&&(p.verification_status!=="verified"||p.owner_verified!==true))return;
-      if(status==="pending"&&p.verification_status!=="pending")return;
+      const status=String(p.status||"").toLowerCase(),verification=String(p.verification_status||"").toLowerCase();
+      if(["occupied","rejected","removed","deleted","unavailable"].includes(status))return;
+      if(verification==="verified"&&p.owner_verified!==true)return;
+      if(verification==="pending"&&status!=="pending")return;
+      if(verification!=="verified"&&verification!=="pending")return;
       if((p.listing_type==="pg"||p.listing_type==="hostel")&&Number(p.available_beds||0)<=0)return;
       if(unique.has(String(p.id)))return;
       const distance=distanceKm(center,[Number(p.latitude),Number(p.longitude)]);
@@ -342,7 +350,7 @@
       const cityLike=["city","town","administrative"].includes(kind);
       state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false});
       state.resolvedQuery=point.label||query;
-      return await searchRenterArea();
+      return await searchRenterArea(undefined,cityLike);
     }catch(error){
       if(locationSearchId!==state.locationSearchId)return false;
       console.warn("GDR map location search failed:",error);
@@ -351,7 +359,7 @@
       return false;
     }finally{if(locationSearchId===state.locationSearchId&&button){button.disabled=false;button.textContent="Search this area";}}
   }
-  async function searchRenterArea(prefs){
+  async function searchRenterArea(prefs,useRadiusBounds){
     if(!state.renterMap)return false;
     if(prefs)state.currentPrefs=Object.assign({},prefs);
     const requestId=++state.mapSearchId,button=$("gdrMapSearchAreaBtn");
@@ -361,7 +369,8 @@
       const center=state.renterMap.getCenter();
       if(!validPoint(center.lat,center.lng))throw new Error("The map center is not a valid location.");
       state.searchCenter=[Number(center.lat),Number(center.lng)];
-      const bounds=state.renterMap.getBounds();
+      state.searchUsesRadius=useRadiusBounds===undefined?state.searchUsesRadius:!!useRadiusBounds;
+      const bounds=state.searchUsesRadius?radiusBounds(state.searchCenter):state.renterMap.getBounds();
       if(!bounds||!bounds.getSouthWest||!bounds.getNorthEast)throw new Error("Map boundaries are unavailable. Move or zoom the map and retry.");
       state.lastSearchBounds=bounds;
       const rows=await fetchBounds(bounds,state.searchCenter,state.currentPrefs);
@@ -387,7 +396,7 @@
     const input=$("gdrMapRadius"),label=$("gdrMapRadiusValue");
     if(input)input.value=String(state.radiusKm);
     if(label)label.textContent=state.radiusKm<1?Math.round(state.radiusKm*1000)+" m":state.radiusKm+" km";
-    if(!skipSearch&&state.renterMap&&state.searchCenter)return searchRenterArea();
+    if(!skipSearch&&state.renterMap&&state.searchCenter)return searchRenterArea(undefined,state.searchUsesRadius);
     return Promise.resolve(state.visible.slice());
   }
   async function searchAtCoordinates(lat,lng,label){
@@ -397,14 +406,22 @@
     if(current.distanceTo(target)>25){
       await new Promise(resolve=>{state.renterMap.once("moveend",resolve);state.renterMap.flyTo(target,15,{duration:.65});});
     }else state.renterMap.setView(target,Math.max(15,state.renterMap.getZoom()),{animate:false});
-    return searchRenterArea();
+    return searchRenterArea(undefined,true);
   }
   function locateRenter(){
     if(!navigator.geolocation){setStatus("This browser does not support location. Search for a city or locality instead.");searchRenterArea();return;}
     setStatus("Requesting your location permission…");
-    navigator.geolocation.getCurrentPosition(async pos=>{setRenterPin({lat:pos.coords.latitude,lng:pos.coords.longitude},"My location");state.renterMap.setView(state.searchCenter,16,{animate:true});await searchRenterArea();},
-      error=>{setStatus(error.code===1?"Location permission was denied. Search for any city or locality instead.":"Could not determine your location. Showing the selected map area.");searchRenterArea();},
-      {enableHighAccuracy:true,timeout:12000,maximumAge:60000});
+    navigator.geolocation.getCurrentPosition(async pos=>{
+      const lat=Number(pos.coords.latitude),lng=Number(pos.coords.longitude),accuracy=Number(pos.coords.accuracy);
+      if(!validPoint(lat,lng)){setStatus("Your device returned an invalid GPS location. Search for a locality instead.");return;}
+      setRenterPin({lat,lng},"My location");
+      state.renterMap.setView(state.searchCenter,13,{animate:true});
+      setStatus("GPS location found"+(Number.isFinite(accuracy)?" (±"+Math.round(accuracy)+" m)":"")+". Searching all available homes within "+state.radiusKm+" km…");
+      await searchRenterArea(undefined,true);
+    },error=>{
+      const message=error.code===1?"Location permission is blocked. Click the location icon beside the website address, allow Location, then try My Location again.":error.code===3?"GPS timed out. Turn on device Location Services and try again.":"Your current location could not be determined. Check device location services and retry.";
+      setStatus(message);
+    },{enableHighAccuracy:true,timeout:20000,maximumAge:30000});
   }
   function initRenterMap(){
     if(state.renterMap)return;const canvas=$("gdrExploreMapCanvas");if(!canvas)return;
