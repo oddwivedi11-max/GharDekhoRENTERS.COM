@@ -3,7 +3,7 @@
 /* GDR_COMPARE_AUTOFILL_V2: seed the clicked home with up to two nearest visible real listings. */
 if(window.GDRRenterExperience)return;
 const $=id=>document.getElementById(id),esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi"};
+const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi",assistantSearchId:0};
 function toast(s){let n=$("gdrxToast");if(!n){n=document.createElement("div");n.id="gdrxToast";n.className="gdrx-toast";document.body.appendChild(n)}n.textContent=s;n.classList.add("on");clearTimeout(n.t);n.t=setTimeout(()=>n.classList.remove("on"),2600)}
 function openFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(!f)return;document.body.classList.add("gd-renter-explore-mode");f.hidden=false;f.style.display="block";if(d)d.style.display="none";f.scrollIntoView({behavior:"smooth",block:"start"})}
 function closeFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(f){f.hidden=true;f.style.display="none"}document.body.classList.remove("gd-renter-explore-mode");if(d){d.style.display="block";d.scrollIntoView({behavior:"smooth",block:"start"})}}
@@ -37,6 +37,102 @@ function normalizeSearchText(value){
  const latin=raw.replace(/[\u0900-\u097F]+/gu,word=>aliases[word]||transliterateWord(word));
  const normalized=latin.replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();
  return normalized;
+}
+
+
+function filterAssistantListings(rows,prefs){
+ const p=prefs||{},query=normalizeSearchText(p.location||"");
+ const tokens=query.split(" ").filter(Boolean);
+ const knownCities=["singrauli","bhopal","indore","jabalpur","gwalior","ujjain","rewa","satna","dewas","sidhi"];
+ const requestedCities=knownCities.filter(city=>tokens.includes(city));
+ const number=value=>value==null||value===""?null:Number(value);
+ return (Array.isArray(rows)?rows:[]).filter(row=>{
+  if(!row||!row.id)return false;
+  const status=String(row.status||"").toLowerCase();
+  const verification=String(row.verification_status||"").toLowerCase();
+  const available=(status==="verified"&&verification==="verified"&&row.owner_verified===true)
+   ||(status==="pending"&&verification==="pending");
+  if(!available)return false;
+  if((String(row.listing_type||"home").toLowerCase()==="pg"||String(row.listing_type||"home").toLowerCase()==="hostel")&&number(row.available_beds)!==null&&number(row.available_beds)<=0)return false;
+  if((String(row.listing_type||"home").toLowerCase()==="pg"||String(row.listing_type||"home").toLowerCase()==="hostel")&&number(row.available_beds)===null)return false;
+  const haystack=normalizeSearchText([row.location,row.address].filter(Boolean).join(" "));
+  if(tokens.length&&!tokens.every(token=>haystack.split(" ").includes(token)))return false;
+  if(requestedCities.length){
+   const address=normalizeSearchText(row.address||"");
+   const addressCities=knownCities.filter(city=>new RegExp("(?:^| )"+city+"(?: |$)").test(address));
+   if(addressCities.some(city=>!requestedCities.includes(city)))return false;
+  }
+  const rent=number(row.rent),min=number(p.minBudget),max=number(p.maxBudget);
+  if(min!==null&&rent!==null&&rent<min)return false;
+  if(max!==null&&(rent===null||rent>max))return false;
+  if(p.bhk&&Number(row.bhk)!==Number(p.bhk))return false;
+  if(p.furnishing&&String(row.furnishing||"").toLowerCase()!==String(p.furnishing).toLowerCase())return false;
+  if(p.stayType&&String(row.listing_type||"home").toLowerCase()!==String(p.stayType).toLowerCase())return false;
+  if(p.propertyType&&String(row.property_type||"").toLowerCase()!==String(p.propertyType).toLowerCase())return false;
+  return true;
+ }).sort((a,b)=>(number(a.rent)??Number.POSITIVE_INFINITY)-(number(b.rent)??Number.POSITIVE_INFINITY));
+}
+async function searchAssistantListings(prefs,raw){
+ const id=++state.assistantSearchId,assistant=$("gdrxAssistant"),reviewBox=$("gdrxReview");
+ if(!assistant||!reviewBox)return [];
+ let panel=$("gdrxAssistantResults");
+ if(!panel){panel=document.createElement("section");panel.id="gdrxAssistantResults";panel.className="gdrx-assistant-results";panel.setAttribute("aria-live","polite");reviewBox.insertAdjacentElement("afterend",panel);}
+ panel.replaceChildren();
+ const language=detectReplyLanguage(raw||"");
+ const loading=document.createElement("p");loading.className="gdrx-assistant-results-status";loading.textContent=language==="hi"?"मैं GharDekho database में उपलब्ध घर खोज रहा हूँ…":"Searching actual available homes in GharDekho…";panel.append(loading);
+ try{
+  const client=window.__gdrSupabaseClient;
+  if(!client||typeof client.rpc!=="function")throw new Error("Property database is not ready. Please refresh and try again.");
+  const response=await client.rpc("get_public_properties");
+  if(response.error)throw response.error;
+  const rows=filterAssistantListings(response.data,prefs);
+  if(id!==state.assistantSearchId)return rows;
+  panel.replaceChildren();
+  const location=String(prefs.location||"").trim();
+  const heading=document.createElement("div");heading.className="gdrx-assistant-results-heading";
+  const title=document.createElement("h4");title.textContent=(location?location+" — ":"")+rows.length+" Available "+(rows.length===1?"Home":"Homes");
+  const count=document.createElement("span");count.className="gdrx-assistant-results-count";count.textContent=String(rows.length);
+  heading.append(title,count);panel.append(heading);
+  if(!rows.length){
+   const empty=document.createElement("p");empty.className="gdrx-assistant-results-empty";
+   empty.textContent=language==="hi"?"इस location में अभी कोई matching available home नहीं मिला। कृपया locality या filters बदलकर देखें।":"No matching available homes were found in this location. Try another locality or adjust your filters.";
+   panel.append(empty);
+  }else{
+   const grid=document.createElement("div");grid.className="gdrx-assistant-results-grid";
+   rows.forEach(property=>{
+    const card=document.createElement("article");card.className="gdrx-assistant-property-card property-card";card.dataset.propertyId=String(property.id);
+    const image=document.createElement("img");image.className="gdrx-assistant-property-image";image.alt="Property photograph";image.loading="lazy";
+    const imageUrl=property.image_url||(Array.isArray(property.photo_urls)?property.photo_urls[0]:"");
+    if(imageUrl&&/^https:\/\//i.test(String(imageUrl)))image.src=String(imageUrl);else image.hidden=true;
+    image.onerror=()=>{image.hidden=true;};
+    const body=document.createElement("div");body.className="gdrx-assistant-property-body property-card-body";
+    const name=document.createElement("h5");name.textContent=property.title||property.name||"GharDekho rental home";
+    const rent=document.createElement("strong");rent.className="gdrx-assistant-property-rent property-rent";rent.textContent="₹"+Number(property.rent||0).toLocaleString("en-IN")+" / month";
+    const address=document.createElement("p");address.className="gdrx-assistant-property-location";address.textContent=[property.location,property.address].filter(Boolean).join(" · ")||"Location details not provided";
+    const meta=document.createElement("p");meta.className="gdrx-assistant-property-meta";meta.textContent=[property.bhk?property.bhk+" BHK":"",property.furnishing||"",String(property.listing_type||"home").toUpperCase(),property.owner_verified?"Verified owner":"Owner verification pending",property.latitude==null||property.longitude==null?"Map pin unavailable":""].filter(Boolean).join(" · ");
+    const badge=document.createElement("span");badge.className="gdrx-assistant-property-status";badge.textContent=String(property.status||"Available")==="pending"?"Pending verification":"Available";
+    const actions=document.createElement("div");actions.className="gdrx-assistant-property-actions";
+    const details=document.createElement("button");details.type="button";details.textContent="View details";
+    details.addEventListener("click",()=>{if(typeof window.openPropertyDetails==="function")window.openPropertyDetails(property.id);else if(typeof window.openPropertyDetailsModal==="function")window.openPropertyDetailsModal(property.id);else toast("Property details are not available right now.");});
+    const compare=document.createElement("button");compare.type="button";compare.textContent="Compare";
+    compare.addEventListener("click",()=>toggleCompare(property));
+    actions.append(details,compare);body.append(name,rent,address,meta,badge,actions);card.append(image,body);grid.append(card);
+   });
+   panel.append(grid);
+  }
+  const status=$("gdrxStatus");
+  if(status)status.textContent=language==="hi"?"समझ गया! "+location+" में "+rows.length+" available homes मिले हैं। नीचे असली listings दिखाई गई हैं।":"Found "+rows.length+" available homes in "+location+". Real listings are shown below.";
+  if(rows.length){
+   const reply=language==="hi"?"बिल्कुल! "+location+" में मुझे "+rows.length+" available घर मिले हैं। मैंने उनके details नीचे दिखा दिए हैं।":"I found "+rows.length+" available homes in "+location+". Their details are shown below.";
+   speakAssistantReply(reply,language);
+  }
+  return rows;
+ }catch(error){
+  if(id!==state.assistantSearchId)return [];
+  panel.replaceChildren();const message=document.createElement("p");message.className="gdrx-assistant-results-error";message.textContent=error&&error.message?error.message:"The property search could not be completed. Please try again.";panel.append(message);
+  const status=$("gdrxStatus");if(status)status.textContent=message.textContent;
+  console.error("GDR Smart Finder database search failed:",error);return [];
+ }
 }
 
 function parseRequest(raw){
@@ -174,10 +270,10 @@ function review(raw,options){
   speakAssistantReply(spokenReply,replyLanguage);
  }else status.textContent="Extracted with a local parser. You can edit any field before searching.";
  $("gdrxEdit").onclick=()=>$("renterFindHomeForm").scrollIntoView({behavior:"smooth",block:"start"});
- $("gdrxFind").onclick=()=>$("renterFindHomeForm").requestSubmit();
+ $("gdrxFind").onclick=()=>{const form=$("renterFindHomeForm");if(form)form.requestSubmit();searchAssistantListings(p,raw);};
  if(options&&options.autoSearch){
   const form=$("renterFindHomeForm");
-  if(form)setTimeout(()=>{if(form.isConnected)form.requestSubmit();},0);
+  if(form)setTimeout(()=>{if(form.isConnected)form.requestSubmit();},0);searchAssistantListings(p,raw);
  }
  return true;
 }
@@ -285,7 +381,7 @@ function startVoice(target,lang){
 function mountFinder(){
  const sec=$("renterFindHomeSection"),form=$("renterFindHomeForm");if(!sec||!form||$("gdrxFinder"))return;
  const box=document.createElement("section");box.id="gdrxFinder";box.className="gdrx-finder";
- box.innerHTML='<div class="gdrx-finder-heading"><span>GHARDEKHO SMART FINDER</span><h3>Tell GDR what home you are looking for.</h3><p>Talk naturally or type your requirements. Review the details, then search actual GharDekho listings.</p></div><div class="gdrx-choices"><button type="button" id="gdrxTalk"><i>✦</i><span><b>Find your home with GDR Assistant</b><small>Voice or text · Hindi, English & Hinglish</small></span><em>01</em></button><button type="button" id="gdrxManual"><i>⌕</i><span><b>Search yourself</b><small>Use the manual filters below</small></span><em>02</em></button></div><div class="gdrx-assistant" id="gdrxAssistant"><div class="gdrx-assistant-head"><div><span>● GDR ASSISTANT</span><h4>Tell GDR What Home You are Looking For</h4><p>Speak naturally. We will find homes that match your needs.</p></div><div class="gdrx-orb">⌂</div></div><label for="gdrxPrompt">DESCRIBE YOUR IDEAL HOME</label><textarea id="gdrxPrompt" rows="3" placeholder="Mujhe Patel Nagar Bhopal mein 2 BHK furnished flat chahiye. Budget 8000 rupees hai."></textarea><div class="gdrx-tools"><select id="gdrxLang" aria-label="Speech language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select><button type="button" id="gdrxMic">● FIND MY HOME BY SPEAKING</button><button type="button" id="gdrxUnderstand">Understand my request →</button></div><p id="gdrxStatus" role="status">Microphone is OFF until you click. It listens for one request, then stops. Text search always works.</p><div id="gdrxReview" hidden></div></div>';
+ box.innerHTML='<div class="gdrx-finder-heading"><span>GHARDEKHO SMART FINDER</span><h3>Tell GDR what home you are looking for.</h3><p>Talk naturally or type your requirements. Review the details, then search actual GharDekho listings.</p></div><div class="gdrx-choices"><button type="button" id="gdrxTalk"><i>✦</i><span><b>Find your home with GDR Assistant</b><small>Voice or text · Hindi, English & Hinglish</small></span><em>01</em></button><button type="button" id="gdrxManual"><i>⌕</i><span><b>Search yourself</b><small>Use the manual filters below</small></span><em>02</em></button></div><div class="gdrx-assistant" id="gdrxAssistant"><div class="gdrx-assistant-head"><div><span>● GDR ASSISTANT</span><h4>Tell GDR What Home You are Looking For</h4><p>Speak naturally. We will find homes that match your needs.</p></div><div class="gdrx-orb">⌂</div></div><div class="gdrx-assistant-greeting" id="gdrxWelcome" role="status">Hello! मैं GDR Assistant हूँ — GharDekho का आपका personal assistant. बताइए, आपको किस शहर या locality में घर चाहिए? मैं आपके लिए available rental homes खोज दूँगा।</div><label for="gdrxPrompt">DESCRIBE YOUR IDEAL HOME</label><textarea id="gdrxPrompt" rows="3" placeholder="Mujhe Patel Nagar Bhopal mein 2 BHK furnished flat chahiye. Budget 8000 rupees hai."></textarea><div class="gdrx-tools"><select id="gdrxLang" aria-label="Speech language"><option value="hi-IN">Hindi / Hinglish</option><option value="en-IN">English (India)</option><option value="en-US">English (US)</option></select><button type="button" id="gdrxMic">● FIND MY HOME BY SPEAKING</button><button type="button" id="gdrxUnderstand">Understand my request →</button></div><p id="gdrxStatus" role="status">Microphone is OFF until you click. It listens for one request, then stops. Text search always works.</p><div id="gdrxReview" hidden></div></div>';
  form.parentNode.insertBefore(box,form);
  $("gdrxTalk").onclick=()=>$("gdrxAssistant").scrollIntoView({behavior:"smooth",block:"start"});
  $("gdrxManual").onclick=()=>form.scrollIntoView({behavior:"smooth",block:"start"});
@@ -452,7 +548,7 @@ function bind(){
  const map=$("gdrExploreMapPanel");if(map&&!map.dataset.gdrx){map.dataset.gdrx="1";new MutationObserver(()=>{if(!map.hidden)mountMapVoice()}).observe(map,{attributes:true,attributeFilter:["hidden","class"]})}
  const mapBtn=$("renterExploreMapBtn");if(mapBtn&&!mapBtn.dataset.gdrx){mapBtn.dataset.gdrx="1";mapBtn.addEventListener("click",()=>setTimeout(mountMapVoice,150))}
 }
-window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,normalizeSearchText,openFindHome:openFind,closeFindHome:closeFind};
+window.GDRRenterExperience={toggleCompare,buildCompareSelection,parseRequest,normalizeSearchText,filterAssistantListings,searchAssistantListings,openFindHome:openFind,closeFindHome:closeFind};
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",bind);else bind();window.addEventListener("load",bind);
 new MutationObserver(bind).observe(document.body,{childList:true,subtree:true});
 })();
