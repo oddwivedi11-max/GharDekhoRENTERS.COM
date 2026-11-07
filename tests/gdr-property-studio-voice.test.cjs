@@ -82,3 +82,10 @@ test("owner voice interprets partly furnished wording as semi-furnished",()=>{
  assert.ok(js.includes("partly furnished|partially furnished|thoda furnished"));
  assert.ok(js.includes('/semi|partly|partially|thoda/'));
 });
+
+test("owner voice assistant remains available outside the step-specific form panels",()=>{
+ assert.ok(markup.indexOf('class="gdr-studio-voice"')<markup.indexOf('data-gdr-studio-panel="0"'));
+ assert.ok(js.includes('roomType:"gdrStudioRoomType"'));
+ assert.ok(js.includes('availableBeds:"gdrStudioAvailableBeds"'));
+ assert.ok(js.includes('foodIncluded:"gdrStudioFoodIncluded"'));
+});
