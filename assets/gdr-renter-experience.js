@@ -55,6 +55,7 @@ function parseRequest(raw){
  if(/\b(independent house)\b|स्वतंत्र मकान/.test(n))p.propertyType="independent_house";
  else if(/\b(villa)\b/.test(n))p.propertyType="villa";
  else if(/\b(apartment|flat)\b|अपार्टमेंट|फ्लैट/.test(n))p.propertyType="apartment";
+ else if(/\b(single\\s+)?room\\b|कमरा|कमरे/.test(n))p.propertyType="room";
  const range=n.match(/(?:between|from|budget)?\s*(?:₹|rs\.?\s*)?([\d,]{3,8})\s*(?:to|and|-)\s*(?:₹|rs\.?\s*)?([\d,]{3,8})/i);
  if(range){p.minBudget=range[1].replace(/,/g,"");p.maxBudget=range[2].replace(/,/g,"");}
  else{
@@ -136,7 +137,7 @@ function speakAssistantReply(message,language){
 
 function setValue(id,v){const el=$(id);if(!el||v==null||v==="")return;el.value=String(v);el.dispatchEvent(new Event("input",{bubbles:true}));el.dispatchEvent(new Event("change",{bubbles:true}))}
 function applyToForm(p){
- setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType);setValue("renterSearchBhk",p.bhk);setValue("renterSearchFurnishing",p.furnishing);
+ setValue("renterSearchLocation",p.location);setValue("renterStayType",p.stayType);setValue("renterSearchPropertyType",p.propertyType);setValue("renterSearchBhk",p.bhk);setValue("renterSearchFurnishing",p.furnishing);
  if(p.minBudget){setValue("renterMinBudgetPreset","custom");setValue("renterMinBudgetCustom",p.minBudget);setValue("renterMinBudget",p.minBudget)}
  if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget);setValue("renterMaxBudget",p.maxBudget)}
 }
@@ -159,7 +160,7 @@ function review(raw,options){
   return false;
  }
  state.parsed=p;applyToForm(p);
- const vals=[["Location",p.location||"Not detected"],["Property type",p.stayType||"Any"],["BHK",p.bhk?p.bhk+" BHK":"Any"],["Maximum rent",p.maxBudget?"₹"+Number(p.maxBudget).toLocaleString("en-IN"):"No limit"],["Minimum rent",p.minBudget?"₹"+Number(p.minBudget).toLocaleString("en-IN"):"No minimum"],["Furnishing",p.furnishing||"Any"]];
+ const vals=[["Location",p.location||"Not detected"],["Stay type",p.stayType||"Any"],["Property type",p.propertyType||"Any"],["BHK",p.bhk?p.bhk+" BHK":"Any"],["Maximum rent",p.maxBudget?"₹"+Number(p.maxBudget).toLocaleString("en-IN"):"No limit"],["Minimum rent",p.minBudget?"₹"+Number(p.minBudget).toLocaleString("en-IN"):"No minimum"],["Furnishing",p.furnishing||"Any"]];
  const note=p.nearby?"Nearby preference noted: "+p.nearby+". The current property records do not store verified nearby-facility distances, so this is not used to claim a match.":"";
  const box=$("gdrxReview");box.hidden=false;box.innerHTML='<div class="gdrx-review-title"><b>Here is what I understood</b><span>✓ REVIEW</span></div><div class="gdrx-review-grid">'+vals.map(x=>'<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>').join("")+'</div>'+(note?'<p class="gdrx-note">'+esc(note)+'</p>':"")+'<div class="gdrx-review-actions"><button type="button" id="gdrxEdit">Edit preferences</button><button type="button" id="gdrxFind">Find matching homes →</button></div>';
  const status=$("gdrxStatus");
