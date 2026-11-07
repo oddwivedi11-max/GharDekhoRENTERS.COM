@@ -243,7 +243,7 @@ function startVoice(target,lang){
    if(item.isFinal&&value.trim())finalTranscript+=(finalTranscript?" ":"")+value.trim();
    else if(value.trim())interimTranscript=value.trim();
   }
-  state.voiceDraft=[finalTranscript,interimTranscript].filter(Boolean).join(" ").trim();
+  state.voiceDraft=finalTranscript.trim();
   const field=$(target);if(field){field.value=state.voiceDraft;field.dispatchEvent(new Event("input",{bubbles:true}));}
  };
  r.onerror=e=>{
@@ -267,7 +267,7 @@ function startVoice(target,lang){
  r.onend=()=>{
   if(session!==state.voiceSession||finished)return;
   finished=true;
-  const transcript=[finalTranscript,interimTranscript].filter(Boolean).join(" ").trim();
+  const transcript=finalTranscript.trim();
   state.voiceDraft=transcript;
   finishRenterVoice(target,mapMode,session,transcript);
  };
