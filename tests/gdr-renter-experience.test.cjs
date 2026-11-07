@@ -163,7 +163,9 @@ test('Locality-only Hindi/Hinglish all-property commands retain the requested lo
 
 test('a new location-only Find Home request clears filters carried over from the previous city', () => {
   assert.match(js, /const locationChanged=!!\(extracted\.location&&normalizeSearchText\(extracted\.location\)!==normalizeSearchText\(previous\.location\|\|""\)\)/);
-  assert.match(js, /locationChanged\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
+  assert.match(js, /locationOnlyRequest=!!extracted\.location/);
+  assert.match(js, /resetLocationFilters=locationChanged\|\|locationOnlyRequest/);
+  assert.match(js, /resetLocationFilters\?\["minBudget","maxBudget","stayType","bhk","furnishing","nearby","propertyType"\]/);
   assert.match(js, /setValue\("renterSearchBhk",p\.bhk,true\)/);
   assert.match(js, /setValue\("renterSearchFurnishing",p\.furnishing,true\)/);
   assert.match(js, /function bindLocationOnlySearchReset\(\)/);
