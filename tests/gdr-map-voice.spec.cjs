@@ -3,6 +3,8 @@ const { test, expect } = require('@playwright/test');
 async function openMapWithMockLeaflet(page) {
   await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
   await page.evaluate(() => {
+    const dashboardShell = document.getElementById('dashboardSection');
+    if (dashboardShell) { dashboardShell.hidden = false; dashboardShell.style.display = 'block'; dashboardShell.setAttribute('aria-hidden', 'false'); }
     const dashboard = document.getElementById('renterDashboard');
     if (dashboard) { dashboard.hidden = false; dashboard.style.display = 'block'; }
     const center = { lat: 23.2599, lng: 77.4126 };
@@ -58,6 +60,17 @@ test.describe('GDR renter map voice UI', () => {
     await page.locator('#gdrMapVoiceMic').click();
     await expect(page.locator('#gdrMapVoiceMic')).toHaveClass(/is-listening/);
     await expect(page.locator('#gdrMapVoiceStatus')).toHaveAttribute('data-state', 'listening');
+  });
+
+
+  test('Back to Dashboard closes map mode and restores focus to Explore Map', async ({ page }) => {
+    await openMapWithMockLeaflet(page);
+    await expect(page.locator('#renterDashboard')).toHaveClass(/gdr-map-mode/);
+    await page.locator('#gdrMapBackBtn').click();
+    await expect(page.locator('#gdrExploreMapPanel')).toBeHidden();
+    await expect(page.locator('#renterDashboard')).not.toHaveClass(/gdr-map-mode/);
+    await expect(page.locator('#renterExploreMapBtn')).toHaveAttribute('aria-expanded', 'false');
+    await expect(page.locator('#renterExploreMapBtn')).toBeFocused();
   });
 
   test('microphone and transcript remain in separate columns on mobile', async ({ page }) => {
