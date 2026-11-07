@@ -180,7 +180,7 @@ test('map results exclude occupied inventory and deduplicate property ids', () =
 });
 test('map GPS action centers the map before searching the selected viewport', () => {
   assert.match(map, /async function searchAtCoordinates\(lat,lng,label\)/);
-  assert.match(map, /searchAtCoordinates,usePreciseOwnerLocation/);
+  assert.match(map, /searchAtCoordinates,showVoiceSearchResults,usePreciseOwnerLocation/);
 });
 
 test('renter dashboard keeps Explore Map and Explore Nearby as separate actions', () => {
