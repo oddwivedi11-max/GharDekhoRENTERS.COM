@@ -488,3 +488,13 @@ test('comparison insights disclose amenities and equal-weight value criteria', (
   assert.match(js, /Best overall value/);
   assert.match(js, /equal-weight ranking of monthly rent \+ recorded maintenance and distance/);
 });
+
+test('comparison tray provides its own database-backed property picker and filters', () => {
+  assert.match(js, /id="gdrxCompareSearch"/);
+  assert.match(js, /id="gdrxCompareBhk"/);
+  assert.match(js, /id="gdrxCompareFurnishing"/);
+  assert.match(js, /async function loadComparePickerInventory\(\)/);
+  assert.match(js, /await loadPublicInventory\(\)/);
+  assert.match(js, /function renderComparePicker\(\)/);
+  assert.match(js, /gdrx-picker-add/);
+});
