@@ -27,10 +27,10 @@ test('Hindi locality searches transliterate into Latin inventory text instead of
   assert.ok(normalize('अजय पटेल नगर').split(' ').every(term => inventory.includes(term)));
 });
 
-test('Hindi Smart Finder command extracts locality and home type', () => {
+test('Hindi Smart Finder generic home request keeps stay type unrestricted', () => {
   const p = parseRequest('अजय पटेल नगर में जितने भी घर है दिखाओ');
   assert.equal(p.location, 'अजय पटेल नगर');
-  assert.equal(p.stayType, 'home');
+  assert.equal(p.stayType, '');
 });
 
 test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
@@ -42,9 +42,9 @@ test('Hinglish assistant extracts locality, budget, BHK and furnishing', () => {
 test('Madhya Pradesh state-plus-city voice request resolves to the requested city and executes search', () => {
   const p = parseRequest('मध्य प्रदेश के इंदौर में जितने भी rental houses available हैं दिखाओ');
   assert.equal(p.location, 'Indore');
-  assert.equal(p.stayType, 'home');
+  assert.equal(p.stayType, '');
 });
-test('state normalization preserves a locality when a city and state are spoken together', () => {
+test('state normalization preserves a locality' when a city and state are spoken together', () => {
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
@@ -111,8 +111,9 @@ test('map voice uses its own microphone and status elements', () => {
 test('Hindi voice command extracts Singrauli Madhya Pradesh as the location', () => {
   const p = parseRequest('मुझे सिंगरौली मध्य प्रदेश में जितने भी घर अवेलेबल हैं दिखाओ');
   assert.equal(p.location, 'Singrauli');
+  assert.equal(p.stayType, '');
 });
-test('voice assistant replies in the language used by the speaker', () => {
+test('voice assistant replies' in the language used by the speaker', () => {
   const start = js.indexOf('function detectReplyLanguage(raw){');
   const end = js.indexOf('function setValue', start);
   assert.ok(start >= 0 && end > start, 'voice response helpers are present');
