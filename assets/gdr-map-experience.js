@@ -164,7 +164,7 @@
       const card=Array.from(panel.querySelectorAll("[data-property-id]")).find(x=>x.dataset.propertyId===String(p.id));
       if(card&&panel.offsetParent!==null)card.scrollIntoView({behavior:"smooth",block:"nearest"});
     }
-    if(pan&&state.renterMap)state.renterMap.flyTo([Number(p.latitude),Number(p.longitude)],Math.max(16,state.renterMap.getZoom()),{duration:.55});
+    if(pan&&state.renterMap&&validPoint(p.latitude,p.longitude))state.renterMap.flyTo([Number(p.latitude),Number(p.longitude)],Math.max(16,state.renterMap.getZoom()),{duration:.55});
     showPreview(p);
   }
   function renderList(rows){
