@@ -3,7 +3,7 @@
 /* GDR_COMPARE_AUTOFILL_V2: seed the clicked home with up to two nearest visible real listings. */
 if(window.GDRRenterExperience)return;
 const $=id=>document.getElementById(id),esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const state={compare:[],parsed:null,recognition:null,lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi"};
+const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi"};
 function toast(s){let n=$("gdrxToast");if(!n){n=document.createElement("div");n.id="gdrxToast";n.className="gdrx-toast";document.body.appendChild(n)}n.textContent=s;n.classList.add("on");clearTimeout(n.t);n.t=setTimeout(()=>n.classList.remove("on"),2600)}
 function openFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(!f)return;document.body.classList.add("gd-renter-explore-mode");f.hidden=false;f.style.display="block";if(d)d.style.display="none";f.scrollIntoView({behavior:"smooth",block:"start"})}
 function closeFind(){const f=$("renterFindHomeSection"),d=$("dashboardSection");if(f){f.hidden=true;f.style.display="none"}document.body.classList.remove("gd-renter-explore-mode");if(d){d.style.display="block";d.scrollIntoView({behavior:"smooth",block:"start"})}}
@@ -82,6 +82,18 @@ function parseRequest(raw){
   if(m)p.location=m[1].replace(/[.,!?]+$/,"").trim();
  }
  if(/^(?:my|current) location$/i.test(p.location))p.location="";
+ // Resolve common Madhya Pradesh state-plus-city phrases to the actual requested city.
+ const locationKey=normalizeSearchText(p.location);
+ const knownCities=[
+  ["indore","Indore"],["bhopal","Bhopal"],["singrauli","Singrauli"],["jabalpur","Jabalpur"],
+  ["gwalior","Gwalior"],["ujjain","Ujjain"],["rewa","Rewa"],["satna","Satna"],["dewas","Dewas"],["sidhi","Sidhi"]
+ ];
+ const matchedCity=knownCities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(locationKey));
+ if(matchedCity&&/(madhya pradesh|m p|mp|मध्य प्रदेश)/i.test(original)){
+  p.location=matchedCity[1];
+ }else if(!p.location&&matchedCity){
+  p.location=matchedCity[1];
+ }
  return p;
 }
 
@@ -128,42 +140,128 @@ function applyToForm(p){
  if(p.minBudget){setValue("renterMinBudgetPreset","custom");setValue("renterMinBudgetCustom",p.minBudget);setValue("renterMinBudget",p.minBudget)}
  if(p.maxBudget){setValue("renterMaxBudgetPreset","custom");setValue("renterMaxBudgetCustom",p.maxBudget);setValue("renterMaxBudget",p.maxBudget)}
 }
-function review(raw){
- const p=parseRequest(raw);if(!p.location&&!p.maxBudget&&!p.bhk&&!p.stayType&&!p.furnishing){$("gdrxStatus").textContent="Add a locality, budget, BHK or property type and try again.";return}
+function review(raw,options){
+ const p=parseRequest(raw);
+ if(!p.location&&!p.maxBudget&&!p.bhk&&!p.stayType&&!p.furnishing){
+  $("gdrxStatus").textContent="I couldn't identify a location or filter. Please add a city, area, budget, BHK or property type.";
+  return false;
+ }
  state.parsed=p;applyToForm(p);
  const vals=[["Location",p.location||"Not detected"],["Property type",p.stayType||"Any"],["BHK",p.bhk?p.bhk+" BHK":"Any"],["Maximum rent",p.maxBudget?"₹"+Number(p.maxBudget).toLocaleString("en-IN"):"No limit"],["Minimum rent",p.minBudget?"₹"+Number(p.minBudget).toLocaleString("en-IN"):"No minimum"],["Furnishing",p.furnishing||"Any"]];
  const note=p.nearby?"Nearby preference noted: "+p.nearby+". The current property records do not store verified nearby-facility distances, so this is not used to claim a match.":"";
  const box=$("gdrxReview");box.hidden=false;box.innerHTML='<div class="gdrx-review-title"><b>Here is what I understood</b><span>✓ REVIEW</span></div><div class="gdrx-review-grid">'+vals.map(x=>'<div><small>'+esc(x[0])+'</small><strong>'+esc(x[1])+'</strong></div>').join("")+'</div>'+(note?'<p class="gdrx-note">'+esc(note)+'</p>':"")+'<div class="gdrx-review-actions"><button type="button" id="gdrxEdit">Edit preferences</button><button type="button" id="gdrxFind">Find matching homes →</button></div>';
- $("gdrxStatus").textContent="Extracted with a local parser. You can edit any field before searching.";
+ const status=$("gdrxStatus");
+ if(options&&options.autoSearch){
+  if(!p.location&&!p.useMyLocation){status.textContent="I understood the filters, but I still need a city or locality before searching. Please add one below.";return false;}
+  status.textContent="Voice request understood. Applying your filters and searching actual GharDekho listings…";
+ }else status.textContent="Extracted with a local parser. You can edit any field before searching.";
  $("gdrxEdit").onclick=()=>$("renterFindHomeForm").scrollIntoView({behavior:"smooth",block:"start"});
- $("gdrxFind").onclick=()=>$("renterFindHomeForm").requestSubmit()
+ $("gdrxFind").onclick=()=>$("renterFindHomeForm").requestSubmit();
+ if(options&&options.autoSearch){
+  const form=$("renterFindHomeForm");
+  if(form)setTimeout(()=>{if(form.isConnected)form.requestSubmit();},0);
+ }
+ return true;
+}
+function setRenterMicState(mic,listening){
+ if(!mic)return;
+ mic.classList.toggle("listening",!!listening);
+ mic.setAttribute("aria-pressed",listening?"true":"false");
+ mic.textContent=listening?"■ STOP LISTENING":"● FIND MY HOME BY SPEAKING";
+}
+function finishRenterVoice(target,mapMode,session,transcript){
+ if(session!==state.voiceSession)return;
+ const status=$(mapMode?"gdrxMapStatus":"gdrxStatus"),field=$(target),mic=$(mapMode?"gdrxMapMic":"gdrxMic");
+ state.recognition=null;state.voiceActive=false;
+ setRenterMicState(mic,false);
+ const finalText=String(transcript||"").trim();
+ if(!finalText){
+  if(status&&status.dataset.voiceError!=="1")status.textContent="No clear speech was captured. Tap the microphone and try again, or type your request.";
+  return;
+ }
+ if(field){field.value=finalText;field.dispatchEvent(new Event("input",{bubbles:true}));}
+ if(mapMode){
+  state.mapReplyLanguage=detectReplyLanguage(finalText);
+  if(status)status.textContent="Speech captured. Review or edit the text, then tap Search map.";
+ }else{
+  review(finalText,{autoSearch:true});
+ }
+}
+function stopRenterVoice(target,mapMode,processCaptured){
+ const session=state.voiceSession,r=state.recognition;
+ state.voiceSession++;state.voiceActive=false;state.recognition=null;
+ const mic=$(mapMode?"gdrxMapMic":"gdrxMic"),status=$(mapMode?"gdrxMapStatus":"gdrxStatus");
+ if(r){try{r.abort?r.abort():r.stop();}catch(_){}}
+ setRenterMicState(mic,false);
+ const transcript=state.voiceDraft.trim();state.voiceDraft="";
+ if(processCaptured&&transcript){
+  if($(target))$(target).value=transcript;
+  if(mapMode){state.mapReplyLanguage=detectReplyLanguage(transcript);if(status)status.textContent="Speech stopped. Review your transcript and tap Search map.";}
+  else review(transcript,{autoSearch:true});
+ }else if(status)status.textContent="Microphone stopped. Tap the microphone when you want to speak again.";
 }
 function startVoice(target,lang){
- const mapMode=target==="gdrxMapPrompt";
- const micId=mapMode?"gdrxMapMic":"gdrxMic";
- const statusId=mapMode?"gdrxMapStatus":"gdrxStatus";
+ const mapMode=target==="gdrxMapPrompt",micId=mapMode?"gdrxMapMic":"gdrxMic",statusId=mapMode?"gdrxMapStatus":"gdrxStatus";
  const status=$(statusId),mic=$(micId),API=window.SpeechRecognition||window.webkitSpeechRecognition;
- if(!API){if(status)status.textContent="Speech recognition is not supported in this browser. Type your request instead.";return}
- try{
-  state.recognition?.stop();
-  const chosen=mapMode?($("gdrxMapLang")?.value||state.lang):(lang||state.lang);
-  const r=new API();state.recognition=r;r.lang=chosen;r.interimResults=true;r.maxAlternatives=1;let finalTranscript="";
-  mic?.classList.add("listening");if(status)status.textContent=mapMode?"Listening… बोलिए / I'm listening…":"Listening… speak your home requirements.";
-  r.onresult=e=>{
-   let interim="";
-   for(let i=e.resultIndex||0;i<e.results.length;i++){const item=e.results[i],value=item&&item[0]&&item[0].transcript||"";if(item.isFinal)finalTranscript+=value+" ";else interim+=value;}
-   const field=$(target);if(field&&interim){field.value=(finalTranscript+interim).trim();field.dispatchEvent(new Event("input",{bubbles:true}));}
-   if(finalTranscript.trim()&&mapMode&&status)status.textContent="Understanding your request…";
-  };
-  r.onerror=e=>{if(!status)return;status.textContent=(e.error==="not-allowed"||e.error==="service-not-allowed")?"Microphone access was blocked. Allow microphone access for ghardekhorenters.com in Chrome site settings, then retry. You can still type.":e.error==="no-speech"?"No speech detected. Tap the microphone and try again.":"Voice input unavailable. Please type your request.";};
-  r.onend=()=>{
-   mic?.classList.remove("listening");if(state.recognition===r)state.recognition=null;
-   const transcript=finalTranscript.trim();if(!transcript)return;
-   const field=$(target);if(field){field.value=transcript;field.dispatchEvent(new Event("input",{bubbles:true}));}
-   if(mapMode){state.mapReplyLanguage=detectReplyLanguage(transcript);if(status)status.textContent="Speech captured. Review or edit the text, then tap Search map.";}else review(transcript);
-  };
-  r.start();
- }catch(error){mic?.classList.remove("listening");if(status)status.textContent="Could not start the microphone. Check browser microphone permission or use text search.";}
+ if(state.voiceActive&&state.recognition){stopRenterVoice(target,mapMode,true);return;}
+ if(!API){
+  if(status){status.dataset.voiceError="1";status.textContent="Voice recognition is not available in this browser session. Check Chrome is up to date and use HTTPS; you can still type your request.";}
+  return;
+ }
+ if(!window.isSecureContext){
+  if(status)status.textContent="Microphone access requires a secure HTTPS page. You can still type your request.";
+  return;
+ }
+ if(state.recognition){try{state.recognition.abort?state.recognition.abort():state.recognition.stop();}catch(_){}}
+ state.voiceSession++;const session=state.voiceSession;
+ state.voiceActive=true;state.voiceDraft="";
+ const chosen=mapMode?($("gdrxMapLang")?.value||state.lang):(lang||state.lang);
+ const r=new API();state.recognition=r;r.lang=chosen;r.continuous=false;r.interimResults=true;r.maxAlternatives=1;
+ let finalTranscript="",interimTranscript="",finished=false;
+ setRenterMicState(mic,true);
+ if(status){status.dataset.voiceError="0";status.textContent="Listening… बोलिए / I'm listening. Press Stop to end the microphone session.";}
+ r.onstart=()=>{if(session!==state.voiceSession)return;setRenterMicState(mic,true);};
+ r.onresult=e=>{
+  if(session!==state.voiceSession||finished)return;
+  for(let i=e.resultIndex||0;i<e.results.length;i++){
+   const item=e.results[i],value=item&&item[0]&&item[0].transcript||"";
+   if(item.isFinal&&value.trim())finalTranscript+=(finalTranscript?" ":"")+value.trim();
+   else if(value.trim())interimTranscript=value.trim();
+  }
+  state.voiceDraft=[finalTranscript,interimTranscript].filter(Boolean).join(" ").trim();
+  const field=$(target);if(field){field.value=state.voiceDraft;field.dispatchEvent(new Event("input",{bubbles:true}));}
+ };
+ r.onerror=e=>{
+  if(session!==state.voiceSession||finished)return;
+  finished=true;state.voiceActive=false;state.recognition=null;state.voiceSession++;
+  setRenterMicState(mic,false);
+  if(status){
+   status.dataset.voiceError="1";
+   const messages={
+    "not-allowed":"Microphone permission is blocked. Allow microphone access for ghardekhorenters.com in Chrome site settings, then try again.",
+    "service-not-allowed":"Chrome speech recognition service is blocked. Check browser permissions and network access.",
+    "no-speech":"No speech was detected. Tap the microphone and speak a little closer to it.",
+    "audio-capture":"No microphone input device is available. Check your Windows input device and Chrome microphone permission.",
+    "network":"Chrome speech recognition could not reach its speech service. Check your internet connection; typed search remains available.",
+    "language-not-supported":"This speech language is not supported by the browser. Select another language or type your request.",
+    "aborted":"Microphone session was stopped."
+   };
+   status.textContent=messages[e.error]||("Voice recognition failed ("+String(e.error||"unknown error")+"). You can type your request instead.");
+  }
+ };
+ r.onend=()=>{
+  if(session!==state.voiceSession||finished)return;
+  finished=true;
+  const transcript=[finalTranscript,interimTranscript].filter(Boolean).join(" ").trim();
+  state.voiceDraft=transcript;
+  finishRenterVoice(target,mapMode,session,transcript);
+ };
+ try{r.start();}
+ catch(error){
+  finished=true;state.voiceActive=false;state.recognition=null;state.voiceSession++;
+  setRenterMicState(mic,false);
+  if(status)status.textContent="Could not start microphone ("+(error&&error.name||"unknown error")+"). Check Chrome microphone permission or type your request.";
+ }
 }
 function mountFinder(){
  const sec=$("renterFindHomeSection"),form=$("renterFindHomeForm");if(!sec||!form||$("gdrxFinder"))return;
