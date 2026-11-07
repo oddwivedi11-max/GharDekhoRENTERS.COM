@@ -63,6 +63,25 @@ test.describe('GDR renter map voice UI', () => {
   });
 
 
+
+  test('spoken map search updates the real map-results surface and opens its list view', async ({ page }) => {
+    await openMapWithMockLeaflet(page);
+    await page.evaluate(() => {
+      const api = window.GDRMapExperience;
+      api.setRenterSearchPreferences = prefs => { window.__mapVoicePrefs = prefs; };
+      api.searchTypedMapLocation = async () => true;
+      api.getRenterVisibleProperties = () => [{ id: 'property-1' }];
+      document.getElementById('gdrMapVoiceTranscript').value = 'Mujhe Singrauli mein 2 BHK ghar dikhao';
+    });
+    await page.locator('#gdrMapVoiceSearch').click();
+    await expect(page.locator('#gdrMapVoiceResults')).toContainText('1 homes');
+    await expect(page.locator('#gdrMapVoiceResultsList')).toHaveCount(0);
+    await page.locator('.gdr-map-voice-results-list').click();
+    await expect(page.locator('#gdrMapLayout')).toHaveClass(/gdr-list-mode/);
+    const prefs = await page.evaluate(() => window.__mapVoicePrefs);
+    expect(prefs.bhk).toBe('2');
+  });
+
   test('Back to Dashboard closes map mode and restores focus to Explore Map', async ({ page }) => {
     await openMapWithMockLeaflet(page);
     await expect(page.locator('#renterDashboard')).toHaveClass(/gdr-map-mode/);
