@@ -703,7 +703,7 @@ function applyVoicePending(){
 }
 function nextVoiceQuestion(){
  const home=["apartment","independent_house","villa","other"].includes(state.propertyType);let field="",question="";
- if(!state.propertyType){field="propertyType";question=voiceText("आप किस तरह की property list करना चाहते हैं—flat, independent house, villa, PG या hostel?","What kind of property would you like to list: flat, independent house, villa, PG or hostel?");}
+ if(!state.propertyType){field="propertyType";question=voiceText("आप किस तरह की property list करना चाहते हैं—room, flat, independent house, villa, PG या hostel?","What kind of property would you like to list: room, flat, independent house, villa, PG or hostel?");}
  else if(home&&!state.configuration&&state.propertyType!=="other"){field="configuration";question=voiceText("कितना configuration है—1 RK, 1 BHK, 2 BHK या कुछ और?","What is the configuration: 1 RK, 1 BHK, 2 BHK or something else?");}
  else if(!state.address){field="address";question=voiceText("Property किस area और city में है?","Which area and city is the property in?");}
  else if(!state.rent){field="rent";question=voiceText("Monthly rent कितना रखना चाहेंगे?","What monthly rent would you like to set?");}
