@@ -49,7 +49,7 @@ test('state normalization preserves a locality when a city and state are spoken 
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
 test('spoken renter search is one-shot, stop-safe and submits the existing real search form', () => {
-  assert.ok(js.includes('rec.continuous=false'));
+  assert.ok(js.includes('r.continuous=false'));
   assert.ok(js.includes('state.voiceSession'));
   assert.ok(js.includes('function stopRenterVoice'));
   assert.ok(js.includes('r.abort?r.abort():r.stop()'));
