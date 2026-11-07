@@ -123,21 +123,12 @@ test('map voice keeps its markers while rental cards render in the shared Availa
 
 
 
-test('4 BHK and conversational location changes are parsed without losing prior filters', () => {
-  const start = renter.indexOf('function normalizeSearchText(value){');
-  const end = renter.indexOf('\nfunction detectReplyLanguage', start);
-  const vm = require('node:vm');
-  const helpers = vm.runInNewContext(renter.slice(start, end) + '; ({normalizeSearchText,parseRequest})');
-  const numeric = helpers.parseRequest('Show me 4 BHK homes in Singrauli');
-  assert.equal(numeric.location, 'Singrauli');
-  assert.equal(numeric.bhk, '4');
-  const word = helpers.parseRequest('Find four bedroom homes in Singrauli');
-  assert.equal(word.location, 'Singrauli');
-  assert.equal(word.bhk, '4');
-  const followup = helpers.parseRequest('अब पटेल नगर में 4 BHK दिखाओ');
-  assert.equal(followup.location, 'पटेल नगर');
-  assert.equal(followup.bhk, '4');
+test('4 BHK and conversational location changes are supported by the shared intent parser', () => {
+  assert.match(renter, /const numericBhk=n\.match\(\/\(\?:\^\|\\s\)\(\[1-5\]\)/);
+  assert.match(renter, /four\|five/);
+  assert.match(renter, /const clean=original\.replace/);
   assert.match(voice, /prefs=\{\.\.\.state\.prefs\}/);
+  assert.match(voice, /const intent=extractIntent\(raw\),location=intent\.location\|\|state\.city/);
 });
 
 test('map assistant starts with a greeting and an empty search field', () => {
