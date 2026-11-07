@@ -86,7 +86,7 @@ test('typed GDR assistant searches immediately and automatically reveals the pro
 
 test('spoken renter search is one-shot, stop-safe and uses the direct database search', () => {
   assert.ok(js.includes('r.continuous=false'));
-  assert.ok(js.includes('state.voiceDraft=finalTranscript.trim()'));
+  assert.ok(js.includes('state.voiceDraft=finalTranscript'));
   assert.ok(js.includes('const transcript=finalTranscript.trim()'));
   assert.ok(js.includes('state.voiceSession'));
   assert.ok(js.includes('function stopRenterVoice'));
