@@ -237,3 +237,11 @@ test('assistant district results can show a genuine listing without map coordina
   const rows = helpers([{id:'no-pin',location:'Vindhyanagar, Singrauli, Madhya Pradesh',address:'Vindhyanagar, Singrauli',status:'pending',verification_status:'pending',owner_verified:true,listing_type:'home',latitude:null,longitude:null}],{location:'Singrauli',stayType:'home'});
   assert.equal(rows.length,1);
 });
+
+
+test('dashboard initialization does not rescan the entire document for every DOM mutation', () => {
+  assert.doesNotMatch(js, /new MutationObserver\\(bind\\)\\.observe\\(document\\.body/);
+  assert.doesNotMatch(js, /__gdrAvailableRentalPanelObserver/);
+  assert.match(js, /scoreFrame=requestAnimationFrame\\(\\(\\)=>\\{scoreFrame=0;applyManualScores\\(\\);\\}\\)/);
+  assert.match(js, /document\.addEventListener\("DOMContentLoaded",bind\)/);
+});
