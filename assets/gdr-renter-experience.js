@@ -247,7 +247,7 @@ function parseRequest(raw){
  const original=String(raw||"").trim(),n=original.toLowerCase().normalize("NFKC");
   const clean=original.replace(/^(?:show|find)\s+me\b\s*/i,"").replace(/^i\s+(?:need|want)\b\s*/i,"").replace(/^please\s+/i,"").replace(/^(?:mujhe(?:\s+ek)?|mujhko|mere\s+mobile|meri\s+mobile|my\s+mobile|मेरे\s+मोबाइल|मेरी\s+मोबाइल|मुझे|मुझको)\s*/i,"").replace(/^(?:ab|now|then|also|aur|और|अब|तो|फिर|अच्छा|ठीक है)\s*/i,"").replace(/^(?:a|an)\s+/i,"").replace(/\s+(?:मुझे|मुझको|मेरे लिए|मेरी लिए|please|plz)$/i,"").trim();
  const p={raw:original,location:"",minBudget:"",maxBudget:"",stayType:"",bhk:"",furnishing:"",nearby:"",propertyType:"",radiusKm:null,useMyLocation:false,familyFriendly:false};
- const allListingsIntent=/(?:\\b(?:all|every|any)\\b[\\s\\S]{0,60}\\b(?:properties?|listings?)\\b)|(?:(?:जितने|जितनी|जितना)\\s+भी[\\s\\S]{0,60}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari)\\b[\\s\\S]{0,45}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?)[\\s\\S]{0,45}(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari))/i.test(original);
+ const allListingsIntent=/(?:\b(?:all|every|any)\b[\s\S]{0,60}\b(?:properties?|listings?)\b)|(?:(?:जितने|जितनी|जितना)\s+भी[\s\S]{0,60}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari)\b[\s\S]{0,45}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?)[\s\S]{0,45}(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari))/i.test(original);
  p.allListings=allListingsIntent;
  const numericBhk=n.match(/(?:^|\s)([1-5])\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|बेडरूम|बेड\s*रूम|कमरे|कमरा)(?=\s|$|[^a-z0-9])/i);
  const wordBhk=n.match(/(?:^|\s)(one|two|three|four|five|एक|दो|तीन|चार|पाँच|पांच)\s*(?:bhk|bed(?:room)?s?|bed\s*room|बीएचके|बेडरूम|बेड\s*रूम)?(?=\s|$|[,.!?])/i);
@@ -299,23 +299,15 @@ function parseRequest(raw){
    const cityKey=normalizeSearchText(cityPart);
    const knownCities=[["bhopal","Bhopal"],["singrauli","Singrauli"],["indore","Indore"],["jabalpur","Jabalpur"],["gwalior","Gwalior"],["ujjain","Ujjain"],["rewa","Rewa"],["satna","Satna"],["dewas","Dewas"],["sidhi","Sidhi"]];
    const city=knownCities.find(([key])=>new RegExp("(?:^| )"+key+"(?: |$)").test(cityKey));
-   const cityTokens=cityKey.split(/\\s+/).filter(Boolean);
+   const cityTokens=cityKey.split(/\s+/).filter(Boolean);
    const cityIndex=city?cityTokens.indexOf(city[0]):-1;
-   const prefixTokens=cityIndex>=0?cityTokens.slice(0,cityIndex):[];
-   const stateTokens=new Set(["madhya","pradesh","mp","ke","the"]);
+   const stateTokens=new Set(["madhya","pradesh","mp","ke","the","india","district"]);
    const fillerTokens=new Set(["aaj","hee","hi","ajay","ye","yeh","yeah","achha","accha","okay","ok","haan","han","ji","ab","abhi","toh","please","plz","today"]);
-   const prefixWithoutState=prefixTokens.filter(token=>!stateTokens.has(token));
-   const prefixIsOnlyFiller=prefixWithoutState.every(token=>fillerTokens.has(token));
-   const localityFromCity=prefixIsOnlyFiller?"":prefixWithoutState.join(" ");
-   if(/[a-z]/i.test(cityPart)){
-    p.location=city
-     ?(localityPart?localityPart+", "+city[1]:localityFromCity?cityPart:city[1])
-     :cityPart;
-   }else{
-    const resolvedCity=city?city[1]:cityPart;
-    const resolvedLocality=localityPart||localityFromCity;
-    p.location=resolvedLocality?resolvedLocality+", "+resolvedCity:resolvedCity;
-   }
+   const localityTokens=city?cityTokens.filter((token,index)=>index!==cityIndex&&!stateTokens.has(token)&&!fillerTokens.has(token)):[];
+   const localityFromCity=localityTokens.join(" ");
+   const resolvedCity=city?city[1]:cityPart;
+   const resolvedLocality=localityPart||localityFromCity;
+   p.location=resolvedLocality?resolvedLocality+", "+resolvedCity:resolvedCity;
   }
  }
  if(!p.location){
@@ -350,10 +342,14 @@ function parseRequest(raw){
   p.location=matchedCity[1];
  }
  // Explicit locality-only "all properties" phrasing must retain the complete locality.
- const localityOnlyRequest=original.match(/^(?:मुझे\s+|mujhe\s+)?(.+?)\s+(?:की|का|के|ki|ka|ke)\s+(?:(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सभी|सारे|सारी|sabhi|saare|saari|all|every)\s+)?(?:(?:उपलब्ध|available)\s+)?(?:(?:रेंटल|rental)\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?:\s+(?:दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find))?\s*[.!?]?$/i);
+ const localityOnlyRequest=original.match(/^(?:मुझे\s+|mujhe\s+)?(.+?)\s+(?:की|का|के|ki|ka|ke)\s+(?:(?:जितने\s+भी|जितनी\s+भी|जितना\s+भी|jitne\s+bhi|jitni\s+bhi|jitna\s+bhi|सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sari|all|every)\s+)?(?:(?:उपलब्ध|available)\s+)?(?:(?:रेंटल|rental)\s+)?(?:प्रॉपर्टी|प्रॉपर्टीज़?|properties|listings|homes?|houses?|घर|मकान)(?:\s+(?:दिखाओ|दिखा|बताओ|dikhao|dikha|batao|show|find))?\s*[.!?]?$/i);
  if(localityOnlyRequest){
   const requestedLocality=localityOnlyRequest[1].replace(/[.,!?]+$/,"").trim();
-  if(requestedLocality)p.location=requestedLocality;
+  if(requestedLocality){
+   const requestedKey=normalizeSearchText(requestedLocality);
+   const requestedCity=[["bhopal","Bhopal"],["singrauli","Singrauli"],["indore","Indore"],["jabalpur","Jabalpur"],["gwalior","Gwalior"],["ujjain","Ujjain"],["rewa","Rewa"],["satna","Satna"],["dewas","Dewas"],["sidhi","Sidhi"]].find(([key])=>requestedKey===key);
+   p.location=requestedCity?requestedCity[1]:requestedLocality;
+  }
  }
  return p;
 }
@@ -408,7 +404,7 @@ function review(raw,options){
  const extracted=parseRequest(raw),previous=state.parsed||{};
  const p={...previous,...extracted,raw:String(raw||"")};
  const requestText=String(raw||"");
- const broadAllListings=!!extracted.allListings||/(?:\\b(?:all|every|any)\\b[\\s\\S]{0,60}\\b(?:properties?|listings?)\\b)|(?:(?:जितने|जितनी|जितना)\\s+भी[\\s\\S]{0,60}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari)\\b[\\s\\S]{0,45}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?)[\\s\\S]{0,45}(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari))/i.test(requestText);
+ const broadAllListings=!!extracted.allListings||/(?:\b(?:all|every|any)\b[\s\S]{0,60}\b(?:properties?|listings?)\b)|(?:(?:जितने|जितनी|जितना)\s+भी[\s\S]{0,60}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari)\b[\s\S]{0,45}(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?))|(?:(?:प्रॉपर्टी|प्रॉपर्टीज़?|प्रॉपर्टीज|लिस्टिंग|properties?|listings?)[\s\S]{0,45}(?:सब|सभी|सारे|सारी|sab|sabhi|saare|saari|sare|sari))/i.test(requestText);
  const broadHomes=/(?:all|every|any)\s+(?:available\s+)?(?:rental\s+)?(?:homes?|houses?)|(?:jitne\s+bhi|sabhi|saare|saari)\s+(?:available\s+)?(?:ghar|makaan|homes?|houses?)|(?:जितने\s+भी|सभी|सारे|सारी)\s+(?:उपलब्ध\s+)?(?:घर|मकान)/i.test(requestText);
  const resetListingType=broadAllListings||broadHomes;
  if(resetListingType){p.stayType=broadAllListings?"":"home";p.propertyType="";}
