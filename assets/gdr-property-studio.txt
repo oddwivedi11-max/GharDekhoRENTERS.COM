@@ -15,6 +15,33 @@
   </div>
   <main id="gdrStudioMain" class="gdr-studio-main">
     <div class="gdr-studio-heading"><span>ONE SIMPLE STEP AT A TIME</span><h1 id="gdrStudioStepTitle">Property type</h1><p>Tell us a little about your property. You can review everything before publishing.</p></div>
+    <div class="gdr-studio-voice">
+      <div class="gdr-studio-voice-head"><div><strong>Talk to GDR – your listing assistant</strong><small>Tap the large microphone, speak naturally, and watch your property details update. Mic stays OFF until you start.</small></div><span aria-hidden="true">✦</span></div>
+      <div class="gdr-studio-voice-controls">
+        <select id="gdrStudioVoiceLanguage" aria-label="Choose speaking language">
+          <option value="hi-IN">Hindi</option><option value="hi-IN-hinglish">Hindi / Hinglish</option><option value="en-IN">English</option>
+        </select>
+        <button type="button" id="gdrStudioVoiceStart" class="gdr-studio-mic-button"><span class="gdr-studio-mic-icon" aria-hidden="true">🎙</span><span class="gdr-studio-mic-copy"><strong>Start speaking</strong><small>Tap and tell us about your property</small></span></button>
+        <button type="button" id="gdrStudioVoiceStop" class="gdr-studio-stop-button">■ Stop</button>
+      </div>
+      <p id="gdrStudioVoiceStatus" aria-live="polite">Microphone is OFF. Press Start speaking for one instruction. It turns off after each turn so you stay in control.</p>
+      <label class="gdr-studio-transcript-label" for="gdrStudioVoiceTranscript">What GDR heard</label>
+      <textarea id="gdrStudioVoiceTranscript" placeholder="Your spoken words will appear here. You can also type details manually…" aria-label="Voice transcript"></textarea>
+      <div id="gdrStudioVoiceAssistant" class="gdr-studio-voice-assistant" aria-live="polite">
+        <div class="gdr-studio-voice-assistant-top"><span class="gdr-studio-voice-state" id="gdrStudioVoiceState">MICROPHONE OFF</span><button type="button" id="gdrStudioVoiceMute" aria-pressed="false">🔊 Voice on</button></div>
+        <p id="gdrStudioVoiceReply">Hi! I’m GDR. Tell me about your property in your own words. I’ll fill the matching fields and guide you to what is still missing.</p>
+        <div id="gdrStudioVoicePending" class="gdr-studio-voice-pending" hidden></div>
+        <div class="gdr-studio-voice-confirm-actions" id="gdrStudioVoiceConfirmActions" hidden>
+          <button type="button" id="gdrStudioVoiceConfirm">✓ Confirm details</button>
+          <button type="button" id="gdrStudioVoiceEdit">Edit / Correct</button>
+        </div>
+      </div>
+      <section class="gdr-studio-live-form" aria-label="Live property details">
+        <div class="gdr-studio-live-head"><div><strong>Live property details</strong><small>Watch details fill as you speak. You can edit any field at any time.</small></div><span id="gdrStudioLiveProgressText">0 required details added</span></div>
+        <div class="gdr-studio-live-track"><span id="gdrStudioLiveProgressFill"></span></div>
+        <div id="gdrStudioLiveFields" class="gdr-studio-live-fields" aria-live="polite"></div>
+      </section>
+    </div>
     <section class="gdr-studio-panel" data-gdr-studio-panel="0">
       <h2 class="gdr-studio-panel-title">What kind of property are you listing?</h2><p class="gdr-studio-panel-subtitle">Choose the option that best describes your property.</p>
       <div class="gdr-studio-type-grid">
@@ -43,33 +70,7 @@
           <label class="gdr-studio-field"><span>Meals</span><select id="gdrStudioFoodIncluded"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label>
         </div>
       </div>
-      <div class="gdr-studio-voice">
-        <div class="gdr-studio-voice-head"><div><strong>Talk to GDR – your listing assistant</strong><small>Tap the large microphone, speak naturally, and watch your property details update. Mic stays OFF until you start.</small></div><span aria-hidden="true">✦</span></div>
-        <div class="gdr-studio-voice-controls">
-          <select id="gdrStudioVoiceLanguage" aria-label="Choose speaking language">
-            <option value="hi-IN">Hindi</option><option value="hi-IN-hinglish">Hindi / Hinglish</option><option value="en-IN">English</option>
-          </select>
-          <button type="button" id="gdrStudioVoiceStart" class="gdr-studio-mic-button"><span class="gdr-studio-mic-icon" aria-hidden="true">🎙</span><span class="gdr-studio-mic-copy"><strong>Start speaking</strong><small>Tap and tell us about your property</small></span></button>
-          <button type="button" id="gdrStudioVoiceStop" class="gdr-studio-stop-button">■ Stop</button>
-        </div>
-        <p id="gdrStudioVoiceStatus" aria-live="polite">Microphone is OFF. Press Start speaking for one instruction. It turns off after each turn so you stay in control.</p>
-        <label class="gdr-studio-transcript-label" for="gdrStudioVoiceTranscript">What GDR heard</label>
-        <textarea id="gdrStudioVoiceTranscript" placeholder="Your spoken words will appear here. You can also type details manually…" aria-label="Voice transcript"></textarea>
-        <div id="gdrStudioVoiceAssistant" class="gdr-studio-voice-assistant" aria-live="polite">
-          <div class="gdr-studio-voice-assistant-top"><span class="gdr-studio-voice-state" id="gdrStudioVoiceState">MICROPHONE OFF</span><button type="button" id="gdrStudioVoiceMute" aria-pressed="false">🔊 Voice on</button></div>
-          <p id="gdrStudioVoiceReply">Hi! I’m GDR. Tell me about your property in your own words. I’ll fill the matching fields and guide you to what is still missing.</p>
-          <div id="gdrStudioVoicePending" class="gdr-studio-voice-pending" hidden></div>
-          <div class="gdr-studio-voice-confirm-actions" id="gdrStudioVoiceConfirmActions" hidden>
-            <button type="button" id="gdrStudioVoiceConfirm">✓ Confirm details</button>
-            <button type="button" id="gdrStudioVoiceEdit">Edit / Correct</button>
-          </div>
-        </div>
-        <section class="gdr-studio-live-form" aria-label="Live property details">
-          <div class="gdr-studio-live-head"><div><strong>Live property details</strong><small>Watch details fill as you speak. You can edit any field at any time.</small></div><span id="gdrStudioLiveProgressText">0 required details added</span></div>
-          <div class="gdr-studio-live-track"><span id="gdrStudioLiveProgressFill"></span></div>
-          <div id="gdrStudioLiveFields" class="gdr-studio-live-fields" aria-live="polite"></div>
-        </section>
-      </div>
+
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="1" hidden>
       <h2 class="gdr-studio-panel-title">How much rent would you like?</h2><p class="gdr-studio-panel-subtitle">Enter the monthly rent. Security deposit is optional.</p>
