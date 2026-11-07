@@ -220,10 +220,10 @@ test('all-property speech in Hindi and Hinglish clears stale home, BHK and furni
 });
 
 test('voice search does not repopulate the separate manual location search field', () => {
-  assert.match(js, /function applyToForm\\(p,options\\)/);
-  assert.match(js, /if\\(options&&options\\.voiceSearch\\)setValue\\("renterSearchLocation","",true\\)/);
-  assert.match(js, /applyToForm\\(p,\\{voiceSearch:!!\\(options&&options\\.autoSearch\\)\\}\\)/);
-  assert.match(js, /const broadAllListings=!!extracted\\.allListings/);
+  assert.ok(js.includes('function applyToForm(p,options)'));
+  assert.ok(js.includes('if(options&&options.voiceSearch)setValue("renterSearchLocation","",true)'));
+  assert.ok(js.includes('applyToForm(p,{voiceSearch:!!(options&&options.autoSearch)})'));
+  assert.ok(js.includes('const broadAllListings=!!extracted.allListings'));
 });
 
 test('voice auto-search safely runs even when review mode omits the manual action buttons', () => {
