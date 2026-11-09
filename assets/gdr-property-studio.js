@@ -574,7 +574,7 @@ function uploadPhotos(){
  return (async()=>{
   const ordered=state.files.slice();
   if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0]);
-  const uploaded=new Array(ordered.length),paths=[];
+  const uploaded=new Array(ordered.length),paths=new Array(ordered.length);
   let cursor=0,uploadError=null;
   const worker=async()=>{
    while(!uploadError){
@@ -585,7 +585,7 @@ function uploadPhotos(){
     try{
      const result=await c.storage.from("property-images").upload(path,file,{cacheControl:"3600",contentType:file.type,upsert:false});
      if(result.error)throw result.error;
-     paths.push(path);
+     paths[index]=result.data.path;
      const publicResult=c.storage.from("property-images").getPublicUrl(result.data.path),baseUrl=publicResult&&publicResult.data&&publicResult.data.publicUrl;
      if(!baseUrl)throw new Error("Could not create the uploaded photo URL.");
      uploaded[index]={url:baseUrl+(baseUrl.includes("?")?"&":"?")+"gdr_category="+category,path,category};
@@ -594,10 +594,11 @@ function uploadPhotos(){
   };
   await Promise.all([worker(),worker(),worker()]);
   if(uploadError){
-   if(paths.length){try{await c.storage.from("property-images").remove(paths);}catch(e){console.warn("Could not clean up partial photo uploads",e);}}
+   const completedPaths=paths.filter(Boolean);
+   if(completedPaths.length){try{await c.storage.from("property-images").remove(completedPaths);}catch(e){console.warn("Could not clean up partial photo uploads",e);}}
    state.uploadedPhotos=[];state.uploadedPaths=[];state.draftPhotosNeedReselect=true;saveDraft();throw uploadError;
   }
-  state.uploadedPhotos=uploaded;state.uploadedPaths=paths;state.files=[];state.coverIndex=0;state.draftPhotosNeedReselect=false;renderPhotos();saveDraft();return uploaded;
+  state.uploadedPhotos=uploaded;state.uploadedPaths=uploaded.map(photo=>photo.path);state.files=[];state.coverIndex=0;state.draftPhotosNeedReselect=false;renderPhotos();saveDraft();return uploaded;
  })();
 }
 function titleForListing(){
