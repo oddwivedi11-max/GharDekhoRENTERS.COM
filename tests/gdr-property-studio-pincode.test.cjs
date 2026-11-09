@@ -34,13 +34,14 @@ test("changing a PIN clears the previous location and ignores stale lookup respo
   assert.match(studio,/const isCurrent=\(\)=>run===pinResolveSequence/);
   assert.match(studio,/if\(nextPin\.length===6\)pinResolveTimer=setTimeout\(\(\)=>resolveStudioPincode\(nextPin\),450\)/);
   assert.match(studio,/districtMatch=!expectedDistrict\|\|districtText\.includes\(expectedDistrict\)/);
-  assert.match(studio,/stateMatch=!expectedState\|\|!stateText/);
+  assert.match(studio,/stateMatch=!expectedState\|\|!!stateText/);
 });
 
 test("approximate PIN and address coordinates cannot publish before exact entrance confirmation",()=>{
   assert.match(studio,/function validIndiaPoint\(/);
   assert.match(studio,/state\.locationConfirmed=confirmed===true&&valid/);
   assert.match(studio,/setLocation\(address,Number\(lat\),Number\(lng\),state\.pincode,true\)/);
+  assert.match(studio,/if\(inStudio&&!validIndiaPoint\(Number\(lat\),Number\(lng\)\)\)/);
   assert.match(studio,/if\(!state\.locationConfirmed\)/);
   assert.match(studio,/approximate area/);
 });
