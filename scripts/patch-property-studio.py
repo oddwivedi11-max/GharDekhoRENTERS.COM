@@ -217,14 +217,15 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-resetfix2" defer></script>'
 old_script_refs = [
     '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-manualfirst1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant6" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261109-gallery-batch1" defer></script>',
-    '<script src="/assets/gdr-property-studio.js?v=20261109-owner-launcher-fix1" defer></script>'
+    '<script src="/assets/gdr-property-studio.js?v=20261109-owner-launcher-fix1" defer></script>',
+    '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" defer></script>'
 ]
 if script_ref not in source:
     replaced = False
