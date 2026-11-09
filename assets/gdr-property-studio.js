@@ -189,7 +189,7 @@ async function resolveStudioPincode(rawPin){
    const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
    const stateText=normalize(props.state||props.state_name||"");
    const districtText=normalize([props.county,props.city,props.district,props.locality,props.suburb,props.village,props.town,props.name].filter(Boolean).join(" "));
-   const stateMatch=!expectedState||!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText);
+   const stateMatch=!expectedState||!!stateText&&(stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText));
    const districtMatch=!expectedDistrict||districtText.includes(expectedDistrict);
    return {props,coords,stateMatch,districtMatch,score:(stateMatch?10:0)+(districtMatch?20:0)+(normalize(props.name).includes(normalize(officeName))?4:0)};
   }).filter(item=>String(item.props.countrycode||"").toLowerCase()==="in"&&item.coords.length>=2&&validIndiaPoint(Number(item.coords[1]),Number(item.coords[0]))&&item.stateMatch&&item.districtMatch).sort((a,b)=>b.score-a.score);
@@ -338,6 +338,7 @@ function wrapMapCallback(){
  if(typeof original!=="function"||original.__gdrStudioWrapped)return;
  const wrapped=function(address,lat,lng){
   const inStudio=!!(studio()&&!studio().hidden);
+  if(inStudio&&!validIndiaPoint(Number(lat),Number(lng))){message("Choose a property location within India.","error");return false;}
   const outsidePinArea=!!(inStudio&&state.pinCenter&&distanceMeters(state.pinCenter.lat,state.pinCenter.lng,Number(lat),Number(lng))>35000);
   const ok=original(address,lat,lng);
   if(ok&&inStudio){
