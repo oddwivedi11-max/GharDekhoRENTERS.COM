@@ -212,7 +212,6 @@
     });
   }
   function makeLayer(map){
-  function makeLayer(map){
     if(!window.L.markerClusterGroup)return window.L.layerGroup().addTo(map);
     return window.L.markerClusterGroup({
       showCoverageOnHover:false,
