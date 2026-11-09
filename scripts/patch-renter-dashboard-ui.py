@@ -217,7 +217,7 @@ def patch_index():
         body_end = source.lower().rfind("</body>")
         if body_end < 0:
             raise SystemExit("Could not safely insert the owner archive adapter.")
-        source = source[:body_end] + archive_tag + "\\n" + source[body_end:]
+        source = source[:body_end] + archive_tag + "\n" + source[body_end:]
     INDEX.write_text(source, encoding="utf-8")
     print("Renter dashboard markup and final responsive styles verified.")
 
