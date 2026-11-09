@@ -198,7 +198,7 @@ test("Interior and Exterior photo sections stay optional and share the eight-pho
   assert.match(studioMarkup,/data-gdr-studio-photo-upload="interior"/);
   assert.match(studio,/async function acceptFiles\(list,category\)/);
   assert.match(studio,/current\+incoming\.length>8/);
-  assert.match(studio,/state\.user\.id\+"\/"+category\+"\/"+uuid\(\)/);
+  assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()'));
   assert.match(studio,/gdr_category=/);
   assert.match(studio,/await Promise\.all\(\[worker\(\),worker\(\),worker\(\)\]\)/);
   assert.match(studio,/async function publish\([\s\S]*?const uploaded=await uploadPhotos\(\)/);
