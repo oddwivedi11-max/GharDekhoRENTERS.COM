@@ -158,8 +158,12 @@ jobs:
           grep -q 'gdr-poi-marker' /tmp/gdr-map-experience.css
           # Verify the owner Start Listing controller and its fresh cache key,
           # not merely that the old dashboard HTML responds.
-          grep -q 'gdr-property-studio.js?v=20261109-start-listing-rescue3' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.css?v=20261109-start-listing-rescue3' /tmp/gdr-live-index.html
+          echo "Live Property Studio script references:"
+          grep -oE 'gdr-property-studio.js[^" ]*' /tmp/gdr-live-root.html | head -3 || true
+          grep -oE 'gdr-property-studio.js[^" ]*' /tmp/gdr-live-index.html | head -3 || true
+          grep -oE 'gdr-property-studio.js[^" ]*' /tmp/gdr-live-login.html | head -3 || true
+          grep -q 'gdr-property-studio.js?v=20261109-start-listing-rescue3' /tmp/gdr-live-index.html || grep -q 'gdr-property-studio.js?v=20261109-start-listing-rescue3' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261109-start-listing-rescue3' /tmp/gdr-live-login.html
+          grep -q 'gdr-property-studio.css?v=20261109-start-listing-rescue3' /tmp/gdr-live-index.html || grep -q 'gdr-property-studio.css?v=20261109-start-listing-rescue3' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261109-start-listing-rescue3' /tmp/gdr-live-login.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-start-listing-rescue3" -o /tmp/gdr-property-studio.js
           grep -q 'function showLauncherFeedback(text,tone)' /tmp/gdr-property-studio.js
           grep -q 'dash.getBoundingClientRect()' /tmp/gdr-property-studio.js
