@@ -201,3 +201,11 @@ User decisions recorded:
 - No production database migration, table, storage bucket configuration, payment provider, paid API, secret or live user record was added or changed in this pass.
 - Cloudflare cache verification was updated to require the new `20261109-draft-gallery2` JavaScript/CSS/fragment versions and the draft/gallery UI markers. Automated workflow and live deployment results are pending until the branch is tested and merged.
 - Remaining limitations: renter-facing gallery grouping by Interior/Exterior is not yet fully reflected in the shared property detail gallery; 360-degree/GLB/GLTF media remains separate pending work because the current bucket allowlist and media metadata model do not support it. Analytics notifications are browser-local and do not send push/email/SMS.
+
+
+## Draft privacy hardening — 2026-11-10
+
+- Corrected Property Studio draft persistence so local storage contains only the signed-in owner's non-location listing fields, current step, submission id and validated references to uploaded owner images.
+- Exact address, Indian PIN code, latitude and longitude are no longer written into local storage. Draft schema version 3 invalidates previous version-2 drafts, which may have contained those values.
+- Restored drafts that had reached Location or a later step resume at Location. The owner must re-enter the address/PIN and reconfirm the exact map marker before publishing.
+- No production database, storage policy, payment data, account data or existing property records were changed.

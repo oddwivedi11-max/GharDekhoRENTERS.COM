@@ -93,6 +93,21 @@ test("Property Studio starts each new listing blank and uses the secure publish 
   assert.ok(studio.includes("Please review and correct every field before continuing"));
 });
 
+test("Property Studio drafts never persist address, PIN or precise coordinates",()=>{
+  const saveStart=studio.indexOf("function saveDraft(){");
+  const restoreStart=studio.indexOf("function restoreDraft(){",saveStart);
+  const dismissStart=studio.indexOf("function dismissDraftRecovery(){",restoreStart);
+  assert.ok(saveStart>=0&&restoreStart>saveStart&&dismissStart>restoreStart);
+  const save=studio.slice(saveStart,restoreStart);
+  const restore=studio.slice(restoreStart,dismissStart);
+  assert.match(save,/version:3/);
+  assert.doesNotMatch(save,/address:state\.address|pincode:state\.pincode|lat:state\.lat|lng:state\.lng/);
+  assert.match(restore,/payload\.version!==3/);
+  assert.match(restore,/clearLegacyDraft\(\);dismissDraftRecovery\(\);return false/);
+  assert.match(restore,/state\.address="";state\.pincode="";state\.lat=null;state\.lng=null;state\.locationConfirmed=false/);
+  assert.match(restore,/savedStep>=2\?2:savedStep/);
+});
+ 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
   assert.match(studio, /const VERSION=\"20261109-draft-gallery2\"/);

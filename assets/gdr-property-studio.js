@@ -36,12 +36,11 @@ function clearLegacyDraft(){
 function saveDraft(){
  if(!state.user)return;
  const fields={propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,
-  furnishing:state.furnishing,description:state.description,address:state.address,pincode:state.pincode,
-  lat:state.lat,lng:state.lng,roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,
+  furnishing:state.furnishing,description:state.description,roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,
   availableBeds:state.availableBeds,foodIncluded:state.foodIncluded};
  const meaningful=Object.values(fields).some(value=>value!==null&&value!==undefined&&String(value).trim()!=="");
  if(!meaningful){clearLegacyDraft();return;}
- const payload={version:2,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,fields,
+ const payload={version:3,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,
   pendingPhotoCount:state.files.length+state.uploadedPhotos.length,
   uploadedPhotos:state.uploadedPhotos.map(photo=>({url:photo.url,path:photo.path,category:photo.category||"interior"})),
   photoCategories:state.files.map(file=>file.gdrCategory||"interior").concat(state.uploadedPhotos.map(photo=>photo.category||"interior"))};
@@ -54,7 +53,10 @@ function restoreDraft(){
  if(!state.user)return false;
  let payload;
  try{payload=JSON.parse(localStorage.getItem(draftKey())||"null");}catch(error){console.warn("Saved listing draft could not be read",error);return false;}
- if(!payload||payload.version!==2||payload.ownerId!==state.user.id||!payload.fields||typeof payload.fields!=="object")return false;
+ if(!payload)return false;
+ if(payload.version!==3||payload.ownerId!==state.user.id||!payload.fields||typeof payload.fields!=="object"){
+  clearLegacyDraft();dismissDraftRecovery();return false;
+ }
  const savedAt=Date.parse(payload.savedAt||"");
  if(!Number.isFinite(savedAt)||savedAt>Date.now()+300000||Date.now()-savedAt>14*86400000){clearLegacyDraft();dismissDraftRecovery();return false;}
  const fields=payload.fields,validTypes=["apartment","room","independent_house","villa","pg","hostel","other"];
@@ -62,15 +64,16 @@ function restoreDraft(){
  state.configuration=configurations.includes(fields.configuration)?fields.configuration:(fields.configuration==="Other"?"Other":"");
  state.rent=String(fields.rent??"").slice(0,12);state.deposit=String(fields.deposit??"").slice(0,12);
  state.furnishing=["Furnished","Semi-Furnished","Unfurnished"].includes(fields.furnishing)?fields.furnishing:"";
- state.description=String(fields.description??"").slice(0,2000);state.address=String(fields.address??"").slice(0,300);
- state.pincode=/^\d{6}$/.test(String(fields.pincode??""))?String(fields.pincode):"";
- const lat=Number(fields.lat),lng=Number(fields.lng),validPoint=validIndiaPoint(lat,lng);
- state.lat=validPoint?lat:null;state.lng=validPoint?lng:null;state.locationConfirmed=false;
- state.pinCenter=validPoint?{lat,lng}:null;state.resolvedPincode="";
+ state.description=String(fields.description??"").slice(0,2000);
+ // Property address and precise coordinates are deliberately never persisted in browser storage.
+ // Re-enter the address and confirm the exact marker when a draft is restored.
+ state.address="";state.pincode="";state.lat=null;state.lng=null;state.locationConfirmed=false;
+ state.pinCenter=null;state.resolvedPincode="";
  state.roomType=String(fields.roomType??"").slice(0,80);state.gender=String(fields.gender??"").slice(0,40);
  state.totalBeds=String(fields.totalBeds??"").slice(0,5);state.availableBeds=String(fields.availableBeds??"").slice(0,5);
  state.foodIncluded=["yes","no"].includes(fields.foodIncluded)?fields.foodIncluded:"";
- state.step=Math.max(0,Math.min(4,Number(payload.step)||0));
+ const savedStep=Math.max(0,Math.min(4,Number(payload.step)||0));
+ state.step=savedStep>=2?2:savedStep;
  const savedSubmissionId=String(payload.submissionId||"");
  state.submissionId=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(savedSubmissionId)?savedSubmissionId:uuid();
  state.files=[];state.uploadedPhotos=[];state.uploadedPaths=[];state.coverIndex=0;
