@@ -226,7 +226,7 @@ jobs:
           grep -q '#f8fff4' /tmp/gdr-owner-command-center.css
           grep -q '#e8f0ea' /tmp/gdr-owner-command-center.css
           grep -q '#b9f36b' /tmp/gdr-owner-command-center.css
-          grep -q 'workspace7' /tmp/gdr-owner-command-center-hotfix.js
+          # Cache version is validated in the HTML script URL above; it is not embedded in the JS bundle.
           grep -q 'gdrOccModuleTitle' /tmp/gdr-owner-command-center.css
           grep -q 'grid-template-columns:112px minmax(0,1fr)' /tmp/gdr-owner-command-center.css
           grep -q 'function bindLogout' /tmp/gdr-owner-command-center-hotfix.js
