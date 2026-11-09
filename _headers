@@ -18,3 +18,8 @@
   Cache-Control: no-cache, must-revalidate
 /assets/gdr-renter-experience.css
   Cache-Control: no-cache, must-revalidate
+
+/assets/gdr-owner-renter-page.js
+  Cache-Control: no-cache, must-revalidate
+/assets/gdr-owner-renter-ledger.js
+  Cache-Control: no-cache, must-revalidate
