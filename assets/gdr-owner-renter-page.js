@@ -17,6 +17,8 @@
     style.textContent=`
       :root{--gdr-pink-ink:#49303a;--gdr-pink-muted:#8d727d;--gdr-pink-line:#f0dce4;--gdr-pink-soft:#fff7fa;--gdr-pink-main:#c66d91;--gdr-pink-deep:#9f4d72}
       body.gdr-owner-renter-profile-open>header{display:none!important;visibility:hidden!important;pointer-events:none!important}
+      body.gdr-owner-renter-profile-open> :not(#gdrOwnerRenterPage){visibility:hidden!important;pointer-events:none!important}
+      #gdrOwnerRenterPage{z-index:100300!important}
       #gdrOwnerRenterPage{position:fixed;inset:0;z-index:100000;overflow:auto;color:var(--gdr-pink-ink);font-family:inherit;background:radial-gradient(ellipse at 8% 0%,#fceaf1 0,transparent 36%),radial-gradient(ellipse at 94% 12%,#f8e8ef 0,transparent 32%),linear-gradient(180deg,#fffafd 0%,#fff7fa 48%,#fbf1f5 100%)}
       #gdrOwnerRenterPage *{box-sizing:border-box}
       .gdr-rp-shell{width:min(100%,1120px);margin:0 auto;padding:24px 22px 48px}
