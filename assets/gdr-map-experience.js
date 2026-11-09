@@ -74,6 +74,7 @@
     const link=document.createElement("link");link.rel="stylesheet";link.href=url;link.setAttribute(attribute,"true");document.head.appendChild(link);
   }
   async function ensureOpenFreeMap(){
+    loadStylesheet("/assets/gdr-map-experience.css?v=20261109-open-data-geo1","data-gdr-map-geo-style");
     loadStylesheet("https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.2/dist/maplibre-gl.css","data-gdr-maplibre-style");
     if(!window.maplibregl)await loadScript("https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.2/dist/maplibre-gl.js");
     if(!window.L.maplibreGL)await loadScript("https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js");
