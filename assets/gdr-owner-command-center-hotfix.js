@@ -38,51 +38,33 @@ function nextDueDate(day,now){
 function buildOwnerNotifications(data){
  const now=new Date(),recentCutoff=now.getTime()-30*86400000,items=[];
  const push=(id,type,title,detail,when,route)=>items.push({id,type,title,detail,when:when||null,route:route||"visits"});
+ const renterForPayment=payment=>data.occupancies.find(row=>row.id===payment.occupancy_id)?.renter_name||"Renter";
  data.visits.filter(v=>v.status==="pending"&&new Date(v.created_at||0).getTime()>=recentCutoff).forEach(v=>push("visit:"+v.id,"visit","New visit request",[(v.name||"A renter")+" requested a property visit",v.visit_date?insightDate(v.visit_date):""].filter(Boolean).join(" · "),v.created_at,"visits"));
- data.payments.filter(p=>p.status==="pending_verification").forEach(p=>push("payment:"+p.id,"payment","Payment awaiting verification",[(p.renter_name||"Renter"),insightMoney(p.total_amount)].join(" · "),p.created_at,"payments"));
+ data.payments.filter(p=>p.status==="pending_verification").forEach(p=>push("payment:"+p.id,"payment","Payment awaiting verification",[renterForPayment(p),insightMoney(p.total_amount)].join(" · "),p.created_at,"payments"));
  data.properties.filter(p=>p.status==="pending"||p.verification_status==="pending").forEach(p=>push("property:"+p.id,"property","Property verification pending",p.title||p.name||"Your property listing",p.created_at,"properties"));
  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),moveoutHorizon=new Date(today.getTime()+14*86400000);
  data.occupancies.filter(o=>!o.released_at&&o.expected_move_out_at).forEach(o=>{
   const due=new Date(o.expected_move_out_at+"T12:00:00");
   if(due>=today&&due<=moveoutHorizon)push("moveout:"+o.id,"renter","Upcoming renter move-out",(o.renter_name||"Renter")+" · "+insightDate(o.expected_move_out_at),o.expected_move_out_at,"renters");
  });
- const settingsByProperty=new Map(data.settings.map(s=>[s.property_id,s]));
+ const settingsByProperty=new Map(data.settings.map(setting=>[setting.property_id,setting]));
+ const currentPeriod=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
  data.occupancies.filter(o=>!o.released_at).forEach(o=>{
   const setting=settingsByProperty.get(o.property_id);if(!setting||!setting.due_day)return;
   const due=nextDueDate(setting.due_day,now),days=Math.ceil((due.getTime()-today.getTime())/86400000);
-  if(days>=0&&days<=7)push("rentdue:"+o.id+":"+due.toISOString().slice(0,10),"rent","Rent due date approaching",(o.renter_name||"Renter")+" · due "+insightDate(due.toISOString()),due.toISOString(),"payments");
+  const paidThisPeriod=data.payments.some(payment=>payment.occupancy_id===o.id&&payment.status==="paid"&&String(payment.billing_period||payment.payment_date||"").slice(0,7)===currentPeriod);
+  if(!paidThisPeriod&&days>=0&&days<=7)push("rentdue:"+o.id+":"+due.toISOString().slice(0,10),"rent","Rent due date approaching",(o.renter_name||"Renter")+" · due "+insightDate(due.toISOString()),due.toISOString(),"payments");
  });
  return items.sort((a,b)=>new Date(b.when||0)-new Date(a.when||0)).slice(0,100);
 }
-async function fetchOwnerInsights(force){
- if(insightLoading)return insightLoading;
- insightLoading=(async()=>{
-  const c=insightClient();if(!c)throw new Error("Secure database connection is unavailable. Refresh and sign in again.");
-  const auth=await c.auth.getUser();if(auth.error||!auth.data?.user)throw new Error("Please sign in again to access Owner Analytics.");
-  const owner=await c.from("owners").select("id").eq("user_id",auth.data.user.id).maybeSingle();
-  if(owner.error||!owner.data)throw new Error("Owner profile could not be found.");
-  if(insightOwnerId!==owner.data.id){insightOwnerId=owner.data.id;insightCache=null;insightCacheAt=0;}
-  if(!force&&insightCache&&Date.now()-insightCacheAt<60000)return insightCache;
-  const results=await Promise.all([
-   c.from("properties").select("id,title,name,rent,status,verification_status,created_at,deleted_at").eq("owner_id",insightOwnerId).is("deleted_at",null).order("created_at",{ascending:false}).limit(200),
-   c.from("property_occupancies").select("id,property_id,renter_name,occupied_at,released_at,expected_move_out_at").eq("owner_id",insightOwnerId).order("occupied_at",{ascending:false}).limit(200),
-   c.from("visit_requests").select("id,property_id,name,visit_date,visit_time,status,created_at").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(200),
-   c.from("rent_payment_records").select("id,occupancy_id,property_id,renter_name,billing_period,total_amount,status,created_at,verified_at,payment_date").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(300),
-   c.from("owner_payment_settings").select("property_id,due_day,late_fee_amount,late_fee_grace_days").eq("owner_id",insightOwnerId).limit(200)
-  ]);
-  const errors=results.map((r,i)=>r.error?["properties","renters","visits","payments","settings"][i]+": "+r.error.message:null).filter(Boolean);
-  const data={properties:results[0].data||[],occupancies:results[1].data||[],visits:results[2].data||[],payments:results[3].data||[],settings:results[4].data||[],errors};
-  data.notifications=buildOwnerNotifications(data);
-  insightCache=data;insightCacheAt=Date.now();return data;
- })().finally(()=>{insightLoading=null;});
- return insightLoading;
-}
+
 function analyticsMarkup(data){
- const properties=data.properties,active=data.occupancies.filter(o=>!o.released_at),byProperty=new Map(properties.map(p=>[p.id,p]));
+ const properties=data.properties,active=data.occupancies.filter(o=>!o.released_at);
+ const byProperty=new Map(properties.map(p=>[p.id,p])),occupancyById=new Map(data.occupancies.map(o=>[o.id,o]));
  const verifiedAvailable=properties.filter(p=>p.status==="verified"&&p.verification_status==="verified"&&!active.some(o=>o.property_id===p.id)).length;
  const soonAvailable=properties.filter(p=>p.status==="soon_available").length,occupied=properties.filter(p=>p.status==="occupied").length;
  const monthlyExpected=active.reduce((sum,o)=>sum+Number(byProperty.get(o.property_id)?.rent||0),0);
- const now=new Date(),month=now.toISOString().slice(0,7);
+ const now=new Date(),month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
  const paidThisMonth=data.payments.filter(p=>p.status==="paid"&&String(p.payment_date||p.verified_at||p.created_at||"").slice(0,7)===month);
  const received=paidThisMonth.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
  const awaiting=data.payments.filter(p=>p.status==="pending_verification"),pendingAmount=awaiting.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
@@ -100,9 +82,10 @@ function analyticsMarkup(data){
  ];
  return '<div class="gdr-insight-kpi-grid">'+cards.map(c=>'<article class="gdr-insight-kpi"><span>'+insightEsc(c[0])+'</span><strong>'+insightEsc(c[1])+'</strong><small>'+insightEsc(c[2])+'</small></article>').join("")+'</div>'+
  '<div class="gdr-insight-two-col"><section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PORTFOLIO</span><h3>Property status</h3></div><b>'+properties.length+'</b></div><div class="gdr-insight-bars">'+[['Verified available',verifiedAvailable],['Occupied',occupied],['Soon available',soonAvailable],['Pending verification',properties.filter(p=>p.verification_status==="pending"||p.status==="pending").length]].map(row=>'<div class="gdr-insight-bar-row"><span>'+row[0]+'</span><strong>'+row[1]+'</strong><i><em style="width:'+(properties.length?Math.min(100,Math.round(row[1]/properties.length*100)):0)+'%"></em></i></div>').join("")+'</div></section>'+
- '<section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PAYMENT ACTIVITY</span><h3>Latest payment records</h3></div><button type="button" data-insight-route="payments">Open payments</button></div>'+(data.payments.length?'<div class="gdr-insight-mini-list">'+data.payments.slice(0,5).map(p=>'<div><span><b>'+insightEsc(p.renter_name||"Renter")+'</b><small>'+insightEsc(p.billing_period||"Billing period unavailable")+'</small></span><strong>'+insightMoney(p.total_amount)+'</strong><em>'+insightEsc(p.status||"unknown")+'</em></div>').join("")+'</div>':'<p class="gdr-insight-empty">No payment records are available yet.</p>')+'</section></div>'+
+ '<section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PAYMENT ACTIVITY</span><h3>Latest payment records</h3></div><button type="button" data-insight-route="payments">Open payments</button></div>'+(data.payments.length?'<div class="gdr-insight-mini-list">'+data.payments.slice(0,5).map(p=>'<div><span><b>'+insightEsc(occupancyById.get(p.occupancy_id)?.renter_name||"Renter")+'</b><small>'+insightEsc(p.billing_period||"Billing period unavailable")+'</small></span><strong>'+insightMoney(p.total_amount)+'</strong><em>'+insightEsc(p.status||"unknown")+'</em></div>').join("")+'</div>':'<p class="gdr-insight-empty">No payment records are available yet.</p>')+'</section></div>'+
  (data.errors.length?'<p class="gdr-insight-partial">Some account data could not be loaded: '+insightEsc(data.errors.join(" · "))+'</p>':'');
 }
+
 function notificationsMarkup(data){
  const store=notificationStore(),visible=data.notifications.filter(n=>!store.dismissed.includes(n.id)),unread=visible.filter(n=>!store.read.includes(n.id));
  return '<div class="gdr-insight-notification-toolbar"><div><strong>'+unread.length+' unread</strong><span>Updates are derived from existing owner records. Read/dismiss choices stay on this signed-in browser.</span></div><button type="button" data-insight-action="read-all" '+(unread.length?"":"disabled")+'>Mark all read</button></div>'+
@@ -137,7 +120,10 @@ async function loadInsights(mode,force){
 }
 function refreshNotificationBadge(){
  const dash=$("#ownerDashboard");if(!dash)return;
- const badge=$('[data-gdr-count="notifications"]',dash);if(badge)badge.textContent=String(unreadNotificationCount());
+ const badge=$('[data-gdr-count="notifications"]',dash),count=String(unreadNotificationCount());
+ // This controller observes dashboard mutations. Guard identical writes to avoid
+ // retriggering its MutationObserver indefinitely.
+ if(badge&&badge.textContent!==count)badge.textContent=count;
 }
 
 function countText(id){const n=document.getElementById(id);return n?(n.textContent||"0").trim():"0";}
