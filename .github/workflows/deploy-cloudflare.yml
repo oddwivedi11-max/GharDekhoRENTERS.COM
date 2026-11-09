@@ -121,8 +121,8 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/index.html?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html
           echo "Live renter assistant script references (root / index):"
-          grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-root.html | head -3
-          grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-index.html | head -3
+          grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-root.html | sed -n '1,3p'
+          grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-index.html | sed -n '1,3p'
           grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-root.html
           grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-index.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
