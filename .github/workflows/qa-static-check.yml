@@ -19,6 +19,7 @@ on:
       - "fix/owner-ui-navigation-visibility-20261105"
       - "fix/back-dashboard-file-picker-20261107"
       - "fix/free-osm-property-studio-20261107"
+      - "fix/owner-dashboard-gallery-performance-20261109"
       - "fix/gdr-map-voice-ai-20261107"
       - "fix/gdr-map-voice-ai-20261107b"
       - "fix/gdr-renter-search-accuracy-20261107c"
