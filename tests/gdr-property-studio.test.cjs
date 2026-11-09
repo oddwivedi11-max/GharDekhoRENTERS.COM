@@ -188,29 +188,34 @@ test("Returning from a successful listing refreshes Owner Dashboard without relo
   assert.ok(!studio.includes("auth.signOut"));
 });
 
-test("owner photo gallery offers Exterior, Interior and Other categories",()=>{
- for(const category of ["exterior","interior","other"])assert.ok(studioMarkup.includes('data-gdr-photo-category="'+category+'"'),category);
- assert.ok(studio.includes('f.gdrCategory=state.photoCategory||"exterior"'));
- assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()'));
-});
-test("owner photo uploads use bounded parallel batches and preserve cover-first ordering",()=>{
- assert.ok(studio.includes("for(let start=0;start<ordered.length;start+=3)"));
- assert.ok(studio.includes("await Promise.allSettled(batch.map"));
- assert.ok(studio.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
- assert.ok(studio.includes("uploaded[start+offset]=item"));
- assert.ok(studio.includes('c.storage.from("property-images").remove(paths)'));
+test("Property Studio Interior and Exterior galleries remain optional and keep an eight-photo total",()=>{
+ assert.match(studioMarkup,/Interior and Exterior photo gallery/);
+ assert.match(studioMarkup,/data-gdr-studio-photo-upload="exterior"/);
+ assert.match(studioMarkup,/data-gdr-studio-photo-upload="interior"/);
+ assert.match(studio,/async function acceptFiles\(list,category\)/);
+ assert.match(studio,/current\+incoming\.length>8/);
+ assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()+"."+ext'));
+ assert.match(studio,/gdr_category=/);
+ assert.doesNotMatch(studio,/photo is required/i);
 });
 
-test("Owner Property Studio assets are loaded once and deployment patcher keeps the same cache versions",()=>{
+test("Property photo uploads use three bounded workers and preserve deterministic cover-first order",()=>{
+ assert.ok(studio.includes("const uploaded=new Array(ordered.length),paths=new Array(ordered.length)"));
+ assert.ok(studio.includes("await Promise.all([worker(),worker(),worker()])"));
+ assert.ok(studio.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
+ assert.ok(studio.includes("paths[index]=result.data.path"));
+ assert.ok(studio.includes("state.uploadedPaths=uploaded.map(photo=>photo.path)"));
+ assert.ok(studio.includes('c.storage.from("property-images").remove(completedPaths)'));
+});
+
+test("Property Studio category assets use the draft-gallery version and deployed fragment",()=>{
  assert.equal(html.split("gdr-property-studio.js").length-1,1);
  assert.equal(html.split("gdr-property-studio.css").length-1,1);
- assert.ok(
-  html.includes("gdr-property-studio.js?v=20261109-gallery-batch1") ||
-  html.includes("gdr-property-studio.js?v=20261109-owner-launcher-fix1")
- );
- assert.ok(html.includes("gdr-property-studio.css?v=20261109-gallery-categories1"));
- assert.match(patcher,/20261109-gallery-batch1/);
- assert.match(patcher,/20261109-gallery-categories1/);
+ assert.match(studio,/const VERSION="20261109-draft-gallery2"/);
+ assert.match(studio,/gdr-property-studio\.txt\?v="\+VERSION/);
+ assert.match(studioMarkup,/gdrStudioDraftRecovery/);
+ assert.match(studioMarkup,/Exterior Photos/);
+ assert.match(studioMarkup,/Interior Photos/);
 });
 
 test("Start Listing opens only from a visible Owner Dashboard and verifies the authenticated owner", () => {
@@ -220,4 +225,46 @@ test("Start Listing opens only from a visible Owner Dashboard and verifies the a
   assert.match(studio, /closest\("#gdrListPropertyStart"\)/);
   assert.match(studio, /stopImmediatePropagation\(\)/);
   assert.match(html, /id="gdrListPropertyStart"/);
+});
+
+
+test("Saved draft is isolated per signed-in owner and never stores authentication tokens",()=>{
+  assert.match(studio,/function draftKey\(\)[\s\S]*?state\.user&&state\.user\.id/);
+  assert.match(studio,/ownerId:state\.user\.id/);
+  assert.match(studio,/async function open\(voice\)[\s\S]*?const recovered=restoreDraft\(\)/);
+  assert.match(studioMarkup,/id="gdrStudioDraftRecovery"/);
+  assert.match(studioMarkup,/id="gdrStudioDraftResume"/);
+  assert.match(studioMarkup,/id="gdrStudioDraftStartFresh"/);
+  assert.match(studio,/localStorage\.removeItem\(draftKey\(\)\)/);
+  assert.doesNotMatch(studio,/localStorage\.setItem\([^,]*(password|access_token|refresh_token)/i);
+});
+
+
+test("Owner Analytics reads only production payment columns and derives renter names from occupancies",()=>{
+  const ownerController=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerController,/from\("rent_payment_records"\)\.select\("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date"\)/);
+  assert.doesNotMatch(ownerController,/from\("rent_payment_records"\)\.select\([^)]*renter_name/);
+  assert.match(ownerController,/renterForPayment=payment=>data\.occupancies\.find\(row=>row\.id===payment\.occupancy_id\)\?\.renter_name/);
+  assert.match(ownerController,/occupancyById\.get\(p\.occupancy_id\)\?\.renter_name/);
+  assert.equal((ownerController.match(/\.eq\("owner_id",insightOwnerId\)/g)||[]).length,5);
+});
+
+
+test("Owner notification badge avoids identical writes observed by the dashboard observer",()=>{
+  const ownerController=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerController,/if\(badge&&badge\.textContent!==count\)badge\.textContent=count/);
+});
+
+
+test("Rent due reminders are suppressed once the current billing period is paid",()=>{
+  const ownerController=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerController,/paidThisPeriod=data\.payments\.some\(payment=>payment\.occupancy_id===o\.id&&payment\.status==="paid"/);
+  assert.match(ownerController,/if\(!paidThisPeriod&&days>=0&&days<=7\)/);
+});
+
+
+test("Owner draft retains its idempotency key and expires after fourteen days",()=>{
+  assert.match(studio,/submissionId:state\.submissionId/);
+  assert.match(studio,/state\.submissionId=\/\^\[0-9a-f\]\{8\}/);
+  assert.match(studio,/Date\.now\(\)-savedAt>14\*86400000/);
 });
