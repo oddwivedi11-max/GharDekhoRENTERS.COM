@@ -186,3 +186,18 @@ User decisions recorded:
 - Bumped Property Studio and Cloudflare map cache versions so deployed browsers load the corrected scripts/fragment.
 - No Supabase schema, production records, credentials, payment logic, owner/renter relationships or storage objects were changed.
 - Tests added/updated: stale-PIN invalidation, response sequencing, district/state match, automatic six-digit lookup, exact pin publish guard and owner map reset. Automated workflow results are pending at commit time; live PIN geocoding and authenticated owner publishing remain to be browser-verified.
+
+
+## Owner Analytics, Notifications and Property Studio draft/gallery upgrade — 2026-11-09
+
+- Added two dashboard-level owner sections, **Owner Analytics** and **Notifications**, while preserving the existing My Properties, Current Renters, My Payments and Visit Requests entry points.
+- Owner Analytics reads account-scoped property, occupancy, visit, payment and payment-setting rows using the authenticated Supabase user and owner id. It presents database-derived property/occupancy/payment/enquiry counts and recent records; it does not fabricate seed data.
+- Notifications are derived from existing owner records (pending visits, pending payment verification, pending property verification, near-term move-out dates and due-day reminders). Read/unread/dismiss state is stored in browser-local storage scoped to the owner id. This is a browser-local derived notification centre, not a cross-device notification table or push notification service.
+- Property Studio now supports separately categorized optional Interior and Exterior photo groups. One or two photos are allowed, the combined maximum remains eight, and each file remains limited to 5 MB in the existing supported JPEG/PNG/WEBP types.
+- Category folders are nested under the existing authenticated owner's storage prefix (`<auth.uid>/interior/` and `<auth.uid>/exterior/`) so the current `property-images` Storage policy continues to enforce the first path segment as the signed-in owner id. No Storage RLS policy was loosened.
+- Up to three image uploads run concurrently. Failed batch uploads attempt to remove partial objects; the owner receives an error and can reselect/retry.
+- Property Studio drafts save only the current owner's non-sensitive form fields and step to local storage. Previously uploaded photo metadata can be restored only when both owner-prefix path and expected project public URL prefix match. Browser-held file objects are not persisted; if a photo was selected but not uploaded before refresh, the UI asks the owner to select those files again. Restored location coordinates are approximate until the owner confirms the exact map marker again.
+- Publishing remains a manual owner action through the existing `owner_publish_property_studio` RPC. The local draft clears only after the server confirms a successful publish.
+- No production database migration, table, storage bucket configuration, payment provider, paid API, secret or live user record was added or changed in this pass.
+- Cloudflare cache verification was updated to require the new `20261109-draft-gallery2` JavaScript/CSS/fragment versions and the draft/gallery UI markers. Automated workflow and live deployment results are pending until the branch is tested and merged.
+- Remaining limitations: renter-facing gallery grouping by Interior/Exterior is not yet fully reflected in the shared property detail gallery; 360-degree/GLB/GLTF media remains separate pending work because the current bucket allowlist and media metadata model do not support it. Analytics notifications are browser-local and do not send push/email/SMS.
