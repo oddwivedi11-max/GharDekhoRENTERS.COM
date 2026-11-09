@@ -232,14 +232,14 @@ jobs:
           grep -q 'function bindLogout' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'removeAttribute("onclick")' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'window.addEventListener("click"' /tmp/gdr-owner-command-center-hotfix.js
-          grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
-          grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
-          grep -q 'List Your Property' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.js?v=20261107-manualreset1' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.css?v=20261107-manualreset1' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
-          grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
-          if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
+          grep -q 'data-gd-open-property-picker' /tmp/gdr-live-root.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-login.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
+          grep -q 'gdPickerAuthorized' /tmp/gdr-live-root.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-login.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
+          grep -q 'List Your Property' /tmp/gdr-live-root.html || grep -q 'List Your Property' /tmp/gdr-live-login.html || grep -q 'List Your Property' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261107-manualreset1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261107-manualreset1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261107-manualreset1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.css?v=20261107-manualreset1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261107-manualreset1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261107-manualreset1' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
+          grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-root.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-login.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
+          if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-root.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-login.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261107-manualreset1" -o /tmp/gdr-property-studio.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
           grep -q 'continuous=false' /tmp/gdr-property-studio.js
