@@ -205,19 +205,22 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.equal(html.split("gdr-property-studio.js").length-1,1);
  assert.equal(html.split("gdr-property-studio.css").length-1,1);
  assert.ok(
-  html.includes("gdr-property-studio.js?v=20261109-gallery-batch1") ||
-  html.includes("gdr-property-studio.js?v=20261109-owner-launcher-fix1")
+  html.includes("gdr-property-studio.js?v=20261109-start-listing-clickfix1")
  );
- assert.ok(html.includes("gdr-property-studio.css?v=20261109-gallery-categories1"));
+ assert.ok(html.includes("gdr-property-studio.css?v=20261109-start-listing-clickfix1"));
  assert.match(patcher,/20261109-gallery-batch1/);
  assert.match(patcher,/20261109-gallery-categories1/);
 });
 
 test("Start Listing opens only from a visible Owner Dashboard and verifies the authenticated owner", () => {
-  assert.match(studio, /const dashboardVisible=!!dash&&!dash\.hidden&&dash\.getAttribute\("aria-hidden"\)!=="true"&&window\.getComputedStyle\(dash\)\.display!=="none"/);
+  assert.match(studio, /const dashboardVisible=!!dash&&!dash\.hidden&&!!dashStyle&&dashStyle\.display!=="none"&&dashStyle\.visibility!=="hidden"&&!!dashRect&&dashRect\.width>0&&dashRect\.height>0/);
+  assert.doesNotMatch(studio, /getAttribute\("aria-hidden"\)!=="true"/);
+  assert.match(studio, /function showLauncherFeedback\(text,tone\)/);
+  assert.match(studio, /state\.opening=false/);
   assert.match(studio, /const account=await getOwner\(\);state\.user=account\.user;state\.owner=account\.owner/);
   assert.match(studio, /__gdrListPropertyLauncherBound/);
-  assert.match(studio, /closest\("#gdrListPropertyStart"\)/);
+  assert.match(studio, /closest\("#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn"\)/);
   assert.match(studio, /stopImmediatePropagation\(\)/);
+  assert.match(studio, /if\(state\.publishing\|\|state\.opening\)return false/);
   assert.match(html, /id="gdrListPropertyStart"/);
 });
