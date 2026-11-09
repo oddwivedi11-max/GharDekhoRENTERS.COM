@@ -41,6 +41,7 @@ for (const target of productionTargets) {
         return style.display !== 'none' && style.visibility !== 'hidden';
       }).length,
       bodyBackground: getComputedStyle(document.body).backgroundColor,
+      propertyStudioScript: Array.from(document.scripts).map(script => script.src).find(src => src.includes("gdr-property-studio.js")) || null,
     }));
 
     await testInfo.attach(`${target.name}-diagnostics.json`, {
@@ -55,6 +56,13 @@ for (const target of productionTargets) {
     expect(response.status(), `HTTP response from ${target.url}`).toBeLessThan(400);
     expect(pageState.title, 'Production page title should exist').not.toBe('');
     expect(pageState.bodyTextLength, 'Production page should render visible text, not a blank white page').toBeGreaterThan(100);
+    expect(pageState.propertyStudioScript, 'Property Studio launcher script must be included').toContain('gdr-property-studio.js?v=20261109-start-listing-rescue3');
+    const studioScriptUrl = new URL(pageState.propertyStudioScript, target.url).toString();
+    const studioScriptResponse = await page.request.get(studioScriptUrl, { timeout: 45000 });
+    expect(studioScriptResponse.status(), 'Property Studio launcher script should load on production').toBe(200);
+    const studioScript = await studioScriptResponse.text();
+    expect(studioScript, 'The live script must register the Start Listing click handler').toContain('bindPropertyStudioLauncher();');
+    expect(studioScript, 'The live click handler must open Property Studio').toContain('window.GDRPropertyStudio.open(trigger.id==="gdrListPropertySpeak")');
     expect(pageErrors, `Uncaught JavaScript errors: ${pageErrors.join(' | ')}`).toEqual([]);
   });
 }
