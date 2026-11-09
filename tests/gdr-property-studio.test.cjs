@@ -201,6 +201,8 @@ test("Interior and Exterior photo sections stay optional and share the eight-pho
   assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()'));
   assert.match(studio,/gdr_category=/);
   assert.match(studio,/await Promise\.all\(\[worker\(\),worker\(\),worker\(\)\]\)/);
+  assert.match(studio,/paths\[index\]=result\.data\.path/);
+  assert.match(studio,/state\.uploadedPaths=uploaded\.map\(photo=>photo\.path\)/);
   assert.match(studio,/async function publish\([\s\S]*?const uploaded=await uploadPhotos\(\)/);
   assert.doesNotMatch(studio,/photo is required/i);
 });
