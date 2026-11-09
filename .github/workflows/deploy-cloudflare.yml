@@ -43,7 +43,9 @@ jobs:
               ("gdr-owner-payments.js", "20261107-paymentproof1"),
               ("gdr-owner-payments.css", "20261107-paymentproof1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
-              ("gdr-map-experience.js", "20261107-map-list-full-results1"),
+              ("gdr-map-experience.js", "20261109-pin-centered-map1"),
+              ("gdr-property-studio.js", "20261109-pincode-map1"),
+              ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:
               pattern = r'(/assets/' + re.escape(asset) + r')(?:\?v=[^"\s>]*)?'
