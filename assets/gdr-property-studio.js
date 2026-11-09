@@ -1238,7 +1238,7 @@ async function init(){
  if(studioRoot)studioRoot.hidden=true;
 }
 let readyPromise=Promise.resolve();
-window.GDRPropertyStudio={open:()=>open(false),openByVoice:()=>open(true),close:close};
+window.GDRPropertyStudio={open:voice=>open(voice===true),openByVoice:()=>open(true),close:close};
 function bindPropertyStudioLauncher(){
  if(window.__gdrListPropertyLauncherBound)return;
  document.addEventListener("click",function(event){
