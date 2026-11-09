@@ -77,8 +77,11 @@ test("Room is a distinct supported property type without changing the existing l
 test("Property Studio starts each new listing blank and uses the secure publish RPC", () => {
   assert.ok(studio.includes("function resetNewListing()"));
   assert.ok(studio.includes("function clearLegacyDraft()"));
-  assert.ok(!studio.includes("function restoreDraft()"));
-  assert.ok(!studio.includes("localStorage.setItem(draftKey"));
+  assert.ok(studio.includes("function restoreDraft()"));
+  assert.ok(studio.includes("localStorage.setItem(draftKey(),JSON.stringify(payload))"));
+  assert.ok(studio.includes("payload.ownerId!==state.user.id"));
+  assert.ok(studio.includes("state.locationConfirmed=false"));
+  assert.ok(studio.includes("draftPhotosNeedReselect"));
   assert.ok(studio.includes('storage.from("property-images").upload'));
   assert.ok(studio.includes("owner_publish_property_studio"));
   assert.ok(studio.includes("p_submission_id"));
@@ -186,4 +189,28 @@ test("Returning from a successful listing refreshes Owner Dashboard without relo
   assert.ok(studio.includes("returnToOwnerDashboard(false)"));
   assert.ok(!studio.includes("window.location.reload()"));
   assert.ok(!studio.includes("auth.signOut"));
+});
+
+test("Interior and Exterior photo sections stay optional and share the eight-photo maximum",()=>{
+  assert.match(studioMarkup,/Exterior Photos/);
+  assert.match(studioMarkup,/Interior Photos/);
+  assert.match(studioMarkup,/data-gdr-studio-photo-upload="exterior"/);
+  assert.match(studioMarkup,/data-gdr-studio-photo-upload="interior"/);
+  assert.match(studio,/async function acceptFiles\(list,category\)/);
+  assert.match(studio,/current\+incoming\.length>8/);
+  assert.match(studio,/state\.user\.id\+"\/"+category\+"\/"+uuid\(\)/);
+  assert.match(studio,/gdr_category=/);
+  assert.match(studio,/await Promise\.all\(\[worker\(\),worker\(\),worker\(\)\]\)/);
+  assert.match(studio,/async function publish\([\s\S]*?const uploaded=await uploadPhotos\(\)/);
+  assert.doesNotMatch(studio,/photo is required/i);
+});
+test("Saved draft is isolated per signed-in owner and never stores authentication tokens",()=>{
+  assert.match(studio,/function draftKey\(\)[\s\S]*?state\.user&&state\.user\.id/);
+  assert.match(studio,/ownerId:state\.user\.id/);
+  assert.match(studio,/async function open\(voice\)[\s\S]*?const recovered=restoreDraft\(\)/);
+  assert.match(studioMarkup,/id="gdrStudioDraftRecovery"/);
+  assert.match(studioMarkup,/id="gdrStudioDraftResume"/);
+  assert.match(studioMarkup,/id="gdrStudioDraftStartFresh"/);
+  assert.match(studio,/localStorage\.removeItem\(draftKey\(\)\)/);
+  assert.doesNotMatch(studio,/localStorage\.setItem\([^,]*(password|access_token|refresh_token)/i);
 });
