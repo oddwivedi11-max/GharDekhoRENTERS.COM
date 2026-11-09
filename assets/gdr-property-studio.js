@@ -1271,6 +1271,7 @@ function bindPropertyStudioLauncher(){
  },true);
  window.__gdrListPropertyLauncherBound=VERSION;
 }
+bindPropertyStudioLauncher();
 
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{readyPromise=init();},{once:true});else readyPromise=init();
 })();
