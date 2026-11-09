@@ -236,7 +236,7 @@ if script_ref not in source:
 
 # Older hotfixes could leave a second Property Studio script tag at the end
 # of index.html. Normalize the page to exactly one controller include.
-source = re.sub(r'<script src="/assets/gdr-property-studio\\.js(?:\\?v=[^"]*)?" defer></script>', "", source)
+source = re.sub(r'<script src="/assets/gdr-property-studio\.js(?:\?v=[^"]*)?" defer></script>', "", source)
 body_pos = source.rfind("</body>")
 if body_pos < 0:
     raise SystemExit("Stopped safely: closing body tag missing.")
