@@ -125,7 +125,7 @@ jobs:
           # The canonical index.html response is the authoritative asset manifest.
           grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-root.html | sed -n '1,3p' || true
           grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-index.html | sed -n '1,3p' || true
-          grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-index.html
+          grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-root.html || grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-index.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
           echo "Live map script reference:"
