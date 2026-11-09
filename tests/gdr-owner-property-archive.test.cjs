@@ -5,7 +5,10 @@ const path = require("node:path");
 
 const root = path.join(__dirname, "..");
 const adapter = fs.readFileSync(path.join(root, "assets/gdr-owner-property-archive.js"), "utf8");
-const migration = fs.readFileSync(path.join(root, "supabase/migrations/20261109140000_owner_property_soft_archive.sql"), "utf8");
+const migration = [
+  "supabase/migrations/20261109094407_owner_property_soft_archive.sql",
+  "supabase/migrations/20261109094438_filter_archived_properties_from_inventory.sql"
+].map(file => fs.readFileSync(path.join(root, file), "utf8")).join("\\n");
 
 test("owner removal uses an authenticated soft-archive RPC, never a hard delete", () => {
   assert.match(adapter, /client\.rpc\("owner_archive_property",\s*\{\s*p_property_id:\s*id\s*\}\)/);
