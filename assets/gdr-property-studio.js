@@ -41,7 +41,7 @@ function saveDraft(){
   availableBeds:state.availableBeds,foodIncluded:state.foodIncluded};
  const meaningful=Object.values(fields).some(value=>value!==null&&value!==undefined&&String(value).trim()!=="");
  if(!meaningful){clearLegacyDraft();return;}
- const payload={version:2,ownerId:state.user.id,savedAt:new Date().toISOString(),step:state.step,fields,
+ const payload={version:2,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,fields,
   pendingPhotoCount:state.files.length+state.uploadedPhotos.length,
   uploadedPhotos:state.uploadedPhotos.map(photo=>({url:photo.url,path:photo.path,category:photo.category||"interior"})),
   photoCategories:state.files.map(file=>file.gdrCategory||"interior").concat(state.uploadedPhotos.map(photo=>photo.category||"interior"))};
@@ -55,6 +55,8 @@ function restoreDraft(){
  let payload;
  try{payload=JSON.parse(localStorage.getItem(draftKey())||"null");}catch(error){console.warn("Saved listing draft could not be read",error);return false;}
  if(!payload||payload.version!==2||payload.ownerId!==state.user.id||!payload.fields||typeof payload.fields!=="object")return false;
+ const savedAt=Date.parse(payload.savedAt||"");
+ if(!Number.isFinite(savedAt)||savedAt>Date.now()+300000||Date.now()-savedAt>14*86400000){clearLegacyDraft();dismissDraftRecovery();return false;}
  const fields=payload.fields,validTypes=["apartment","room","independent_house","villa","pg","hostel","other"];
  state.propertyType=validTypes.includes(fields.propertyType)?fields.propertyType:"";
  state.configuration=configurations.includes(fields.configuration)?fields.configuration:(fields.configuration==="Other"?"Other":"");
@@ -69,6 +71,8 @@ function restoreDraft(){
  state.totalBeds=String(fields.totalBeds??"").slice(0,5);state.availableBeds=String(fields.availableBeds??"").slice(0,5);
  state.foodIncluded=["yes","no"].includes(fields.foodIncluded)?fields.foodIncluded:"";
  state.step=Math.max(0,Math.min(4,Number(payload.step)||0));
+ const savedSubmissionId=String(payload.submissionId||"");
+ state.submissionId=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(savedSubmissionId)?savedSubmissionId:uuid();
  state.files=[];state.uploadedPhotos=[];state.uploadedPaths=[];state.coverIndex=0;
  const publicPrefix="https://gktmaiwqvtusnegevdle.supabase.co/storage/v1/object/public/property-images/"+state.user.id+"/";
  state.uploadedPhotos=(Array.isArray(payload.uploadedPhotos)?payload.uploadedPhotos:[]).filter(photo=>photo&&typeof photo.path==="string"&&photo.path.startsWith(state.user.id+"/")&&typeof photo.url==="string"&&photo.url.startsWith(publicPrefix)).slice(0,8).map(photo=>({url:photo.url,path:photo.path,category:photo.category==="exterior"?"exterior":"interior"}));
