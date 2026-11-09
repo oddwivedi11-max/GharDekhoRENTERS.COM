@@ -5,12 +5,14 @@ test("owner command center keeps dashboard sections in separate modules", async 
   const dashboard = page.locator("#ownerDashboard");
   await expect(dashboard).toHaveCount(1);
   await expect(page.locator("#gdrOwnerCommandCenterHome")).toHaveCount(1);
-  await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module]")).toHaveCount(4);
+  await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module]")).toHaveCount(6);
+  await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=analytics]")).toContainText("Owner Analytics");
+  await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=notifications]")).toContainText("Notifications");
   await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=nearby]")).toHaveCount(0);
   await expect(page.locator("#gdrOwnerNearbyCard")).toHaveCount(1);
 
   const mode = async value => dashboard.evaluate((el, v) => {
-    el.classList.remove("gdr-owner-mode-home", "gdr-owner-mode-properties", "gdr-owner-mode-visits");
+    el.classList.remove("gdr-owner-mode-home", "gdr-owner-mode-properties", "gdr-owner-mode-visits", "gdr-owner-mode-analytics", "gdr-owner-mode-notifications");
     el.classList.add("gdr-owner-mode-" + v);
     const home = el.querySelector("#gdrOwnerCommandCenterHome");
     const header = el.querySelector("#gdrOwnerModuleHeader");
@@ -31,4 +33,9 @@ test("owner command center keeps dashboard sections in separate modules", async 
   await mode("visits");
   expect(await page.locator("#ownerDashboard > .owner-visits-card").evaluate(el => getComputedStyle(el).display)).not.toBe("none");
   expect(await page.locator("#ownerDashboard > .owner-inventory-card").evaluate(el => getComputedStyle(el).display)).toBe("none");
+  await mode("analytics");
+  await expect(page.locator("#gdrOwnerInsightsPanel")).toBeVisible();
+  expect(await page.locator("#ownerDashboard > .owner-visits-card").evaluate(el => getComputedStyle(el).display)).toBe("none");
+  await mode("notifications");
+  await expect(page.locator("#gdrOwnerInsightsPanel")).toBeVisible();
 });
