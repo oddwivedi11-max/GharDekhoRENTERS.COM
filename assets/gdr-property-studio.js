@@ -43,7 +43,7 @@ function saveDraft(){
  if(!meaningful){clearLegacyDraft();return;}
  const payload={version:2,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,fields,
   pendingPhotoCount:state.files.length+state.uploadedPhotos.length,
-  uploadedPhotos:state.uploadedPhotos.map(photo=>({url:photo.url,path:photo.path,category:photo.category||"interior"})),
+  uploadedPhotos:state.uploadedPhotos.map(photo=>({url:photo.url,path:photo.path,category:photo.category||"interior"})),coverIndex:state.coverIndex,
   photoCategories:state.files.map(file=>file.gdrCategory||"interior").concat(state.uploadedPhotos.map(photo=>photo.category||"interior"))};
  try{
   localStorage.setItem(draftKey(),JSON.stringify(payload));state.draftUpdatedAt=payload.savedAt;
@@ -77,6 +77,7 @@ function restoreDraft(){
  const publicPrefix="https://gktmaiwqvtusnegevdle.supabase.co/storage/v1/object/public/property-images/"+state.user.id+"/";
  state.uploadedPhotos=(Array.isArray(payload.uploadedPhotos)?payload.uploadedPhotos:[]).filter(photo=>photo&&typeof photo.path==="string"&&photo.path.startsWith(state.user.id+"/")&&typeof photo.url==="string"&&photo.url.startsWith(publicPrefix)).slice(0,8).map(photo=>({url:photo.url,path:photo.path,category:photo.category==="exterior"?"exterior":"interior"}));
  state.uploadedPaths=state.uploadedPhotos.map(photo=>photo.path);
+ state.coverIndex=Math.max(0,Math.min(state.uploadedPhotos.length-1,Number(payload.coverIndex)||0));
  state.draftPhotosNeedReselect=Number(payload.pendingPhotoCount||0)>state.uploadedPhotos.length;
  state.draftUpdatedAt=typeof payload.savedAt==="string"?payload.savedAt:null;
  syncFormFromState();renderPhotos();
@@ -522,8 +523,8 @@ function revokePreviews(){
 function renderPhotos(){
  const wrap=$("#gdrStudioPhotoPreview");if(!wrap)return;
  wrap.innerHTML="";
- const items=state.files.map((file,index)=>({url:file.previewUrl,name:file.name,index,cover:index===state.coverIndex,category:file.gdrCategory||"interior"}))
-  .concat(state.uploadedPhotos.map((photo,index)=>({url:photo.url,name:"Property photo "+(index+1),index,cover:index===0,category:photo.category||"interior"})));
+ const items=state.files.map((file,index)=>({kind:"file",url:file.previewUrl,name:file.name,index,globalIndex:index,cover:index===state.coverIndex,category:file.gdrCategory||"interior"}))
+  .concat(state.uploadedPhotos.map((photo,index)=>({kind:"uploaded",url:photo.url,name:"Property photo "+(index+1),index,globalIndex:state.files.length+index,cover:state.files.length+index===state.coverIndex,category:photo.category==="exterior"?"exterior":"interior"})));
  if(!items.length){wrap.hidden=true;return;}
  wrap.hidden=false;
  ["exterior","interior"].forEach(category=>{
@@ -537,15 +538,17 @@ function renderPhotos(){
    const meta=document.createElement("div"),name=document.createElement("span");name.textContent=item.name;
    const label=document.createElement("small");label.textContent=category==="exterior"?"Exterior":"Interior";
    const btn=document.createElement("button");btn.type="button";btn.textContent=item.cover?"✓ Cover photo":"Set as cover";btn.disabled=item.cover;
-   btn.addEventListener("click",()=>{
-    if(state.files.length)state.coverIndex=item.index;
-    else if(item.index!==0){const moved=state.uploadedPhotos.splice(item.index,1)[0];state.uploadedPhotos.unshift(moved);state.uploadedPaths.unshift(state.uploadedPaths.splice(item.index,1)[0]);}
-    saveDraft();renderPhotos();
-   });
+   btn.addEventListener("click",()=>{state.coverIndex=item.globalIndex;saveDraft();renderPhotos();});
    const remove=document.createElement("button");remove.type="button";remove.textContent="Remove photo";remove.className="gdr-studio-photo-remove";
    remove.addEventListener("click",async()=>{
-    if(state.files.length){const removed=state.files.splice(item.index,1)[0];if(removed&&removed.previewUrl)URL.revokeObjectURL(removed.previewUrl);state.coverIndex=Math.max(0,Math.min(state.coverIndex,state.files.length-1));}
-    else{state.uploadedPhotos.splice(item.index,1);const path=state.uploadedPaths.splice(item.index,1)[0];if(path){try{await client().storage.from("property-images").remove([path]);}catch(e){console.warn("Could not remove property photo",e);}}}
+    if(item.kind==="file"){
+     const removed=state.files.splice(item.index,1)[0];if(removed?.previewUrl){try{URL.revokeObjectURL(removed.previewUrl);}catch(e){}}
+    }else{
+     const removed=state.uploadedPhotos.splice(item.index,1)[0],path=state.uploadedPaths.splice(item.index,1)[0];
+     if(path){try{await client().storage.from("property-images").remove([path]);}catch(e){console.warn("Could not remove property photo",e);}}
+    }
+    if(item.globalIndex<state.coverIndex)state.coverIndex--;
+    else if(item.globalIndex===state.coverIndex)state.coverIndex=Math.max(0,Math.min(state.coverIndex,items.length-2));
     saveDraft();renderPhotos();
    });
    meta.append(name,label,btn,remove);card.append(img,meta);grid.appendChild(card);
@@ -567,42 +570,48 @@ async function acceptFiles(list,category){
   if(!allowedTypes.includes(f.type)){message("Use JPG, PNG or WEBP photos only.","error");return;}
   if(f.size>5*1024*1024){message("Each photo must be 5 MB or smaller.","error");return;}
  }
- if(state.uploadedPhotos.length)await removeUploadedFiles();
+ if(current===0)state.coverIndex=0;
  incoming.forEach(f=>{f.previewUrl=URL.createObjectURL(f);f.gdrCategory=photoCategory;state.files.push(f);});
- state.coverIndex=0;renderPhotos();saveDraft();message("Photos added to "+photoCategory+" gallery. Either category can stay empty.","success");
+ renderPhotos();saveDraft();message("Photos added to "+photoCategory+" gallery. Either category can stay empty.","success");
 }
 function uploadPhotos(){
  const c=client();
- if(state.uploadedPhotos.length)return Promise.resolve(state.uploadedPhotos);
- if(!state.files.length)return Promise.resolve([]);
+ const existing=state.uploadedPhotos.slice();
+ const fileEntries=state.files.map((file,index)=>({kind:"file",file,fileIndex:index}));
+ const ordered=[...fileEntries,...existing.map((photo,index)=>({kind:"uploaded",photo,photoIndex:index}))];
+ if(!ordered.length)return Promise.resolve([]);
+ if(state.coverIndex>0&&state.coverIndex<ordered.length)ordered.unshift(ordered.splice(state.coverIndex,1)[0]);
  return (async()=>{
-  const ordered=state.files.slice();
-  if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0]);
-  const uploaded=new Array(ordered.length),paths=new Array(ordered.length);
+  const filesToUpload=ordered.filter(item=>item.kind==="file");
+  const uploadedFiles=new Array(filesToUpload.length),newPaths=[];
   let cursor=0,uploadError=null;
   const worker=async()=>{
    while(!uploadError){
-    const index=cursor++;if(index>=ordered.length)return;
-    const file=ordered[index],category=file.gdrCategory==="exterior"?"exterior":"interior";
+    const index=cursor++;if(index>=filesToUpload.length)return;
+    const item=filesToUpload[index],file=item.file,category=file.gdrCategory==="exterior"?"exterior":"interior";
     const ext=file.type==="image/jpeg"?"jpg":file.type==="image/png"?"png":"webp";
     const path=state.user.id+"/"+category+"/"+uuid()+"."+ext;
     try{
      const result=await c.storage.from("property-images").upload(path,file,{cacheControl:"3600",contentType:file.type,upsert:false});
      if(result.error)throw result.error;
-     paths[index]=result.data.path;
+     newPaths.push(result.data.path);
      const publicResult=c.storage.from("property-images").getPublicUrl(result.data.path),baseUrl=publicResult&&publicResult.data&&publicResult.data.publicUrl;
      if(!baseUrl)throw new Error("Could not create the uploaded photo URL.");
-     uploaded[index]={url:baseUrl+(baseUrl.includes("?")?"&":"?")+"gdr_category="+category,path,category};
+     uploadedFiles[index]={url:baseUrl+(baseUrl.includes("?")?"&":"?")+"gdr_category="+category,path:result.data.path,category};
     }catch(error){uploadError=error;}
    }
   };
-  await Promise.all([worker(),worker(),worker()]);
+  await Promise.all(Array.from({length:Math.min(3,filesToUpload.length)},()=>worker()));
   if(uploadError){
-   const completedPaths=paths.filter(Boolean);
-   if(completedPaths.length){try{await c.storage.from("property-images").remove(completedPaths);}catch(e){console.warn("Could not clean up partial photo uploads",e);}}
-   state.uploadedPhotos=[];state.uploadedPaths=[];state.draftPhotosNeedReselect=true;saveDraft();throw uploadError;
+   if(newPaths.length){try{await c.storage.from("property-images").remove(newPaths);}catch(e){console.warn("Could not clean up partial photo uploads",e);}}
+   state.uploadedPhotos=existing;state.uploadedPaths=existing.map(photo=>photo.path);
+   saveDraft();throw uploadError;
   }
-  state.uploadedPhotos=uploaded;state.uploadedPaths=uploaded.map(photo=>photo.path);state.files=[];state.coverIndex=0;state.draftPhotosNeedReselect=false;renderPhotos();saveDraft();return uploaded;
+  const newPhotoByFileIndex=new Map(filesToUpload.map((item,index)=>[item.fileIndex,uploadedFiles[index]]));
+  const finalPhotos=ordered.map(item=>item.kind==="uploaded"?item.photo:newPhotoByFileIndex.get(item.fileIndex)).filter(Boolean);
+  state.files.forEach(file=>{if(file.previewUrl){try{URL.revokeObjectURL(file.previewUrl);}catch(e){}}});
+  state.uploadedPhotos=finalPhotos;state.uploadedPaths=finalPhotos.map(photo=>photo.path);
+  state.files=[];state.coverIndex=0;state.draftPhotosNeedReselect=false;renderPhotos();saveDraft();return finalPhotos;
  })();
 }
 function titleForListing(){
