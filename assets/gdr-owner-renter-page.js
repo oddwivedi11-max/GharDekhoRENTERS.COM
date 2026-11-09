@@ -17,8 +17,8 @@
     style.textContent=`
       :root{--gdr-pink-ink:#49303a;--gdr-pink-muted:#8d727d;--gdr-pink-line:#f0dce4;--gdr-pink-soft:#fff7fa;--gdr-pink-main:#c66d91;--gdr-pink-deep:#9f4d72}
       body.gdr-owner-renter-profile-open>header{display:none!important;visibility:hidden!important;pointer-events:none!important}
-      body.gdr-owner-renter-profile-open> :not(#gdrOwnerRenterPage){visibility:hidden!important;pointer-events:none!important}
-      #gdrOwnerRenterPage{z-index:100300!important}
+      body.gdr-owner-renter-profile-open> :not(#gdrOwnerRenterPage),body.gdr-owner-renter-profile-open> :not(#gdrOwnerRenterPage) *{visibility:hidden!important;pointer-events:none!important}
+      #gdrOwnerRenterPage{z-index:2147483000!important;isolation:isolate}
       #gdrOwnerRenterPage{position:fixed;inset:0;z-index:100000;overflow:auto;color:var(--gdr-pink-ink);font-family:inherit;background:radial-gradient(ellipse at 8% 0%,#fceaf1 0,transparent 36%),radial-gradient(ellipse at 94% 12%,#f8e8ef 0,transparent 32%),linear-gradient(180deg,#fffafd 0%,#fff7fa 48%,#fbf1f5 100%)}
       #gdrOwnerRenterPage *{box-sizing:border-box}
       .gdr-rp-shell{width:min(100%,1120px);margin:0 auto;padding:24px 22px 48px}
@@ -91,6 +91,9 @@
       #gdrOwnerRenterPage .gdr-rp-avatar{background:linear-gradient(145deg,#8ebc69,#356d43);box-shadow:0 7px 0 #245c37,0 12px 22px rgba(36,92,55,.19)}
       #gdrOwnerRenterPage .gdr-rp-hero{border-color:#c9ddcb;background:linear-gradient(115deg,#fff 0%,#f5faf3 58%,#e5f2e1 100%)}
       #gdrOwnerRenterPage .gdr-rp-hero h1{color:#203b2a}
+      #gdrOwnerRenterPage .gdr-rp-hero>div:nth-child(2){position:relative;z-index:2;min-width:0;flex:1 1 240px;overflow-wrap:anywhere}
+      #gdrOwnerRenterPage .gdr-rp-hero>div:nth-child(2) p{overflow-wrap:anywhere;word-break:normal}
+      #gdrOwnerRenterPage .gdr-rp-status{z-index:3;flex:0 0 auto}
       #gdrOwnerRenterPage .gdr-rp-btn{border-color:#c6dbc9;color:#285d38;background:#fff}
       #gdrOwnerRenterPage .gdr-rp-btn.primary{border-color:#3c7548;background:linear-gradient(180deg,#c8ed83,#8fca53);color:#173b26;box-shadow:0 4px 0 #4c853b}
       #gdrOwnerRenterPage .gdr-rp-form{border-color:#d6e5d7;background:linear-gradient(145deg,#fbfef9,#f0f7ee)}
