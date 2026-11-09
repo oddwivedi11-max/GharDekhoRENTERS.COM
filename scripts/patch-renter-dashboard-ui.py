@@ -163,6 +163,10 @@ test('Renter welcome and account-edit cards remain responsive without replacing 
   assert.match(index, /@media\(max-width:760px\)[\s\S]*?renter-account-edit-card\{align-items:stretch!important;flex-direction:column!important/);
   assert.match(index, /id="renterProfileEditor"/);
 });
+
+/* The promotional welcome hero is removed; renter actions and account tools remain. */
+#renterDashboard .renter-welcome-card,
+#renterDashboard.gdrx-premium .renter-welcome-card{display:none!important}
 '''
 
 def patch_index():
@@ -207,6 +211,13 @@ def patch_index():
         raise SystemExit("Renter Edit Profile placement validation failed.")
     if "openRenterProfileEditor" not in source or "saveRenterProfile" not in source:
         raise SystemExit("Existing renter profile edit/save handlers are missing.")
+    # Load the owner archive adapter after the existing dashboard scripts.
+    archive_tag = '<script src="/assets/gdr-owner-property-archive.js"></script>'
+    if archive_tag not in source:
+        body_end = source.lower().rfind("</body>")
+        if body_end < 0:
+            raise SystemExit("Could not safely insert the owner archive adapter.")
+        source = source[:body_end] + archive_tag + "\\n" + source[body_end:]
     INDEX.write_text(source, encoding="utf-8")
     print("Renter dashboard markup and final responsive styles verified.")
 
