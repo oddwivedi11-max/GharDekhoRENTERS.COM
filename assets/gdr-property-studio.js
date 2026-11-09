@@ -1240,7 +1240,7 @@ async function init(){
 let readyPromise=Promise.resolve();
 window.GDRPropertyStudio={open:voice=>open(voice===true),openByVoice:()=>open(true),close:close};
 function bindPropertyStudioLauncher(){
- if(window.__gdrListPropertyLauncherBound)return;
+ if(window.__gdrListPropertyLauncherBound===VERSION)return;
  const selector="#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn";
  // Window capture runs before document-level dashboard guards. This prevents
  // other owner-dashboard click handlers from swallowing the primary launcher.
@@ -1269,7 +1269,7 @@ function bindPropertyStudioLauncher(){
     if(trigger.isConnected&&trigger.id==="gdrListPropertyStart")trigger.textContent=originalLabel;
    });
  },true);
- window.__gdrListPropertyLauncherBound=true;
+ window.__gdrListPropertyLauncherBound=VERSION;
 }
 
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{readyPromise=init();},{once:true});else readyPromise=init();
