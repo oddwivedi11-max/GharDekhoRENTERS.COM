@@ -886,3 +886,37 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
   .gdr-map-list-action{min-height:42px;padding:8px 6px;font-size:11px}
 }
 
+
+
+/* Open-data map explorer controls, POI markers and Mapillary handoff */
+.gdr-map-explore-control{
+  width:min(250px,calc(100vw - 92px));padding:11px;display:grid;gap:7px;
+  border:1px solid rgba(20,61,52,.16);border-radius:15px;background:rgba(255,253,247,.96);
+  box-shadow:0 10px 30px rgba(12,39,32,.17);backdrop-filter:blur(14px);color:#173f35;
+}
+.gdr-map-explore-title{font-size:11px;letter-spacing:.02em;font-weight:950;color:#173f35}
+.gdr-map-explore-select,.gdr-map-explore-button{
+  width:100%;min-width:0;min-height:38px;border:1px solid #d8e4db;border-radius:10px;
+  padding:8px 10px;background:#fff;color:#173f35;font:inherit;font-size:11px;font-weight:800;
+}
+.gdr-map-explore-select{cursor:pointer}
+.gdr-map-explore-button{background:#153f35;color:#fff;border-color:#153f35;cursor:pointer}
+.gdr-map-explore-button:disabled{opacity:.58;cursor:wait}
+.gdr-map-street-button{background:#f1e8d7;border-color:#e1d0ae;color:#543f20}
+.gdr-map-explore-status{font-size:9px;line-height:1.4;color:#61756b;overflow-wrap:anywhere}
+.gdr-poi-marker-wrap{background:transparent;border:0}
+.gdr-poi-marker{
+  display:grid;place-items:center;width:32px;height:32px;border:2px solid #fff;border-radius:50%;
+  background:#174b40;box-shadow:0 3px 11px rgba(13,40,34,.28);font-size:16px;
+}
+.gdr-poi-popup{display:grid;gap:5px;min-width:145px;color:#173f35;font-size:11px}
+.gdr-poi-popup strong{font-size:12px;line-height:1.35;overflow-wrap:anywhere}
+.gdr-poi-popup span{color:#65766c;font-size:10px}
+.gdr-poi-popup a{color:#176b63;font-size:10px;font-weight:800;text-decoration:underline}
+.maplibregl-canvas{outline:none}
+@media(max-width:620px){
+  .gdr-map-explore-control{width:min(218px,calc(100vw - 88px));padding:9px;gap:6px;border-radius:13px}
+  .gdr-map-explore-select,.gdr-map-explore-button{min-height:36px;padding:7px 8px;font-size:10px}
+  .gdr-map-explore-status{font-size:8px}
+}
+@media(prefers-reduced-motion:reduce){.gdr-map-explore-control *{transition:none!important}}
