@@ -175,3 +175,14 @@ User decisions recorded:
 - The existing property-images bucket is public and limited to JPEG, PNG and WEBP, max 5 MB. owner-documents is private. Neither supports GLB/GLTF model uploads as configured.
 - properties(latitude, longitude) already has a composite B-tree index. property_occupancies has occupied_at/released_at and active-row uniqueness constraints, so extend this table for tenancy lifecycle instead of duplicating its history.
 - Production migration ledger contains 51 records; latest version is 20261103162447. Repository migration history is incomplete and must be reconciled before applying any migration.
+
+
+## PIN-to-map correction and exact property location guard (2026-11-09)
+- On the QA branch `fix/gdr-pin-location-safety-20261109`, updated the Property Studio PIN flow so changing a six-digit PIN clears the previous address, coordinates, hidden map selection, nearby-place results and prior marker before resolving the new PIN.
+- Six-digit PIN entry now starts a short debounced India Post lookup without waiting for blur; stale requests are aborted and response sequence/input checks prevent older responses from overwriting the latest selection.
+- Photon results are filtered to India and ranked only when the returned state and district are consistent with the verified postal record. A failed or mismatched lookup leaves the old location cleared rather than retaining a Bhopal/default pin.
+- PIN/address results remain explicitly approximate. Property publication now requires valid Indian coordinates and the owner’s explicit exact-marker confirmation through the existing map picker. Map-confirmed selections outside 35 km of the PIN area show a warning instead of being silently treated as matching.
+- Changed the owner map's empty-state view from a Bhopal city default to a broad India view and added a map-selection clearing method. Renter map defaults and renter search logic are unchanged.
+- Bumped Property Studio and Cloudflare map cache versions so deployed browsers load the corrected scripts/fragment.
+- No Supabase schema, production records, credentials, payment logic, owner/renter relationships or storage objects were changed.
+- Tests added/updated: stale-PIN invalidation, response sequencing, district/state match, automatic six-digit lookup, exact pin publish guard and owner map reset. Automated workflow results are pending at commit time; live PIN geocoding and authenticated owner publishing remain to be browser-verified.
