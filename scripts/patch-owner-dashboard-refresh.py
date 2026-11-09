@@ -440,6 +440,7 @@ for old, new in (
         new.replace("20261105-workspace3", "20261107-workspace4") in source
         or new.replace("20261105-workspace3", "20261107-workspace6") in source
         or new.replace("20261105-workspace3", "20261107-workspace7") in source
+        or new.replace("20261105-workspace3", "20261109-profile-overlay-fix1") in source
     ):
         print("Owner workspace asset already has the latest cache version: " + old)
     elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
