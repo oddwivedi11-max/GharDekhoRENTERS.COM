@@ -189,16 +189,16 @@ test("Returning from a successful listing refreshes Owner Dashboard without relo
 });
 
 test("owner photo gallery offers Exterior, Interior and Other categories",()=>{
- for(const category of ["exterior","interior","other"])assert.ok(markup.includes('data-gdr-photo-category="'+category+'"'),category);
- assert.ok(js.includes('f.gdrCategory=state.photoCategory||"exterior"'));
- assert.ok(js.includes('state.user.id+"/"+category+"/"+uuid()'));
+ for(const category of ["exterior","interior","other"])assert.ok(studioMarkup.includes('data-gdr-photo-category="'+category+'"'),category);
+ assert.ok(studio.includes('f.gdrCategory=state.photoCategory||"exterior"'));
+ assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()'));
 });
 test("owner photo uploads use bounded parallel batches and preserve cover-first ordering",()=>{
- assert.ok(js.includes("for(let start=0;start<ordered.length;start+=3)"));
- assert.ok(js.includes("await Promise.allSettled(batch.map"));
- assert.ok(js.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
- assert.ok(js.includes("uploaded[start+offset]=item"));
- assert.ok(js.includes('c.storage.from("property-images").remove(paths)'));
+ assert.ok(studio.includes("for(let start=0;start<ordered.length;start+=3)"));
+ assert.ok(studio.includes("await Promise.allSettled(batch.map"));
+ assert.ok(studio.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
+ assert.ok(studio.includes("uploaded[start+offset]=item"));
+ assert.ok(studio.includes('c.storage.from("property-images").remove(paths)'));
 });
 
 test("Owner Property Studio assets are loaded once and deployment patcher keeps the same cache versions",()=>{
