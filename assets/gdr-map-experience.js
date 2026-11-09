@@ -631,6 +631,14 @@
       else if(!state.ownerSelection){const c=state.ownerMap.getCenter();setOwnerPin(c,"Choose the exact property location");}
     }catch(error){console.error("Owner map picker failed:",error);updateOwnerStatus("The map could not load. Use address suggestions or current location instead.");}
   }
+  function centerOwnerMapPicker(lat,lng,label){
+    const point={lat:Number(lat),lng:Number(lng)};
+    if(!validPoint(point.lat,point.lng)||!state.ownerMap)return false;
+    state.ownerMap.setView([point.lat,point.lng],16,{animate:true});
+    setOwnerPin(point,String(label||"PIN code location"),false);
+    requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
+    return true;
+  }
   function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true;}
   function confirmOwnerMapLocation(){
     if(!state.ownerSelection){updateOwnerStatus("Tap the map or use GPS to place the property pin.");return;}
@@ -868,5 +876,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,showVoiceSearchResults,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice(),renderBrowseViewport,getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;}};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,centerOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,showVoiceSearchResults,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice(),renderBrowseViewport,getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;}};
 })();
