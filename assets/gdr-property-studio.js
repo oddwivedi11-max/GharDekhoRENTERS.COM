@@ -4,7 +4,7 @@ const VERSION="20261109-pin-location-safety2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
-  user:null,owner:null,step:0,publishing:false,published:false,propertyType:"",configuration:"",
+  user:null,owner:null,step:0,opening:false,publishing:false,published:false,propertyType:"",
   rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
   locationConfirmed:false,resolvedPincode:"",pinCenter:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
@@ -651,15 +651,37 @@ async function getOwner(){
  if(profile.error||!profile.data)throw new Error("This account does not have an Owner profile. Please sign in using your Owner account.");
  return {user:user,owner:profile.data};
 }
+function showLauncherFeedback(text,tone){
+ const hero=$("#gdrListPropertyHero");
+ if(!hero)return;
+ let feedback=$("#gdrListPropertyFeedback",hero);
+ if(!text){if(feedback)feedback.remove();return;}
+ if(!feedback){
+  feedback=document.createElement("p");
+  feedback.id="gdrListPropertyFeedback";
+  feedback.className="gdr-list-hero-feedback";
+  feedback.setAttribute("role","alert");
+  const actions=$(".gdr-list-hero-actions",hero);
+  if(actions)actions.insertAdjacentElement("afterend",feedback);
+  else hero.appendChild(feedback);
+ }
+ feedback.dataset.tone=tone||"error";
+ feedback.textContent=String(text);
+}
 async function open(voice){
- if(state.publishing)return;
+ if(state.publishing||state.opening)return false;
+ state.opening=true;
+ showLauncherFeedback("");
  try{
   await readyPromise;
   const dash=$("#ownerDashboard");
-  // The dashboard can be visibly open while legacy role CSS classes are still
-  // settling. Visibility is the page-level gate; getOwner() below remains the
-  // authoritative authenticated Owner-profile check.
-  const dashboardVisible=!!dash&&!dash.hidden&&dash.getAttribute("aria-hidden")!=="true"&&window.getComputedStyle(dash).display!=="none";
+  // Judge actual on-screen visibility, not aria-hidden. Some legacy dashboard
+  // flows leave aria-hidden=true after activating the Owner portal even though
+  // the dashboard is visibly rendered. That stale accessibility flag must not
+  // block the primary Start Listing action.
+  const dashStyle=dash?window.getComputedStyle(dash):null;
+  const dashRect=dash?dash.getBoundingClientRect():null;
+  const dashboardVisible=!!dash&&!dash.hidden&&!!dashStyle&&dashStyle.display!=="none"&&dashStyle.visibility!=="hidden"&&!!dashRect&&dashRect.width>0&&dashRect.height>0;
   if(!dashboardVisible){
    throw new Error("Open the Owner Dashboard to start a property listing.");
   }
@@ -672,7 +694,18 @@ async function open(voice){
   updateStep();root.scrollTop=0;root.scrollTo({top:0,behavior:"instant"});window.scrollTo({top:0,behavior:"instant"});
   wrapMapCallback();
   if(voice)startVoice();
- }catch(e){message(e.message||"Could not open Property Studio.","error");const m=$("#backendMessage");if(m){m.textContent=e.message||"Could not open Property Studio.";m.className="backend-message error";}}
+  showLauncherFeedback("");
+  return true;
+ }catch(e){
+  const errorText=e&&e.message?e.message:"Could not open Property Studio. Please retry.";
+  console.error("GharDekho Start Listing could not open Property Studio",e);
+  message(errorText,"error");
+  showLauncherFeedback(errorText,"error");
+  const m=$("#backendMessage");if(m){m.textContent=errorText;m.className="backend-message error";}
+  return false;
+ }finally{
+  state.opening=false;
+ }
 }
 async function returnToOwnerDashboard(scrollToProperties){
  stopVoice();restoreMapPanel();
@@ -1100,17 +1133,9 @@ function bindEvents(){
  $("#gdrStudioVoiceTranscript")?.addEventListener("input",e=>{state.voice.finalText=e.target.value;});
  $("#gdrStudioPublish")?.addEventListener("click",publish);
  document.addEventListener("click",e=>{
-  if(e.target.closest("#ownerAddPropertyBtn")){
-   e.preventDefault();e.stopPropagation();e.stopImmediatePropagation();open(false);
-  }
-  if(e.target.closest("#gdrListPropertyStart")){
-   e.preventDefault();open(false);
-  }
-  if(e.target.closest("#gdrListPropertySpeak")){
-   e.preventDefault();open(true);
-  }
-  if(e.target.closest("#gdrCloseOwnerMapPickerBtn"))setTimeout(restoreMapPanel,120);
-  if(e.target.closest("#gdrConfirmOwnerMapLocation"))setTimeout(restoreMapPanel,180);
+  const target=e.target&&e.target.closest?e.target:null;
+  if(target&&target.closest("#gdrCloseOwnerMapPickerBtn"))setTimeout(restoreMapPanel,120);
+  if(target&&target.closest("#gdrConfirmOwnerMapLocation"))setTimeout(restoreMapPanel,180);
  },true);
  document.addEventListener("click",e=>{
   const cover=e.target.closest("[data-gdr-studio-cover]");
@@ -1214,14 +1239,20 @@ async function init(){
 }
 let readyPromise=Promise.resolve();
 window.GDRPropertyStudio={open:()=>open(false),openByVoice:()=>open(true),close:close};
-if(!window.__gdrListPropertyLauncherBound){
+function bindPropertyStudioLauncher(){
+ if(window.__gdrListPropertyLauncherBound)return;
  document.addEventListener("click",function(event){
-  const trigger=event.target&&event.target.closest?event.target.closest("#gdrListPropertyStart"):null;
+  const target=event.target&&event.target.closest?event.target:null;
+  if(!target)return;
+  const trigger=target.closest("#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn");
   if(!trigger)return;
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-  window.GDRPropertyStudio.open();
+  // One delegated handler covers the primary hero action and the legacy
+  // dashboard entry point. The opening guard prevents duplicate async opens.
+  void window.GDRPropertyStudio.open(trigger.id==="gdrListPropertySpeak");
  },true);
  window.__gdrListPropertyLauncherBound=true;
 }
+bindPropertyStudioLauncher();
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{readyPromise=init();},{once:true});else readyPromise=init();
 })();
