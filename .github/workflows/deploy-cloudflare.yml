@@ -124,10 +124,32 @@ jobs:
         run: |
           set -euo pipefail
           trap 'echo "FAILED at line $LINENO: $BASH_COMMAND"' ERR
-          BASE_URL="https://ghardekhorenters-com.od-dwivedi11.workers.dev"
-          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-root.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/index.html?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$BASE_URL/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html
+          VERIFIED_BASE_URL=""
+          for candidate in "https://ghardekhorenters.com" "https://ghardekhorenters-com.od-dwived11.workers.dev"; do
+            echo "Checking deployed HTML on $candidate"
+            if ! curl --retry 3 --retry-delay 2 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$candidate/?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-root.html; then
+              continue
+            fi
+            if ! curl --retry 3 --retry-delay 2 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$candidate/index.html?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-index.html; then
+              continue
+            fi
+            if ! curl --retry 3 --retry-delay 2 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$candidate/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html; then
+              continue
+            fi
+            if grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-root.html \
+              || grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-index.html \
+              || grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-login.html; then
+              VERIFIED_BASE_URL="$candidate"
+              break
+            fi
+            echo "Required Owner Command Center asset version was not found on $candidate."
+          done
+          if [[ -z "$VERIFIED_BASE_URL" ]]; then
+            echo "Neither the custom domain nor workers.dev returned the expected Owner Command Center asset version."
+            exit 1
+          fi
+          BASE_URL="$VERIFIED_BASE_URL"
+          echo "Verified Cloudflare production origin: $BASE_URL"
           echo "Live renter assistant script references (root / index):"
           # Root may be routed through a Worker response that omits the static script tag.
           # The canonical index.html response is the authoritative asset manifest.
