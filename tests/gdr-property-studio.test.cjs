@@ -75,10 +75,12 @@ test("Room is a distinct supported property type without changing the existing l
 });
 
 test("Property Studio starts each new listing blank and uses the secure publish RPC", () => {
-  assert.ok(studio.includes("function resetNewListing()"));
+  assert.ok(studio.includes("function resetNewListing(preserveDraft)"));
   assert.ok(studio.includes("function clearLegacyDraft()"));
-  assert.ok(!studio.includes("function restoreDraft()"));
-  assert.ok(!studio.includes("localStorage.setItem(draftKey"));
+  assert.ok(studio.includes("function restoreDraft()"));
+  assert.ok(studio.includes("localStorage.setItem(draftKey(),JSON.stringify(payload))"));
+  assert.ok(studio.includes("payload.ownerId!==state.user.id"));
+  assert.ok(studio.includes("state.locationConfirmed=false"));
   assert.ok(studio.includes('storage.from("property-images").upload'));
   assert.ok(studio.includes("owner_publish_property_studio"));
   assert.ok(studio.includes("p_submission_id"));
@@ -93,7 +95,7 @@ test("Property Studio starts each new listing blank and uses the secure publish 
 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261109-start-listing-rescue3\"/);
+  assert.match(studio, /const VERSION=\"20261109-draft-gallery2\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
@@ -189,23 +191,26 @@ test("Returning from a successful listing refreshes Owner Dashboard without relo
 });
 
 test("owner photo gallery offers Exterior, Interior and Other categories",()=>{
- for(const category of ["exterior","interior","other"])assert.ok(studioMarkup.includes('data-gdr-photo-category="'+category+'"'),category);
- assert.ok(studio.includes('f.gdrCategory=state.photoCategory||"exterior"'));
+ for(const category of ["exterior","interior"])assert.ok(studioMarkup.includes('data-gdr-studio-photo-upload="'+category+'"'),category);
+ assert.match(studioMarkup,/Both categories are optional/);
+ assert.match(studioMarkup,/No category has a minimum requirement/);
+ assert.ok(studio.includes('file.gdrCategory=["exterior","interior","other"].includes(state.photoCategory)?state.photoCategory:"exterior"'));
  assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()'));
 });
 test("owner photo uploads use bounded parallel batches and preserve cover-first ordering",()=>{
- assert.ok(studio.includes("for(let start=0;start<ordered.length;start+=3)"));
+ assert.ok(studio.includes("for(let start=0;start<pending.length;start+=3)"));
  assert.ok(studio.includes("await Promise.allSettled(batch.map"));
- assert.ok(studio.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
- assert.ok(studio.includes("uploaded[start+offset]=item"));
- assert.ok(studio.includes('c.storage.from("property-images").remove(paths)'));
+ assert.ok(studio.includes("const combined=existing.concat(newUploads)"));
+ assert.ok(studio.includes("state.uploadedPaths=ordered.map(photo=>photo.path)"));
+ assert.ok(studio.includes('c.storage.from("property-images").remove(newPaths)'));
+ assert.ok(studio.includes("current+incoming.length>8"));
 });
 
 test("Owner Property Studio assets are loaded once and deployment patcher keeps the same cache versions",()=>{
  assert.equal(html.split("gdr-property-studio.js").length-1,1);
  assert.equal(html.split("gdr-property-studio.css").length-1,1);
- assert.match(patcher,/gdr-property-studio\.js\?v=20261109-start-listing-rescue3/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261109-start-listing-rescue3/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261109-draft-gallery2/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261109-draft-gallery2/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
@@ -228,4 +233,30 @@ test("Start Listing opens only from a visible Owner Dashboard and verifies the a
   assert.doesNotMatch(studio, /(?<!\$)\$\([^)]*\)\.forEach/);
   assert.match(studio, /\$\$\("\[data-gdr-photo-category\]"\)\.forEach/);
   assert.match(html, /id="gdrListPropertyStart"/);
+});
+
+test("Recovered draft is owner-scoped and restored coordinates require a new exact pin",()=>{
+  assert.match(studio,/payload\.ownerId!==state\.user\.id/);
+  assert.match(studio,/Date\.now\(\)-savedAt>14\*86400000/);
+  assert.match(studio,/state\.locationConfirmed=false/);
+  assert.match(studio,/photo\.path\.startsWith\(state\.user\.id\+"\/"\)/);
+  assert.match(studio,/photo\.url\.startsWith\(publicPrefix\)/);
+  assert.match(studio,/gdrStudioDraftRecovery/);
+  assert.match(studio,/dismissDraftRecovery/);
+  assert.match(studio,/resetNewListing\(true\)/);
+});
+test("Interior and Exterior photo groups are optional and share the eight-photo cap",()=>{
+  assert.match(studioMarkup,/Exterior Photos/);
+  assert.match(studioMarkup,/Interior Photos/);
+  assert.match(studioMarkup,/data-gdr-studio-photo-upload="exterior"/);
+  assert.match(studioMarkup,/data-gdr-studio-photo-upload="interior"/);
+  assert.match(studio,/function photoEntries\(\)/);
+  assert.match(studio,/function movePhotoWithinCategory\(/);
+  assert.match(studio,/Choose up to 8 photos across both categories/);
+  assert.match(studio,/file\.gdrCategory/);
+});
+test("Adding new images preserves previously uploaded property photos",()=>{
+  assert.match(studio,/const existing=state\.uploadedPhotos\.slice\(\)/);
+  assert.match(studio,/const combined=existing\.concat\(newUploads\)/);
+  assert.match(studio,/state\.uploadedPhotos=existing;state\.uploadedPaths=existing\.map\(photo=>photo\.path\)/);
 });
