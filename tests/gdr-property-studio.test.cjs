@@ -219,8 +219,11 @@ test("Start Listing opens only from a visible Owner Dashboard and verifies the a
   assert.match(studio, /state\.opening=false/);
   assert.match(studio, /const account=await getOwner\(\);state\.user=account\.user;state\.owner=account\.owner/);
   assert.match(studio, /__gdrListPropertyLauncherBound/);
-  assert.match(studio, /closest\("#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn"\)/);
+  assert.match(studio, /window\.addEventListener\("click",function\(event\)\{/);
+  assert.match(studio, /closest\(selector\)/);
   assert.match(studio, /stopImmediatePropagation\(\)/);
+  assert.match(studio, /Opening Property Studio…/);
+  assert.match(studio, /setAttribute\("aria-busy","true"\)/);
   assert.match(studio, /if\(state\.publishing\|\|state\.opening\)return false/);
   assert.doesNotMatch(studio, /(?<!\$)\$\([^)]*\)\.forEach/);
   assert.match(studio, /\$\$\("\[data-gdr-photo-category\]"\)\.forEach/);
