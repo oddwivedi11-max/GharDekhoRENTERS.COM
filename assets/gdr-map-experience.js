@@ -42,7 +42,12 @@
       try{await loadScript("https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js");}
       catch(error){console.warn("Marker clustering unavailable; standard markers will be used.",error);}
     }
-    try{await ensureOpenFreeMap();}catch(error){console.warn("OpenFreeMap vector basemap unavailable; using the OSM raster fallback.",error);}
+    // Real Leaflet exposes its version property. Lightweight test adapters and
+    // legacy map shims deliberately use the OSM raster fallback without loading
+    // third-party vector scripts or waiting on external CDNs.
+    if(window.L.version){
+      try{await ensureOpenFreeMap();}catch(error){console.warn("OpenFreeMap vector basemap unavailable; using the OSM raster fallback.",error);}
+    }
   }
   const OPENFREEMAP_STYLE="https://tiles.openfreemap.org/styles/liberty";
   const OVERPASS_ENDPOINTS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
@@ -182,7 +187,10 @@
     if(map._gdrPoi)map._gdrPoi.status.textContent="Mapillary opened in a new tab. Street imagery appears only where contributors have captured it.";
   }
   function addMapExploreControls(map,kind){
-    if(!map||map._gdrPoi)return;
+    // Leaflet's full control factory is optional in small embedded adapters.
+    // Skip only the optional explorer UI when the host provides map primitives
+    // but no custom-control factory; core property map interactions still work.
+    if(!map||map._gdrPoi||!window.L.control||typeof window.L.control!=="function")return;
     const control=window.L.control({position:"topleft"});
     control.onAdd=function(){
       const root=window.L.DomUtil.create("div","gdr-map-explore-control");
