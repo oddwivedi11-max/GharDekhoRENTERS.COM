@@ -54,7 +54,7 @@
       </div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="2" hidden>
-      <h2 class="gdr-studio-panel-title">Where is your property?</h2><p class="gdr-studio-panel-subtitle">Search the address, use GPS or choose the exact point on the map.</p>
+      <h2 class="gdr-studio-panel-title">Where is your property?</h2><p class="gdr-studio-panel-subtitle">Search an address or enter a PIN for the approximate area, then place and confirm the exact property entrance on the map.</p>
       <div class="gdr-studio-field-grid">
         <label class="gdr-studio-field gdr-studio-field-wide"><span>Property address / locality *</span><input id="gdrStudioLocation" type="text" autocomplete="off" maxlength="300" placeholder="Search area, locality, city or PIN code"><div id="gdrStudioLocationSuggestions" hidden></div></label>
         <label class="gdr-studio-field"><span>PIN code <small>Optional</small></span><input id="gdrStudioPincode" type="text" autocomplete="off" inputmode="numeric" maxlength="6" placeholder="6-digit PIN code"></label>
