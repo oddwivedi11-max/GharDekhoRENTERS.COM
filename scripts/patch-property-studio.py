@@ -234,6 +234,15 @@ if script_ref not in source:
             raise SystemExit("Stopped safely: closing body tag missing.")
         source = source[:body_pos] + script_ref + "\n" + source[body_pos:]
 
+# Older hotfixes could leave a second Property Studio script tag at the end
+# of index.html. Normalize the page to exactly one controller include.
+source = re.sub(r'<script src="/assets/gdr-property-studio\\.js(?:\\?v=[^"]*)?" defer></script>', "", source)
+body_pos = source.rfind("</body>")
+if body_pos < 0:
+    raise SystemExit("Stopped safely: closing body tag missing.")
+source = source[:body_pos] + script_ref + "\n" + source[body_pos:]
+print("Normalized Property Studio controller include to exactly one script tag.")
+
 enrichment = '''            // Enrich map/Nearby result rows with renter-safe Property Studio fields.
             if (property && (!Array.isArray(property.photo_urls) || !Object.prototype.hasOwnProperty.call(property, "nearby_places"))) {
                 const { data: studioRows, error: studioRowsError } = await supabaseClient.rpc("get_public_properties");
