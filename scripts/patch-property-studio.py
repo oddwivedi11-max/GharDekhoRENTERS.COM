@@ -151,7 +151,7 @@ css_ref_v4_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v
 css_ref_v4_prev = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-stepnav3d1">'
 css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-gallery-categories1">'
 css_ref_v5 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1">'
-css_ref_v6 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-rescue3">'
+css_ref_v6 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-draft-gallery2">'
 if css_ref_v6 not in source:
     candidates = [css_ref_v5, css_ref_v4, css_ref_v4_prev, css_ref_v4_old, css_ref_old, css_ref_v3, css_ref_v2, css_ref_v1]
     for old_ref in candidates:
@@ -203,8 +203,9 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-rescue3" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-draft-gallery2" defer></script>'
 old_script_refs = [
+    '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-rescue3" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-manualfirst1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant6" defer></script>',

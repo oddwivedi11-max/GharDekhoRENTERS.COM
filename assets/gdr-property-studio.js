@@ -1,10 +1,10 @@
 (function(){
 "use strict";
-const VERSION="20261109-start-listing-rescue3";
+const VERSION="20261109-draft-gallery2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
-  user:null,owner:null,step:0,opening:false,publishing:false,published:false,propertyType:"",
+  user:null,owner:null,step:0,opening:false,publishing:false,published:false,propertyType:"",configuration:"",draftPhotosNeedReselect:false,draftUpdatedAt:null,
   rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
   locationConfirmed:false,resolvedPincode:"",pinCenter:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
@@ -34,9 +34,58 @@ function clearLegacyDraft(){
  try{localStorage.removeItem(draftKey());}catch(e){console.warn("Could not clear an older Property Studio draft",e);}
 }
 function saveDraft(){
- // Keep values only in live page state. New listings never restore older values.
- if(state.user)setStatus("Details stay on this page while you complete the listing");
+ if(!state.user)return;
+ const fields={propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,
+  furnishing:state.furnishing,description:state.description,address:state.address,pincode:state.pincode,
+  lat:state.lat,lng:state.lng,roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,
+  availableBeds:state.availableBeds,foodIncluded:state.foodIncluded};
+ const meaningful=Object.values(fields).some(value=>value!==null&&value!==undefined&&String(value).trim()!=="");
+ if(!meaningful){clearLegacyDraft();return;}
+ const payload={version:2,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,fields,
+  pendingPhotoCount:state.files.length+state.uploadedPhotos.length,
+  uploadedPhotos:state.uploadedPhotos.map(photo=>({url:photo.url,path:photo.path,category:photo.category||"interior"})),
+  photoCategories:state.files.map(file=>file.gdrCategory||"interior").concat(state.uploadedPhotos.map(photo=>photo.category||"interior"))};
+ try{
+  localStorage.setItem(draftKey(),JSON.stringify(payload));state.draftUpdatedAt=payload.savedAt;
+  setStatus("Draft saved on this device · "+new Date(payload.savedAt).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"}));
+ }catch(error){console.warn("Property Studio draft could not be saved",error);setStatus("Draft storage is unavailable in this browser. Keep this page open while editing.");}
 }
+function restoreDraft(){
+ if(!state.user)return false;
+ let payload;
+ try{payload=JSON.parse(localStorage.getItem(draftKey())||"null");}catch(error){console.warn("Saved listing draft could not be read",error);return false;}
+ if(!payload||payload.version!==2||payload.ownerId!==state.user.id||!payload.fields||typeof payload.fields!=="object")return false;
+ const savedAt=Date.parse(payload.savedAt||"");
+ if(!Number.isFinite(savedAt)||savedAt>Date.now()+300000||Date.now()-savedAt>14*86400000){clearLegacyDraft();dismissDraftRecovery();return false;}
+ const fields=payload.fields,validTypes=["apartment","room","independent_house","villa","pg","hostel","other"];
+ state.propertyType=validTypes.includes(fields.propertyType)?fields.propertyType:"";
+ state.configuration=configurations.includes(fields.configuration)?fields.configuration:(fields.configuration==="Other"?"Other":"");
+ state.rent=String(fields.rent??"").slice(0,12);state.deposit=String(fields.deposit??"").slice(0,12);
+ state.furnishing=["Furnished","Semi-Furnished","Unfurnished"].includes(fields.furnishing)?fields.furnishing:"";
+ state.description=String(fields.description??"").slice(0,2000);state.address=String(fields.address??"").slice(0,300);
+ state.pincode=/^\d{6}$/.test(String(fields.pincode??""))?String(fields.pincode):"";
+ const lat=Number(fields.lat),lng=Number(fields.lng),validPoint=validIndiaPoint(lat,lng);
+ state.lat=validPoint?lat:null;state.lng=validPoint?lng:null;state.locationConfirmed=false;
+ state.pinCenter=validPoint?{lat,lng}:null;state.resolvedPincode="";
+ state.roomType=String(fields.roomType??"").slice(0,80);state.gender=String(fields.gender??"").slice(0,40);
+ state.totalBeds=String(fields.totalBeds??"").slice(0,5);state.availableBeds=String(fields.availableBeds??"").slice(0,5);
+ state.foodIncluded=["yes","no"].includes(fields.foodIncluded)?fields.foodIncluded:"";
+ state.step=Math.max(0,Math.min(4,Number(payload.step)||0));
+ const savedSubmissionId=String(payload.submissionId||"");
+ state.submissionId=/^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(savedSubmissionId)?savedSubmissionId:uuid();
+ state.files=[];state.uploadedPhotos=[];state.uploadedPaths=[];state.coverIndex=0;
+ const publicPrefix="https://gktmaiwqvtusnegevdle.supabase.co/storage/v1/object/public/property-images/"+state.user.id+"/";
+ state.uploadedPhotos=(Array.isArray(payload.uploadedPhotos)?payload.uploadedPhotos:[]).filter(photo=>photo&&typeof photo.path==="string"&&photo.path.startsWith(state.user.id+"/")&&typeof photo.url==="string"&&photo.url.startsWith(publicPrefix)).slice(0,8).map(photo=>({url:photo.url,path:photo.path,category:photo.category==="exterior"?"exterior":"interior"}));
+ state.uploadedPaths=state.uploadedPhotos.map(photo=>photo.path);
+ state.draftPhotosNeedReselect=Number(payload.pendingPhotoCount||0)>state.uploadedPhotos.length;
+ state.draftUpdatedAt=typeof payload.savedAt==="string"?payload.savedAt:null;
+ syncFormFromState();renderPhotos();
+ const banner=$("#gdrStudioDraftRecovery"),note=$("#gdrStudioDraftNote");
+ if(banner){banner.hidden=false;if(note)note.textContent="Recovered "+(state.draftUpdatedAt?new Date(state.draftUpdatedAt).toLocaleString("en-IN"):"saved")+" · "+(state.draftPhotosNeedReselect?"Select any unuploaded image files again; uploaded images have been restored.":"Your text details and uploaded images are ready to continue.");}
+ setStatus("Saved draft recovered · Review your details before publishing");
+ return true;
+}
+function dismissDraftRecovery(){const banner=$("#gdrStudioDraftRecovery");if(banner)banner.hidden=true;}
 function syncFormFromState(){
  const values={
   gdrStudioLocation:state.address,gdrStudioPincode:state.pincode,gdrStudioRent:state.rent,
@@ -49,7 +98,7 @@ function syncFormFromState(){
  updateTypeCards();updateConfigurationCards();updateConditionalFields();updateLocationStatus();renderLiveVoiceForm();
 }
 
-function resetNewListing(){
+function resetNewListing(preserveDraft){
  stopVoice();restoreMapPanel();
  if(searchTimer){clearTimeout(searchTimer);searchTimer=null;}
  if(searchController){try{searchController.abort();}catch(e){}searchController=null;}
@@ -65,7 +114,7 @@ function resetNewListing(){
  state.files.forEach(file=>{if(file.previewUrl&&String(file.previewUrl).startsWith("blob:")){try{URL.revokeObjectURL(file.previewUrl);}catch(e){}}});
  state.files=[];state.coverIndex=0;state.photoCategory="exterior";state.uploadedPhotos=[];state.uploadedPaths=[];
  $$("[data-gdr-photo-category]").forEach(btn=>{const active=btn.dataset.gdrPhotoCategory==="exterior";btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});
- state.nearbyPlaces=[];state.submissionId=uuid();state.recognition=null;state.recording=false;
+ state.nearbyPlaces=[];state.draftPhotosNeedReselect=false;state.draftUpdatedAt=null;state.submissionId=uuid();state.recognition=null;state.recording=false;
  state.mapParent=null;state.mapNext=null;
  Object.assign(state.voice,{
   active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,
@@ -73,7 +122,8 @@ function resetNewListing(){
   lastReply:"",lastQuestion:"",lastField:"",permissionBlocked:false,
   skippedDeposit:false,skippedFood:false,session:state.voice.session+1
  });
- clearLegacyDraft();syncFormFromState();
+ if(!preserveDraft)clearLegacyDraft();
+ syncFormFromState();
  const photoFiles=$("#gdrStudioPhotoFiles"),cameraFiles=$("#gdrStudioCameraFiles");
  if(photoFiles)photoFiles.value="";if(cameraFiles)cameraFiles.value="";
  const transcript=$("#gdrStudioVoiceTranscript");if(transcript)transcript.value="";
@@ -471,86 +521,117 @@ out center tags;`;
 function revokePreviews(){
  state.files.forEach(f=>{if(f.previewUrl)URL.revokeObjectURL(f.previewUrl);});
 }
+function photoEntries(){
+ const uploaded=state.uploadedPhotos.map((photo,index)=>({kind:"uploaded",value:photo,index,category:photo.category==="exterior"?"exterior":photo.category==="interior"?"interior":"other"}));
+ const pending=state.files.map((file,index)=>({kind:"file",value:file,index:state.uploadedPhotos.length+index,category:file.gdrCategory==="exterior"?"exterior":file.gdrCategory==="interior"?"interior":"other"}));
+ return uploaded.concat(pending);
+}
 function renderPhotos(){
  const wrap=$("#gdrStudioPhotoPreview");if(!wrap)return;
- wrap.innerHTML="";
- const items=state.files.length?state.files.map((f,i)=>({url:f.previewUrl,name:f.name,category:f.gdrCategory||"other",index:i,cover:i===state.coverIndex})):
-  state.uploadedPhotos.map((f,i)=>({url:f.url,name:"Property photo "+(i+1),category:f.category||"other",index:i,cover:i===0}));
- if(!items.length){wrap.hidden=true;return;}
+ wrap.replaceChildren();
+ const entries=photoEntries();
+ if(!entries.length){wrap.hidden=true;return;}
  wrap.hidden=false;
- items.forEach(item=>{
-  const card=document.createElement("div");card.className="gdr-studio-photo-card";
-  const img=document.createElement("img");img.src=item.url;img.alt=item.name;
-  const meta=document.createElement("div"),name=document.createElement("span");name.textContent=item.name+" · "+({exterior:"Exterior",interior:"Interior",other:"Other"}[item.category]||"Other");
-  const btn=document.createElement("button");btn.type="button";btn.textContent=item.cover?"✓ Cover photo":"Set as cover";
-  btn.disabled=item.cover;
-  btn.addEventListener("click",()=>{
-   if(state.files.length)state.coverIndex=item.index;
-   else if(item.index!==0){const moved=state.uploadedPhotos.splice(item.index,1)[0];state.uploadedPhotos.unshift(moved);state.uploadedPaths.unshift(state.uploadedPaths.splice(item.index,1)[0]);}
-   saveDraft();renderPhotos();
+ ["exterior","interior","other"].forEach(category=>{
+  const items=entries.filter(entry=>entry.category===category),group=document.createElement("section");
+  group.className="gdr-studio-photo-group gdr-studio-photo-group-"+category;
+  const heading=document.createElement("h3");
+  heading.textContent=(category==="exterior"?"Exterior photos":category==="interior"?"Interior photos":"Other photos")+" · "+items.length;
+  group.appendChild(heading);
+  const grid=document.createElement("div");grid.className="gdr-studio-photo-grid";
+  items.forEach(entry=>{
+   const card=document.createElement("article");card.className="gdr-studio-photo-card";
+   const img=document.createElement("img");img.src=entry.kind==="file"?entry.value.previewUrl:entry.value.url;
+   img.alt=(category==="exterior"?"Exterior":category==="interior"?"Interior":"Property")+" photo";
+   const meta=document.createElement("div"),name=document.createElement("span"),label=document.createElement("small");
+   name.textContent=entry.value.name||"Property photo";label.textContent=category;
+   const cover=document.createElement("button");cover.type="button";cover.textContent=entry.index===state.coverIndex?"✓ Cover photo":"Set as cover";cover.disabled=entry.index===state.coverIndex;
+   cover.addEventListener("click",()=>{state.coverIndex=entry.index;saveDraft();renderPhotos();});
+   const moveUp=document.createElement("button");moveUp.type="button";moveUp.textContent="Move up";moveUp.disabled=items.indexOf(entry)===0;
+   moveUp.addEventListener("click",()=>movePhotoWithinCategory(category,entry.index,-1));
+   const moveDown=document.createElement("button");moveDown.type="button";moveDown.textContent="Move down";moveDown.disabled=items.indexOf(entry)===items.length-1;
+   moveDown.addEventListener("click",()=>movePhotoWithinCategory(category,entry.index,1));
+   const remove=document.createElement("button");remove.type="button";remove.textContent="Remove photo";remove.className="gdr-studio-photo-remove";
+   remove.addEventListener("click",async()=>{
+    if(entry.kind==="file"){
+     const localIndex=entry.index-state.uploadedPhotos.length,removed=state.files.splice(localIndex,1)[0];
+     if(removed?.previewUrl)URL.revokeObjectURL(removed.previewUrl);
+    }else{
+     const removed=state.uploadedPhotos.splice(entry.index,1)[0],path=state.uploadedPaths.splice(entry.index,1)[0];
+     if(path){try{await client().storage.from("property-images").remove([path]);}catch(error){console.warn("Could not remove property photo",error);}}
+    }
+    if(state.coverIndex===entry.index)state.coverIndex=0;else if(state.coverIndex>entry.index)state.coverIndex--;
+    if(state.uploadedPhotos.length+state.files.length===0)state.coverIndex=0;
+    saveDraft();renderPhotos();
+   });
+   meta.append(name,label,cover,moveUp,moveDown,remove);card.append(img,meta);grid.appendChild(card);
   });
-  const remove=document.createElement("button");remove.type="button";remove.textContent="Remove photo";remove.className="gdr-studio-photo-remove";
-  remove.addEventListener("click",async()=>{
-   if(state.files.length){const removed=state.files.splice(item.index,1)[0];if(removed&&removed.previewUrl)URL.revokeObjectURL(removed.previewUrl);state.coverIndex=Math.max(0,Math.min(state.coverIndex,state.files.length-1));}
-   else{
-    const removed=state.uploadedPhotos.splice(item.index,1)[0];const path=state.uploadedPaths.splice(item.index,1)[0];
-    if(path){try{await client().storage.from("property-images").remove([path]);}catch(e){console.warn("Could not remove property photo",e);}}
-   }
-   saveDraft();renderPhotos();
-  });
-  meta.append(name,btn,remove);card.append(img,meta);wrap.appendChild(card);
+  group.appendChild(grid);
+  if(!items.length){const empty=document.createElement("p");empty.className="gdr-studio-photo-empty";empty.textContent=category==="exterior"?"No exterior photos added yet.":category==="interior"?"No interior photos added yet.":"No additional photos added.";group.appendChild(empty);}
+  wrap.appendChild(group);
  });
+}
+function movePhotoWithinCategory(category,index,direction){
+ const entries=photoEntries(),siblings=entries.filter(entry=>entry.category===category),position=siblings.findIndex(entry=>entry.index===index),target=siblings[position+direction],current=siblings[position];
+ if(!current||!target)return;
+ if(current.kind!==target.kind){message("Photos already uploaded and photos waiting for upload are kept in separate groups. Move the photo after upload.","info");return;}
+ if(current.kind==="file"){
+  const a=current.index-state.uploadedPhotos.length,b=target.index-state.uploadedPhotos.length;
+  const moved=state.files.splice(a,1)[0];state.files.splice(b,0,moved);
+ }else{
+  const a=current.index,b=target.index;
+  const moved=state.uploadedPhotos.splice(a,1)[0],movedPath=state.uploadedPaths.splice(a,1)[0];
+  state.uploadedPhotos.splice(b,0,moved);state.uploadedPaths.splice(b,0,movedPath);
+ }
+ if(state.coverIndex===current.index)state.coverIndex=target.index;else if(state.coverIndex===target.index)state.coverIndex=current.index;
+ saveDraft();renderPhotos();
 }
 async function removeUploadedFiles(){
  const c=client();if(!c||!state.uploadedPaths.length)return;
- try{await c.storage.from("property-images").remove(state.uploadedPaths);}catch(e){console.warn("Could not clean up replaced studio photos",e);}
+ try{await c.storage.from("property-images").remove(state.uploadedPaths);}catch(error){console.warn("Could not clean up Property Studio photos",error);}
  state.uploadedPaths=[];state.uploadedPhotos=[];
 }
 async function acceptFiles(list){
- const incoming=Array.from(list||[]);
- if(!incoming.length)return;
+ const incoming=Array.from(list||[]);if(!incoming.length)return;
  const current=state.files.length+state.uploadedPhotos.length;
- if(current+incoming.length>8){message("Choose up to 8 property photos.","error");return;}
- for(const f of incoming){
-  if(!allowedTypes.includes(f.type)){message("Use JPG, PNG or WEBP photos only.","error");return;}
-  if(f.size>5*1024*1024){message("Each photo must be 5 MB or smaller.","error");return;}
+ if(current+incoming.length>8){message("Choose up to 8 photos across both categories.","error");return;}
+ for(const file of incoming){
+  if(!allowedTypes.includes(file.type)){message("Use JPG, PNG or WEBP photos only.","error");return;}
+  if(file.size>5*1024*1024){message("Each photo must be 5 MB or smaller.","error");return;}
  }
- if(state.uploadedPhotos.length){await removeUploadedFiles();}
- incoming.forEach(f=>{f.gdrCategory=state.photoCategory||"exterior";f.previewUrl=URL.createObjectURL(f);state.files.push(f);});
- state.coverIndex=0;renderPhotos();saveDraft();message("Photos added. Choose the cover photo before publishing.","success");
+ incoming.forEach(file=>{file.gdrCategory=["exterior","interior","other"].includes(state.photoCategory)?state.photoCategory:"exterior";file.previewUrl=URL.createObjectURL(file);state.files.push(file);});
+ if(!state.uploadedPhotos.length&&state.coverIndex>=state.files.length)state.coverIndex=0;
+ renderPhotos();saveDraft();message("Photos added. Both Interior and Exterior categories are optional; one or two photos are enough.","success");
 }
 function uploadPhotos(){
  const c=client();
- if(state.uploadedPhotos.length)return Promise.resolve(state.uploadedPhotos);
- if(!state.files.length)return Promise.resolve([]);
+ if(!state.files.length)return Promise.resolve(state.uploadedPhotos);
  return (async()=>{
-  const ordered=state.files.slice();
-  if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0]);
-  const uploaded=new Array(ordered.length),paths=[];
+  const existing=state.uploadedPhotos.slice(),pending=state.files.slice(),newUploads=new Array(pending.length),newPaths=[];
   try{
-   // Three at a time reduces serial latency without flooding mobile connections.
-   for(let start=0;start<ordered.length;start+=3){
-    const batch=ordered.slice(start,start+3);
+   for(let start=0;start<pending.length;start+=3){
+    const batch=pending.slice(start,start+3);
     const settled=await Promise.allSettled(batch.map(async(file)=>{
      const ext=file.type==="image/jpeg"?"jpg":file.type==="image/png"?"png":"webp";
      const category=["exterior","interior","other"].includes(file.gdrCategory)?file.gdrCategory:"other";
      const path=state.user.id+"/"+category+"/"+uuid()+"."+ext;
      const result=await c.storage.from("property-images").upload(path,file,{cacheControl:"3600",contentType:file.type,upsert:false});
      if(result.error)throw result.error;
-     const publicResult=c.storage.from("property-images").getPublicUrl(result.data.path);
-     const url=publicResult&&publicResult.data&&publicResult.data.publicUrl;
+     const publicResult=c.storage.from("property-images").getPublicUrl(result.data.path),url=publicResult?.data?.publicUrl;
      if(!url)throw new Error("Could not create the uploaded photo URL.");
-     paths.push(path);return {url:url,path:path,category:category};
+     newPaths.push(result.data.path);return {url,path:result.data.path,category};
     }));
-    const failed=settled.find(result=>result.status==="rejected");if(failed)throw failed.reason;
-    const results=settled.map(result=>result.value);
-    results.forEach((item,offset)=>{uploaded[start+offset]=item;});
-    state.uploadedPhotos=uploaded.filter(Boolean).slice();state.uploadedPaths=paths.slice();saveDraft();
+    const failed=settled.find(item=>item.status==="rejected");if(failed)throw failed.reason;
+    settled.forEach((item,offset)=>{newUploads[start+offset]=item.value;});
    }
-   state.files=[];state.coverIndex=0;renderPhotos();return uploaded;
+   const combined=existing.concat(newUploads),coverIndex=Math.max(0,Math.min(Number(state.coverIndex)||0,combined.length-1));
+   const cover=combined.splice(coverIndex,1)[0],ordered=cover?[cover,...combined]:combined;
+   state.uploadedPhotos=ordered;state.uploadedPaths=ordered.map(photo=>photo.path);
+   state.files.forEach(file=>{if(file.previewUrl)URL.revokeObjectURL(file.previewUrl);});
+   state.files=[];state.coverIndex=0;state.draftPhotosNeedReselect=false;renderPhotos();saveDraft();return ordered;
   }catch(error){
-   if(paths.length){try{await c.storage.from("property-images").remove(paths);}catch(e){}}
-   state.uploadedPhotos=[];state.uploadedPaths=[];saveDraft();throw error;
+   if(newPaths.length){try{await c.storage.from("property-images").remove(newPaths);}catch(cleanupError){console.warn("Could not remove partially uploaded new photos",cleanupError);}}
+   state.uploadedPhotos=existing;state.uploadedPaths=existing.map(photo=>photo.path);saveDraft();throw error;
   }
  })();
 }
@@ -596,7 +677,7 @@ function renderPreview(){
  const rent=$("#gdrStudioRent")?.value||state.rent;
  const deposit=$("#gdrStudioDeposit")?.value||state.deposit;
  const address=$("#gdrStudioLocation")?.value||state.address;
- const photos=state.files.length?state.files.map(f=>f.previewUrl):state.uploadedPhotos.map(p=>p.url);
+ const photos=photoEntries().map(entry=>entry.kind==="file"?entry.value.previewUrl:entry.value.url);
  const cover=photos[state.coverIndex]||photos[0]||"/assets/gdr-property-placeholder.svg";
  const box=$("#gdrStudioPreview");if(!box)return;
  const config=state.propertyType==="other"?"Other":state.configuration;
@@ -687,11 +768,12 @@ async function open(voice){
   }
   const account=await getOwner();state.user=account.user;state.owner=account.owner;
   // Every new listing starts clean; owners enter their own details.
-  resetNewListing();
+  resetNewListing(true);
+  const recovered=restoreDraft();
   const root=studio();if(!root)throw new Error("Property Studio could not be loaded. Refresh and try again.");
   root.hidden=false;document.body.classList.add("gdr-property-studio-open");
   const dashSection=$("#dashboardSection");if(dashSection){dashSection.style.display="none";dashSection.setAttribute("aria-hidden","true");}
-  updateStep();root.scrollTop=0;root.scrollTo({top:0,behavior:"instant"});window.scrollTo({top:0,behavior:"instant"});
+  updateStep();if(!recovered)dismissDraftRecovery();root.scrollTop=0;root.scrollTo({top:0,behavior:"instant"});window.scrollTo({top:0,behavior:"instant"});
   wrapMapCallback();
   if(voice)startVoice();
   showLauncherFeedback("");
@@ -1096,6 +1178,12 @@ function bindEvents(){
  $("#gdrStudioFormNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
+ $("#gdrStudioDraftResume")?.addEventListener("click",dismissDraftRecovery);
+ $("#gdrStudioDraftStartFresh")?.addEventListener("click",async()=>{
+  if(!window.confirm("Discard this saved property draft and start a blank listing?"))return;
+  clearLegacyDraft();await removeUploadedFiles();resetNewListing();dismissDraftRecovery();
+  message("A fresh blank listing is ready. Your published properties are unchanged.","success");
+ });
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
   state.address=e.target.value;state.pincode="";clearStudioCoordinateSelection();if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"address"))state.voice.pending.address=state.address;const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();renderLiveVoiceForm();
   if(searchTimer)clearTimeout(searchTimer);
@@ -1122,6 +1210,14 @@ function bindEvents(){
  $("#gdrStudioOpenMap")?.addEventListener("click",openMap);
  $("#gdrStudioPhotoFiles")?.addEventListener("change",e=>{acceptFiles(e.target.files);e.target.value="";});
  $("#gdrStudioCameraFiles")?.addEventListener("change",e=>{acceptFiles(e.target.files);e.target.value="";});
+ root.querySelectorAll("[data-gdr-studio-photo-upload]").forEach(button=>button.addEventListener("click",()=>{
+  state.photoCategory=button.dataset.gdrStudioPhotoUpload==="interior"?"interior":"exterior";
+  $("#gdrStudioPhotoFiles")?.click();
+ }));
+ root.querySelectorAll("[data-gdr-studio-photo-camera]").forEach(button=>button.addEventListener("click",()=>{
+  state.photoCategory=button.dataset.gdrStudioPhotoCamera==="interior"?"interior":"exterior";
+  $("#gdrStudioCameraFiles")?.click();
+ }));
  $("#gdrStudioChoosePhotos")?.addEventListener("click",()=>$("#gdrStudioPhotoFiles")?.click());
  $("#gdrStudioTakePhotos")?.addEventListener("click",()=>$("#gdrStudioCameraFiles")?.click());
  $("#gdrStudioVoiceStart")?.addEventListener("click",startVoice);

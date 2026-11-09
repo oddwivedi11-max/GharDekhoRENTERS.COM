@@ -102,8 +102,8 @@ test("owner listing hero makes manual listing primary and keeps voice only in th
  assert.ok(!hero.includes('id="gdrListPropertySpeak"'));
  assert.ok(markup.includes("Manual entry is the primary option"));
  assert.ok(markup.indexOf('class="gdr-studio-voice"')>markup.indexOf('data-gdr-studio-panel="4"'));
- assert.match(index,/gdr-property-studio\.js\?v=20261109-start-listing-/);
- assert.match(index,/gdr-property-studio\.css\?v=20261109-start-listing-/);
+ assert.match(index,/gdr-property-studio\.js\?v=20261109-draft-gallery2/);
+ assert.match(index,/gdr-property-studio\.css\?v=20261109-draft-gallery2/);
 });
 test("owner profile edit remains connected to its existing secure update flow",()=>{
  assert.ok(index.includes('id="ownerEditProfileBtn">✏️ Edit Profile</button>'));
@@ -115,10 +115,13 @@ test("owner profile edit remains connected to its existing secure update flow",(
  assert.ok(css.includes("#ownerDashboard .owner-profile-card #ownerEditProfileBtn"));
 });
 
-test("new owner listings do not restore previous manually entered or spoken values",()=>{
- assert.ok(js.includes("resetNewListing();"));
- assert.ok(js.includes('state.address="";state.pincode=""'));
- assert.ok(!js.includes("restoreDraft();"));
+test("new owner listings restore only their own saved text draft and re-confirm exact location",()=>{
+  assert.ok(js.includes("resetNewListing(true);"));
+  assert.ok(js.includes("const recovered=restoreDraft();"));
+  assert.ok(js.includes("payload.ownerId!==state.user.id"));
+  assert.ok(js.includes("state.locationConfirmed=false"));
+  assert.ok(js.includes("function dismissDraftRecovery()"));
+  assert.ok(js.includes("function clearLegacyDraft()"));
 });
 test("successful listing returns to the dashboard without a new auth/login navigation",()=>{
  assert.ok(js.includes("window.renderActiveDashboard()"));
