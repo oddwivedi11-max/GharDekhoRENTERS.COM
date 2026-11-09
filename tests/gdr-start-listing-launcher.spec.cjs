@@ -6,7 +6,7 @@ test.describe("GDR owner Start Listing launcher", () => {
     await page.waitForFunction(() =>
       window.GDRPropertyStudio &&
       typeof window.GDRPropertyStudio.open === "function" &&
-      window.__gdrListPropertyLauncherBound === true,
+      !!window.__gdrListPropertyLauncherBound,
       { timeout: 15000 }
     );
 
