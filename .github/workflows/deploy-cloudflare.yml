@@ -211,12 +211,12 @@ jobs:
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-root.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-login.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
           grep -q 'gdrxSupport' /tmp/gdr-live-root.html || grep -q 'gdrxSupport' /tmp/gdr-live-login.html || grep -q 'gdrxSupport' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
-          grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-index.html
+          grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-root.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-login.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-root.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-login.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.css?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.css?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.css?v=20261107-paymentproof1' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7" -o /tmp/gdr-owner-command-center-hotfix.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1" -o /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261109-renter-actions-functional1" -o /tmp/gdr-owner-renter-page.js
@@ -230,13 +230,18 @@ jobs:
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
           grep -q 'previousBodyOverflow' /tmp/gdr-owner-current-renters-dashboard.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261107-workspace7" -o /tmp/gdr-owner-command-center.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261109-owner-insights1" -o /tmp/gdr-owner-command-center.css
           grep -q '#e8d18a' /tmp/gdr-owner-command-center.css
           grep -q '#f8fff4' /tmp/gdr-owner-command-center.css
           grep -q '#e8f0ea' /tmp/gdr-owner-command-center.css
           grep -q '#b9f36b' /tmp/gdr-owner-command-center.css
           # Cache version is validated in the HTML script URL above; it is not embedded in the JS bundle.
           grep -q 'gdrOccModuleTitle' /tmp/gdr-owner-command-center.css
+          grep -q 'gdr-insight-kpi-grid' /tmp/gdr-owner-command-center.css
+          grep -q 'gdr-insight-notification-list' /tmp/gdr-owner-command-center.css
+          grep -q 'function fetchOwnerInsights' /tmp/gdr-owner-command-center-hotfix.js
+          grep -q 'data-gdr-module="analytics"' /tmp/gdr-owner-command-center-hotfix.js
+          grep -q 'data-gdr-module="notifications"' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'grid-template-columns:112px minmax(0,1fr)' /tmp/gdr-owner-command-center.css
           grep -q 'function bindLogout' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'removeAttribute("onclick")' /tmp/gdr-owner-command-center-hotfix.js
