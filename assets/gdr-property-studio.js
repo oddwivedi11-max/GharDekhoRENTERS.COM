@@ -1178,6 +1178,12 @@ function bindEvents(){
  $("#gdrStudioFormNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
+ $("#gdrStudioDraftResume")?.addEventListener("click",dismissDraftRecovery);
+ $("#gdrStudioDraftStartFresh")?.addEventListener("click",async()=>{
+  if(!window.confirm("Discard this saved property draft and start a blank listing?"))return;
+  clearLegacyDraft();await removeUploadedFiles();resetNewListing();dismissDraftRecovery();
+  message("A fresh blank listing is ready. Your published properties are unchanged.","success");
+ });
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
   state.address=e.target.value;state.pincode="";clearStudioCoordinateSelection();if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"address"))state.voice.pending.address=state.address;const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();renderLiveVoiceForm();
   if(searchTimer)clearTimeout(searchTimer);
@@ -1204,6 +1210,14 @@ function bindEvents(){
  $("#gdrStudioOpenMap")?.addEventListener("click",openMap);
  $("#gdrStudioPhotoFiles")?.addEventListener("change",e=>{acceptFiles(e.target.files);e.target.value="";});
  $("#gdrStudioCameraFiles")?.addEventListener("change",e=>{acceptFiles(e.target.files);e.target.value="";});
+ root.querySelectorAll("[data-gdr-studio-photo-upload]").forEach(button=>button.addEventListener("click",()=>{
+  state.photoCategory=button.dataset.gdrStudioPhotoUpload==="interior"?"interior":"exterior";
+  $("#gdrStudioPhotoFiles")?.click();
+ }));
+ root.querySelectorAll("[data-gdr-studio-photo-camera]").forEach(button=>button.addEventListener("click",()=>{
+  state.photoCategory=button.dataset.gdrStudioPhotoCamera==="interior"?"interior":"exterior";
+  $("#gdrStudioCameraFiles")?.click();
+ }));
  $("#gdrStudioChoosePhotos")?.addEventListener("click",()=>$("#gdrStudioPhotoFiles")?.click());
  $("#gdrStudioTakePhotos")?.addEventListener("click",()=>$("#gdrStudioCameraFiles")?.click());
  $("#gdrStudioVoiceStart")?.addEventListener("click",startVoice);
