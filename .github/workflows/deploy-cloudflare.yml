@@ -180,7 +180,7 @@ jobs:
           grep -q 'gdr-list-hero-actions' /tmp/gdr-property-studio.css
           grep -Fq '$("[data-gdr-photo-category]").forEach' /tmp/gdr-property-studio.js
           grep -Fq '$("[data-gdr-photo-category]",root).forEach' /tmp/gdr-property-studio.js
-          if grep -Fq '$("[data-gdr-photo-category]").forEach' /tmp/gdr-property-studio.js; then
+          if grep -Eq '(^|[^$])\$\("\[data-gdr-photo-category\]"\)\.forEach' /tmp/gdr-property-studio.js; then
             echo "A single-element querySelector is still used as a photo-category collection."
             exit 1
           fi
