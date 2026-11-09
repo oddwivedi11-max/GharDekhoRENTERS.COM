@@ -43,8 +43,10 @@ jobs:
               ("gdr-owner-payments.js", "20261107-paymentproof1"),
               ("gdr-owner-payments.css", "20261107-paymentproof1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
+              ("gdr-owner-command-center-hotfix.js", "20261109-owner-insights1"),
               ("gdr-map-experience.js", "20261109-open-data-map-geo1"),
-              ("gdr-property-studio.js", "20261109-owner-launcher-fix1"),
+              ("gdr-property-studio.js", "20261109-draft-gallery2"),
+              ("gdr-property-studio.css", "20261109-draft-gallery2"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:
@@ -215,12 +217,12 @@ jobs:
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-root.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-login.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
           grep -q 'gdrxSupport' /tmp/gdr-live-root.html || grep -q 'gdrxSupport' /tmp/gdr-live-login.html || grep -q 'gdrxSupport' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
-          grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261107-workspace7' /tmp/gdr-live-index.html
+          grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-root.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-login.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-root.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-login.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.css?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.css?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.css?v=20261107-paymentproof1' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261107-workspace7" -o /tmp/gdr-owner-command-center-hotfix.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261109-owner-insights1" -o /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261109-renter-actions-functional1" -o /tmp/gdr-owner-renter-page.js
@@ -234,7 +236,7 @@ jobs:
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
           grep -q 'previousBodyOverflow' /tmp/gdr-owner-current-renters-dashboard.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261107-workspace7" -o /tmp/gdr-owner-command-center.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261109-profilevisibility2" -o /tmp/gdr-owner-command-center.css
           grep -q '#e8d18a' /tmp/gdr-owner-command-center.css
           grep -q '#f8fff4' /tmp/gdr-owner-command-center.css
           grep -q '#e8f0ea' /tmp/gdr-owner-command-center.css
@@ -243,17 +245,20 @@ jobs:
           grep -q 'gdrOccModuleTitle' /tmp/gdr-owner-command-center.css
           grep -q 'grid-template-columns:112px minmax(0,1fr)' /tmp/gdr-owner-command-center.css
           grep -q 'function bindLogout' /tmp/gdr-owner-command-center-hotfix.js
+           grep -q 'function fetchOwnerInsights' /tmp/gdr-owner-command-center-hotfix.js
+           grep -q 'function buildOwnerNotifications' /tmp/gdr-owner-command-center-hotfix.js
+           grep -q 'function refreshNotificationBadge' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'removeAttribute("onclick")' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'window.addEventListener("click"' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-root.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-login.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-root.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-login.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
           grep -q 'List Your Property' /tmp/gdr-live-root.html || grep -q 'List Your Property' /tmp/gdr-live-login.html || grep -q 'List Your Property' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.js?v=20261109-owner-launcher-fix1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261109-owner-launcher-fix1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261109-owner-launcher-fix1' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.css?v=20261109-gallery-categories1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261109-gallery-categories1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261109-gallery-categories1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261109-draft-gallery2' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261109-draft-gallery2' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261109-draft-gallery2' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.css?v=20261109-draft-gallery2' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261109-draft-gallery2' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261109-draft-gallery2' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-root.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-login.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-root.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-login.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-owner-launcher-fix1" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-draft-gallery2" -o /tmp/gdr-property-studio.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-property-archive.js?v=20261109-soft-archive1" -o /tmp/gdr-owner-property-archive.js
           grep -q 'owner_archive_property' /tmp/gdr-owner-property-archive.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
@@ -270,11 +275,11 @@ jobs:
           grep -q 'speechSynthesis' /tmp/gdr-property-studio.js
           grep -q 'SpeechRecognition' /tmp/gdr-property-studio.js
           grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-root.html || grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-login.html || grep -q 'gdr-renter-experience.js?v=20261107-assistant-results-render1' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261109-gallery-categories1" -o /tmp/gdr-property-studio.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261109-draft-gallery2" -o /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-topbar' /tmp/gdr-property-studio.css
           grep -q 'gdr-studio-voice-assistant' /tmp/gdr-property-studio.css
           grep -q 'gdr-moveout-notice' /tmp/gdr-property-studio.css
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261107-manualreset1" -o /tmp/gdr-property-studio.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.txt?v=20261109-draft-gallery2" -o /tmp/gdr-property-studio.html
           grep -q 'data-gdr-property-type="room"' /tmp/gdr-property-studio.html
           grep -q 'Microphone is OFF. Press Start speaking' /tmp/gdr-property-studio.html
           grep -q 'gdrStudioPhotoFiles' /tmp/gdr-property-studio.html
@@ -289,6 +294,11 @@ jobs:
           grep -q 'autocomplete="off"' /tmp/gdr-property-studio.html
           grep -q 'value="hi-IN-hinglish"' /tmp/gdr-property-studio.html
           grep -q 'gdr-studio-mic-button' /tmp/gdr-property-studio.html
+           grep -q 'function restoreDraft' /tmp/gdr-property-studio.js
+           grep -q 'gdrStudioDraftRecovery' /tmp/gdr-property-studio.html
+           grep -q 'Exterior Photos' /tmp/gdr-property-studio.html
+           grep -q 'Interior Photos' /tmp/gdr-property-studio.html
+           grep -q 'gdr-studio-photo-categories' /tmp/gdr-property-studio.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261107-paymentproof1" -o /tmp/gdr-rental-suite.js
           grep -q 'renter_submit_move_out_notice' /tmp/gdr-rental-suite.js
           # The payment module has its own independently versioned dynamic stylesheet;
