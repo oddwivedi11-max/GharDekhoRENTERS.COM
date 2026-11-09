@@ -153,36 +153,17 @@ css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=202
 css_ref_v5 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1">'
 css_ref_v6 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-rescue3">'
 if css_ref_v6 not in source:
-    if css_ref_v5 in source:
-        source = source.replace(css_ref_v5, css_ref_v6, 1)
-        print("Updated: reliable Start Listing interaction and hit target")
-    elif css_ref_v5 not in source:
-    if css_ref_v4 in source:
-        source = source.replace(css_ref_v4, css_ref_v5, 1)
-        print("Updated: visible Start Listing launch feedback styles")
-    elif css_ref_v4_prev in source:
-        source = source.replace(css_ref_v4_prev, css_ref_v5, 1)
-        print("Updated: refresh manual-entry Property Studio styles")
-    elif css_ref_v4_old in source:
-        source = source.replace(css_ref_v4_old, css_ref_v5, 1)
-        print("Updated: refresh owner profile and Property Studio styles")
-    elif css_ref_old in source:
-        source = source.replace(css_ref_old, css_ref_v5, 1)
-        print("Updated: refresh owner profile and Property Studio styles")
-    elif css_ref_v3 in source:
-        source = source.replace(css_ref_v3, css_ref_v5, 1)
-        print("Updated: refresh conversational Property Studio voice styles")
-    elif css_ref_v2 in source:
-        source = source.replace(css_ref_v2, css_ref_v5, 1)
-        print("Updated: refresh Property Studio nearby preview styles")
-    elif css_ref_v1 in source:
-        source = source.replace(css_ref_v1, css_ref_v5, 1)
-        print("Updated: refresh Property Studio and renter notice stylesheet")
+    candidates = [css_ref_v5, css_ref_v4, css_ref_v4_prev, css_ref_v4_old, css_ref_old, css_ref_v3, css_ref_v2, css_ref_v1]
+    for old_ref in candidates:
+        if old_ref in source:
+            source = source.replace(old_ref, css_ref_v6, 1)
+            print("Updated: reliable Start Listing interaction and hit target")
+            break
     else:
         head_pos = source.rfind("</head>")
         if head_pos < 0:
             raise SystemExit("Stopped safely: closing head tag missing.")
-        source = source[:head_pos] + css_ref_v5 + "\n" + source[head_pos:]
+        source = source[:head_pos] + css_ref_v6 + "\\n" + source[head_pos:]
 
 renter_js_old = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
 renter_js_old2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
