@@ -205,7 +205,7 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.equal(html.split("gdr-property-studio.js").length-1,1);
  assert.equal(html.split("gdr-property-studio.css").length-1,1);
  assert.ok(
-  html.includes("gdr-property-studio.js?v=20261109-start-listing-clickfix1")
+  html.includes("gdr-property-studio.js?v=20261109-start-listing-resetfix2")
  );
  assert.ok(html.includes("gdr-property-studio.css?v=20261109-start-listing-clickfix1"));
  assert.match(patcher,/20261109-gallery-batch1/);
@@ -222,5 +222,7 @@ test("Start Listing opens only from a visible Owner Dashboard and verifies the a
   assert.match(studio, /closest\("#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn"\)/);
   assert.match(studio, /stopImmediatePropagation\(\)/);
   assert.match(studio, /if\(state\.publishing\|\|state\.opening\)return false/);
+  assert.doesNotMatch(studio, /(?<!\$)\$\([^)]*\)\.forEach/);
+  assert.match(studio, /\$\$\("\[data-gdr-photo-category\]"\)\.forEach/);
   assert.match(html, /id="gdrListPropertyStart"/);
 });
