@@ -211,6 +211,19 @@ def patch_index():
         raise SystemExit("Renter Edit Profile placement validation failed.")
     if "openRenterProfileEditor" not in source or "saveRenterProfile" not in source:
         raise SystemExit("Existing renter profile edit/save handlers are missing.")
+    # Apply this separately so an already-installed older dashboard style block
+    # also receives the promotional-hero removal on subsequent deployments.
+    hero_hide_marker = "GDR promotional renter hero removed"
+    if hero_hide_marker not in source:
+        style_end = source.rfind("</style>")
+        if style_end < 0:
+            raise SystemExit("Could not find the final style block for renter hero removal.")
+        hero_hide_css = """\\n/* GDR promotional renter hero removed; keep all renter actions visible. */
+#renterDashboard .renter-welcome-card,
+#renterDashboard.gdrx-premium .renter-welcome-card{display:none!important}
+"""
+        source = source[:style_end] + hero_hide_css + source[style_end:]
+
     # Load the owner archive adapter after the existing dashboard scripts.
     archive_tag = '<script src="/assets/gdr-owner-property-archive.js"></script>'
     if archive_tag not in source:
