@@ -163,7 +163,7 @@ if css_ref_v6 not in source:
         head_pos = source.rfind("</head>")
         if head_pos < 0:
             raise SystemExit("Stopped safely: closing head tag missing.")
-        source = source[:head_pos] + css_ref_v6 + "\\n" + source[head_pos:]
+        source = source[:head_pos] + css_ref_v6 + "\n" + source[head_pos:]
 
 renter_js_old = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
 renter_js_old2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
