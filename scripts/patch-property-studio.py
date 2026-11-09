@@ -150,30 +150,34 @@ css_ref_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20
 css_ref_v4_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-ownerprofile1">'
 css_ref_v4_prev = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-stepnav3d1">'
 css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-gallery-categories1">'
-if css_ref_v4 not in source:
-    if css_ref_v4_prev in source:
-        source = source.replace(css_ref_v4_prev, css_ref_v4, 1)
+css_ref_v5 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1">'
+if css_ref_v5 not in source:
+    if css_ref_v4 in source:
+        source = source.replace(css_ref_v4, css_ref_v5, 1)
+        print("Updated: visible Start Listing launch feedback styles")
+    elif css_ref_v4_prev in source:
+        source = source.replace(css_ref_v4_prev, css_ref_v5, 1)
         print("Updated: refresh manual-entry Property Studio styles")
     elif css_ref_v4_old in source:
-        source = source.replace(css_ref_v4_old, css_ref_v4, 1)
-        print("Updated: refresh 3D manual Property Studio navigation styles")
+        source = source.replace(css_ref_v4_old, css_ref_v5, 1)
+        print("Updated: refresh owner profile and Property Studio styles")
     elif css_ref_old in source:
-        source = source.replace(css_ref_old, css_ref_v4, 1)
+        source = source.replace(css_ref_old, css_ref_v5, 1)
         print("Updated: refresh owner profile and Property Studio styles")
     elif css_ref_v3 in source:
-        source = source.replace(css_ref_v3, css_ref_v4, 1)
+        source = source.replace(css_ref_v3, css_ref_v5, 1)
         print("Updated: refresh conversational Property Studio voice styles")
     elif css_ref_v2 in source:
-        source = source.replace(css_ref_v2, css_ref_v4, 1)
+        source = source.replace(css_ref_v2, css_ref_v5, 1)
         print("Updated: refresh Property Studio nearby preview styles")
     elif css_ref_v1 in source:
-        source = source.replace(css_ref_v1, css_ref_v4, 1)
+        source = source.replace(css_ref_v1, css_ref_v5, 1)
         print("Updated: refresh Property Studio and renter notice stylesheet")
     else:
         head_pos = source.rfind("</head>")
         if head_pos < 0:
             raise SystemExit("Stopped safely: closing head tag missing.")
-        source = source[:head_pos] + css_ref_v4 + "\n" + source[head_pos:]
+        source = source[:head_pos] + css_ref_v5 + "\n" + source[head_pos:]
 
 renter_js_old = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout3"></script>'
 renter_js_old2 = '<script src="/assets/gdr-rental-suite.js?v=20261107-moveout2"></script>'
@@ -213,12 +217,14 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-gallery-batch1" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" defer></script>'
 old_script_refs = [
     '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-manualfirst1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-voiceassistant6" defer></script>',
-    '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>'
+    '<script src="/assets/gdr-property-studio.js?v=20261107-studio6" defer></script>',
+    '<script src="/assets/gdr-property-studio.js?v=20261109-gallery-batch1" defer></script>',
+    '<script src="/assets/gdr-property-studio.js?v=20261109-owner-launcher-fix1" defer></script>'
 ]
 if script_ref not in source:
     replaced = False
