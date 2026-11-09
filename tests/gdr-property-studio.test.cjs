@@ -201,7 +201,7 @@ test("Property Studio Interior and Exterior galleries remain optional and keep a
 
 test("Property photo uploads merge restored images with newly selected files",()=>{
  assert.ok(studio.includes("const existing=state.uploadedPhotos.slice()"));
- assert.ok(studio.includes("const finalPhotos=ordered.map(item=>item.kind==="uploaded"?item.photo:newPhotoByFileIndex.get(item.fileIndex))"));
+ assert.ok(studio.includes('const finalPhotos=ordered.map(item=>item.kind==="uploaded"?item.photo:newPhotoByFileIndex.get(item.fileIndex))'));
  assert.ok(studio.includes("state.uploadedPaths=finalPhotos.map(photo=>photo.path)"));
  const accept=studio.slice(studio.indexOf("async function acceptFiles(list,category)"),studio.indexOf("function uploadPhotos()",studio.indexOf("async function acceptFiles(list,category)")));
  assert.doesNotMatch(accept,/removeUploadedFiles/);
