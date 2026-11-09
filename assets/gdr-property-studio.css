@@ -362,3 +362,5 @@ body.gdr-property-studio-open{overflow:hidden!important}
 #gdrPropertyStudio .gdr-studio-photo-card>div>span{flex:1 1 100%;color:#244a35;font-size:11px;font-weight:850;overflow-wrap:anywhere}
 #gdrPropertyStudio .gdr-studio-photo-card button{min-height:35px;padding:0 10px;border:1px solid #d5e2d2;border-radius:9px;background:#f8fbf6;color:#28523a;font-size:10px;font-weight:850}
 @media(max-width:600px){#gdrPropertyStudio .gdr-studio-photo-category{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}#gdrPropertyStudio .gdr-studio-photo-category button{padding:0 7px;font-size:11px}#gdrPropertyStudio .gdr-studio-photo-card>img{height:128px}}
+
+#gdrPropertyStudio #gdrStudioPhotoPreview[hidden]{display:none!important}
