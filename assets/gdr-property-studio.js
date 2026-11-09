@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261109-pin-location-safety2";
+const VERSION="20261109-start-listing-rescue3";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -671,7 +671,7 @@ function showLauncherFeedback(text,tone){
 async function open(voice){
  if(state.publishing||state.opening)return false;
  state.opening=true;
- showLauncherFeedback("");
+ showLauncherFeedback("Opening Property Studio…","info");
  try{
   await readyPromise;
   const dash=$("#ownerDashboard");
@@ -1241,18 +1241,36 @@ let readyPromise=Promise.resolve();
 window.GDRPropertyStudio={open:voice=>open(voice===true),openByVoice:()=>open(true),close:close};
 function bindPropertyStudioLauncher(){
  if(window.__gdrListPropertyLauncherBound)return;
- document.addEventListener("click",function(event){
-  const target=event.target&&event.target.closest?event.target:null;
-  if(!target)return;
-  const trigger=target.closest("#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn");
+ const selector="#gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn";
+ // Window capture runs before document-level dashboard guards. This prevents
+ // other owner-dashboard click handlers from swallowing the primary launcher.
+ window.addEventListener("click",function(event){
+  const rawTarget=event.target;
+  const target=rawTarget&&rawTarget.nodeType===1?rawTarget:(rawTarget&&rawTarget.parentElement?rawTarget.parentElement:null);
+  const trigger=target&&typeof target.closest==="function"?target.closest(selector):null;
   if(!trigger)return;
   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
-  // One delegated handler covers the primary hero action and the legacy
-  // dashboard entry point. The opening guard prevents duplicate async opens.
-  void window.GDRPropertyStudio.open(trigger.id==="gdrListPropertySpeak");
+  if(state.publishing||state.opening)return;
+  if(!window.GDRPropertyStudio||typeof window.GDRPropertyStudio.open!=="function"){
+   showLauncherFeedback("Property Studio is still loading. Refresh the page and try again.","error");
+   return;
+  }
+  const originalLabel=trigger.textContent;
+  trigger.disabled=true;trigger.setAttribute("aria-busy","true");
+  if(trigger.id==="gdrListPropertyStart")trigger.textContent="Opening…";
+  Promise.resolve()
+   .then(()=>window.GDRPropertyStudio.open(trigger.id==="gdrListPropertySpeak"))
+   .catch(error=>{
+    console.error("GharDekho listing launcher failed",error);
+    showLauncherFeedback(error&&error.message?error.message:"Could not open Property Studio. Please retry.","error");
+   })
+   .finally(()=>{
+    trigger.disabled=false;trigger.removeAttribute("aria-busy");
+    if(trigger.isConnected&&trigger.id==="gdrListPropertyStart")trigger.textContent=originalLabel;
+   });
  },true);
  window.__gdrListPropertyLauncherBound=true;
 }
-bindPropertyStudioLauncher();
+
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{readyPromise=init();},{once:true});else readyPromise=init();
 })();
