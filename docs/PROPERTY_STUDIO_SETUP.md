@@ -42,3 +42,10 @@ A renter can submit, update or withdraw a move-out notice from the current-renta
 - Genuine 360-degree image capture/viewer and GLB/glTF model viewing are not included. The current `property-images` bucket allowlist is JPEG/PNG/WEBP and the repository does not yet have a compatible secure media metadata/RLS model for GLB/GLTF.
 - Renter-side detail-gallery category tabs still require a separate frontend pass. Legacy `image_url` and `photo_urls` continue to be read as before.
 - Push/email/SMS notifications and synchronized read state are not included.
+
+
+### Draft privacy clarification (2026-11-10)
+
+- Browser drafts now use schema version 3 and contain only non-location listing fields, current step, submission id and owner-owned uploaded-photo references.
+- Exact property address, PIN code, latitude and longitude are deliberately excluded from local storage. Older version-2 drafts are discarded because they may contain those values.
+- When a saved draft is resumed from the location step or a later step, Property Studio returns the owner to Location. The owner must re-enter the address/PIN and confirm the exact map marker again before publishing.
