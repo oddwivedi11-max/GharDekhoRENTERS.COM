@@ -64,7 +64,7 @@ function resetNewListing(){
  state.totalBeds="";state.availableBeds="";state.foodIncluded="";
  state.files.forEach(file=>{if(file.previewUrl&&String(file.previewUrl).startsWith("blob:")){try{URL.revokeObjectURL(file.previewUrl);}catch(e){}}});
  state.files=[];state.coverIndex=0;state.photoCategory="exterior";state.uploadedPhotos=[];state.uploadedPaths=[];
- $("[data-gdr-photo-category]").forEach(btn=>{const active=btn.dataset.gdrPhotoCategory==="exterior";btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});
+ $$("[data-gdr-photo-category]").forEach(btn=>{const active=btn.dataset.gdrPhotoCategory==="exterior";btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});
  state.nearbyPlaces=[];state.submissionId=uuid();state.recognition=null;state.recording=false;
  state.mapParent=null;state.mapNext=null;
  Object.assign(state.voice,{
@@ -1086,7 +1086,7 @@ function bindEvents(){
   if(el.id&&!el.name)el.name="gdr_manual_"+el.id;
  });
  root.addEventListener("click",e=>{
-  const photoCategory=e.target.closest("[data-gdr-photo-category]");if(photoCategory){state.photoCategory=photoCategory.dataset.gdrPhotoCategory;$("[data-gdr-photo-category]",root).forEach(btn=>{const active=btn===photoCategory;btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});return;}
+  const photoCategory=e.target.closest("[data-gdr-photo-category]");if(photoCategory){state.photoCategory=photoCategory.dataset.gdrPhotoCategory;$$("[data-gdr-photo-category]",root).forEach(btn=>{const active=btn===photoCategory;btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});return;}
   const type=e.target.closest("[data-gdr-property-type]");if(type){selectedType(type.dataset.gdrPropertyType);return;}
   const config=e.target.closest("[data-gdr-configuration]");if(config){setConfiguration(config.dataset.gdrConfiguration);return;}
   const edit=e.target.closest("[data-gdr-voice-edit]");if(edit){editVoiceField(edit.dataset.gdrVoiceEdit);return;}
