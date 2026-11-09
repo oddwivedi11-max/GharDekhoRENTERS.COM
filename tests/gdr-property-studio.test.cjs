@@ -204,10 +204,10 @@ test("owner photo uploads use bounded parallel batches and preserve cover-first 
 test("Owner Property Studio assets are loaded once and deployment patcher keeps the same cache versions",()=>{
  assert.equal(html.split("gdr-property-studio.js").length-1,1);
  assert.equal(html.split("gdr-property-studio.css").length-1,1);
- assert.ok(
-  html.includes("gdr-property-studio.js?v=20261109-start-listing-resetfix2")
- );
- assert.ok(html.includes("gdr-property-studio.css?v=20261109-start-listing-clickfix1"));
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261109-start-listing-rescue3/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261109-start-listing-rescue3/);
+ assert.match(patcher,/20261109-start-listing-resetfix2/);
+ assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
  assert.match(patcher,/20261109-gallery-categories1/);
 });
