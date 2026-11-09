@@ -24,3 +24,21 @@ Migration `20261106195955_owner_property_studio.sql` is additive. It adds listin
 ## Occupancy and move-out notices
 
 A renter can submit, update or withdraw a move-out notice from the current-rental panel. The authenticated RPC verifies that the active occupancy belongs to that renter. The database trigger changes a verified property's status to `soon_available` while an active notice exists; withdrawing the last notice restores the status according to the remaining active occupancy and available-bed count. A notice never ends a tenancy. The existing owner **Release this renter** confirmation remains the source of truth for the actual move-out and tenancy release.
+
+
+## Draft recovery and categorized photo gallery (2026-11-09)
+
+- Property Studio keeps a non-sensitive draft per signed-in owner in browser local storage. The draft includes listing fields and the current step, not passwords, access tokens or refresh tokens.
+- A recovered draft restores text fields and its previous step. It deliberately clears exact-marker confirmation; the owner must open the map and confirm the exact property location again before publishing.
+- Already uploaded images are restored only when their storage object path starts with the current owner's auth uid and their public URL belongs to this project's `property-images` bucket. Unuploaded browser File objects are not written to local storage and must be selected again after a refresh.
+- Exterior and Interior uploads are separate optional categories. Either category may remain empty; one or two total images are sufficient. The combined maximum remains eight photos, with a 5 MB limit per supported JPEG/PNG/WEBP file.
+- Files are stored within the existing owner prefix under `interior/` or `exterior/`. The existing Storage policy checks the first object path segment against `auth.uid()`, so no policy relaxation or bucket change is required.
+- Up to three uploads are attempted concurrently. On a partial upload failure, uploaded objects from that batch are removed where possible; retry remains available.
+- Category is carried in the stored path and in the image URL query marker for the new viewer code. The existing property publish RPC and `photo_urls` array are preserved for compatibility with older listings.
+- Owner Analytics and Notifications are separate dashboard sections. Analytics reads actual owner-scoped records; Notifications currently derive events from existing visits, payments, property verification and tenancy dates. Read/unread/dismiss preferences are browser-local, not cross-device notifications.
+
+## Explicitly not part of this release
+
+- Genuine 360-degree image capture/viewer and GLB/glTF model viewing are not included. The current `property-images` bucket allowlist is JPEG/PNG/WEBP and the repository does not yet have a compatible secure media metadata/RLS model for GLB/GLTF.
+- Renter-side detail-gallery category tabs still require a separate frontend pass. Legacy `image_url` and `photo_urls` continue to be read as before.
+- Push/email/SMS notifications and synchronized read state are not included.
