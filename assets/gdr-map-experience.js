@@ -612,7 +612,7 @@
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
     state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
-    state.ownerMap.setView([23.2599,77.4126],12);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
+    state.ownerMap.setView([22.5937,78.9629],5);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
   }
   async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
@@ -639,7 +639,17 @@
     requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
     return true;
   }
-  function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true;}
+  function clearOwnerMapSelectionForPinChange(){
+ state.ownerSelection=null;state.ownerPinManuallyConfirmed=false;
+ if(state.ownerMarker&&state.ownerMap){try{state.ownerMap.removeLayer(state.ownerMarker);}catch(e){}}
+ state.ownerMarker=null;
+ if(state.ownerAccuracyCircle&&state.ownerMap){try{state.ownerMap.removeLayer(state.ownerAccuracyCircle);}catch(e){}}
+ state.ownerAccuracyCircle=null;
+ if(state.ownerMap){state.ownerMap.setView([22.5937,78.9629],5,{animate:false});requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());}
+ updateOwnerStatus("Previous property pin cleared. Search or verify the new PIN, then select the exact property entrance.");
+ return true;
+}
+function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true;}
   function confirmOwnerMapLocation(){
     if(!state.ownerSelection){updateOwnerStatus("Tap the map or use GPS to place the property pin.");return;}
     if(!state.ownerPinManuallyConfirmed){updateOwnerStatus("This is only an approximate locality-search pin, not a verified property location. Zoom in and tap the exact building/entrance or drag the marker, or use high-accuracy GPS, before confirming.");return;}
@@ -876,5 +886,5 @@
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{bind();loadOwnerRenterEditor();},{once:true});
   else {bind();loadOwnerRenterEditor();}
-  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,centerOwnerMapPicker,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,showVoiceSearchResults,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice(),renderBrowseViewport,getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;}};
+  window.GDRMapExperience={openRenterMap,closeRenterMap,openOwnerMapPicker,centerOwnerMapPicker,clearOwnerMapSelectionForPinChange,searchRenterArea,searchTypedMapLocation,resolveMapQuery,setRenterPin,searchAtCoordinates,showVoiceSearchResults,usePreciseOwnerLocation,openOwnerNearbyMap,closeOwnerNearbyMap,applyRenterFilters,setRenterSearchPreferences,setRenterRadius,getRenterVisibleProperties:()=>state.visible.slice(),renderBrowseViewport,getRenterSearchPreferences:()=>Object.assign({},state.currentPrefs),filterVisibleByLocation:function(query){const term=normalizedText(query);if(!term)return state.visible.slice();const rows=state.visible.filter(p=>normalizedText([p.location,p.address].filter(Boolean).join(" ")).includes(term));state.boundsRows=rows;renderMarkers(rows,state.searchCenter);return rows;}};
 })();
