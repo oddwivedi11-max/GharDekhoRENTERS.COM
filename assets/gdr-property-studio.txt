@@ -3,6 +3,10 @@
     <div class="gdr-studio-brand"><span class="gdr-studio-brand-mark">⌂</span><span><small>GHARDEKHO</small><strong>PROPERTY STUDIO</strong></span></div>
     <div class="gdr-studio-top-actions"><span id="gdrStudioDraftStatus" class="gdr-studio-draft-status">Manual entry · No previous listing details loaded</span><button type="button" id="gdrStudioClose" class="gdr-studio-close">← Owner Dashboard</button></div>
   </header>
+  <div id="gdrStudioDraftRecovery" class="gdr-studio-draft-recovery" hidden role="status" aria-live="polite">
+    <div><strong>Saved property draft recovered</strong><p id="gdrStudioDraftNote">Your unfinished listing is ready to continue.</p></div>
+    <div class="gdr-studio-draft-recovery-actions"><button type="button" id="gdrStudioDraftResume">Continue draft</button><button type="button" id="gdrStudioDraftStartFresh">Discard &amp; start fresh</button></div>
+  </div>
   <div class="gdr-studio-progress-wrap">
     <div class="gdr-studio-stepper" aria-label="Listing progress">
       <div class="gdr-studio-step is-current" data-gdr-studio-step-indicator="0"><b>1</b><span>Property</span></div>
@@ -65,10 +69,26 @@
       <div class="gdr-studio-nearby"><strong>Nearby public places</strong><p id="gdrStudioNearbyStatus">Nearby places are discovered automatically after location confirmation.</p><div id="gdrStudioNearbyList"></div><small>Source: © OpenStreetMap contributors. Results depend on available map data.</small></div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="3" hidden>
-      <h2 class="gdr-studio-panel-title">Add photos of your property</h2><p class="gdr-studio-panel-subtitle">Use your own genuine property photos. You can add up to 8 photos and choose the cover photo.</p>
-      <div class="gdr-studio-photo-actions"><button type="button" id="gdrStudioChoosePhotos">▧ Upload Photos</button><button type="button" id="gdrStudioTakePhotos">◎ Take Photos</button></div>
-      <input id="gdrStudioPhotoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><input id="gdrStudioCameraFiles" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden>
-      <p class="gdr-studio-photo-note">JPG, PNG or WEBP · Maximum 5 MB each · No stock images or photos of other properties.</p><div id="gdrStudioPhotoPreview" hidden></div>
+      <h2 class="gdr-studio-panel-title">Interior and Exterior photo gallery</h2>
+      <p class="gdr-studio-panel-subtitle">Upload any genuine property photos you have. Both categories are optional; one or two photos are enough. Maximum 8 photos in total.</p>
+      <div class="gdr-studio-photo-categories">
+        <section class="gdr-studio-photo-category gdr-studio-photo-category-exterior">
+          <span class="gdr-studio-photo-category-kicker">OUTSIDE THE PROPERTY</span>
+          <h3>Exterior Photos</h3>
+          <p>Front elevation, building, entrance, parking, garden or surroundings.</p>
+          <div class="gdr-studio-photo-actions"><button type="button" data-gdr-studio-photo-upload="exterior">▧ Upload Exterior</button><button type="button" data-gdr-studio-photo-camera="exterior">◎ Take Exterior</button></div>
+        </section>
+        <section class="gdr-studio-photo-category gdr-studio-photo-category-interior">
+          <span class="gdr-studio-photo-category-kicker">INSIDE THE PROPERTY</span>
+          <h3>Interior Photos</h3>
+          <p>Bedroom, living room, kitchen, bathroom, balcony or other rooms.</p>
+          <div class="gdr-studio-photo-actions"><button type="button" data-gdr-studio-photo-upload="interior">▧ Upload Interior</button><button type="button" data-gdr-studio-photo-camera="interior">◎ Take Interior</button></div>
+        </section>
+      </div>
+      <input id="gdrStudioPhotoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden>
+      <input id="gdrStudioCameraFiles" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden>
+      <p class="gdr-studio-photo-note">JPG, PNG or WEBP · Maximum 5 MB each · Maximum 8 photos combined · Each category may stay empty.</p>
+      <div id="gdrStudioPhotoPreview" hidden></div>
       <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" autocomplete="off" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
