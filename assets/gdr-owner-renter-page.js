@@ -69,7 +69,7 @@
       @media(max-width:420px){.gdr-rp-shell{padding-inline:10px}.gdr-rp-back{width:100%}.gdr-rp-hero{gap:13px}.gdr-rp-avatar{width:55px;height:55px;flex-basis:55px;border-radius:17px}.gdr-rp-status{font-size:10px}.gdr-rp-stat{font-size:12px}.gdr-rp-card{padding:15px}}
       /* Forest-green workspace layout and form safety overrides. */
       :root{--gdr-pink-ink:#203629;--gdr-pink-muted:#687b6d;--gdr-pink-line:#d9e5db;--gdr-pink-soft:#f5f9f5;--gdr-pink-main:#4d8656;--gdr-pink-deep:#245c37}
-      #gdrOwnerRenterPage{z-index:90000;overscroll-behavior:contain;background:radial-gradient(ellipse at 8% 0%,#e8f4e8 0,transparent 36%),linear-gradient(180deg,#f8fbf7 0%,#f1f7f0 100%)}
+      #gdrOwnerRenterPage{z-index:100300!important;overscroll-behavior:contain;background:radial-gradient(ellipse at 8% 0%,#e8f4e8 0,transparent 36%),linear-gradient(180deg,#f8fbf7 0%,#f1f7f0 100%)}
       #gdrOwnerRenterPage .gdr-rp-shell{width:min(1120px,100%);min-height:100%;padding:clamp(12px,2.4vw,26px);box-sizing:border-box}
       #gdrOwnerRenterPage .gdr-rp-grid{align-items:start}
       #gdrOwnerRenterPage .gdr-rp-card{min-width:0;overflow:visible}
