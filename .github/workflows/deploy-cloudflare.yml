@@ -156,6 +156,20 @@ jobs:
           grep -q 'gdr-map-list-actions' /tmp/gdr-map-experience.css
           grep -q 'gdr-map-explore-control' /tmp/gdr-map-experience.css
           grep -q 'gdr-poi-marker' /tmp/gdr-map-experience.css
+          # Verify the owner Start Listing controller and its fresh cache key,
+          # not merely that the old dashboard HTML responds.
+          grep -q 'gdr-property-studio.js?v=20261109-start-listing-clickfix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.css?v=20261109-start-listing-clickfix1' /tmp/gdr-live-index.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" -o /tmp/gdr-property-studio.js
+          grep -q 'function showLauncherFeedback(text,tone)' /tmp/gdr-property-studio.js
+          grep -q 'dash.getBoundingClientRect()' /tmp/gdr-property-studio.js
+          grep -q 'gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn' /tmp/gdr-property-studio.js
+          if grep -q 'getAttribute("aria-hidden")!=="true"' /tmp/gdr-property-studio.js; then
+            echo "Stale aria-hidden launcher guard is still present."
+            exit 1
+          fi
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1" -o /tmp/gdr-property-studio.css
+          grep -q 'gdrListPropertyFeedback' /tmp/gdr-property-studio.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice7" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
