@@ -656,7 +656,11 @@ async function open(voice){
  try{
   await readyPromise;
   const dash=$("#ownerDashboard");
-  if(!dash||!dash.classList.contains("active")||!document.body.classList.contains("gd-owner-mode")){
+  // The dashboard can be visibly open while legacy role CSS classes are still
+  // settling. Visibility is the page-level gate; getOwner() below remains the
+  // authoritative authenticated Owner-profile check.
+  const dashboardVisible=!!dash&&!dash.hidden&&dash.getAttribute("aria-hidden")!=="true"&&window.getComputedStyle(dash).display!=="none";
+  if(!dashboardVisible){
    throw new Error("Open the Owner Dashboard to start a property listing.");
   }
   const account=await getOwner();state.user=account.user;state.owner=account.owner;
@@ -1210,5 +1214,14 @@ async function init(){
 }
 let readyPromise=Promise.resolve();
 window.GDRPropertyStudio={open:()=>open(false),openByVoice:()=>open(true),close:close};
+if(!window.__gdrListPropertyLauncherBound){
+ document.addEventListener("click",function(event){
+  const trigger=event.target&&event.target.closest?event.target.closest("#gdrListPropertyStart"):null;
+  if(!trigger)return;
+  event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+  window.GDRPropertyStudio.open();
+ },true);
+ window.__gdrListPropertyLauncherBound=true;
+}
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",()=>{readyPromise=init();},{once:true});else readyPromise=init();
 })();

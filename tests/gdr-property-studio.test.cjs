@@ -209,3 +209,12 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.match(patcher,/20261109-gallery-batch1/);
  assert.match(patcher,/20261109-gallery-categories1/);
 });
+
+test("Start Listing opens only from a visible Owner Dashboard and verifies the authenticated owner", () => {
+  assert.match(studio, /const dashboardVisible=!!dash&&!dash\.hidden&&dash\.getAttribute\("aria-hidden"\)!=="true"&&window\.getComputedStyle\(dash\)\.display!=="none"/);
+  assert.match(studio, /const account=await getOwner\(\);state\.user=account\.user;state\.owner=account\.owner/);
+  assert.match(studio, /__gdrListPropertyLauncherBound/);
+  assert.match(studio, /closest\("#gdrListPropertyStart"\)/);
+  assert.match(studio, /stopImmediatePropagation\(\)/);
+  assert.match(html, /id="gdrListPropertyStart"/);
+});
