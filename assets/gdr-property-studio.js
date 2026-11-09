@@ -677,7 +677,7 @@ function renderPreview(){
  const rent=$("#gdrStudioRent")?.value||state.rent;
  const deposit=$("#gdrStudioDeposit")?.value||state.deposit;
  const address=$("#gdrStudioLocation")?.value||state.address;
- const photos=state.files.length?state.files.map(f=>f.previewUrl):state.uploadedPhotos.map(p=>p.url);
+ const photos=photoEntries().map(entry=>entry.kind==="file"?entry.value.previewUrl:entry.value.url);
  const cover=photos[state.coverIndex]||photos[0]||"/assets/gdr-property-placeholder.svg";
  const box=$("#gdrStudioPreview");if(!box)return;
  const config=state.propertyType==="other"?"Other":state.configuration;
