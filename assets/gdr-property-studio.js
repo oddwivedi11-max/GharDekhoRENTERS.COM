@@ -64,6 +64,7 @@ function resetNewListing(){
  state.totalBeds="";state.availableBeds="";state.foodIncluded="";
  state.files.forEach(file=>{if(file.previewUrl&&String(file.previewUrl).startsWith("blob:")){try{URL.revokeObjectURL(file.previewUrl);}catch(e){}}});
  state.files=[];state.coverIndex=0;state.photoCategory="exterior";state.uploadedPhotos=[];state.uploadedPaths=[];
+ $("[data-gdr-photo-category]").forEach(btn=>{const active=btn.dataset.gdrPhotoCategory==="exterior";btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});
  state.nearbyPlaces=[];state.submissionId=uuid();state.recognition=null;state.recording=false;
  state.mapParent=null;state.mapNext=null;
  Object.assign(state.voice,{
