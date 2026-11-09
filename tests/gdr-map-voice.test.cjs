@@ -140,14 +140,29 @@ test('map assistant starts with a greeting and an empty search field', () => {
 });
 
 
-test('renter map offers free satellite and hybrid layers and uses a full radius bounds search for GPS', () => {
-  assert.match(map, /ArcGIS\/rest\/services\/World_Imagery\/MapServer\/tile/);
-  assert.match(map, /Reference\/World_Boundaries_and_Places\/MapServer\/tile/);
-  assert.match(map, /"Satellite \+ labels"/);
-  assert.match(map, /searchUsesRadius/);
-  assert.match(map, /radiusBounds\(state\.searchCenter\)/);
-  assert.match(map, /searchRenterArea\(undefined,true\)/);
-  assert.match(map, /Location permission is blocked/);
+test('shared renter and owner maps use the same OpenFreeMap vector basemap and open-data POI layer', () => {
+  assert.match(map, /tiles\.openfreemap\.org\/styles\/liberty/);
+  assert.match(map, /function addMapExploreControls\(map,kind\)/);
+  assert.match(map, /addMapExploreControls\(state\.renterMap,"renter"\)/);
+  assert.match(map, /addMapExploreControls\(state\.ownerMap,"owner"\)/);
+  assert.match(map, /overpass-api\.de\/api\/interpreter/);
+  assert.match(map, /Mapillary opened in a new tab/);
+  assert.doesNotMatch(map, /ArcGIS\/rest\/services\/World_Imagery/);
+});
+test('map location ranking prefers an exact Indian locality instead of stale or unrelated city matches', () => {
+  const start = map.indexOf('function normalizedText(value){');
+  const end = map.indexOf('async function resolveMapQuery(query){', start);
+  assert.ok(start >= 0 && end > start);
+  const vm = require('node:vm');
+  const helpers = vm.runInNewContext(map.slice(start, end) + ';({rankPhotonFeatures})');
+  const features = [
+    {properties:{name:'Bhopal',city:'Bhopal',country:'India'},geometry:{coordinates:[77.4,23.2]}},
+    {properties:{name:'Singrauli',city:'Singrauli',state:'Madhya Pradesh',country:'India'},geometry:{coordinates:[82.6,24.2]}},
+    {properties:{name:'Singrauli',city:'Singrauli',country:'Pakistan'},geometry:{coordinates:[70,30]}}
+  ];
+  const ranked = helpers.rankPhotonFeatures(features,'Singrauli');
+  assert.equal(ranked[0].properties.country,'India');
+  assert.equal(ranked[0].properties.name,'Singrauli');
 });
 
 test('map voice assistant styles keep the headline and microphone readable on dark green', () => {
