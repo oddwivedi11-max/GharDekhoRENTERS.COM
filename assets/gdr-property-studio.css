@@ -372,3 +372,12 @@ body.gdr-property-studio-open{overflow:hidden!important}
 @media(max-width:600px){#gdrPropertyStudio .gdr-studio-photo-category{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}#gdrPropertyStudio .gdr-studio-photo-category button{padding:0 7px;font-size:11px}#gdrPropertyStudio .gdr-studio-photo-card>img{height:128px}}
 
 #gdrPropertyStudio #gdrStudioPhotoPreview[hidden]{display:none!important}
+
+/* Start Listing reliability: keep the actual action above decorative hero layers. */
+#gdrListPropertyHero .gdr-list-hero-copy{position:relative;z-index:3;pointer-events:auto}
+#gdrListPropertyHero .gdr-list-hero-actions,
+#gdrListPropertyHero #gdrListPropertyStart,
+#gdrListPropertyHero #gdrListPropertySpeak{position:relative;z-index:4;pointer-events:auto;touch-action:manipulation}
+#gdrListPropertyHero .gdr-list-hero-art{position:relative;z-index:0;pointer-events:none}
+#gdrListPropertyHero #gdrListPropertyStart[disabled]{opacity:.78;cursor:wait;filter:saturate(.8)}
+#gdrListPropertyHero #gdrListPropertyStart[aria-busy="true"]{min-width:158px}
