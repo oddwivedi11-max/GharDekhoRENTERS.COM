@@ -199,14 +199,18 @@ test("Property Studio Interior and Exterior galleries remain optional and keep a
  assert.doesNotMatch(studio,/photo is required/i);
 });
 
-test("Property photo uploads use three bounded workers and preserve deterministic cover-first order",()=>{
- assert.ok(studio.includes("const uploaded=new Array(ordered.length),paths=new Array(ordered.length)"));
- assert.ok(studio.includes("await Promise.all([worker(),worker(),worker()])"));
- assert.ok(studio.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
- assert.ok(studio.includes("paths[index]=result.data.path"));
- assert.ok(studio.includes("state.uploadedPaths=uploaded.map(photo=>photo.path)"));
- assert.ok(studio.includes('c.storage.from("property-images").remove(completedPaths)'));
+test("Property photo uploads merge restored images with newly selected files",()=>{
+ assert.ok(studio.includes("const existing=state.uploadedPhotos.slice()"));
+ assert.ok(studio.includes("const finalPhotos=ordered.map(item=>item.kind==="uploaded"?item.photo:newPhotoByFileIndex.get(item.fileIndex))"));
+ assert.ok(studio.includes("state.uploadedPaths=finalPhotos.map(photo=>photo.path)"));
+ const accept=studio.slice(studio.indexOf("async function acceptFiles(list,category)"),studio.indexOf("function uploadPhotos()",studio.indexOf("async function acceptFiles(list,category)")));
+ assert.doesNotMatch(accept,/removeUploadedFiles/);
+ assert.ok(studio.includes("await Promise.all(Array.from({length:Math.min(3,filesToUpload.length)},()=>worker()))"));
+ assert.ok(studio.includes("if(state.coverIndex>0&&state.coverIndex<ordered.length)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
+ assert.ok(studio.includes("if(newPaths.length){try{await c.storage.from(\"property-images\").remove(newPaths)"));
+ assert.ok(studio.includes("state.uploadedPhotos=existing;state.uploadedPaths=existing.map(photo=>photo.path)"));
 });
+
 
 test("Property Studio category assets use the draft-gallery version and deployed fragment",()=>{
  assert.equal(html.split("gdr-property-studio.js").length-1,1);
