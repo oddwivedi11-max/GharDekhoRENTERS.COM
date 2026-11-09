@@ -16,6 +16,14 @@
 #gdrListPropertyHero #gdrListPropertySpeak{border:1px solid #d8c9a9;background:#fffdf8;color:#234a36;box-shadow:0 5px 0 #e5ddcd}
 #gdrListPropertyHero .gdr-list-hero-art{display:flex;justify-content:center;align-items:center;min-width:0}
 #gdrListPropertyHero .gdr-list-hero-art svg{width:min(100%,330px);height:auto;filter:drop-shadow(0 18px 18px rgba(24,55,36,.12))}
+
+#gdrListPropertyFeedback{
+ display:block;max-width:620px;margin:12px 0 0;padding:10px 13px;
+ border:1px solid #e6c8c1;border-radius:11px;background:#fff3f0;
+ color:#8b342e;font-size:12px;font-weight:750;line-height:1.5;overflow-wrap:anywhere;
+}
+#gdrListPropertyFeedback[data-tone="info"]{border-color:#d7e5dc;background:#f0f7f2;color:#315b43}
+
 #ownerDashboard #ownerAddPropertyCard{display:none!important}
 #gdrPropertyStudio[hidden]{display:none!important}
 #gdrPropertyStudio{
