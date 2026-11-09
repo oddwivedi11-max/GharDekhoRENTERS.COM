@@ -401,3 +401,9 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
 /* Cloudflare redeploy marker: verify module header contrast. */
 
 /* Deployment trigger: align verification with real asset references. */
+
+/* Explicitly surface the existing owner profile card on the workspace home view. */
+#ownerDashboard.gdr-owner-mode-home > .owner-profile-card{display:block!important;visibility:visible!important;position:relative!important;opacity:1!important;margin:18px 0 22px!important;}
+#ownerDashboard.gdr-owner-mode-home > .owner-profile-card .dashboard-card-heading{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:16px!important;}
+#ownerDashboard.gdr-owner-mode-home > .owner-profile-card #ownerEditProfileBtn{display:inline-flex!important;visibility:visible!important;align-items:center!important;justify-content:center!important;min-height:44px!important;padding:0 18px!important;white-space:nowrap!important;cursor:pointer!important;}
+@media(max-width:600px){#ownerDashboard.gdr-owner-mode-home > .owner-profile-card .dashboard-card-heading{align-items:flex-start!important;flex-direction:column!important}#ownerDashboard.gdr-owner-mode-home > .owner-profile-card #ownerEditProfileBtn{width:100%!important}}
