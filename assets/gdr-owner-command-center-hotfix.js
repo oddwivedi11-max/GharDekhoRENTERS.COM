@@ -44,15 +44,14 @@ async function fetchOwnerInsights(force){
   if(auth.error||!auth.data?.user)throw new Error("Please sign in again to access Owner Analytics.");
   const ownerResult=await client.from("owners").select("id").eq("user_id",auth.data.user.id).maybeSingle();
   if(ownerResult.error||!ownerResult.data)throw new Error("Owner profile could not be found for this account.");
-  const ownerId=ownerResult.data.id;
-  if(insightOwnerId!==ownerId){insightOwnerId=ownerId;insightCache=null;insightCacheAt=0;}
+  insightOwnerId=ownerResult.data.id;
   if(!force&&insightCache&&Date.now()-insightCacheAt<60000)return insightCache;
   const results=await Promise.all([
-   client.from("properties").select("id,title,name,rent,status,verification_status,created_at,deleted_at").eq("owner_id",ownerId).is("deleted_at",null).order("created_at",{ascending:false}).limit(200),
-   client.from("property_occupancies").select("id,property_id,renter_name,occupied_at,released_at,expected_move_out_at").eq("owner_id",ownerId).order("occupied_at",{ascending:false}).limit(200),
-   client.from("visit_requests").select("id,property_id,name,visit_date,visit_time,status,created_at").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(200),
-   client.from("rent_payment_records").select("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date").eq("owner_id",ownerId).order("created_at",{ascending:false}).limit(300),
-   client.from("owner_payment_settings").select("property_id,due_day,late_fee_amount,late_fee_grace_days").eq("owner_id",ownerId).limit(200)
+   client.from("properties").select("id,title,name,rent,status,verification_status,created_at,deleted_at").eq("owner_id",insightOwnerId).is("deleted_at",null).order("created_at",{ascending:false}).limit(200),
+   client.from("property_occupancies").select("id,property_id,renter_name,occupied_at,released_at,expected_move_out_at").eq("owner_id",insightOwnerId).order("occupied_at",{ascending:false}).limit(200),
+   client.from("visit_requests").select("id,property_id,name,visit_date,visit_time,status,created_at").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(200),
+   client.from("rent_payment_records").select("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(300),
+   client.from("owner_payment_settings").select("property_id,due_day,late_fee_amount,late_fee_grace_days").eq("owner_id",insightOwnerId).limit(200)
   ]);
   const names=["properties","occupancies","visits","payments","payment settings"];
   const errors=results.map((result,index)=>result.error?names[index]+": "+result.error.message:null).filter(Boolean);
