@@ -218,7 +218,8 @@ def patch_index():
         style_end = source.rfind("</style>")
         if style_end < 0:
             raise SystemExit("Could not find the final style block for renter hero removal.")
-        hero_hide_css = """\\n/* GDR promotional renter hero removed; keep all renter actions visible. */
+        hero_hide_css = """
+/* GDR promotional renter hero removed; keep all renter actions visible. */
 #renterDashboard .renter-welcome-card,
 #renterDashboard.gdrx-premium .renter-welcome-card{display:none!important}
 """
