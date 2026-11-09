@@ -1,11 +1,12 @@
 (function(){
 "use strict";
-const VERSION="20261107-manualreset1";
+const VERSION="20261109-pin-location-safety2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
   user:null,owner:null,step:0,publishing:false,published:false,propertyType:"",configuration:"",
   rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
+  locationConfirmed:false,resolvedPincode:"",pinCenter:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
   files:[],coverIndex:0,uploadedPhotos:[],uploadedPaths:[],nearbyPlaces:[],
   submissionId:"",recognition:null,recording:false,mapParent:null,mapNext:null,voice:{active:false,manualStop:false,speaking:false,restartTimer:null,turnTimer:null,turnText:"",finalText:"",interimText:"",pending:{},awaitingConfirmation:false,lastReply:"",lastQuestion:"",lastField:"",muted:false,language:"hi",session:0,permissionBlocked:false,skippedDeposit:false,skippedFood:false}
@@ -53,6 +54,9 @@ function resetNewListing(){
  if(searchTimer){clearTimeout(searchTimer);searchTimer=null;}
  if(searchController){try{searchController.abort();}catch(e){}searchController=null;}
  if(nearbyController){try{nearbyController.abort();}catch(e){}nearbyController=null;}
+ if(pincodeResolveController){try{pincodeResolveController.abort();}catch(e){}pincodeResolveController=null;}
+ if(pinResolveTimer){clearTimeout(pinResolveTimer);pinResolveTimer=null;}
+ pinResolveSequence++;state.resolvedPincode="";state.pinCenter=null;state.locationConfirmed=false;
  state.step=0;state.publishing=false;state.published=false;
  state.propertyType="";state.configuration="";state.rent="";state.deposit="";
  state.furnishing="";state.description="";state.address="";state.pincode="";
@@ -109,76 +113,103 @@ function updateConditionalFields(){
 }
 function updateLocationStatus(){
  const el=$("#gdrStudioLocationStatus");if(!el)return;
- if(state.lat!==null&&state.lng!==null)el.textContent="Location pin confirmed · "+state.lat.toFixed(5)+", "+state.lng.toFixed(5);
- else el.textContent="Choose a search result, use GPS or place the pin on the map.";
+ if(state.lat!==null&&state.lng!==null){
+  const coordinates=state.lat.toFixed(5)+", "+state.lng.toFixed(5);
+  el.textContent=state.locationConfirmed?"Exact property pin confirmed · "+coordinates:"Approximate area located · open Select on Map, then tap or drag to the exact property entrance · "+coordinates;
+ }else el.textContent="Choose a search result, use GPS or place the exact property point on the map.";
 }
-function setLocation(address,lat,lng,pincode){
+function validIndiaPoint(lat,lng){return Number.isFinite(lat)&&Number.isFinite(lng)&&lat>=6&&lat<=38.5&&lng>=68&&lng<=98.5;}
+function setLocation(address,lat,lng,pincode,confirmed){
  state.address=String(address||"").trim();
- state.lat=Number.isFinite(Number(lat))?Number(lat):null;
- state.lng=Number.isFinite(Number(lng))?Number(lng):null;
+ const valid=validIndiaPoint(Number(lat),Number(lng));
+ state.lat=valid?Number(lat):null;state.lng=valid?Number(lng):null;
+ state.locationConfirmed=confirmed===true&&valid;
  if(pincode)state.pincode=String(pincode).replace(/\D/g,"").slice(0,6);
  const input=$("#gdrStudioLocation");if(input)input.value=state.address;
  const pin=$("#gdrStudioPincode");if(pin)pin.value=state.pincode;
  const ownerLocation=$("#propertyLocation");
- if(ownerLocation&&state.lat!==null&&state.lng!==null){
+ if(ownerLocation){
   ownerLocation.value=state.address;
-  ownerLocation.dataset.gdSelectedLat=String(state.lat);
-  ownerLocation.dataset.gdSelectedLng=String(state.lng);
-  ownerLocation.dataset.gdSelectedDisplayName=state.address;
+  if(valid){ownerLocation.dataset.gdSelectedLat=String(state.lat);ownerLocation.dataset.gdSelectedLng=String(state.lng);ownerLocation.dataset.gdSelectedDisplayName=state.address;}
+  else ["gdSelectedLat","gdSelectedLng","gdSelectedDisplayName"].forEach(key=>delete ownerLocation.dataset[key]);
  }
  updateLocationStatus();saveDraft();renderLiveVoiceForm();
- if(state.lat!==null&&state.lng!==null)loadNearbyPlaces();
+ if(valid)loadNearbyPlaces();
 }
-let pincodeResolveController=null;
+function clearStudioCoordinateSelection(){
+ if(pincodeResolveController){try{pincodeResolveController.abort();}catch(e){}pincodeResolveController=null;}
+ if(pinResolveTimer){clearTimeout(pinResolveTimer);pinResolveTimer=null;}
+ pinResolveSequence++;
+ state.lat=null;state.lng=null;state.locationConfirmed=false;state.pinCenter=null;state.resolvedPincode="";
+ const ownerLocation=$("#propertyLocation");
+ if(ownerLocation){ownerLocation.value=state.address||"";["gdSelectedLat","gdSelectedLng","gdSelectedDisplayName"].forEach(key=>delete ownerLocation.dataset[key]);}
+ if(window.GDRMapExperience&&typeof window.GDRMapExperience.clearOwnerMapSelectionForPinChange==="function")window.GDRMapExperience.clearOwnerMapSelectionForPinChange();
+ updateLocationStatus();
+}
+function invalidateStudioLocationForPinChange(nextPin){
+ if(pincodeResolveController){try{pincodeResolveController.abort();}catch(e){}pincodeResolveController=null;}
+ if(pinResolveTimer){clearTimeout(pinResolveTimer);pinResolveTimer=null;}
+ pinResolveSequence++;state.pincode=String(nextPin||"").replace(/\D/g,"").slice(0,6);
+ state.address="";state.nearbyPlaces=[];clearStudioCoordinateSelection();
+ const address=$("#gdrStudioLocation");if(address)address.value="";
+ const suggestions=$("#gdrStudioLocationSuggestions");if(suggestions){suggestions.innerHTML="";suggestions.hidden=true;}
+ const status=$("#gdrStudioLocationStatus");if(status)status.textContent="PIN changed. The previous address and map pin have been cleared; locating the latest PIN code.";
+ renderNearby();saveDraft();renderLiveVoiceForm();
+}
+let pincodeResolveController=null,pinResolveTimer=null,pinResolveSequence=0;
 async function resolveStudioPincode(rawPin){
- const pin=String(rawPin||"").replace(/\D/g,"").slice(0,6);
+ const input=$("#gdrStudioPincode"),pin=String(rawPin||"").replace(/\D/g,"").slice(0,6);
  if(!/^\d{6}$/.test(pin))return false;
+ if(input&&String(input.value||"").replace(/\D/g,"").slice(0,6)!==pin)return false;
+ if(state.resolvedPincode===pin&&validIndiaPoint(Number(state.lat),Number(state.lng)))return true;
+ if(pinResolveTimer){clearTimeout(pinResolveTimer);pinResolveTimer=null;}
  if(pincodeResolveController){try{pincodeResolveController.abort();}catch(e){}}
  pincodeResolveController=new AbortController();
- const signal=pincodeResolveController.signal;
- const status=$("#gdrStudioLocationStatus");
- if(status)status.textContent="Verifying PIN code and locating its post office…";
+ const signal=pincodeResolveController.signal,run=++pinResolveSequence;
+ const isCurrent=()=>run===pinResolveSequence&&(!input||String(input.value||"").replace(/\D/g,"").slice(0,6)===pin);
+ const status=$("#gdrStudioLocationStatus");state.pincode=pin;
+ if(status)status.textContent="Verifying PIN "+pin+" and locating its matching post office…";
  try{
   const postalResponse=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"},signal});
+  if(!isCurrent())return false;
   if(!postalResponse.ok)throw new Error("India Post lookup is unavailable");
-  const postalPayload=await postalResponse.json();
+  const postalPayload=await postalResponse.json();if(!isCurrent())return false;
   const record=Array.isArray(postalPayload)?postalPayload[0]:null;
-  const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice:[];
-  if(!offices.length)throw new Error("No post office found for this PIN code");
-  const office=offices.find(item=>item&&item.Name)||offices[0];
-  const officeName=String(office.Name||"").trim();
-  const district=String(office.District||office.Block||"").trim();
-  const region=String(office.State||"").trim();
+  const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice.filter(item=>item&&item.Name):[];
+  if(!offices.length)throw new Error("No post office was found for PIN "+pin+". Check the six digits or enter the locality manually.");
+  const office=offices[0],officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
   const query=[officeName,district,region,"India"].filter(Boolean).join(", ");
-  const geoUrl="https://photon.komoot.io/api/?limit=8&lang=en&q="+encodeURIComponent(query);
-  const geoResponse=await fetch(geoUrl,{headers:{Accept:"application/json"},signal});
+  const geoResponse=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
+  if(!isCurrent())return false;
   if(!geoResponse.ok)throw new Error("Map location lookup is unavailable");
-  const geoPayload=await geoResponse.json();
-  const features=(Array.isArray(geoPayload.features)?geoPayload.features:[]).filter(feature=>{
+  const geoPayload=await geoResponse.json();if(!isCurrent())return false;
+  const normalize=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\bdistrict\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
+  const expectedDistrict=normalize(district),expectedState=normalize(region);
+  const candidates=(Array.isArray(geoPayload.features)?geoPayload.features:[]).map(feature=>{
    const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
-   return String(props.countrycode||"").toLowerCase()==="in"&&coords.length>=2&&Number.isFinite(Number(coords[0]))&&Number.isFinite(Number(coords[1]));
-  });
-  if(!features.length)throw new Error("The PIN was verified, but map coordinates were not found");
-  const feature=features[0],coords=feature.geometry.coordinates;
-  const label=[officeName,district,region,"India"].filter(Boolean).join(", ");
-  setLocation(label,Number(coords[1]),Number(coords[0]),pin);
-  const ownerLocation=$("#propertyLocation");
-  if(ownerLocation){
-   ownerLocation.value=label;
-   ownerLocation.dataset.gdSelectedLat=String(coords[1]);
-   ownerLocation.dataset.gdSelectedLng=String(coords[0]);
-   ownerLocation.dataset.gdSelectedDisplayName=label;
-  }
-  if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function"){
-   window.GDRMapExperience.centerOwnerMapPicker(Number(coords[1]),Number(coords[0]),label);
-  }
-  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". The owner map is centered on this post-office area. Zoom in and confirm the exact property entrance before publishing.";
-  message("PIN verified. Map centered on the matching post-office area; confirm the exact building pin before submitting.","success");
+   const stateText=normalize(props.state||props.state_name||"");
+   const districtText=normalize([props.county,props.city,props.district,props.locality,props.suburb,props.village,props.town,props.name].filter(Boolean).join(" "));
+   const stateMatch=!expectedState||!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText);
+   const districtMatch=!expectedDistrict||districtText.includes(expectedDistrict);
+   return {props,coords,stateMatch,districtMatch,score:(stateMatch?10:0)+(districtMatch?20:0)+(normalize(props.name).includes(normalize(officeName))?4:0)};
+  }).filter(item=>String(item.props.countrycode||"").toLowerCase()==="in"&&item.coords.length>=2&&validIndiaPoint(Number(item.coords[1]),Number(item.coords[0]))&&item.stateMatch&&item.districtMatch).sort((a,b)=>b.score-a.score);
+  if(!candidates.length)throw new Error("PIN "+pin+" was verified, but no map result matched "+[district,region].filter(Boolean).join(", ")+". The previous location remains cleared; search the locality manually.");
+  if(!isCurrent())return false;
+  const coords=candidates[0].coords,lat=Number(coords[1]),lng=Number(coords[0]),label=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  state.pinCenter={lat,lng};state.resolvedPincode=pin;setLocation(label,lat,lng,pin,false);
+  if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
+  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". This is an approximate post-office centre, not the house location. Open the map, zoom in and tap or drag to the exact entrance before submitting.";
+  message("PIN verified and the map moved to the matching district. Confirm the exact property entrance on the map before submitting.","success");
   return true;
  }catch(error){
   if(error&&error.name==="AbortError")return false;
+  if(!isCurrent())return false;
   console.warn("Property Studio PIN resolution:",error);
-  if(status)status.textContent=error.message||"Could not locate this PIN. Enter the locality manually or use GPS.";
+  state.lat=null;state.lng=null;state.locationConfirmed=false;state.pinCenter=null;state.resolvedPincode="";
+  const ownerLocation=$("#propertyLocation");if(ownerLocation){ownerLocation.value="";["gdSelectedLat","gdSelectedLng","gdSelectedDisplayName"].forEach(key=>delete ownerLocation.dataset[key]);}
+  if(window.GDRMapExperience&&typeof window.GDRMapExperience.clearOwnerMapSelectionForPinChange==="function")window.GDRMapExperience.clearOwnerMapSelectionForPinChange();
+  updateLocationStatus();
+  if(status)status.textContent=error.message||"Could not locate this PIN. The old map pin was cleared; enter the locality manually or use GPS.";
   return false;
  }
 }
@@ -306,10 +337,12 @@ function wrapMapCallback(){
  const original=window.__gdrSetPropertyLocation;
  if(typeof original!=="function"||original.__gdrStudioWrapped)return;
  const wrapped=function(address,lat,lng){
+  const inStudio=!!(studio()&&!studio().hidden);
+  const outsidePinArea=!!(inStudio&&state.pinCenter&&distanceMeters(state.pinCenter.lat,state.pinCenter.lng,Number(lat),Number(lng))>35000);
   const ok=original(address,lat,lng);
-  if(ok&&!studio().hidden){
-   setLocation(address,Number(lat),Number(lng),state.pincode);
-   message("Map pin confirmed. Nearby place discovery is refreshing.","success");
+  if(ok&&inStudio){
+   setLocation(address,Number(lat),Number(lng),state.pincode,true);
+   message(outsidePinArea?"Map pin confirmed, but it is more than 35 km from the PIN-code area. Double-check the address and PIN before publishing.":"Exact property pin confirmed. Nearby place discovery is refreshing.","info");
    setTimeout(restoreMapPanel,120);
   }
   return ok;
@@ -543,6 +576,8 @@ function validateStep(step){
   state.pincode=$("#gdrStudioPincode")?.value.trim()||state.pincode;
   if(!state.address){message("Please search for the property address or enter its locality and city.","error");return false;}
   if(state.pincode&&!/^\d{6}$/.test(state.pincode)){message("PIN code must contain 6 digits.","error");return false;}
+  if(!validIndiaPoint(Number(state.lat),Number(state.lng))){message("Locate the property in India, then open Select on Map and place the exact property pin before submitting.","error");return false;}
+  if(!state.locationConfirmed){message("The PIN or address only identifies an approximate area. Open Select on Map, tap or drag the marker to the exact house entrance, and confirm the location before submitting.","error");return false;}
  }
  return true;
 }
@@ -1014,12 +1049,19 @@ function bindEvents(){
  $("#gdrStudioNext")?.addEventListener("click",()=>goToStep(state.step+1));
  $("#gdrStudioClose")?.addEventListener("click",close);
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
-  state.address=e.target.value;state.lat=null;state.lng=null;state.pincode="";if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"address"))state.voice.pending.address=state.address;const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();renderLiveVoiceForm();
+  state.address=e.target.value;state.pincode="";clearStudioCoordinateSelection();if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"address"))state.voice.pending.address=state.address;const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();renderLiveVoiceForm();
   if(searchTimer)clearTimeout(searchTimer);
   const q=e.target.value.trim();if(q.length<3){$("#gdrStudioLocationSuggestions").hidden=true;updateLocationStatus();return;}
   searchTimer=setTimeout(()=>searchAddress(q),350);
  });
- $("#gdrStudioPincode")?.addEventListener("input",e=>{state.pincode=e.target.value.replace(/\D/g,"").slice(0,6);e.target.value=state.pincode;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"pincode"))state.voice.pending.pincode=state.pincode;saveDraft();renderLiveVoiceForm();});
+ $("#gdrStudioPincode")?.addEventListener("input",e=>{
+  const nextPin=e.target.value.replace(/\D/g,"").slice(0,6);e.target.value=nextPin;
+  if(nextPin!==state.pincode)invalidateStudioLocationForPinChange(nextPin);else state.pincode=nextPin;
+  if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"pincode"))state.voice.pending.pincode=state.pincode;
+  if(pinResolveTimer){clearTimeout(pinResolveTimer);pinResolveTimer=null;}
+  if(nextPin.length===6)pinResolveTimer=setTimeout(()=>resolveStudioPincode(nextPin),450);
+  saveDraft();renderLiveVoiceForm();
+ });
  $("#gdrStudioPincode")?.addEventListener("change",e=>{const pin=String(e.target.value||"").replace(/\D/g,"").slice(0,6);if(pin.length===6)resolveStudioPincode(pin);});
  $("#gdrStudioPincode")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const pin=String(e.target.value||"").replace(/\D/g,"").slice(0,6);if(pin.length===6)resolveStudioPincode(pin);}});
 
