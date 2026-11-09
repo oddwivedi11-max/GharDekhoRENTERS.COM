@@ -10,7 +10,7 @@ const map = fs.readFileSync(path.join(root, "assets/gdr-map-experience.js"), "ut
 test("Property Studio verifies six-digit Indian PIN codes through India Post", () => {
   assert.match(studio, /async function resolveStudioPincode\(/);
   assert.match(studio, /api\.postalpincode\.in\/pincode\//);
-  assert.match(studio, /Status === "Success"/);
+  assert.match(studio, /Status\\s*===\\s*"Success"/);
 });
 
 test("verified PIN locality is geocoded and saved with exact map coordinates", () => {
