@@ -93,7 +93,7 @@ test("Property Studio starts each new listing blank and uses the secure publish 
 
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261109-pin-location-safety2\"/);
+  assert.match(studio, /const VERSION=\"20261109-start-listing-rescue3\"/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });
