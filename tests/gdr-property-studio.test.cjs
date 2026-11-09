@@ -262,3 +262,21 @@ test("Adding new images preserves previously uploaded property photos",()=>{
   assert.match(studio,/const combined=existing\.concat\(newUploads\)/);
   assert.match(studio,/state\.uploadedPhotos=existing;state\.uploadedPaths=existing\.map\(photo=>photo\.path\)/);
 });
+
+test("Owner Analytics uses scoped production tables and derives payment renter names from occupancy",()=>{
+  const ownerWorkspace=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerWorkspace,/async function fetchOwnerInsights\(force\)/);
+  assert.equal((ownerWorkspace.match(/\.eq\("owner_id",insightOwnerId\)/g)||[]).length,5);
+  assert.match(ownerWorkspace,/from\("properties"\)/);
+  assert.match(ownerWorkspace,/from\("property_occupancies"\)/);
+  assert.match(ownerWorkspace,/from\("visit_requests"\)/);
+  assert.match(ownerWorkspace,/from\("rent_payment_records"\)/);
+  assert.match(ownerWorkspace,/from\("owner_payment_settings"\)/);
+  assert.doesNotMatch(ownerWorkspace,/from\("rent_payment_records"\)\.select\([^)]*renter_name/);
+  assert.match(ownerWorkspace,/const renterForPayment=payment=>data\.occupancies\.find/);
+  assert.match(ownerWorkspace,/data\.notifications=buildOwnerNotifications\(data\)/);
+  assert.match(ownerWorkspace,/function notificationsMarkup\(data\)/);
+  assert.match(ownerWorkspace,/data-insight-read/);
+  assert.match(ownerWorkspace,/data-insight-dismiss/);
+  assert.match(ownerWorkspace,/gdr_owner_notice_state_v1:/);
+});
