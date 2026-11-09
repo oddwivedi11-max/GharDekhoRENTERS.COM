@@ -436,13 +436,10 @@ for old, new in (
     elif new.replace("workspace3", "workspace2") in source:
         source = source.replace(new.replace("workspace3", "workspace2"), new)
         print("Upgraded owner workspace cache version: " + old)
-    elif (
-        new.replace("20261105-workspace3", "20261107-workspace4") in source
-        or new.replace("20261105-workspace3", "20261107-workspace6") in source
-        or new.replace("20261105-workspace3", "20261107-workspace7") in source
-        or new.replace("20261105-workspace3", "20261109-profile-overlay-fix1") in source
-    ):
-        print("Owner workspace asset already has the latest cache version: " + old)
+    elif new.split("?")[0] + "?v=" in source:
+        # Preserve any existing versioned reference here. The deploy workflow
+        # applies the release-specific cache version in its dedicated step.
+        print("Owner workspace asset already has a cache version: " + old)
     elif ("gdr-owner-payments.js" in old or "gdr-owner-payments.css" in old) and (
         new.replace("20261105-workspace3", "20261107-finance-clean5") in source
         or new.replace("20261105-workspace3", "20261107-paytitle3") in source
