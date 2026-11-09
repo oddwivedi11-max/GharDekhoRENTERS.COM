@@ -99,6 +99,11 @@ jobs:
           node --test tests/gdr-owner-workspace-functional.test.cjs
           node --test tests/gdr-owner-renter-page.test.cjs
           node --test tests/gdr-owner-nearby-map.test.cjs
+          node --check assets/gdr-property-studio.js
+          node --check assets/gdr-owner-property-archive.js
+          node --test tests/gdr-property-studio-pincode.test.cjs
+          node --test tests/gdr-owner-property-archive.test.cjs
+          node --test tests/gdr-renter-promotional-banner.test.cjs
           node --test tests/gdr-pincode-search.test.cjs
           node --test tests/gdr-admin-layout.test.cjs
 
