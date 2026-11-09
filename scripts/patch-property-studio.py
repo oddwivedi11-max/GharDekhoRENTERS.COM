@@ -151,7 +151,12 @@ css_ref_v4_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v
 css_ref_v4_prev = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-stepnav3d1">'
 css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-gallery-categories1">'
 css_ref_v5 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1">'
-if css_ref_v5 not in source:
+css_ref_v6 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-rescue3">'
+if css_ref_v6 not in source:
+    if css_ref_v5 in source:
+        source = source.replace(css_ref_v5, css_ref_v6, 1)
+        print("Updated: reliable Start Listing interaction and hit target")
+    elif css_ref_v5 not in source:
     if css_ref_v4 in source:
         source = source.replace(css_ref_v4, css_ref_v5, 1)
         print("Updated: visible Start Listing launch feedback styles")
@@ -217,7 +222,7 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-resetfix2" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-rescue3" defer></script>'
 old_script_refs = [
     '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-manualfirst1" defer></script>',
@@ -226,6 +231,7 @@ old_script_refs = [
     '<script src="/assets/gdr-property-studio.js?v=20261109-gallery-batch1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261109-owner-launcher-fix1" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" defer></script>'
+    '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-resetfix2" defer></script>'
 ]
 if script_ref not in source:
     replaced = False
