@@ -116,6 +116,8 @@ jobs:
           node --check assets/gdr-rental-suite.js
           node --check assets/gdr-rental-suite-v2.js
           node --test tests/gdr-property-studio.test.cjs
+          node --check tests/gdr-property-studio-pincode.test.cjs
+          node --test tests/gdr-property-studio-pincode.test.cjs
           node --test tests/gdr-renter-moveout-notice.test.cjs
           node --test tests/gdr-role-portal-switch.spec.cjs
           node --test tests/gdr-role-enablement.test.cjs
