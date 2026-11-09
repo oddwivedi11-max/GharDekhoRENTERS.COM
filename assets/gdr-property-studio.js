@@ -530,7 +530,7 @@ function uploadPhotos(){
    // Three at a time reduces serial latency without flooding mobile connections.
    for(let start=0;start<ordered.length;start+=3){
     const batch=ordered.slice(start,start+3);
-    const results=await Promise.all(batch.map(async(file)=>{
+    const settled=await Promise.allSettled(batch.map(async(file)=>{
      const ext=file.type==="image/jpeg"?"jpg":file.type==="image/png"?"png":"webp";
      const category=["exterior","interior","other"].includes(file.gdrCategory)?file.gdrCategory:"other";
      const path=state.user.id+"/"+category+"/"+uuid()+"."+ext;
@@ -541,6 +541,8 @@ function uploadPhotos(){
      if(!url)throw new Error("Could not create the uploaded photo URL.");
      paths.push(path);return {url:url,path:path,category:category};
     }));
+    const failed=settled.find(result=>result.status==="rejected");if(failed)throw failed.reason;
+    const results=settled.map(result=>result.value);
     results.forEach((item,offset)=>{uploaded[start+offset]=item;});
     state.uploadedPhotos=uploaded.filter(Boolean).slice();state.uploadedPaths=paths.slice();saveDraft();
    }
