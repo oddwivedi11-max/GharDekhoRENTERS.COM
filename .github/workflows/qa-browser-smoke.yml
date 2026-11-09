@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "feature/gdr-master-followup-final-20261109"
       - "fix/gdr-pin-location-safety-20261109"
       - "fix/full-qa-20261020"
       - "feature/gdr-master-platform-20261104"
@@ -34,7 +35,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: gdr-free-browser-smoke
+  group: gdr-free-browser-smoke-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
