@@ -11,7 +11,7 @@
     currentPrefs:{}, selectedPropertyId:null, markerById:new Map(), lastSearchBounds:null,
     browseInventory:null, browseCenter:null, browseTimer:null
   };
-  const INDIA_CENTER=[22.9734,78.6569], TILE_URL="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", SATELLITE_URL="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", LABELS_URL="https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}";
+  const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
@@ -42,15 +42,175 @@
       try{await loadScript("https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js");}
       catch(error){console.warn("Marker clustering unavailable; standard markers will be used.",error);}
     }
+    try{await ensureOpenFreeMap();}catch(error){console.warn("OpenFreeMap vector basemap unavailable; using the OSM raster fallback.",error);}
+  }
+  const OPENFREEMAP_STYLE="https://tiles.openfreemap.org/styles/liberty";
+  const OVERPASS_ENDPOINTS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+  const poiCache=new Map();
+  const POI_FILTERS={
+    all:{label:"All nearby places",selectors:[
+      'nwr["amenity"~"school|college|university|hospital|clinic|doctors|pharmacy|bank|atm|fuel|bus_station|place_of_worship|marketplace|restaurant|cafe|fast_food|post_office"]',
+      'nwr["leisure"~"park|playground|stadium|sports_centre"]',
+      'nwr["shop"~"mall|supermarket|department_store"]',
+      'nwr["tourism"~"attraction|museum|hotel|viewpoint"]',
+      'nwr["railway"~"station|halt"]',
+      'nwr["natural"~"water|wetland"]'
+    ]},
+    education:{label:"Schools & colleges",selectors:['nwr["amenity"~"school|college|university|kindergarten"]']},
+    health:{label:"Hospitals & clinics",selectors:['nwr["amenity"~"hospital|clinic|doctors|pharmacy|dentist"]']},
+    transport:{label:"Rail & bus",selectors:['nwr["railway"~"station|halt"]','nwr["amenity"~"bus_station|bus_stop"]','nwr["public_transport"~"station|platform|stop_position"]']},
+    shopping:{label:"Markets & malls",selectors:['nwr["shop"~"mall|supermarket|department_store|convenience"]','nwr["amenity"="marketplace"]']},
+    food:{label:"Restaurants & hotels",selectors:['nwr["amenity"~"restaurant|cafe|fast_food|food_court"]','nwr["tourism"="hotel"]']},
+    parks:{label:"Parks & water",selectors:['nwr["leisure"~"park|playground|garden"]','nwr["natural"~"water|wetland"]','nwr["waterway"~"river|lake"]']},
+    sports:{label:"Stadiums & sports",selectors:['nwr["leisure"~"stadium|sports_centre|pitch"]','nwr["sport"]']},
+    worship:{label:"Temples & worship",selectors:['nwr["amenity"="place_of_worship"]']},
+    finance:{label:"Banks & ATMs",selectors:['nwr["amenity"~"bank|atm"]']},
+    fuel:{label:"Petrol pumps",selectors:['nwr["amenity"="fuel"]']},
+    tourism:{label:"Tourist attractions",selectors:['nwr["tourism"~"attraction|museum|viewpoint|zoo"]']}
+  };
+  function loadStylesheet(url,attribute){
+    const selector='link['+attribute+']';
+    if(document.querySelector(selector))return;
+    const link=document.createElement("link");link.rel="stylesheet";link.href=url;link.setAttribute(attribute,"true");document.head.appendChild(link);
+  }
+  async function ensureOpenFreeMap(){
+    loadStylesheet("https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.2/dist/maplibre-gl.css","data-gdr-maplibre-style");
+    if(!window.maplibregl)await loadScript("https://cdn.jsdelivr.net/npm/maplibre-gl@5.6.2/dist/maplibre-gl.js");
+    if(!window.L.maplibreGL)await loadScript("https://cdn.jsdelivr.net/npm/@maplibre/maplibre-gl-leaflet@0.1.4/leaflet-maplibre-gl.js");
+    if(!window.L.maplibreGL||!window.maplibregl)throw new Error("MapLibre vector layer is unavailable.");
+    return true;
   }
   function addTiles(map){
-    const street=window.L.tileLayer(TILE_URL,{maxZoom:19,attribution:'&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'});
-    const satellite=window.L.tileLayer(SATELLITE_URL,{maxZoom:19,className:"gdr-satellite-tiles",attribution:'Imagery &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>, Maxar, Earthstar Geographics and the GIS User Community'});
-    const labels=window.L.tileLayer(LABELS_URL,{maxZoom:19,opacity:.82,attribution:'Labels &copy; <a href="https://www.esri.com/" target="_blank" rel="noopener">Esri</a>'});
-    const hybrid=window.L.layerGroup([satellite,labels]).addTo(map);
-    window.L.control.layers({"Standard map":street,"Satellite":satellite,"Satellite + labels":hybrid},null,{position:"topright",collapsed:true}).addTo(map);
-    map._gdrBaseLayers={street,satellite,hybrid};
+    const attribution='© <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> · © <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>';
+    if(typeof window.L.maplibreGL==="function"&&window.maplibregl){
+      const vector=window.L.maplibreGL({style:OPENFREEMAP_STYLE,attribution}).addTo(map);
+      map._gdrBaseLayers={street:vector,vector};
+      return;
+    }
+    const street=window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);
+    map._gdrBaseLayers={street};
   }
+  function poiKind(tags){
+    tags=tags||{};
+    const amenity=String(tags.amenity||"").toLowerCase(),leisure=String(tags.leisure||"").toLowerCase(),tourism=String(tags.tourism||"").toLowerCase();
+    if(/school|college|university|kindergarten/.test(amenity))return "education";
+    if(/hospital|clinic|doctors|pharmacy|dentist/.test(amenity))return "health";
+    if(/bus_station|bus_stop/.test(amenity)||tags.railway||tags.public_transport)return "transport";
+    if(/bank|atm/.test(amenity))return "finance";
+    if(amenity==="fuel")return "fuel";
+    if(amenity==="place_of_worship")return "worship";
+    if(/restaurant|cafe|fast_food|food_court/.test(amenity)||tourism==="hotel")return "food";
+    if(tags.shop||amenity==="marketplace")return "shopping";
+    if(/park|playground|garden/.test(leisure)||tags.natural==="water"||tags.waterway)return "parks";
+    if(/stadium|sports_centre|pitch/.test(leisure)||tags.sport)return "sports";
+    if(tourism)return "tourism";
+    return "other";
+  }
+  const POI_ICONS={education:"🎓",health:"🏥",transport:"🚉",shopping:"🛍️",food:"🍽️",parks:"🌳",sports:"🏟️",worship:"🛕",finance:"🏦",fuel:"⛽",tourism:"📍",other:"📌"};
+  function poiName(tags){
+    tags=tags||{};
+    return String(tags.name||tags["name:en"]||tags.official_name||tags.operator||tags.amenity||tags.shop||tags.leisure||tags.tourism||"Mapped place");
+  }
+  function poiQuery(category,bounds){
+    const sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),filter=POI_FILTERS[category]||POI_FILTERS.all;
+    const clauses=filter.selectors.map(selector=>selector+"("+[sw.lat,sw.lng,ne.lat,ne.lng].map(v=>Number(v).toFixed(5)).join(",")+");").join("\n");
+    return "[out:json][timeout:18];("+clauses+");out center tags 160;";
+  }
+  function poiCacheKey(category,bounds){
+    const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
+    return category+":"+[sw.lat,sw.lng,ne.lat,ne.lng].map(v=>Number(v).toFixed(3)).join(",");
+  }
+  function renderNearbyPlaces(map,places){
+    const geo=map&&map._gdrPoi;if(!geo)return;
+    geo.layer.clearLayers();
+    const center=map.getCenter();
+    (Array.isArray(places)?places:[]).forEach(element=>{
+      const tags=element&&element.tags||{},centerPoint=element&&element.center||{};
+      const lat=asNumber(element&&element.lat!==undefined?element.lat:centerPoint.lat),lng=asNumber(element&&element.lon!==undefined?element.lon:centerPoint.lon);
+      if(!validPoint(lat,lng))return;
+      const kind=poiKind(tags),icon=POI_ICONS[kind]||POI_ICONS.other,title=poiName(tags);
+      const marker=window.L.marker([lat,lng],{icon:window.L.divIcon({className:"gdr-poi-marker-wrap",html:'<span class="gdr-poi-marker" aria-hidden="true">'+icon+'</span>',iconSize:[34,38],iconAnchor:[17,34]}),title,keyboard:true});
+      const popup=document.createElement("div");popup.className="gdr-poi-popup";
+      const heading=document.createElement("strong");heading.textContent=title;
+      const detail=document.createElement("span");detail.textContent=kind.charAt(0).toUpperCase()+kind.slice(1)+" · "+distanceKm([center.lat,center.lng],[lat,lng]).toFixed(2)+" km straight-line";
+      const source=document.createElement("a");source.href="https://www.openstreetmap.org/"+String(element.type||"node")+"/"+String(element.id||"");source.target="_blank";source.rel="noopener";source.textContent="OpenStreetMap details";
+      popup.append(heading,detail,source);marker.bindPopup(popup);geo.layer.addLayer(marker);
+    });
+    geo.status.textContent=geo.layer.getLayers().length+" mapped places shown · OpenStreetMap data";
+  }
+  async function loadNearbyPlaces(map,force){
+    const geo=map&&map._gdrPoi;if(!geo)return false;
+    const bounds=map.getBounds(),sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),latSpan=Math.abs(ne.lat-sw.lat),lngSpan=Math.abs(ne.lng-sw.lng);
+    if(map.getZoom()<12||latSpan>.55||lngSpan>.55||latSpan*lngSpan>.18){
+      geo.status.textContent="Zoom in to a neighbourhood to load nearby places.";
+      return false;
+    }
+    const key=poiCacheKey(geo.select.value,bounds),cached=poiCache.get(key);
+    if(!force&&cached&&Date.now()-cached.at<300000){renderNearbyPlaces(map,cached.places);return true;}
+    if(geo.request)geo.request.abort();
+    const request=new AbortController();geo.request=request;const requestId=++geo.requestId;
+    geo.status.textContent="Loading nearby places from OpenStreetMap…";geo.button.disabled=true;
+    try{
+      const query=poiQuery(geo.select.value,bounds);
+      let places=null,lastError=null;
+      for(const endpoint of OVERPASS_ENDPOINTS){
+        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        try{
+          const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:controller.signal});
+          if(!response.ok)throw new Error("Nearby place data is temporarily busy ("+response.status+").");
+          const payload=await response.json();places=Array.isArray(payload.elements)?payload.elements:[];break;
+        }catch(error){lastError=error;}finally{clearTimeout(timer);}
+      }
+      if(!places)throw lastError||new Error("Nearby place data is unavailable.");
+      if(requestId!==geo.requestId)return false;
+      if(poiCache.size>70)poiCache.clear();
+      poiCache.set(key,{at:Date.now(),places});
+      renderNearbyPlaces(map,places);
+      return true;
+    }catch(error){
+      if(requestId===geo.requestId)geo.status.textContent=error.name==="AbortError"?"Nearby-place request timed out. Try again.":(error.message||"Nearby places are temporarily unavailable.");
+      return false;
+    }finally{if(requestId===geo.requestId){geo.button.disabled=false;geo.request=null;}}
+  }
+  function openMapillaryAt(map,kind){
+    if(!map)return;
+    const point=kind==="owner"&&state.ownerSelection?{lat:state.ownerSelection.lat,lng:state.ownerSelection.lng}:map.getCenter();
+    const zoom=Math.max(15,Math.min(19,Number(map.getZoom())||16));
+    const url="https://www.mapillary.com/app/?lat="+encodeURIComponent(point.lat)+"&lng="+encodeURIComponent(point.lng)+"&z="+encodeURIComponent(zoom);
+    window.open(url,"_blank","noopener,noreferrer");
+    if(map._gdrPoi)map._gdrPoi.status.textContent="Mapillary opened in a new tab. Street imagery appears only where contributors have captured it.";
+  }
+  function addMapExploreControls(map,kind){
+    if(!map||map._gdrPoi)return;
+    const control=window.L.control({position:"topleft"});
+    control.onAdd=function(){
+      const root=window.L.DomUtil.create("div","gdr-map-explore-control");
+      const title=node("strong","gdr-map-explore-title","Explore surroundings");
+      const select=node("select","gdr-map-explore-select");select.setAttribute("aria-label","Nearby places category");
+      Object.keys(POI_FILTERS).forEach(key=>{const option=node("option","",POI_FILTERS[key].label);option.value=key;select.append(option);});
+      const button=node("button","gdr-map-explore-button","Show nearby places");button.type="button";
+      const street=node("button","gdr-map-explore-button gdr-map-street-button","360° street imagery");street.type="button";
+      const status=node("small","gdr-map-explore-status","Optional nearby places · OpenStreetMap");
+      root.append(title,select,button,street,status);
+      window.L.DomEvent.disableClickPropagation(root);window.L.DomEvent.disableScrollPropagation(root);
+      button.addEventListener("click",async()=>{
+        const geo=map._gdrPoi;
+        if(!geo.active){geo.active=true;button.textContent="Hide nearby places";await loadNearbyPlaces(map,false);}
+        else{geo.active=false;geo.layer.clearLayers();button.textContent="Show nearby places";status.textContent="Nearby-place overlay hidden.";}
+      });
+      select.addEventListener("change",()=>{if(map._gdrPoi.active)loadNearbyPlaces(map,true);});
+      street.addEventListener("click",()=>openMapillaryAt(map,kind));
+      map._gdrPoi={layer:window.L.layerGroup().addTo(map),select,button,street,status,active:false,request:null,requestId:0,timer:null};
+      return root;
+    };
+    control.addTo(map);
+    map.on("moveend",()=>{
+      const geo=map._gdrPoi;if(!geo||!geo.active)return;
+      if(geo.timer)clearTimeout(geo.timer);
+      geo.timer=setTimeout(()=>{geo.timer=null;loadNearbyPlaces(map,true);},850);
+    });
+  }
+  function makeLayer(map){
   function makeLayer(map){
     if(!window.L.markerClusterGroup)return window.L.layerGroup().addTo(map);
     return window.L.markerClusterGroup({
@@ -391,7 +551,23 @@
       return Array.isArray(coords)&&validPoint(coords[1],coords[0]);
     });
   }
-  function normalizedText(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+  function normalizedText(value){return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
+  function rankPhotonFeatures(features,query){
+    const q=normalizedText(query),tokens=q.split(" ").filter(t=>t.length>1&&t!=="india");
+    return (Array.isArray(features)?features:[]).map((feature,index)=>{
+      const p=feature&&feature.properties||{},country=normalizedText(p.country);
+      const fields=[p.name,p.street,p.locality,p.district,p.county,p.city,p.state,p.postcode].map(normalizedText).filter(Boolean);
+      let score=100+index;
+      if(country&&country!=="india"&&!country.includes("india"))score+=1000;
+      if(fields.includes(q))score=0;
+      else if(normalizedText(p.name)===q)score=1;
+      else if(normalizedText(p.city)===q||normalizedText(p.locality)===q)score=2;
+      else if(normalizedText(p.district)===q||normalizedText(p.county)===q)score=3;
+      else if(tokens.length&&tokens.every(t=>fields.some(field=>field.includes(t))) )score=10;
+      else if(fields.some(field=>field.includes(q)))score=20;
+      return {feature,score,index};
+    }).sort((a,b)=>a.score-b.score||a.index-b.index).map(item=>item.feature);
+  }
   async function resolveMapQuery(query){
     const q=String(query||"").trim();
     if(!q)throw new Error("Enter a city, locality or six-digit PIN code first.");
@@ -429,7 +605,8 @@
       features=await photonGeocode(q+", India");
       if(!features.length)throw new Error("We could not locate “"+q+"”. Try a nearby locality, city or PIN code.");
     }
-    const feature=features[0],coords=feature.geometry.coordinates,props=feature.properties||{};
+    const ranked=rankPhotonFeatures(features,q),feature=ranked[0];if(!feature)throw new Error("We could not verify the requested location. Try adding the district or PIN code.");
+    const coords=feature.geometry.coordinates,props=feature.properties||{};
     return {lat:Number(coords[1]),lng:Number(coords[0]),label:photonLabel(props)||q,query:q,properties:props};
   }
   async function searchTypedMapLocation(){
@@ -535,7 +712,7 @@
   function initRenterMap(){
     if(state.renterMap)return;const canvas=$("gdrExploreMapCanvas");if(!canvas)return;
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
-    state.renterLayer=makeLayer(state.renterMap);state.renterMap.setView([23.2599,77.4126],12);
+    state.renterLayer=makeLayer(state.renterMap);addMapExploreControls(state.renterMap,"renter");state.renterMap.setView([23.2599,77.4126],12);
     state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");});
     state.renterMap.on("moveend",()=>{
       if(Array.isArray(state.browseInventory)){
@@ -588,7 +765,7 @@
       state[timerKey]=setTimeout(async()=>{
         const controller=new AbortController();state[controllerKey]=controller;
         try{const response=await fetch(PHOTON+"?limit=6&lang=en&q="+encodeURIComponent(q+", India"),{headers:{Accept:"application/json"},signal:controller.signal});if(!response.ok)throw new Error("Location suggestions unavailable");
-          const payload=await response.json(),features=Array.isArray(payload.features)?payload.features:[];
+          const payload=await response.json(),features=rankPhotonFeatures(Array.isArray(payload.features)?payload.features:[],q);
           features.forEach(f=>{const c=f&&f.geometry&&f.geometry.coordinates;if(!Array.isArray(c)||!validPoint(c[1],c[0]))return;
             const label=photonLabel(f.properties)||q,b=node("button","gdr-map-suggestion",label);b.type="button";b.addEventListener("click",()=>{input.value=label;panel.classList.remove("gdr-open");onSelect({lat:Number(c[1]),lng:Number(c[0]),label,properties:f.properties||{}});});panel.append(b);
           });
@@ -611,7 +788,7 @@
   }
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
-    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
+    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);addMapExploreControls(state.ownerMap,"owner");window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
     state.ownerMap.setView([22.5937,78.9629],5);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
   }
   async function openOwnerMapPicker(){
