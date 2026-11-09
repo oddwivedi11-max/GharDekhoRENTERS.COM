@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "feat/admin-control-center-upgrade-20261109"
       - "fix/gdr-pin-location-safety-20261109"
       - "fix/full-qa-20261020"
       - "feature/gdr-master-platform-20261104"
@@ -140,6 +141,7 @@ jobs:
           node --check tests/gdr-owner-renter-map.spec.cjs
           node --test tests/gdr-owner-renter-map.spec.cjs
           node --test tests/gdr-admin-layout.test.cjs
+          node --test tests/gdr-admin-login-seo.test.cjs
           node --check tests/gdr-map-experience.spec.cjs
           node --check tests/gdr-nearby-preservation.spec.cjs
           node --check tests/gdr-role-switch-navigation.test.cjs
