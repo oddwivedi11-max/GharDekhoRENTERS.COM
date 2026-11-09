@@ -216,3 +216,26 @@ test("Saved draft is isolated per signed-in owner and never stores authenticatio
   assert.match(studio,/localStorage\.removeItem\(draftKey\(\)\)/);
   assert.doesNotMatch(studio,/localStorage\.setItem\([^,]*(password|access_token|refresh_token)/i);
 });
+
+test("Owner Analytics reads only production payment columns and derives renter names from occupancies",()=>{
+  const ownerController=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerController,/from\("rent_payment_records"\)\.select\("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date"\)/);
+  assert.doesNotMatch(ownerController,/from\("rent_payment_records"\)\.select\([^)]*renter_name/);
+  assert.match(ownerController,/renterForPayment=payment=>data\.occupancies\.find\(row=>row\.id===payment\.occupancy_id\)\?\.renter_name/);
+  assert.match(ownerController,/occupancyById\.get\(p\.occupancy_id\)\?\.renter_name/);
+  assert.equal((ownerController.match(/\.eq\("owner_id",insightOwnerId\)/g)||[]).length,5);
+});
+test("Owner notification badge avoids identical writes observed by the dashboard observer",()=>{
+  const ownerController=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerController,/if\(badge&&badge\.textContent!==count\)badge\.textContent=count/);
+});
+test("Rent due reminders are suppressed once the current billing period is paid",()=>{
+  const ownerController=read("assets/gdr-owner-command-center-hotfix.js");
+  assert.match(ownerController,/paidThisPeriod=data\.payments\.some\(payment=>payment\.occupancy_id===o\.id&&payment\.status==="paid"/);
+  assert.match(ownerController,/if\(!paidThisPeriod&&days>=0&&days<=7\)/);
+});
+test("Owner draft retains its idempotency key and expires after fourteen days",()=>{
+  assert.match(studio,/submissionId:state\.submissionId/);
+  assert.match(studio,/state\.submissionId=\/\^\[0-9a-f\]\{8\}/);
+  assert.match(studio,/Date\.now\(\)-savedAt>14\*86400000/);
+});
