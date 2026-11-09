@@ -43,7 +43,7 @@ jobs:
               ("gdr-owner-payments.js", "20261107-paymentproof1"),
               ("gdr-owner-payments.css", "20261107-paymentproof1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
-              ("gdr-map-experience.js", "20261109-pin-location-safety2"),
+              ("gdr-map-experience.js", "20261109-open-data-map-geo1"),
               ("gdr-property-studio.js", "20261109-owner-launcher-fix1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
@@ -137,12 +137,15 @@ jobs:
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
           echo "Live map script reference:"
           grep -oE 'gdr-map-experience.js[^"]*' /tmp/gdr-live-login.html | head -5
-          grep -q 'gdr-map-experience.js?v=20261109-pin-location-safety2' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js?v=20261109-pin-location-safety2' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js?v=20261109-pin-location-safety2' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261109-open-data-map-geo1' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js?v=20261109-open-data-map-geo1' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js?v=20261109-open-data-map-geo1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js
           grep -q 'fitBounds(coordinates,{padding:\[48,48\],maxZoom:15,animate:false})' /tmp/gdr-map-experience.js
-          grep -q 'SATELLITE_URL' /tmp/gdr-map-experience.js
+          grep -q 'tiles.openfreemap.org/styles/liberty' /tmp/gdr-map-experience.js
+          grep -q 'OVERPASS_ENDPOINTS' /tmp/gdr-map-experience.js
+          grep -q 'www.mapillary.com/app/' /tmp/gdr-map-experience.js
+          grep -q 'rankPhotonFeatures' /tmp/gdr-map-experience.js
           grep -q 'radiusBounds(state.searchCenter)' /tmp/gdr-map-experience.js
           grep -q 'searchRenterArea(undefined,true)' /tmp/gdr-map-experience.js
           grep -q 'sortBrowseInventoryForList' /tmp/gdr-map-experience.js
@@ -151,6 +154,8 @@ jobs:
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-map-experience.css" -o /tmp/gdr-map-experience.css
           grep -q 'gdr-map-shell' /tmp/gdr-map-experience.css
           grep -q 'gdr-map-list-actions' /tmp/gdr-map-experience.css
+          grep -q 'gdr-map-explore-control' /tmp/gdr-map-experience.css
+          grep -q 'gdr-poi-marker' /tmp/gdr-map-experience.css
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice7" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
