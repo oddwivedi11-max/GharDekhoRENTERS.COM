@@ -3,10 +3,164 @@
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 let observer=null;
+let insightCache=null,insightCacheAt=0,insightLoading=null,insightOwnerId=null,insightMode="analytics";
 const moduleMeta={
  properties:{eyebrow:"GDR PROPERTIES",title:"My Properties",subtitle:"Manage your listings, availability and property details."},
- visits:{eyebrow:"GDR VISITS",title:"Visit Requests",subtitle:"Review enquiries and manage property visits."}
+ visits:{eyebrow:"GDR VISITS",title:"Visit Requests",subtitle:"Review enquiries and manage property visits."},
+ analytics:{eyebrow:"GDR ANALYTICS",title:"Owner Analytics",subtitle:"Verified property, tenancy, payment and enquiry figures from your account."},
+ notifications:{eyebrow:"GDR NOTIFICATIONS",title:"Notifications",subtitle:"Account-specific updates derived from your latest property, visit and payment records."}
 };
+const insightClient=()=>window.__gdrSupabaseClient||window.supabaseClient||null;
+const insightEsc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const insightMoney=value=>"₹"+Number(value||0).toLocaleString("en-IN",{maximumFractionDigits:0});
+const insightDate=value=>{const d=value?new Date(value):null;return d&&!Number.isNaN(d.getTime())?d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}):"Date unavailable";};
+function notificationStore(){
+ const key="gdr_owner_notice_state_v1:"+String(insightOwnerId||"unknown");
+ try{const value=JSON.parse(localStorage.getItem(key)||"{}");return {read:Array.isArray(value.read)?value.read:[],dismissed:Array.isArray(value.dismissed)?value.dismissed:[]};}
+ catch(e){return {read:[],dismissed:[]};}
+}
+function saveNotificationStore(store){
+ if(!insightOwnerId)return;
+ try{localStorage.setItem("gdr_owner_notice_state_v1:"+String(insightOwnerId),JSON.stringify({read:(store.read||[]).slice(-150),dismissed:(store.dismissed||[]).slice(-150)}));}
+ catch(e){console.warn("Could not save owner notification preferences",e);}
+}
+function unreadNotificationCount(){
+ if(!insightCache||!insightCache.notifications)return 0;
+ const store=notificationStore();
+ return insightCache.notifications.filter(n=>!store.dismissed.includes(n.id)&&!store.read.includes(n.id)).length;
+}
+function nextDueDate(day,now){
+ const dueDay=Math.max(1,Math.min(28,Number(day)||5));
+ let result=new Date(now.getFullYear(),now.getMonth(),dueDay,12,0,0,0);
+ if(result<new Date(now.getFullYear(),now.getMonth(),now.getDate(),0,0,0,0))result=new Date(now.getFullYear(),now.getMonth()+1,dueDay,12,0,0,0);
+ return result;
+}
+async function fetchOwnerInsights(force){
+ if(insightLoading)return insightLoading;
+ insightLoading=(async()=>{
+  const client=insightClient();
+  if(!client)throw new Error("Secure database connection is unavailable. Refresh and sign in again.");
+  const auth=await client.auth.getUser();
+  if(auth.error||!auth.data?.user)throw new Error("Please sign in again to access Owner Analytics.");
+  const ownerResult=await client.from("owners").select("id").eq("user_id",auth.data.user.id).maybeSingle();
+  if(ownerResult.error||!ownerResult.data)throw new Error("Owner profile could not be found for this account.");
+  insightOwnerId=ownerResult.data.id;
+  if(!force&&insightCache&&Date.now()-insightCacheAt<60000)return insightCache;
+  const results=await Promise.all([
+   client.from("properties").select("id,title,name,rent,status,verification_status,created_at,deleted_at").eq("owner_id",insightOwnerId).is("deleted_at",null).order("created_at",{ascending:false}).limit(200),
+   client.from("property_occupancies").select("id,property_id,renter_name,occupied_at,released_at,expected_move_out_at").eq("owner_id",insightOwnerId).order("occupied_at",{ascending:false}).limit(200),
+   client.from("visit_requests").select("id,property_id,name,visit_date,visit_time,status,created_at").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(200),
+   client.from("rent_payment_records").select("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(300),
+   client.from("owner_payment_settings").select("property_id,due_day,late_fee_amount,late_fee_grace_days").eq("owner_id",insightOwnerId).limit(200)
+  ]);
+  const names=["properties","occupancies","visits","payments","payment settings"];
+  const errors=results.map((result,index)=>result.error?names[index]+": "+result.error.message:null).filter(Boolean);
+  const data={
+   properties:results[0].data||[],
+   occupancies:results[1].data||[],
+   visits:results[2].data||[],
+   payments:results[3].data||[],
+   settings:results[4].data||[],
+   errors:[]
+  };
+  data.notifications=buildOwnerNotifications(data);
+  data.errors=errors;
+  insightCache=data;insightCacheAt=Date.now();
+  return data;
+ })().finally(()=>{insightLoading=null;});
+ return insightLoading;
+}
+function buildOwnerNotifications(data){
+ const now=new Date(),recentCutoff=now.getTime()-30*86400000,items=[];
+ const push=(id,type,title,detail,when,route)=>items.push({id,type,title,detail,when:when||null,route:route||"visits"});
+ const renterForPayment=payment=>data.occupancies.find(row=>row.id===payment.occupancy_id)?.renter_name||"Renter";
+ data.visits.filter(v=>v.status==="pending"&&new Date(v.created_at||0).getTime()>=recentCutoff).forEach(v=>push("visit:"+v.id,"visit","New visit request",[(v.name||"A renter")+" requested a property visit",v.visit_date?insightDate(v.visit_date):""].filter(Boolean).join(" · "),v.created_at,"visits"));
+ data.payments.filter(p=>p.status==="pending_verification").forEach(p=>push("payment:"+p.id,"payment","Payment awaiting verification",[renterForPayment(p),insightMoney(p.total_amount)].join(" · "),p.created_at,"payments"));
+ data.properties.filter(p=>p.status==="pending"||p.verification_status==="pending").forEach(p=>push("property:"+p.id,"property","Property verification pending",p.title||p.name||"Your property listing",p.created_at,"properties"));
+ const today=new Date(now.getFullYear(),now.getMonth(),now.getDate()),moveoutHorizon=new Date(today.getTime()+14*86400000);
+ data.occupancies.filter(o=>!o.released_at&&o.expected_move_out_at).forEach(o=>{
+  const due=new Date(o.expected_move_out_at+"T12:00:00");
+  if(due>=today&&due<=moveoutHorizon)push("moveout:"+o.id,"renter","Upcoming renter move-out",(o.renter_name||"Renter")+" · "+insightDate(o.expected_move_out_at),o.expected_move_out_at,"renters");
+ });
+ const settingsByProperty=new Map(data.settings.map(setting=>[setting.property_id,setting]));
+ const currentPeriod=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+ data.occupancies.filter(o=>!o.released_at).forEach(o=>{
+  const setting=settingsByProperty.get(o.property_id);if(!setting||!setting.due_day)return;
+  const due=nextDueDate(setting.due_day,now),days=Math.ceil((due.getTime()-today.getTime())/86400000);
+  const paidThisPeriod=data.payments.some(payment=>payment.occupancy_id===o.id&&payment.status==="paid"&&String(payment.billing_period||payment.payment_date||"").slice(0,7)===currentPeriod);
+  if(!paidThisPeriod&&days>=0&&days<=7)push("rentdue:"+o.id+":"+due.toISOString().slice(0,10),"rent","Rent due date approaching",(o.renter_name||"Renter")+" · due "+insightDate(due.toISOString()),due.toISOString(),"payments");
+ });
+ return items.sort((a,b)=>new Date(b.when||0)-new Date(a.when||0)).slice(0,100);
+}
+
+function analyticsMarkup(data){
+ const properties=data.properties,active=data.occupancies.filter(o=>!o.released_at);
+ const byProperty=new Map(properties.map(p=>[p.id,p])),occupancyById=new Map(data.occupancies.map(o=>[o.id,o]));
+ const verifiedAvailable=properties.filter(p=>p.status==="verified"&&p.verification_status==="verified"&&!active.some(o=>o.property_id===p.id)).length;
+ const soonAvailable=properties.filter(p=>p.status==="soon_available").length,occupied=properties.filter(p=>p.status==="occupied").length;
+ const monthlyExpected=active.reduce((sum,o)=>sum+Number(byProperty.get(o.property_id)?.rent||0),0);
+ const now=new Date(),month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
+ const paidThisMonth=data.payments.filter(p=>p.status==="paid"&&String(p.payment_date||p.verified_at||p.created_at||"").slice(0,7)===month);
+ const received=paidThisMonth.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
+ const awaiting=data.payments.filter(p=>p.status==="pending_verification"),pendingAmount=awaiting.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
+ const newVisits=data.visits.filter(v=>v.status==="pending");
+ const cards=[
+  ["Total properties",properties.length,"All active listings"],
+  ["Available now",verifiedAvailable,"Verified and vacant"],
+  ["Occupied",occupied,"Currently occupied listings"],
+  ["Soon available",soonAvailable,"Move-out workflow status"],
+  ["Active renters",active.length,"Open occupancy records"],
+  ["Expected monthly rent",insightMoney(monthlyExpected),"Base rent from active tenancies"],
+  ["Received this month",insightMoney(received),paidThisMonth.length+" verified payment records"],
+  ["Awaiting verification",insightMoney(pendingAmount),awaiting.length+" renter submissions"],
+  ["Pending enquiries",newVisits.length,"Visit requests awaiting owner response"]
+ ];
+ return '<div class="gdr-insight-kpi-grid">'+cards.map(c=>'<article class="gdr-insight-kpi"><span>'+insightEsc(c[0])+'</span><strong>'+insightEsc(c[1])+'</strong><small>'+insightEsc(c[2])+'</small></article>').join("")+'</div>'+
+ '<div class="gdr-insight-two-col"><section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PORTFOLIO</span><h3>Property status</h3></div><b>'+properties.length+'</b></div><div class="gdr-insight-bars">'+[['Verified available',verifiedAvailable],['Occupied',occupied],['Soon available',soonAvailable],['Pending verification',properties.filter(p=>p.verification_status==="pending"||p.status==="pending").length]].map(row=>'<div class="gdr-insight-bar-row"><span>'+row[0]+'</span><strong>'+row[1]+'</strong><i><em style="width:'+(properties.length?Math.min(100,Math.round(row[1]/properties.length*100)):0)+'%"></em></i></div>').join("")+'</div></section>'+
+ '<section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PAYMENT ACTIVITY</span><h3>Latest payment records</h3></div><button type="button" data-insight-route="payments">Open payments</button></div>'+(data.payments.length?'<div class="gdr-insight-mini-list">'+data.payments.slice(0,5).map(p=>'<div><span><b>'+insightEsc(occupancyById.get(p.occupancy_id)?.renter_name||"Renter")+'</b><small>'+insightEsc(p.billing_period||"Billing period unavailable")+'</small></span><strong>'+insightMoney(p.total_amount)+'</strong><em>'+insightEsc(p.status||"unknown")+'</em></div>').join("")+'</div>':'<p class="gdr-insight-empty">No payment records are available yet.</p>')+'</section></div>'+
+ (data.errors.length?'<p class="gdr-insight-partial">Some account data could not be loaded: '+insightEsc(data.errors.join(" · "))+'</p>':'');
+}
+
+function notificationsMarkup(data){
+ const store=notificationStore(),visible=data.notifications.filter(n=>!store.dismissed.includes(n.id)),unread=visible.filter(n=>!store.read.includes(n.id));
+ return '<div class="gdr-insight-notification-toolbar"><div><strong>'+unread.length+' unread</strong><span>Updates are derived from existing owner records. Read/dismiss choices stay on this signed-in browser.</span></div><button type="button" data-insight-action="read-all" '+(unread.length?"":"disabled")+'>Mark all read</button></div>'+
+ (visible.length?'<div class="gdr-insight-notification-list">'+visible.map(n=>{const read=store.read.includes(n.id);return '<article class="gdr-insight-notification '+(read?"is-read":"is-unread")+'"><span class="gdr-insight-notification-icon">'+({visit:"▣",payment:"₹",property:"⌂",renter:"♙",rent:"◷"}[n.type]||"•")+'</span><div class="gdr-insight-notification-copy"><b>'+insightEsc(n.title)+'</b><p>'+insightEsc(n.detail)+'</p><small>'+insightEsc(insightDate(n.when))+'</small></div><div class="gdr-insight-notification-actions">'+(!read?'<button type="button" data-insight-read="'+insightEsc(n.id)+'">Mark read</button>':'<span>Read</span>')+'<button type="button" data-insight-dismiss="'+insightEsc(n.id)+'" aria-label="Dismiss notification">Dismiss</button><button type="button" data-insight-route="'+insightEsc(n.route)+'">Open</button></div></article>';}).join("")+'</div>':'<div class="gdr-insight-empty"><strong>You\'re all caught up.</strong><p>New visit requests, payment submissions, property verification updates and upcoming renter dates will appear here when present in your records.</p></div>')+
+ (data.errors.length?'<p class="gdr-insight-partial">Some account data could not be loaded: '+insightEsc(data.errors.join(" · "))+'</p>':'');
+}
+function ensureInsightsPanel(dash){
+ let panel=$("#gdrOwnerInsightsPanel",dash);
+ if(!panel){panel=document.createElement("section");panel.id="gdrOwnerInsightsPanel";panel.hidden=true;panel.innerHTML='<div class="gdr-insight-panel-toolbar"><span id="gdrInsightFreshness">Live account data</span><button type="button" data-insight-action="refresh">↻ Refresh</button></div><div id="gdrOwnerInsightsContent"><p class="gdr-insight-loading">Loading owner data…</p></div>';const header=$("#gdrOwnerModuleHeader",dash);if(header)header.insertAdjacentElement("afterend",panel);else dash.appendChild(panel);}
+ if(panel.dataset.gdrBound!=="1"){panel.dataset.gdrBound="1";panel.addEventListener("click",async event=>{
+  const action=event.target.closest("[data-insight-action]"),read=event.target.closest("[data-insight-read]"),dismiss=event.target.closest("[data-insight-dismiss]"),route=event.target.closest("[data-insight-route]");
+  if(action){const kind=action.dataset.insightAction;if(kind==="refresh"){await loadInsights(insightMode,true);}else if(kind==="read-all"){const store=notificationStore();store.read=(insightCache?.notifications||[]).map(n=>n.id);saveNotificationStore(store);renderInsightsPanel();}return;}
+  if(read){const store=notificationStore();if(!store.read.includes(read.dataset.insightRead))store.read.push(read.dataset.insightRead);saveNotificationStore(store);renderInsightsPanel();return;}
+  if(dismiss){const store=notificationStore();if(!store.dismissed.includes(dismiss.dataset.insightDismiss))store.dismissed.push(dismiss.dataset.insightDismiss);saveNotificationStore(store);renderInsightsPanel();return;}
+  if(route){const mode=route.dataset.insightRoute;if(mode==="payments"||mode==="renters")openExternal($("#ownerDashboard"),mode);else setMode($("#ownerDashboard"),mode==="properties"?"properties":"visits");}
+ });}
+ return panel;
+}
+function renderInsightsPanel(){
+ const dash=$("#ownerDashboard");if(!dash)return;
+ const panel=ensureInsightsPanel(dash),content=$("#gdrOwnerInsightsContent",panel);
+ if(!content)return;
+ if(!insightCache){content.innerHTML='<p class="gdr-insight-loading">Loading verified account records…</p>';return;}
+ content.innerHTML=insightMode==="notifications"?notificationsMarkup(insightCache):analyticsMarkup(insightCache);
+ const badge=$('[data-gdr-count="notifications"]',dash);if(badge)badge.textContent=String(unreadNotificationCount());
+ const freshness=$("#gdrInsightFreshness",panel);if(freshness)freshness.textContent="Updated "+new Date(insightCacheAt).toLocaleTimeString("en-IN",{hour:"2-digit",minute:"2-digit"});
+}
+async function loadInsights(mode,force){
+ insightMode=mode||insightMode;renderInsightsPanel();
+ try{await fetchOwnerInsights(!!force);renderInsightsPanel();}
+ catch(error){const content=$("#gdrOwnerInsightsContent");if(content)content.innerHTML='<div class="gdr-insight-empty"><strong>Owner data could not be loaded</strong><p>'+insightEsc(error.message||"Please refresh and try again.")+'</p><button type="button" data-insight-action="refresh">Try again</button></div>';console.warn("Owner analytics/notifications unavailable",error);}
+}
+function refreshNotificationBadge(){
+ const dash=$("#ownerDashboard");if(!dash)return;
+ const badge=$('[data-gdr-count="notifications"]',dash),count=String(unreadNotificationCount());
+ // This controller observes dashboard mutations. Guard identical writes to avoid
+ // retriggering its MutationObserver indefinitely.
+ if(badge&&badge.textContent!==count)badge.textContent=count;
+}
+
 function countText(id){const n=document.getElementById(id);return n?(n.textContent||"0").trim():"0";}
 function renterCount(){const n=$$("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card");return String(n.length);}
 function ensureHome(dash){
@@ -18,6 +172,8 @@ function ensureHome(dash){
   '<button type="button" class="gdr-occ-card gdr-occ-rose" data-gdr-module="renters"><span class="gdr-occ-icon" aria-hidden="true">♙</span><span class="gdr-occ-copy"><b>Current Renters</b><small>Manage active tenants and tenancy</small><em><strong data-gdr-count="renters">0</strong> active renters</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
   '<button type="button" class="gdr-occ-card gdr-occ-blue" data-gdr-module="payments"><span class="gdr-occ-icon" aria-hidden="true">₹</span><span class="gdr-occ-copy"><b>My Payments</b><small>Rent collection and UPI records</small><em>Payment management</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
   '<button type="button" class="gdr-occ-card gdr-occ-orange" data-gdr-module="visits"><span class="gdr-occ-icon" aria-hidden="true">▣</span><span class="gdr-occ-copy"><b>Visit Requests</b><small>Review and respond to enquiries</small><em><strong data-gdr-count="visits">0</strong> pending requests</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
+  '<button type="button" class="gdr-occ-card gdr-occ-teal" data-gdr-module="analytics"><span class="gdr-occ-icon" aria-hidden="true">▤</span><span class="gdr-occ-copy"><b>Owner Analytics</b><small>Portfolio, occupancy and income</small><em>Live account statistics</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
+  '<button type="button" class="gdr-occ-card gdr-occ-teal gdr-occ-notifications" data-gdr-module="notifications"><span class="gdr-occ-icon" aria-hidden="true">♢</span><span class="gdr-occ-copy"><b>Notifications</b><small>Enquiries, payments and due dates</small><em><strong data-gdr-count="notifications">0</strong> unread updates</em></span><span class="gdr-occ-arrow" aria-hidden="true">↗</span></button>'+
   '</div>';
   const stats=$(".dashboard-stats-grid",dash);
   if(stats)stats.insertAdjacentElement("afterend",home);else dash.prepend(home);
@@ -28,6 +184,7 @@ function ensureHome(dash){
   header.innerHTML='<div class="gdr-occ-module-copy"><span class="gdr-occ-eyebrow" id="gdrOccModuleEyebrow"></span><h2 id="gdrOccModuleTitle"></h2><p id="gdrOccModuleSubtitle"></p></div><button type="button" class="gdr-occ-back" data-gdr-owner-home>← Back to Dashboard</button>';
   home.insertAdjacentElement("afterend",header);
  }
+ ensureInsightsPanel(dash);
  const back=$("[data-gdr-owner-home]",header);
  if(back && back.dataset.gdrBackBound!=="1"){
   back.dataset.gdrBackBound="1";
@@ -37,20 +194,23 @@ function ensureHome(dash){
 }
 function setMode(dash,mode){
  const {home,header}=ensureHome(dash);
- dash.classList.remove("gdr-owner-mode-home","gdr-owner-mode-properties","gdr-owner-mode-visits");
+ dash.classList.remove("gdr-owner-mode-home","gdr-owner-mode-properties","gdr-owner-mode-visits","gdr-owner-mode-analytics","gdr-owner-mode-notifications");
  dash.classList.add("gdr-owner-mode-"+mode);
  home.hidden=mode!=="home";header.hidden=mode==="home";
- if(mode==="properties"||mode==="visits"){
+ const insightPanel=ensureInsightsPanel(dash);
+ insightPanel.hidden=mode!=="analytics"&&mode!=="notifications";
+ if(mode!=="home"&&moduleMeta[mode]){
   const m=moduleMeta[mode];
   $("#gdrOccModuleEyebrow",header).textContent=m.eyebrow;
   $("#gdrOccModuleTitle",header).textContent=m.title;
   $("#gdrOccModuleSubtitle",header).textContent=m.subtitle;
  }
  if(mode==="home"){
-  updateCounts(dash);
+  updateCounts(dash);refreshNotificationBadge();
   requestAnimationFrame(()=>window.scrollTo({top:0,behavior:"smooth"}));
  }else{
   requestAnimationFrame(()=>header.scrollIntoView({behavior:"smooth",block:"start"}));
+  if(mode==="analytics"||mode==="notifications")loadInsights(mode,false);
  }
 }
 function setTextIfChanged(node,value){
@@ -64,6 +224,7 @@ function updateCounts(dash){
  setTextIfChanged(pc,p);
  setTextIfChanged(rc,renterCount());
  setTextIfChanged(vc,v);
+ refreshNotificationBadge();
 }
 function openExternal(dash,module){
  setMode(dash,"home");
@@ -122,14 +283,14 @@ function bind(dash){
   const card=e.target.closest("[data-gdr-module]");
   if(card&&dash.contains(card)){
    e.preventDefault();const m=card.dataset.gdrModule;
-   if(m==="properties"||m==="visits")setMode(dash,m);else openExternal(dash,m);
+   if(m==="properties"||m==="visits"||m==="analytics"||m==="notifications")setMode(dash,m);else openExternal(dash,m);
    return;
   }
   if(e.target.closest("[data-gdr-owner-home]")){e.preventDefault();setMode(dash,"home");}
  });
 }
 function styles(){
- const href="/assets/gdr-owner-command-center.css?v=20261109-profilevisibility2";
+ const href="/assets/gdr-owner-command-center.css?v=20261109-owner-insights1";
  let link=$("#gdrOwnerCommandCenterStyle");
  if(!link){
   link=document.querySelector('link[rel="stylesheet"][href*="gdr-owner-command-center.css"]');
