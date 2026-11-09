@@ -119,8 +119,68 @@ function setLocation(address,lat,lng,pincode){
  if(pincode)state.pincode=String(pincode).replace(/\D/g,"").slice(0,6);
  const input=$("#gdrStudioLocation");if(input)input.value=state.address;
  const pin=$("#gdrStudioPincode");if(pin)pin.value=state.pincode;
+ const ownerLocation=$("#propertyLocation");
+ if(ownerLocation&&state.lat!==null&&state.lng!==null){
+  ownerLocation.value=state.address;
+  ownerLocation.dataset.gdSelectedLat=String(state.lat);
+  ownerLocation.dataset.gdSelectedLng=String(state.lng);
+  ownerLocation.dataset.gdSelectedDisplayName=state.address;
+ }
  updateLocationStatus();saveDraft();renderLiveVoiceForm();
  if(state.lat!==null&&state.lng!==null)loadNearbyPlaces();
+}
+let pincodeResolveController=null;
+async function resolveStudioPincode(rawPin){
+ const pin=String(rawPin||"").replace(/\D/g,"").slice(0,6);
+ if(!/^\d{6}$/.test(pin))return false;
+ if(pincodeResolveController){try{pincodeResolveController.abort();}catch(e){}}
+ pincodeResolveController=new AbortController();
+ const signal=pincodeResolveController.signal;
+ const status=$("#gdrStudioLocationStatus");
+ if(status)status.textContent="Verifying PIN code and locating its post office…";
+ try{
+  const postalResponse=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"},signal});
+  if(!postalResponse.ok)throw new Error("India Post lookup is unavailable");
+  const postalPayload=await postalResponse.json();
+  const record=Array.isArray(postalPayload)?postalPayload[0]:null;
+  const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice:[];
+  if(!offices.length)throw new Error("No post office found for this PIN code");
+  const office=offices.find(item=>item&&item.Name)||offices[0];
+  const officeName=String(office.Name||"").trim();
+  const district=String(office.District||office.Block||"").trim();
+  const region=String(office.State||"").trim();
+  const query=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  const geoUrl="https://photon.komoot.io/api/?limit=8&lang=en&q="+encodeURIComponent(query);
+  const geoResponse=await fetch(geoUrl,{headers:{Accept:"application/json"},signal});
+  if(!geoResponse.ok)throw new Error("Map location lookup is unavailable");
+  const geoPayload=await geoResponse.json();
+  const features=(Array.isArray(geoPayload.features)?geoPayload.features:[]).filter(feature=>{
+   const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
+   return String(props.countrycode||"").toLowerCase()==="in"&&coords.length>=2&&Number.isFinite(Number(coords[0]))&&Number.isFinite(Number(coords[1]));
+  });
+  if(!features.length)throw new Error("The PIN was verified, but map coordinates were not found");
+  const feature=features[0],coords=feature.geometry.coordinates;
+  const label=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  setLocation(label,Number(coords[1]),Number(coords[0]),pin);
+  const ownerLocation=$("#propertyLocation");
+  if(ownerLocation){
+   ownerLocation.value=label;
+   ownerLocation.dataset.gdSelectedLat=String(coords[1]);
+   ownerLocation.dataset.gdSelectedLng=String(coords[0]);
+   ownerLocation.dataset.gdSelectedDisplayName=label;
+  }
+  if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function"){
+   window.GDRMapExperience.centerOwnerMapPicker(Number(coords[1]),Number(coords[0]),label);
+  }
+  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". The owner map is centered on this post-office area. Zoom in and confirm the exact property entrance before publishing.";
+  message("PIN verified. Map centered on the matching post-office area; confirm the exact building pin before submitting.","success");
+  return true;
+ }catch(error){
+  if(error&&error.name==="AbortError")return false;
+  console.warn("Property Studio PIN resolution:",error);
+  if(status)status.textContent=error.message||"Could not locate this PIN. Enter the locality manually or use GPS.";
+  return false;
+ }
 }
 function escapeHtml(value){
  return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
@@ -960,6 +1020,9 @@ function bindEvents(){
   searchTimer=setTimeout(()=>searchAddress(q),350);
  });
  $("#gdrStudioPincode")?.addEventListener("input",e=>{state.pincode=e.target.value.replace(/\D/g,"").slice(0,6);e.target.value=state.pincode;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"pincode"))state.voice.pending.pincode=state.pincode;saveDraft();renderLiveVoiceForm();});
+ $("#gdrStudioPincode")?.addEventListener("change",e=>{const pin=String(e.target.value||"").replace(/\D/g,"").slice(0,6);if(pin.length===6)resolveStudioPincode(pin);});
+ $("#gdrStudioPincode")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();const pin=String(e.target.value||"").replace(/\D/g,"").slice(0,6);if(pin.length===6)resolveStudioPincode(pin);}});
+
  ["gdrStudioRent","gdrStudioDeposit","gdrStudioFurnishing","gdrStudioDescription","gdrStudioRoomType","gdrStudioGender","gdrStudioTotalBeds","gdrStudioAvailableBeds","gdrStudioFoodIncluded"].forEach(id=>{
   const el=document.getElementById(id);if(!el)return;
   el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();});
