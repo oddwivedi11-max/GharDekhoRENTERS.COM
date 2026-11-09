@@ -138,9 +138,33 @@
     </div>`;
     page.querySelector("[data-rp-back]").addEventListener("click",back);
     page.querySelectorAll("[data-cancel-form]").forEach(b=>b.addEventListener("click",()=>{const f=b.closest("form");if(f)f.hidden=true;}));
-    $("gdrRpEditDates").addEventListener("click",()=>{$("gdrRpDatesForm").hidden=false;});
-    $("gdrRpEditContact").addEventListener("click",()=>{$("gdrRpContactForm").hidden=false;});
-    $("gdrRpAddCharge").addEventListener("click",event=>{event.preventDefault();event.stopPropagation();const f=$("gdrRpChargeForm");if(editingChargeId){editingChargeId=null;f.reset();f.hidden=true;f.querySelector('[type="submit"]').textContent="Save charge";$("gdrRpAddCharge").textContent="+ Add charge";}else{f.hidden=false;f.scrollIntoView({behavior:"smooth",block:"nearest"});f.elements.title?.focus({preventScroll:true});}});
+    // Bind the three primary renter-management actions once at the page root.
+    // Delegation survives profile re-renders and prevents stale element handlers.
+    if(page.dataset.gdrPrimaryActionsBound!=="1"){
+      page.addEventListener("click",event=>{
+        const button=event.target.closest("#gdrRpEditDates,#gdrRpEditContact,#gdrRpAddCharge");
+        if(!button||!page.contains(button))return;
+        event.preventDefault();
+        const reveal=(formId,focusSelector)=>{
+          const form=$(formId);if(!form)return;
+          form.hidden=false;button.setAttribute("aria-expanded","true");
+          form.scrollIntoView({behavior:"smooth",block:"nearest"});
+          form.querySelector(focusSelector||"input,select,textarea")?.focus({preventScroll:true});
+          message("");
+        };
+        if(button.id==="gdrRpEditDates"){reveal("gdrRpDatesForm",'input[name="moveout"]');return;}
+        if(button.id==="gdrRpEditContact"){reveal("gdrRpContactForm",'input[name="name"]');return;}
+        const form=$("gdrRpChargeForm");
+        if(editingChargeId){
+          editingChargeId=null;form.reset();form.hidden=true;
+          form.querySelector('[type="submit"]').textContent="Save charge";
+          button.textContent="+ Add charge";button.setAttribute("aria-expanded","false");
+          return;
+        }
+        reveal("gdrRpChargeForm",'input[name="title"]');
+      },true);
+      page.dataset.gdrPrimaryActionsBound="1";
+    }
     $("gdrRpDatesForm").addEventListener("submit",e=>saveMoveOut(e,row));
     $("gdrRpContactForm").addEventListener("submit",e=>saveContact(e,row));
     $("gdrRpChargeForm").addEventListener("submit",e=>saveCharge(e,row));
