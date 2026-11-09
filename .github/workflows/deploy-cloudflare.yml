@@ -44,7 +44,7 @@ jobs:
               ("gdr-owner-payments.css", "20261107-paymentproof1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
               ("gdr-map-experience.js", "20261109-open-data-map-geo1"),
-              ("gdr-property-studio.js", "20261109-start-listing-clickfix1"),
+              ("gdr-property-studio.js", "20261109-start-listing-resetfix2"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:
@@ -158,9 +158,9 @@ jobs:
           grep -q 'gdr-poi-marker' /tmp/gdr-map-experience.css
           # Verify the owner Start Listing controller and its fresh cache key,
           # not merely that the old dashboard HTML responds.
-          grep -q 'gdr-property-studio.js?v=20261109-start-listing-clickfix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261109-start-listing-resetfix2' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261109-start-listing-clickfix1' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-start-listing-resetfix2" -o /tmp/gdr-property-studio.js
           grep -q 'function showLauncherFeedback(text,tone)' /tmp/gdr-property-studio.js
           grep -q 'dash.getBoundingClientRect()' /tmp/gdr-property-studio.js
           grep -q 'gdrListPropertyStart,#gdrListPropertySpeak,#ownerAddPropertyBtn' /tmp/gdr-property-studio.js
@@ -170,6 +170,12 @@ jobs:
           fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1" -o /tmp/gdr-property-studio.css
           grep -q 'gdrListPropertyFeedback' /tmp/gdr-property-studio.css
+          grep -Fq '$("[data-gdr-photo-category]").forEach' /tmp/gdr-property-studio.js
+          grep -Fq '$("[data-gdr-photo-category]",root).forEach' /tmp/gdr-property-studio.js
+          if grep -Fq '$("[data-gdr-photo-category]").forEach' /tmp/gdr-property-studio.js; then
+            echo "A single-element querySelector is still used as a photo-category collection."
+            exit 1
+          fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-voice.js?v=20261107-map-voice7" -o /tmp/gdr-map-voice.js
           grep -q 'GDRMapVoiceAssistant' /tmp/gdr-map-voice.js
           grep -q 'Available Rental Properties below' /tmp/gdr-map-voice.js
@@ -262,12 +268,12 @@ jobs:
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-root.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-login.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-root.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-login.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
           grep -q 'List Your Property' /tmp/gdr-live-root.html || grep -q 'List Your Property' /tmp/gdr-live-login.html || grep -q 'List Your Property' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.js?v=20261109-start-listing-clickfix1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261109-start-listing-clickfix1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261109-start-listing-clickfix1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261109-start-listing-resetfix2' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261109-start-listing-resetfix2' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261109-start-listing-resetfix2' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261109-start-listing-clickfix1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261109-start-listing-clickfix1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261109-start-listing-clickfix1' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261107-paymentproof1' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-root.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-login.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-root.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-login.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-start-listing-clickfix1" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261109-start-listing-resetfix2" -o /tmp/gdr-property-studio.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-property-archive.js?v=20261109-soft-archive1" -o /tmp/gdr-owner-property-archive.js
           grep -q 'owner_archive_property' /tmp/gdr-owner-property-archive.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js
