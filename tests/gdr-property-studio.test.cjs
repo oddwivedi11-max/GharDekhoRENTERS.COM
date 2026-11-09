@@ -187,3 +187,25 @@ test("Returning from a successful listing refreshes Owner Dashboard without relo
   assert.ok(!studio.includes("window.location.reload()"));
   assert.ok(!studio.includes("auth.signOut"));
 });
+
+test("owner photo gallery offers Exterior, Interior and Other categories",()=>{
+ for(const category of ["exterior","interior","other"])assert.ok(studioMarkup.includes('data-gdr-photo-category="'+category+'"'),category);
+ assert.ok(studio.includes('f.gdrCategory=state.photoCategory||"exterior"'));
+ assert.ok(studio.includes('state.user.id+"/"+category+"/"+uuid()'));
+});
+test("owner photo uploads use bounded parallel batches and preserve cover-first ordering",()=>{
+ assert.ok(studio.includes("for(let start=0;start<ordered.length;start+=3)"));
+ assert.ok(studio.includes("await Promise.allSettled(batch.map"));
+ assert.ok(studio.includes("if(state.coverIndex>0)ordered.unshift(ordered.splice(state.coverIndex,1)[0])"));
+ assert.ok(studio.includes("uploaded[start+offset]=item"));
+ assert.ok(studio.includes('c.storage.from("property-images").remove(paths)'));
+});
+
+test("Owner Property Studio assets are loaded once and deployment patcher keeps the same cache versions",()=>{
+ assert.equal(html.split("gdr-property-studio.js").length-1,1);
+ assert.equal(html.split("gdr-property-studio.css").length-1,1);
+ assert.ok(html.includes("gdr-property-studio.js?v=20261109-gallery-batch1"));
+ assert.ok(html.includes("gdr-property-studio.css?v=20261109-gallery-categories1"));
+ assert.match(patcher,/20261109-gallery-batch1/);
+ assert.match(patcher,/20261109-gallery-categories1/);
+});

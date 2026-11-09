@@ -44,7 +44,7 @@ jobs:
               ("gdr-owner-payments.css", "20261107-paymentproof1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
               ("gdr-map-experience.js", "20261109-pin-location-safety2"),
-              ("gdr-property-studio.js", "20261109-pin-location-safety2"),
+              ("gdr-property-studio.js", "20261109-gallery-batch1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:

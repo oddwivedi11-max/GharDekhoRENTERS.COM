@@ -65,10 +65,16 @@
       <div class="gdr-studio-nearby"><strong>Nearby public places</strong><p id="gdrStudioNearbyStatus">Nearby places are discovered automatically after location confirmation.</p><div id="gdrStudioNearbyList"></div><small>Source: © OpenStreetMap contributors. Results depend on available map data.</small></div>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="3" hidden>
-      <h2 class="gdr-studio-panel-title">Add photos of your property</h2><p class="gdr-studio-panel-subtitle">Use your own genuine property photos. You can add up to 8 photos and choose the cover photo.</p>
+      <h2 class="gdr-studio-panel-title">Add photos of your property</h2><p class="gdr-studio-panel-subtitle">Add up to 8 genuine photos. Sort them as Exterior, Interior or Other and choose the cover photo.</p>
+      <div class="gdr-studio-photo-category" role="group" aria-label="Choose photo category">
+        <button type="button" data-gdr-photo-category="exterior" class="is-selected" aria-pressed="true">🏡 Exterior</button>
+        <button type="button" data-gdr-photo-category="interior" aria-pressed="false">🛋️ Interior</button>
+        <button type="button" data-gdr-photo-category="other" aria-pressed="false">＋ Other</button>
+      </div>
+      <p class="gdr-studio-photo-category-help">Select a category, then upload photos or take a picture. You can mix categories and choose any photo as the cover.</p>
       <div class="gdr-studio-photo-actions"><button type="button" id="gdrStudioChoosePhotos">▧ Upload Photos</button><button type="button" id="gdrStudioTakePhotos">◎ Take Photos</button></div>
       <input id="gdrStudioPhotoFiles" type="file" accept="image/jpeg,image/png,image/webp" multiple hidden><input id="gdrStudioCameraFiles" type="file" accept="image/jpeg,image/png,image/webp" capture="environment" multiple hidden>
-      <p class="gdr-studio-photo-note">JPG, PNG or WEBP · Maximum 5 MB each · No stock images or photos of other properties.</p><div id="gdrStudioPhotoPreview" hidden></div>
+      <p class="gdr-studio-photo-note">JPG, PNG or WEBP · Maximum 5 MB each · Uploads run in small parallel batches · No stock images or photos of other properties.</p><div id="gdrStudioPhotoPreview" hidden></div>
       <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" autocomplete="off" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>

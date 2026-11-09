@@ -348,3 +348,19 @@ body.gdr-property-studio-open{overflow:hidden!important}
  #gdrStudioFormNext:before,#gdrStudioPublish:before{animation:none}
  #gdrStudioFormNext,#gdrStudioPublish,#gdrStudioFormNext span,#gdrStudioPublish span{transition:none}
 }
+
+/* Owner listing gallery: categories and compact responsive previews. */
+#gdrPropertyStudio .gdr-studio-photo-category{display:flex;flex-wrap:wrap;gap:9px;margin:18px 0 8px}
+#gdrPropertyStudio .gdr-studio-photo-category button{min-height:43px;padding:0 16px;border:1px solid #d7e1d5;border-radius:12px;background:#fff;color:#385b46;font-size:12px;font-weight:900;cursor:pointer;box-shadow:0 3px 0 #e2e8df}
+#gdrPropertyStudio .gdr-studio-photo-category button.is-selected{border-color:#1c583b;background:#e9f3e6;color:#17452f;box-shadow:0 3px 0 #b7d0b6,inset 0 0 0 1px #1c583b}
+#gdrPropertyStudio .gdr-studio-photo-category button:focus-visible{outline:3px solid #b5d97c;outline-offset:3px}
+#gdrPropertyStudio .gdr-studio-photo-category-help{margin:0 0 12px;color:#66796a;font-size:12px;line-height:1.5}
+#gdrPropertyStudio #gdrStudioPhotoPreview{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,210px),1fr));gap:12px;margin-top:16px}
+#gdrPropertyStudio .gdr-studio-photo-card{min-width:0;overflow:hidden;border:1px solid #dce6d9;border-radius:15px;background:#fff;box-shadow:0 7px 18px #173c2910}
+#gdrPropertyStudio .gdr-studio-photo-card>img{display:block;width:100%;height:150px;object-fit:cover;background:#edf2e9}
+#gdrPropertyStudio .gdr-studio-photo-card>div{display:flex;flex-wrap:wrap;align-items:center;gap:7px;padding:10px}
+#gdrPropertyStudio .gdr-studio-photo-card>div>span{flex:1 1 100%;color:#244a35;font-size:11px;font-weight:850;overflow-wrap:anywhere}
+#gdrPropertyStudio .gdr-studio-photo-card button{min-height:35px;padding:0 10px;border:1px solid #d5e2d2;border-radius:9px;background:#f8fbf6;color:#28523a;font-size:10px;font-weight:850}
+@media(max-width:600px){#gdrPropertyStudio .gdr-studio-photo-category{display:grid;grid-template-columns:repeat(3,minmax(0,1fr))}#gdrPropertyStudio .gdr-studio-photo-category button{padding:0 7px;font-size:11px}#gdrPropertyStudio .gdr-studio-photo-card>img{height:128px}}
+
+#gdrPropertyStudio #gdrStudioPhotoPreview[hidden]{display:none!important}
