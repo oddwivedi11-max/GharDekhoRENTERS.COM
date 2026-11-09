@@ -421,3 +421,36 @@ body.gdr-property-studio-open{overflow:hidden!important}
 #gdrListPropertyHero .gdr-list-hero-art{position:relative;z-index:0;pointer-events:none}
 #gdrListPropertyHero #gdrListPropertyStart[disabled]{opacity:.78;cursor:wait;filter:saturate(.8)}
 #gdrListPropertyHero #gdrListPropertyStart[aria-busy="true"]{min-width:158px}
+
+
+/* Distinct optional upload cards must remain cards, not inherit the legacy category-toggle row. */
+#gdrPropertyStudio .gdr-studio-photo-categories .gdr-studio-photo-category{
+  display:block!important;
+  min-width:0!important;
+  padding:17px!important;
+  border-radius:17px!important;
+}
+#gdrPropertyStudio .gdr-studio-photo-categories .gdr-studio-photo-category h3{
+  margin:7px 0 5px!important;
+  color:#234b36!important;
+  font-size:17px!important;
+}
+#gdrPropertyStudio .gdr-studio-photo-categories .gdr-studio-photo-category p{
+  min-height:35px!important;
+  margin:0 0 12px!important;
+  color:#718074!important;
+}
+#gdrPropertyStudio .gdr-studio-photo-categories .gdr-studio-photo-category .gdr-studio-photo-actions{
+  display:flex!important;
+  flex-wrap:wrap!important;
+  gap:8px!important;
+}
+#gdrPropertyStudio .gdr-studio-photo-categories .gdr-studio-photo-category button{
+  display:inline-flex!important;
+  min-height:39px!important;
+  align-items:center!important;
+  justify-content:center!important;
+}
+@media(max-width:680px){
+ #gdrPropertyStudio .gdr-studio-photo-categories .gdr-studio-photo-category{padding:14px!important}
+}
