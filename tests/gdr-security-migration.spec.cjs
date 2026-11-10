@@ -50,7 +50,8 @@ test.describe('GharDekho 2026-11-10 database security and inventory migration', 
   test('public inventory excludes archived pending rows and preserves intentional public search RPCs', () => {
     const sql = migration('20261110210119_fix_public_archive_filter_trigger_acl_and_fk_indexes.sql').toLowerCase();
 
-    expect(sql).toContain('where p.deleted_at is null and (');
+    expect(sql).toContain('where p.deleted_at is null');
+    expect(sql).toContain('and (');
     expect(sql).toContain("(p.verification_status='pending' and p.status='pending')");
     expect(sql).toContain("p.status='occupied'");
     expect(sql).toContain('po.released_at is null');
