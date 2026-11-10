@@ -43,9 +43,9 @@ async function openMapWithMockLeaflet(page) {
     const shell = document.getElementById('dashboardSection');
     const dashboard = document.getElementById('renterDashboard');
     const panel = document.getElementById('gdrExploreMapPanel');
-    if (shell) { shell.hidden = false; shell.style.display = 'block'; shell.setAttribute('aria-hidden', 'false'); }
-    if (dashboard) { dashboard.hidden = false; dashboard.style.display = 'block'; }
-    if (panel) { panel.hidden = false; panel.style.display = 'block'; }
+    if (shell) { shell.hidden = false; shell.style.setProperty('display', 'block', 'important'); shell.style.setProperty('visibility', 'visible', 'important'); shell.setAttribute('aria-hidden', 'false'); }
+    if (dashboard) { dashboard.hidden = false; dashboard.style.setProperty('display', 'block', 'important'); dashboard.style.setProperty('visibility', 'visible', 'important'); }
+    if (panel) { panel.hidden = false; panel.style.setProperty('display', 'block', 'important'); panel.style.setProperty('visibility', 'visible', 'important'); }
   });
   await expect(page.locator('#gdrMapVoiceAssistant')).toBeVisible({ timeout: 5000 });
 }
