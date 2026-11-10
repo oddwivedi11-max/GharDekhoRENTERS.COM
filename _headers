@@ -23,3 +23,6 @@
   Cache-Control: no-cache, must-revalidate
 /assets/gdr-owner-renter-ledger.js
   Cache-Control: no-cache, must-revalidate
+
+/admin/control*
+  X-Robots-Tag: noindex, nofollow

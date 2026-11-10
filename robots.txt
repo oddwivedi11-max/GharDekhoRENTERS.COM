@@ -1,8 +1,9 @@
 User-agent: *
 Allow: /
+Allow: /admin/
 
-# Keep private/admin and account-only areas out of search crawling.
-Disallow: /admin
+# Keep the authenticated Admin Control Center out of search results.
+Disallow: /admin/control
 Disallow: /?admin=1
 
 Sitemap: https://ghardekhorenters.com/sitemap.xml
