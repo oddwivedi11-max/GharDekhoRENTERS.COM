@@ -3,9 +3,9 @@ const { test, expect } = require('@playwright/test');
 async function exposeAuthenticatedRenterDashboard(page) {
   await page.evaluate(() => {
     const shell = document.getElementById('dashboardSection');
-    if (shell) { shell.hidden = false; shell.style.display = 'block'; shell.setAttribute('aria-hidden', 'false'); }
+    if (shell) { shell.hidden = false; shell.style.setProperty('display', 'block', 'important'); shell.style.setProperty('visibility', 'visible', 'important'); shell.setAttribute('aria-hidden', 'false'); }
     const renter = document.getElementById('renterDashboard');
-    if (renter) { renter.hidden = false; renter.style.display = 'block'; }
+    if (renter) { renter.hidden = false; renter.style.setProperty('display', 'block', 'important'); renter.style.setProperty('visibility', 'visible', 'important'); }
   });
 }
 
