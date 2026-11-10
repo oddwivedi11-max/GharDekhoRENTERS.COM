@@ -11,6 +11,23 @@ const moduleMeta={
  notifications:{eyebrow:"GDR NOTIFICATIONS",title:"Notifications",subtitle:"Account-specific updates derived from your latest property, visit and payment records."}
 };
 const insightClient=()=>window.__gdrSupabaseClient||window.supabaseClient||null;
+const INSIGHT_PAGE_SIZE=500,INSIGHT_MAX_ROWS=10000;
+async function readAllInsightRows(queryFactory,label){
+ const rows=[];
+ for(let offset=0;offset<=INSIGHT_MAX_ROWS;offset+=INSIGHT_PAGE_SIZE){
+  const result=await queryFactory().range(offset,offset+INSIGHT_PAGE_SIZE-1);
+  if(result.error)throw new Error(result.error.message||("Could not load "+label+"."));
+  const page=Array.isArray(result.data)?result.data:[];
+  rows.push(...page);
+  if(rows.length>INSIGHT_MAX_ROWS)throw new Error(label+" exceeds 10,000 records. Narrow the data range or contact support.");
+  if(page.length<INSIGHT_PAGE_SIZE)return rows;
+ }
+ throw new Error(label+" exceeds the supported 10,000-record analytics window.");
+}
+async function loadInsightRows(queryFactory,label){
+ try{return {data:await readAllInsightRows(queryFactory,label),error:null};}
+ catch(error){return {data:null,error:{message:error.message||String(error)}};}
+}
 const insightEsc=value=>String(value??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const insightMoney=value=>"₹"+Number(value||0).toLocaleString("en-IN",{maximumFractionDigits:0});
 const insightDate=value=>{const d=value?new Date(value):null;return d&&!Number.isNaN(d.getTime())?d.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}):"Date unavailable";};
@@ -47,13 +64,14 @@ async function fetchOwnerInsights(force){
   insightOwnerId=ownerResult.data.id;
   if(!force&&insightCache&&Date.now()-insightCacheAt<60000)return insightCache;
   const results=await Promise.all([
-   client.from("properties").select("id,title,name,rent,status,verification_status,created_at,deleted_at").eq("owner_id",insightOwnerId).is("deleted_at",null).order("created_at",{ascending:false}).limit(200),
-   client.from("property_occupancies").select("id,property_id,renter_name,occupied_at,released_at,expected_move_out_at").eq("owner_id",insightOwnerId).order("occupied_at",{ascending:false}).limit(200),
-   client.from("visit_requests").select("id,property_id,name,visit_date,visit_time,status,created_at").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(200),
-   client.from("rent_payment_records").select("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).limit(300),
-   client.from("owner_payment_settings").select("property_id,due_day,late_fee_amount,late_fee_grace_days").eq("owner_id",insightOwnerId).limit(200)
+   loadInsightRows(()=>client.from("properties").select("id,title,name,rent,status,verification_status,created_at,deleted_at").eq("owner_id",insightOwnerId).is("deleted_at",null).order("created_at",{ascending:false}).order("id",{ascending:false}),"properties"),
+   loadInsightRows(()=>client.from("property_occupancies").select("id,property_id,renter_name,occupied_at,released_at,expected_move_out_at").eq("owner_id",insightOwnerId).order("occupied_at",{ascending:false}).order("id",{ascending:false}),"occupancies"),
+   loadInsightRows(()=>client.from("visit_requests").select("id,property_id,name,visit_date,visit_time,status,created_at").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).order("id",{ascending:false}),"visits"),
+   loadInsightRows(()=>client.from("rent_payment_records").select("id,occupancy_id,property_id,billing_period,total_amount,status,created_at,verified_at,payment_date").eq("owner_id",insightOwnerId).order("created_at",{ascending:false}).order("id",{ascending:false}),"payments"),
+   loadInsightRows(()=>client.from("owner_payment_settings").select("property_id,due_day,late_fee_amount,late_fee_grace_days").eq("owner_id",insightOwnerId).order("property_id",{ascending:true}),"payment settings"),
+   loadInsightRows(()=>client.from("occupancy_charges").select("id,occupancy_id,amount,frequency,is_active,created_at").eq("owner_id",insightOwnerId).eq("is_active",true).order("created_at",{ascending:false}).order("id",{ascending:false}),"charges")
   ]);
-  const names=["properties","occupancies","visits","payments","payment settings"];
+  const names=["properties","occupancies","visits","payments","payment settings","charges"];
   const errors=results.map((result,index)=>result.error?names[index]+": "+result.error.message:null).filter(Boolean);
   const data={
    properties:results[0].data||[],
@@ -61,6 +79,7 @@ async function fetchOwnerInsights(force){
    visits:results[2].data||[],
    payments:results[3].data||[],
    settings:results[4].data||[],
+   charges:results[5].data||[],
    errors:[]
   };
   data.notifications=buildOwnerNotifications(data);
@@ -107,7 +126,11 @@ function analyticsMarkup(data){
  const soonAvailable=properties.filter(p=>p.status==="soon_available").length;
  const occupied=properties.filter(p=>p.status==="occupied").length;
  const pendingProperties=properties.filter(p=>p.verification_status==="pending"||p.status==="pending").length;
- const monthlyExpected=active.reduce((sum,o)=>sum+Number(byProperty.get(String(o.property_id))?.rent||0),0);
+ const activeOccupancyIds=new Set(active.map(o=>String(o.id)));
+ const monthlyBaseRent=active.reduce((sum,o)=>sum+Number(byProperty.get(String(o.property_id))?.rent||0),0);
+ const chargesUnavailable=(data.errors||[]).some(error=>String(error).startsWith("charges:"));
+ const monthlyCharges=chargesUnavailable?0:(data.charges||[]).filter(charge=>charge.is_active!==false&&charge.frequency==="monthly"&&activeOccupancyIds.has(String(charge.occupancy_id))).reduce((sum,charge)=>sum+Number(charge.amount||0),0);
+ const monthlyExpected=monthlyBaseRent+monthlyCharges;
  const now=new Date(),month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
  const paidRows=payments.filter(p=>String(p.status||"").toLowerCase()==="paid");
  const paidThisMonth=paidRows.filter(p=>String(p.payment_date||p.verified_at||p.created_at||"").slice(0,7)===month);
@@ -121,7 +144,7 @@ function analyticsMarkup(data){
   ["Occupied",occupied,"Currently occupied listings"],
   ["Soon available",soonAvailable,"Move-out workflow status"],
   ["Active renters",active.length,"Open occupancy records"],
-  ["Expected monthly rent",insightMoney(monthlyExpected),"Base rent from active tenancies"],
+  ["Expected monthly rent",insightMoney(monthlyExpected),chargesUnavailable?"Base rent only; recurring charges unavailable":"Base rent + active recurring charges"],
   ["Received this month",insightMoney(received),paidThisMonth.length+" verified payment records"],
   ["Awaiting verification",insightMoney(pendingAmount),awaiting.length+" renter submissions"]
  ];

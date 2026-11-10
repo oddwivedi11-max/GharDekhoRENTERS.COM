@@ -67,3 +67,23 @@ test("Charge description schema change is additive and bounded",()=>{
  assert.match(chargeMigration,/length\(description\) <= 500/);
  assert.doesNotMatch(chargeMigration,/drop column|delete from|truncate/i);
 });
+
+
+test("Owner Analytics paginates owner-scoped data and includes active recurring tenancy charges",()=>{
+ assert.match(controller,/async function readAllInsightRows\(queryFactory,label\)/);
+ assert.match(controller,/\.range\(offset,offset\+INSIGHT_PAGE_SIZE-1\)/);
+ assert.match(controller,/loadInsightRows\(\(\)=>client\.from\("occupancy_charges"\)/);
+ assert.match(controller,/monthlyCharges/);
+ assert.doesNotMatch(controller,/\.limit\((?:200|300)\)/);
+});
+
+
+test("My Payments pages all owner data, renders small batches and signs only visible proof links",()=>{
+ assert.match(payments,/async function fetchAllPaymentRows\(queryFactory,label\)/);
+ assert.match(payments,/\.range\(offset,offset\+PAYMENT_PAGE_SIZE-1\)/);
+ assert.doesNotMatch(payments,/\.limit\(250\)/);
+ assert.match(payments,/recordsDisplayLimit=50/);
+ assert.match(payments,/data-load-more/);
+ assert.match(payments,/root\.querySelector\("\[data-load-more\]"\)/);
+ assert.match(payments,/async function loadVisibleProofs\(\)/);
+});

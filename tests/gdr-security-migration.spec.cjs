@@ -43,3 +43,42 @@ test.describe('GDR draft SQL security guardrails (static checks only)', () => {
     expect(sql).toMatch(/grant\s+execute\s+on\s+function\s+public\.owner_update_visit_status\(uuid,\s*text\)\s+to\s+authenticated/i);
   });
 });
+
+
+
+test.describe('GharDekho 2026-11-10 database security and inventory migration', () => {
+  test('public inventory excludes archived pending rows and preserves intentional public search RPCs', () => {
+    const sql = migration('20261110210119_fix_public_archive_filter_trigger_acl_and_fk_indexes.sql').toLowerCase();
+
+    expect(sql).toContain('where p.deleted_at is null');
+    expect(sql).toContain('and (');
+    expect(sql).toContain("(p.verification_status='pending' and p.status='pending')");
+    expect(sql).toContain("p.status='occupied'");
+    expect(sql).toContain('po.released_at is null');
+    expect(sql).toContain('revoke execute on function public.gdr_write_admin_audit_log() from public,anon,authenticated;');
+    for (const name of [
+      'get_public_properties',
+      'get_map_properties_in_bounds',
+      'get_available_map_properties_in_bounds',
+      'get_nearby_properties',
+      'search_public_properties_for_assistant',
+    ]) {
+      expect(sql).not.toContain('revoke execute on function public.' + name);
+    }
+  });
+
+  test('the migration adds the four audited foreign-key indexes without removing application tables', () => {
+    const sql = migration('20261110210119_fix_public_archive_filter_trigger_acl_and_fk_indexes.sql').toLowerCase();
+    for (const name of [
+      'owner_rent_ledger_entries_created_by_idx',
+      'owner_rent_ledger_entries_property_id_idx',
+      'rent_payment_records_property_id_idx',
+      'rent_payment_records_verified_by_idx',
+    ]) {
+      expect(sql).toContain('create index if not exists ' + name);
+    }
+    expect(sql).not.toContain('drop table');
+    expect(sql).not.toContain('drop column');
+    expect(sql).not.toContain('delete from public.');
+  });
+});
