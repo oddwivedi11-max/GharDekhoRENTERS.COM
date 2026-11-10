@@ -43,3 +43,29 @@ test.describe('GDR draft SQL security guardrails (static checks only)', () => {
     expect(sql).toMatch(/grant\s+execute\s+on\s+function\s+public\.owner_update_visit_status\(uuid,\s*text\)\s+to\s+authenticated/i);
   });
 });
+
+
+test.describe('GharDekho 2026-11-10 database security and inventory migration', () => {
+  test('public inventory excludes archived pending rows and preserves intentional public search RPCs', () => {
+    const sql = migration('20261110210119_fix_public_archive_filter_trigger_acl_and_fk_indexes.sql');
+
+    expect(sql).toMatch(/where\\s+p\\.deleted_at\\s+is\\s+null\\s+and\\s*\\(/i);
+    expect(sql).toMatch(/p\\.verification_status\\s*=\\s*'pending'[\\s\\S]*?p\\.status\\s*=\\s*'pending'/i);
+    expect(sql).toMatch(/p\\.status\\s*=\\s*'occupied'[\\s\\S]*?po\\.released_at\\s+is\\s+null/i);
+    expect(sql).toMatch(/revoke\\s+execute\\s+on\\s+function\\s+public\\.gdr_write_admin_audit_log\\(\\)\\s+from\\s+public\\s*,\\s*anon\\s*,\\s*authenticated/i);
+    expect(sql).not.toMatch(/revoke\\s+execute\\s+on\\s+function\\s+public\\.(get_public_properties|get_map_properties_in_bounds|get_available_map_properties_in_bounds|get_nearby_properties|search_public_properties_for_assistant)/i);
+  });
+
+  test('the migration adds the four audited foreign-key indexes without removing application tables', () => {
+    const sql = migration('20261110210119_fix_public_archive_filter_trigger_acl_and_fk_indexes.sql');
+    for (const name of [
+      'owner_rent_ledger_entries_created_by_idx',
+      'owner_rent_ledger_entries_property_id_idx',
+      'rent_payment_records_property_id_idx',
+      'rent_payment_records_verified_by_idx',
+    ]) {
+      expect(sql).toMatch(new RegExp('create\\\\s+index\\\\s+if\\\\s+not\\\\s+exists\\\\s+' + name, 'i'));
+    }
+    expect(sql).not.toMatch(/drop\\s+(table|column)\\s+|delete\\s+from\\s+public\\./i);
+  });
+});
