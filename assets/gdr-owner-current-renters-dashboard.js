@@ -262,14 +262,40 @@
     });
   }
 
+  let renterCardObserver = null;
+  let renterActionFrame = 0;
+
+  function hasCurrentRenterCard(node) {
+    if (!node || node.nodeType !== 1) return false;
+    return !!(node.matches?.(".gd-current-renter-card-v2") ||
+      node.querySelector?.(".gd-current-renter-card-v2"));
+  }
+
+  function observeCurrentRenters() {
+    const section = document.querySelector("#ownerDashboard .owner-occupancy-card");
+    if (!section || typeof MutationObserver !== "function") return;
+    renterCardObserver?.disconnect();
+    renterCardObserver = new MutationObserver(records => {
+      const hasNewRenterCards = records.some(record =>
+        Array.from(record.addedNodes || []).some(hasCurrentRenterCard)
+      );
+      if (!hasNewRenterCards || renterActionFrame) return;
+      renterActionFrame = requestAnimationFrame(() => {
+        renterActionFrame = 0;
+        ensureRenterActions();
+      });
+    });
+    renterCardObserver.observe(section, { childList: true, subtree: true });
+  }
+
   function boot() {
     styles();
     addEntryCard();
     bindButton();
     ensureRenterActions();
+    observeCurrentRenters();
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
   else boot();
-  new MutationObserver(() => { addEntryCard(); bindButton(); ensureRenterActions(); }).observe(document.body, { childList: true, subtree: true });
   window.GDROwnerCurrentRenters = { open, close };
 })();
