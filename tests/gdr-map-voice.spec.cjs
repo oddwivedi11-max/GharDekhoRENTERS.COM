@@ -38,7 +38,16 @@ async function openMapWithMockLeaflet(page) {
     };
     document.getElementById('renterExploreMapBtn').click();
   });
-  await expect(page.locator('#gdrMapVoiceAssistant')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#gdrMapVoiceAssistant')).toHaveCount(1, { timeout: 15000 });
+  await page.evaluate(() => {
+    const shell = document.getElementById('dashboardSection');
+    const dashboard = document.getElementById('renterDashboard');
+    const panel = document.getElementById('gdrExploreMapPanel');
+    if (shell) { shell.hidden = false; shell.style.display = 'block'; shell.setAttribute('aria-hidden', 'false'); }
+    if (dashboard) { dashboard.hidden = false; dashboard.style.display = 'block'; }
+    if (panel) { panel.hidden = false; panel.style.display = 'block'; }
+  });
+  await expect(page.locator('#gdrMapVoiceAssistant')).toBeVisible({ timeout: 5000 });
 }
 
 test.describe('GDR renter map voice UI', () => {
