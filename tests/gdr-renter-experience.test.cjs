@@ -68,6 +68,9 @@ test('GDR assistant uses automatic, deduplicated server-side infinite pagination
   assert.match(js, /gdrx-assistant-pagination-sentinel/);
   assert.match(js, /loadMore\(\)/);
   assert.match(js, /gdrx-assistant-load-more/);
+  assert.match(js, /loadedRows\.length>0/);
+  assert.match(js, /loadedRows\.length===previousCount/);
+  assert.match(js, /No additional matching properties were returned/);
   assert.doesNotMatch(js, /get_public_properties|warmPublicInventory/);
   assert.match(assistantSearchMigration, /CREATE INDEX IF NOT EXISTS properties_assistant_search_tsv_idx/i);
   assert.match(assistantSearchMigration, /search_public_properties_for_assistant/);
