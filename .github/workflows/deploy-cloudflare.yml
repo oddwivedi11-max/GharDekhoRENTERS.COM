@@ -341,6 +341,9 @@ jobs:
           grep -q 'gdrPrimaryActionsBound' /tmp/gdr-owner-renter-page.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.js?v=20261111-paginated-records1" -o /tmp/gdr-owner-payments.js
           grep -q 'gdrPayAddCharge' /tmp/gdr-owner-payments.js
+          grep -q 'async function fetchAllPaymentRows' /tmp/gdr-owner-payments.js
+          grep -q 'async function loadVisibleProofs' /tmp/gdr-owner-payments.js
+          grep -q 'data-load-more' /tmp/gdr-owner-payments.js
           grep -q 'gdr-pay-header--minimal' /tmp/gdr-owner-payments.js
           grep -q 'GDR PAYMENT' /tmp/gdr-owner-payments.js
           if grep -q 'GDR FINANCE / OWNER WORKSPACE' /tmp/gdr-owner-payments.js; then echo 'Redundant finance heading still present'; exit 1; fi
@@ -357,6 +360,8 @@ jobs:
            grep -q 'gdr-insight-kpi-grid' /tmp/gdr-owner-command-center.css
            grep -q 'gdr-insight-notification-list' /tmp/gdr-owner-command-center.css
            grep -q 'function fetchOwnerInsights' /tmp/gdr-owner-command-center-hotfix.js
+           grep -q 'async function readAllInsightRows' /tmp/gdr-owner-command-center-hotfix.js
+           grep -q 'monthlyCharges' /tmp/gdr-owner-command-center-hotfix.js
            grep -q 'data-gdr-module="analytics"' /tmp/gdr-owner-command-center-hotfix.js
            grep -q 'data-gdr-module="notifications"' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'grid-template-columns:112px minmax(0,1fr)' /tmp/gdr-owner-command-center.css
