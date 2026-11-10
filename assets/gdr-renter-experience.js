@@ -248,7 +248,7 @@ async function searchAssistantListings(prefs,raw,target){
   sentinel.setAttribute("aria-hidden","true");
   sentinel.style.cssText="height:1px;width:100%;";
   pagination.append(status,sentinel);
-  const canObserve=typeof window!=="undefined"&&typeof window.IntersectionObserver==="function";
+  const canObserve=typeof window!=="undefined"&&typeof window.IntersectionObserver==="function"&&loadedRows.length>0;
   if(canObserve&&!forceManual){
    paginationObserver=new window.IntersectionObserver(entries=>{
     if(entries.some(entry=>entry.isIntersecting)&&!loadingMore&&searchId===state.assistantSearchId){
@@ -284,9 +284,11 @@ async function searchAssistantListings(prefs,raw,target){
   if(loadingMore||loadedRows.length>=totalCount||searchId!==state.assistantSearchId)return;
   loadingMore=true;if(button)button.disabled=true;setStatus(language==="hi"?"बाकी matching properties load कर रहा हूँ…":"Loading the remaining matching properties…");
   try{
+   const previousCount=loadedRows.length;
    const page=await requestPage(loadedRows.length);if(searchId!==state.assistantSearchId)return;
    const known=new Set(loadedRows.map(row=>String(row.id)));
    normalizeAssistantPropertyRows(page.rows).forEach(row=>{if(row&&!known.has(String(row.id))){known.add(String(row.id));loadedRows.push(row);}});
+   if(loadedRows.length===previousCount&&Number(page.totalCount)>previousCount)throw new Error("No additional matching properties were returned. Please retry.");
    totalCount=page.totalCount;renderLoadedRows();const message=describeCount();
    setInventorySummary(message+" Available Rental Properties section में असली listings दिखाई गई हैं।");setStatus(message);
   }catch(error){if(searchId!==state.assistantSearchId)return;setStatus(String(error&&error.message||"More properties could not be loaded. Please retry."));if(button)button.disabled=false;console.error("GDR assistant pagination failed:",error);updatePagination(true);}
