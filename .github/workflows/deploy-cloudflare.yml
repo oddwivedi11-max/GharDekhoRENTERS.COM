@@ -151,6 +151,18 @@ jobs:
             exit 1
           fi
           BASE_URL="$VERIFIED_BASE_URL"
+
+          # Verify the new Admin Command Center bundles, not only legacy assets.
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-admin-command-center.js?v=20261110-commandcenter1" -o /tmp/gdr-admin-command-center.js
+          grep -q 'GDRAdminCommandCenter' /tmp/gdr-admin-command-center.js
+          grep -q 'admin_get_command_center_stats' /tmp/gdr-admin-command-center.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-admin-command-center.css?v=20261110-commandcenter1" -o /tmp/gdr-admin-command-center.css
+          grep -q 'gdr-cc-kpi-grid' /tmp/gdr-admin-command-center.css
+          grep -q 'gdr-cc-support-launch' /tmp/gdr-admin-command-center.css
+          grep -q 'gdr-admin-command-center.js?v=20261110-commandcenter1' /tmp/gdr-live-index.html
+          grep -q 'gdr-admin-command-center.css?v=20261110-commandcenter1' /tmp/gdr-live-index.html
+          echo "Verified live Admin Command Center JavaScript, CSS and HTML references."
+
           echo "Verified Cloudflare production origin: $BASE_URL"
           echo "Live renter assistant script references (root / index):"
           # Root may be routed through a Worker response that omits the static script tag.
