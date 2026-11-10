@@ -107,6 +107,8 @@ jobs:
           node --test tests/gdr-renter-promotional-banner.test.cjs
           node --test tests/gdr-pincode-search.test.cjs
           node --test tests/gdr-admin-layout.test.cjs
+          node --check assets/gdr-admin-command-center.js
+          node --test tests/gdr-admin-command-center.test.cjs
 
       - name: Confirm production deployment target
         run: echo "Deploying commit $GITHUB_SHA to Cloudflare Workers"
