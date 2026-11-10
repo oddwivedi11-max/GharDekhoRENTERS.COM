@@ -132,7 +132,7 @@ test.describe('GDR renter map voice UI', () => {
     await openMapWithMockLeaflet(page);
     await expect(page.locator('#renterDashboard')).toHaveClass(/gdr-map-mode/);
     await page.locator('#gdrMapBackBtn').click();
-    await expect(page.locator('#gdrExploreMapPanel')).toBeHidden();
+    expect(await page.locator('#gdrExploreMapPanel').evaluate(panel => panel.hidden)).toBe(true);
     await expect(page.locator('#renterDashboard')).not.toHaveClass(/gdr-map-mode/);
     await expect(page.locator('#renterExploreMapBtn')).toHaveAttribute('aria-expanded', 'false');
     await expect(page.locator('#renterExploreMapBtn')).toBeFocused();
