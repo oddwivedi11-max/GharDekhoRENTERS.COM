@@ -12,7 +12,13 @@ test("owner command center keeps dashboard sections in separate modules", async 
   await expect(page.locator("#gdrOwnerNearbyCard")).toHaveCount(1);
   await page.waitForFunction(() => {
     const link = document.getElementById("gdrOwnerCommandCenterStyle");
-    return Boolean(link && link.sheet);
+    if (!link || !link.sheet) return false;
+    try {
+      return Array.from(link.sheet.cssRules || []).some(rule =>
+        rule.selectorText && rule.selectorText.includes("gdr-owner-mode-properties") &&
+        rule.cssText.includes("display: block")
+      );
+    } catch (_) { return false; }
   }, null, { timeout: 15000 });
 
   const mode = async value => dashboard.evaluate((el, v) => {
