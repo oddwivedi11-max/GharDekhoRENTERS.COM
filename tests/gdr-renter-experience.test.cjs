@@ -53,7 +53,7 @@ test('state normalization preserves a locality when a city and state are spoken 
   const p = parseRequest('Patel Nagar Bhopal Madhya Pradesh mein rental houses dikhao');
   assert.equal(p.location, 'Patel Nagar Bhopal');
 });
-test('GDR assistant uses indexed server-side pagination and never preloads the full public inventory', () => {
+test('GDR assistant uses automatic, deduplicated server-side infinite pagination with a manual fallback', () => {
   assert.match(js, /search_public_properties_for_assistant/);
   assert.match(js, /p_limit:pageSize/);
   assert.match(js, /p_offset:offset/);
@@ -61,6 +61,13 @@ test('GDR assistant uses indexed server-side pagination and never preloads the f
   assert.match(js, /assistantAbortController/);
   assert.match(js, /AbortController/);
   assert.match(js, /function loadMore\(button\)/);
+  assert.match(js, /new window\.IntersectionObserver/);
+  assert.match(js, /rootMargin:"0px 0px 480px 0px"/);
+  assert.match(js, /assistantPaginationObserver/);
+  assert.match(js, /state\.assistantPaginationObserver\.disconnect\(\)/);
+  assert.match(js, /gdrx-assistant-pagination-sentinel/);
+  assert.match(js, /loadMore\(\)/);
+  assert.match(js, /gdrx-assistant-load-more/);
   assert.doesNotMatch(js, /get_public_properties|warmPublicInventory/);
   assert.match(assistantSearchMigration, /CREATE INDEX IF NOT EXISTS properties_assistant_search_tsv_idx/i);
   assert.match(assistantSearchMigration, /search_public_properties_for_assistant/);
@@ -222,8 +229,8 @@ test('assistant RPC response normalization preserves all valid records and toler
 });
 
 test('Cloudflare deploy forces a fresh browser cache key for assistant property rendering', () => {
-  assert.match(workflow, /gdr-renter-experience\.js", "20261107-assistant-results-render1"/);
-  assert.match(workflow, /gdr-renter-experience\.js\?v=20261107-assistant-results-render1/);
+  assert.match(workflow, /gdr-renter-experience\.js", "20261111-infinite-scroll1"/);
+  assert.match(workflow, /gdr-renter-experience\.js\?v=20261111-infinite-scroll1/);
 });
 
 test('assistant result analytics use actual loaded listing and verification fields', () => {
