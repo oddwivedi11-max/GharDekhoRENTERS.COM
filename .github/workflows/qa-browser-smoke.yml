@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "fix/gdr-verified-data-security-performance-20261111"
       - "gdr-priority15-performance-20261111"
       - "fix/gdr-prod-recovery-analytics-20261110"
       - "feature/gdr-master-followup-final-20261109"
