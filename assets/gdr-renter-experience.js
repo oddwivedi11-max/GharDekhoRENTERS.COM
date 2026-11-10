@@ -3,7 +3,7 @@
 /* GDR_COMPARE_AUTOFILL_V2: seed the clicked home with up to two nearest visible real listings. */
 if(window.GDRRenterExperience)return;
 const $=id=>document.getElementById(id),esc=v=>String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
-const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi",assistantSearchId:0,assistantAbortController:null};
+const state={compare:[],parsed:null,recognition:null,voiceSession:0,voiceActive:false,voiceDraft:"",lang:"hi-IN",lastMapSearch:null,mapReplyLanguage:"hi",assistantSearchId:0,assistantAbortController:null,assistantPaginationObserver:null};
 const publicInventoryCache={data:null,loadedAt:0,promise:null};
 const PUBLIC_INVENTORY_TTL_MS=20000;
 let comparePickerRows=[],comparePickerLoading=false,comparePickerError="",comparePickerQuery="",comparePickerBhk="",comparePickerFurnishing="";
@@ -156,6 +156,7 @@ function normalizeAssistantPropertyRows(value){
 async function searchAssistantListings(prefs,raw,target){
  const searchId=++state.assistantSearchId;
  if(state.assistantAbortController){try{state.assistantAbortController.abort();}catch(_){}state.assistantAbortController=null;}
+ if(state.assistantPaginationObserver){try{state.assistantPaginationObserver.disconnect();}catch(_){}state.assistantPaginationObserver=null;}
  const language=detectReplyLanguage(raw||""),location=String(prefs&&prefs.location||"").trim();
  const section=$("propertiesSection"),container=$("propertiesContainer");
  const setStatus=message=>{
@@ -231,11 +232,37 @@ async function searchAssistantListings(prefs,raw,target){
    return {rows,totalCount};
   }finally{if(timeoutId)clearTimeout(timeoutId);if(state.assistantAbortController===controller)state.assistantAbortController=null;}
  };
- const updatePagination=()=>{
-  const pagination=getPagination();pagination.replaceChildren();if(loadedRows.length>=totalCount)return;
-  const remaining=totalCount-loadedRows.length,button=document.createElement("button");
+ let paginationObserver=null;
+ const updatePagination=(forceManual=false)=>{
+  const pagination=getPagination();
+  if(paginationObserver){paginationObserver.disconnect();if(state.assistantPaginationObserver===paginationObserver)state.assistantPaginationObserver=null;paginationObserver=null;}
+  pagination.replaceChildren();
+  if(loadedRows.length>=totalCount)return;
+  const remaining=totalCount-loadedRows.length;
+  const status=document.createElement("p");
+  status.className="gdrx-assistant-pagination-status";
+  status.setAttribute("aria-live","polite");
+  status.textContent=language==="hi"?"अभी "+loadedRows.length+" में से "+totalCount+" properties दिखाई जा रही हैं। नीचे scroll करने पर बाकी अपने आप load होंगी।":"Showing "+loadedRows.length+" of "+totalCount+" properties. More will load automatically as you scroll.";
+  const sentinel=document.createElement("div");
+  sentinel.className="gdrx-assistant-pagination-sentinel";
+  sentinel.setAttribute("aria-hidden","true");
+  sentinel.style.cssText="height:1px;width:100%;";
+  pagination.append(status,sentinel);
+  const canObserve=typeof window!=="undefined"&&typeof window.IntersectionObserver==="function";
+  if(canObserve&&!forceManual){
+   paginationObserver=new window.IntersectionObserver(entries=>{
+    if(entries.some(entry=>entry.isIntersecting)&&!loadingMore&&searchId===state.assistantSearchId){
+     paginationObserver.unobserve(sentinel);
+     loadMore();
+    }
+   },{root:null,rootMargin:"0px 0px 480px 0px",threshold:0});
+   state.assistantPaginationObserver=paginationObserver;
+   paginationObserver.observe(sentinel);
+   return;
+  }
+  const button=document.createElement("button");
   button.type="button";button.className="gdrx-assistant-load-more";
-  button.textContent=language==="hi"?"और "+remaining+" properties दिखाएँ":"Load "+remaining+" more properties";
+  button.textContent=forceManual?(language==="hi"?"फिर से कोशिश करें":"Retry loading properties"):(language==="hi"?"और "+remaining+" properties दिखाएँ":"Load "+remaining+" more properties");
   button.style.cssText="display:block;margin:16px auto;padding:11px 18px;border:1px solid #d8c7a6;border-radius:10px;background:#fff9ef;color:#173f35;font:inherit;font-weight:600;cursor:pointer";
   button.addEventListener("click",()=>loadMore(button));pagination.append(button);
  };
@@ -262,7 +289,7 @@ async function searchAssistantListings(prefs,raw,target){
    normalizeAssistantPropertyRows(page.rows).forEach(row=>{if(row&&!known.has(String(row.id))){known.add(String(row.id));loadedRows.push(row);}});
    totalCount=page.totalCount;renderLoadedRows();const message=describeCount();
    setInventorySummary(message+" Available Rental Properties section में असली listings दिखाई गई हैं।");setStatus(message);
-  }catch(error){if(searchId!==state.assistantSearchId)return;setStatus(String(error&&error.message||"More properties could not be loaded. Please retry."));if(button)button.disabled=false;console.error("GDR assistant pagination failed:",error);}
+  }catch(error){if(searchId!==state.assistantSearchId)return;setStatus(String(error&&error.message||"More properties could not be loaded. Please retry."));if(button)button.disabled=false;console.error("GDR assistant pagination failed:",error);updatePagination(true);}
   finally{loadingMore=false;}
  }
  setInventorySummary(language==="hi"?"आपकी शर्तों के अनुसार database में उपलब्ध properties खोजी जा रही हैं…":"Searching available properties on the server…");
