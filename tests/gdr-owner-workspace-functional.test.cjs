@@ -76,3 +76,13 @@ test("Owner Analytics paginates owner-scoped data and includes active recurring 
  assert.match(controller,/monthlyCharges/);
  assert.doesNotMatch(controller,/\.limit\((?:200|300)\)/);
 });
+
+
+test("My Payments pages all owner data, renders small batches and signs only visible proof links",()=>{
+ assert.match(payments,/async function fetchAllPaymentRows\(queryFactory,label\)/);
+ assert.match(payments,/\.range\(offset,offset\+PAYMENT_PAGE_SIZE-1\)/);
+ assert.doesNotMatch(payments,/\.limit\(250\)/);
+ assert.match(payments,/recordsDisplayLimit=50/);
+ assert.match(payments,/data-load-more/);
+ assert.match(payments,/async function loadVisibleProofs\(\)/);
+});
