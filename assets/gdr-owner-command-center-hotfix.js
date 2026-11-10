@@ -3,7 +3,7 @@
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 let observer=null;
-let insightCache=null,insightCacheAt=0,insightLoading=null,insightOwnerId=null,insightMode="analytics";
+let insightCache=null,insightCacheAt=0,insightLoading=null,insightOwnerId=null,insightMode="analytics",insightRange="monthly";
 const moduleMeta={
  properties:{eyebrow:"GDR PROPERTIES",title:"My Properties",subtitle:"Manage your listings, availability and property details."},
  visits:{eyebrow:"GDR VISITS",title:"Visit Requests",subtitle:"Review enquiries and manage property visits."},
@@ -94,16 +94,27 @@ function buildOwnerNotifications(data){
 }
 
 function analyticsMarkup(data){
- const properties=data.properties,active=data.occupancies.filter(o=>!o.released_at);
- const byProperty=new Map(properties.map(p=>[p.id,p])),occupancyById=new Map(data.occupancies.map(o=>[o.id,o]));
- const verifiedAvailable=properties.filter(p=>p.status==="verified"&&p.verification_status==="verified"&&!active.some(o=>o.property_id===p.id)).length;
- const soonAvailable=properties.filter(p=>p.status==="soon_available").length,occupied=properties.filter(p=>p.status==="occupied").length;
- const monthlyExpected=active.reduce((sum,o)=>sum+Number(byProperty.get(o.property_id)?.rent||0),0);
+ const properties=Array.isArray(data.properties)?data.properties:[];
+ const occupancies=Array.isArray(data.occupancies)?data.occupancies:[];
+ const payments=Array.isArray(data.payments)?data.payments:[];
+ const visits=Array.isArray(data.visits)?data.visits:[];
+ const active=occupancies.filter(o=>!o.released_at);
+ const byProperty=new Map(properties.map(p=>[String(p.id),p]));
+ const occupancyById=new Map(occupancies.map(o=>[String(o.id),o]));
+ const activeByProperty=new Map();
+ active.forEach(o=>{const key=String(o.property_id);if(!activeByProperty.has(key))activeByProperty.set(key,o);});
+ const verifiedAvailable=properties.filter(p=>p.status==="verified"&&p.verification_status==="verified"&&!activeByProperty.has(String(p.id))).length;
+ const soonAvailable=properties.filter(p=>p.status==="soon_available").length;
+ const occupied=properties.filter(p=>p.status==="occupied").length;
+ const pendingProperties=properties.filter(p=>p.verification_status==="pending"||p.status==="pending").length;
+ const monthlyExpected=active.reduce((sum,o)=>sum+Number(byProperty.get(String(o.property_id))?.rent||0),0);
  const now=new Date(),month=now.getFullYear()+"-"+String(now.getMonth()+1).padStart(2,"0");
- const paidThisMonth=data.payments.filter(p=>p.status==="paid"&&String(p.payment_date||p.verified_at||p.created_at||"").slice(0,7)===month);
+ const paidRows=payments.filter(p=>String(p.status||"").toLowerCase()==="paid");
+ const paidThisMonth=paidRows.filter(p=>String(p.payment_date||p.verified_at||p.created_at||"").slice(0,7)===month);
  const received=paidThisMonth.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
- const awaiting=data.payments.filter(p=>p.status==="pending_verification"),pendingAmount=awaiting.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
- const newVisits=data.visits.filter(v=>v.status==="pending");
+ const awaiting=payments.filter(p=>String(p.status||"").toLowerCase()==="pending_verification");
+ const pendingAmount=awaiting.reduce((sum,p)=>sum+Number(p.total_amount||0),0);
+ const newVisits=visits.filter(v=>String(v.status||"").toLowerCase()==="pending");
  const cards=[
   ["Total properties",properties.length,"All active listings"],
   ["Available now",verifiedAvailable,"Verified and vacant"],
@@ -112,13 +123,116 @@ function analyticsMarkup(data){
   ["Active renters",active.length,"Open occupancy records"],
   ["Expected monthly rent",insightMoney(monthlyExpected),"Base rent from active tenancies"],
   ["Received this month",insightMoney(received),paidThisMonth.length+" verified payment records"],
-  ["Awaiting verification",insightMoney(pendingAmount),awaiting.length+" renter submissions"],
-  ["Pending enquiries",newVisits.length,"Visit requests awaiting owner response"]
+  ["Awaiting verification",insightMoney(pendingAmount),awaiting.length+" renter submissions"]
  ];
- return '<div class="gdr-insight-kpi-grid">'+cards.map(c=>'<article class="gdr-insight-kpi"><span>'+insightEsc(c[0])+'</span><strong>'+insightEsc(c[1])+'</strong><small>'+insightEsc(c[2])+'</small></article>').join("")+'</div>'+
- '<div class="gdr-insight-two-col"><section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PORTFOLIO</span><h3>Property status</h3></div><b>'+properties.length+'</b></div><div class="gdr-insight-bars">'+[['Verified available',verifiedAvailable],['Occupied',occupied],['Soon available',soonAvailable],['Pending verification',properties.filter(p=>p.verification_status==="pending"||p.status==="pending").length]].map(row=>'<div class="gdr-insight-bar-row"><span>'+row[0]+'</span><strong>'+row[1]+'</strong><i><em style="width:'+(properties.length?Math.min(100,Math.round(row[1]/properties.length*100)):0)+'%"></em></i></div>').join("")+'</div></section>'+
- '<section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PAYMENT ACTIVITY</span><h3>Latest payment records</h3></div><button type="button" data-insight-route="payments">Open payments</button></div>'+(data.payments.length?'<div class="gdr-insight-mini-list">'+data.payments.slice(0,5).map(p=>'<div><span><b>'+insightEsc(occupancyById.get(p.occupancy_id)?.renter_name||"Renter")+'</b><small>'+insightEsc(p.billing_period||"Billing period unavailable")+'</small></span><strong>'+insightMoney(p.total_amount)+'</strong><em>'+insightEsc(p.status||"unknown")+'</em></div>').join("")+'</div>':'<p class="gdr-insight-empty">No payment records are available yet.</p>')+'</section></div>'+
- (data.errors.length?'<p class="gdr-insight-partial">Some account data could not be loaded: '+insightEsc(data.errors.join(" · "))+'</p>':'');
+ const range=["monthly","quarterly","yearly"].includes(insightRange)?insightRange:"monthly";
+ const periodCount=range==="yearly"?5:(range==="quarterly"?4:6);
+ const periodKey=date=>{
+  const year=date.getFullYear();
+  if(range==="yearly")return String(year);
+  if(range==="quarterly")return year+"-Q"+(Math.floor(date.getMonth()/3)+1);
+  return year+"-"+String(date.getMonth()+1).padStart(2,"0");
+ };
+ const periodLabel=date=>{
+  const year=String(date.getFullYear()).slice(-2);
+  if(range==="yearly")return String(date.getFullYear());
+  if(range==="quarterly")return "Q"+(Math.floor(date.getMonth()/3)+1)+" '"+year;
+  return new Intl.DateTimeFormat("en-IN",{month:"short"}).format(date)+" '"+year;
+ };
+ const periods=Array.from({length:periodCount},(_,index)=>{
+  let date;
+  if(range==="yearly")date=new Date(now.getFullYear()-(periodCount-1-index),0,1);
+  else if(range==="quarterly")date=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3-(periodCount-1-index)*3,1);
+  else date=new Date(now.getFullYear(),now.getMonth()-(periodCount-1-index),1);
+  return {key:periodKey(date),label:periodLabel(date),date,value:0};
+ });
+ const periodMap=new Map(periods.map(period=>[period.key,period]));
+ paidRows.forEach(payment=>{
+  const raw=payment.payment_date||payment.verified_at||payment.created_at;
+  const date=raw?new Date(raw):null,amount=Number(payment.total_amount||0);
+  if(!date||!Number.isFinite(date.getTime())||!Number.isFinite(amount)||amount<0)return;
+  const bucket=periodMap.get(periodKey(date));
+  if(bucket)bucket.value+=amount;
+ });
+ const revenueTotal=periods.reduce((sum,period)=>sum+period.value,0);
+ const paymentsUnavailable=(data.errors||[]).some(error=>String(error).startsWith("payments:"));
+ const maxRevenue=Math.max(1,...periods.map(period=>period.value));
+ const points=periods.map((period,index)=>{
+  const x=36+(index*(568/Math.max(1,periods.length-1)));
+  const y=162-(period.value/maxRevenue)*126;
+  return {x,y,period};
+ });
+ const pointString=points.map(point=>point.x.toFixed(1)+","+point.y.toFixed(1)).join(" ");
+ const grid=[36,78,120,162].map(y=>'<line x1="28" x2="612" y1="'+y+'" y2="'+y+'" stroke="#e8f0eb" stroke-width="1"/>').join("");
+ const dots=points.map(point=>'<circle cx="'+point.x.toFixed(1)+'" cy="'+point.y.toFixed(1)+'" r="5" fill="#a6cb72" stroke="#1c684d" stroke-width="2"><title>'+insightEsc(point.period.label)+': '+insightEsc(insightMoney(point.period.value))+'</title></circle>').join("");
+ const chartLabel=range==="yearly"?"year":(range==="quarterly"?"quarter":"month");
+ const revenueChart=paymentsUnavailable
+  ? '<div class="gdr-insight-empty">Verified payment history is unavailable for this account right now.</div>'
+  : (revenueTotal>0
+    ? '<svg class="gdr-insight-revenue-plot" viewBox="0 0 640 190" role="img" aria-label="Verified rent received by '+chartLabel+'"><g>'+grid+'</g><polyline points="'+pointString+'" fill="none" stroke="#276e55" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>'+dots+'</svg><div class="gdr-insight-revenue-labels">'+periods.map(period=>'<span>'+insightEsc(period.label)+'</span>').join("")+'</div>'
+    : '<div class="gdr-insight-empty">No verified payment records are available for this period yet.</div>');
+ const statusRows=[
+  {label:"Occupied",value:occupied,color:"#236a50"},
+  {label:"Available",value:verifiedAvailable,color:"#a7c97d"},
+  {label:"Soon available",value:soonAvailable,color:"#e2b56b"},
+  {label:"Pending review",value:pendingProperties,color:"#9baeb0"}
+ ];
+ const knownStatusCount=statusRows.reduce((sum,row)=>sum+row.value,0);
+ const otherStatusCount=Math.max(0,properties.length-knownStatusCount);
+ if(otherStatusCount)statusRows.push({label:"Other / unclassified",value:otherStatusCount,color:"#d8e1dc"});
+ const statusTotal=statusRows.reduce((sum,row)=>sum+row.value,0);
+ let stopAt=0;
+ const stops=statusRows.map(row=>{
+  const from=stopAt;
+  stopAt+=statusTotal?(row.value/statusTotal)*100:0;
+  return row.color+" "+from.toFixed(2)+"% "+stopAt.toFixed(2)+"%";
+ }).join(",");
+ const donutStyle=statusTotal?"conic-gradient("+stops+")":"#edf3ef";
+ const donutMarkup=properties.length&&statusTotal
+  ? '<div class="gdr-insight-donut-layout"><div class="gdr-insight-donut" style="background:'+donutStyle+'"><span><b>'+insightEsc(statusTotal)+'</b><small>classified</small></span></div><ul class="gdr-insight-legend">'+statusRows.map(row=>'<li><i style="background:'+row.color+'"></i><span>'+insightEsc(row.label)+'</span><b>'+row.value+'</b></li>').join("")+'</ul></div>'
+  : '<div class="gdr-insight-empty">Property status data will appear after listings are added.</div>';
+ const periodKeys=new Set(periods.map(period=>period.key));
+ const paidByProperty=new Map();
+ paidRows.forEach(payment=>{
+  const raw=payment.payment_date||payment.verified_at||payment.created_at;
+  const date=raw?new Date(raw):null;
+  if(!date||!Number.isFinite(date.getTime())||!periodKeys.has(periodKey(date)))return;
+  const occupancy=occupancyById.get(String(payment.occupancy_id));
+  const key=String(payment.property_id||occupancy?.property_id||"");
+  if(!key)return;
+  paidByProperty.set(key,(paidByProperty.get(key)||0)+Number(payment.total_amount||0));
+ });
+ const propertyRows=properties.slice(0,8).map(property=>{
+  const key=String(property.id),occupancy=activeByProperty.get(key);
+  const status=property.status||property.verification_status||"Not specified";
+  return '<div class="gdr-insight-property-row"><span><b>'+insightEsc(property.title||property.name||"Rental property")+'</b><small>'+insightEsc(status)+(occupancy&&occupancy.renter_name?" · "+insightEsc(occupancy.renter_name):" · No active renter")+'</small></span><span><b>'+insightMoney(property.rent)+'</b><small>Listed monthly rent</small></span><strong>'+insightMoney(paidByProperty.get(key)||0)+'<small>Received in selected period</small></strong></div>';
+ }).join("");
+ const rentalScale=Math.max(1,monthlyExpected,received,pendingAmount);
+ const rentalBars=[
+  ["Expected monthly rent",monthlyExpected],
+  ["Received this month",received],
+  ["Awaiting verification",pendingAmount]
+ ].map(row=>'<div class="gdr-insight-bar-row"><span>'+row[0]+'</span><strong>'+insightMoney(row[1])+'</strong><i><em style="width:'+Math.min(100,Math.round(row[1]/rentalScale*100))+'%"></em></i></div>').join("");
+ const activeRenterRows=active.slice(0,5).map(occupancy=>{
+  const property=byProperty.get(String(occupancy.property_id));
+  const moveOut=occupancy.expected_move_out_at?new Date(occupancy.expected_move_out_at):null;
+  const moveOutLabel=moveOut&&Number.isFinite(moveOut.getTime())?" · expected out "+moveOut.toLocaleDateString("en-IN",{day:"numeric",month:"short"}):"";
+  return '<div><span><b>'+insightEsc(occupancy.renter_name||"Active renter")+'</b><small>Active tenancy'+insightEsc(moveOutLabel)+'</small></span><strong>'+insightEsc(property?.title||property?.name||"Property")+'</strong></div>';
+ }).join("");
+ const visitRows=visits.slice(0,5).map(visit=>{
+  const raw=visit.visit_date||visit.created_at,parsed=raw?new Date(raw):null;
+  const when=parsed&&Number.isFinite(parsed.getTime())?parsed.toLocaleDateString("en-IN",{day:"numeric",month:"short",year:"numeric"}):"Date not provided";
+  const property=byProperty.get(String(visit.property_id));
+  return '<div><span><b>'+insightEsc(visit.name||"Renter enquiry")+'</b><small>'+insightEsc(visit.status||"Status unavailable")+' · '+insightEsc(when)+'</small></span><strong>'+insightEsc(property?.title||property?.name||"Property enquiry")+'</strong></div>';
+ }).join("");
+ const rangeButtons=[["monthly","Monthly"],["quarterly","Quarterly"],["yearly","Yearly"]].map(row=>'<button type="button" data-insight-range="'+row[0]+'" aria-pressed="'+String(range===row[0])+'">'+row[1]+'</button>').join("");
+ return '<div class="gdr-insight-kpi-grid">'+cards.map(card=>'<article class="gdr-insight-kpi"><span>'+insightEsc(card[0])+'</span><strong>'+insightEsc(card[1])+'</strong><small>'+insightEsc(card[2])+'</small></article>').join("")+'</div>'+
+ '<div class="gdr-insight-two-col"><section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>PORTFOLIO</span><h3>Property occupancy</h3></div><b>'+properties.length+'</b></div>'+donutMarkup+'</section>'+
+ '<section class="gdr-insight-card"><div class="gdr-insight-card-head gdr-insight-revenue-head"><div><span>VERIFIED COLLECTIONS</span><h3>Revenue trend</h3></div><div class="gdr-insight-range-switch" role="group" aria-label="Revenue date range">'+rangeButtons+'</div></div><p class="gdr-insight-chart-summary">'+(paymentsUnavailable?"Payment history unavailable":insightMoney(revenueTotal)+" verified in selected period")+'</p>'+revenueChart+'</section></div>'+
+ '<div class="gdr-insight-two-col"><section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>RENTAL PERFORMANCE</span><h3>Expected and received</h3></div><b>₹</b></div>'+rentalBars+'</section>'+
+ '<section class="gdr-insight-card"><div class="gdr-insight-card-head"><div><span>RENTERS & ENQUIRIES</span><h3>Account activity</h3></div><b>'+active.length+'</b></div><div class="gdr-insight-mini-list">'+(activeRenterRows||'<div class="gdr-insight-empty">No active renter records yet.</div>')+'</div><div class="gdr-insight-card-divider"></div><div class="gdr-insight-card-head"><div><span>VISIT REQUESTS</span><h3>Latest enquiries</h3></div><b>'+newVisits.length+'</b></div>'+(visitRows?'<div class="gdr-insight-mini-list">'+visitRows+'</div>':'<p class="gdr-insight-empty">No visit requests have been recorded yet.</p>')+'</section></div>'+
+ '<section class="gdr-insight-card gdr-insight-full-card"><div class="gdr-insight-card-head"><div><span>LISTING BREAKDOWN</span><h3>Property-wise performance</h3></div><button type="button" data-insight-route="properties">Manage properties</button></div>'+(propertyRows?'<div class="gdr-insight-property-list">'+propertyRows+'</div>':'<p class="gdr-insight-empty">No property records are available yet.</p>')+'</section>'+
+ ((data.errors||[]).length?'<p class="gdr-insight-partial">Some account data could not be loaded: '+insightEsc(data.errors.join(" · "))+'</p>':"");
 }
 
 function notificationsMarkup(data){
@@ -131,6 +245,12 @@ function ensureInsightsPanel(dash){
  let panel=$("#gdrOwnerInsightsPanel",dash);
  if(!panel){panel=document.createElement("section");panel.id="gdrOwnerInsightsPanel";panel.hidden=true;panel.innerHTML='<div class="gdr-insight-panel-toolbar"><span id="gdrInsightFreshness">Live account data</span><button type="button" data-insight-action="refresh">↻ Refresh</button></div><div id="gdrOwnerInsightsContent"><p class="gdr-insight-loading">Loading owner data…</p></div>';const header=$("#gdrOwnerModuleHeader",dash);if(header)header.insertAdjacentElement("afterend",panel);else dash.appendChild(panel);}
  if(panel.dataset.gdrBound!=="1"){panel.dataset.gdrBound="1";panel.addEventListener("click",async event=>{
+  const rangeButton=event.target.closest("[data-insight-range]");
+  if(rangeButton){
+   const nextRange=rangeButton.dataset.insightRange;
+   if(["monthly","quarterly","yearly"].includes(nextRange)&&nextRange!==insightRange){insightRange=nextRange;renderInsightsPanel();}
+   return;
+  }
   const action=event.target.closest("[data-insight-action]"),read=event.target.closest("[data-insight-read]"),dismiss=event.target.closest("[data-insight-dismiss]"),route=event.target.closest("[data-insight-route]");
   if(action){const kind=action.dataset.insightAction;if(kind==="refresh"){await loadInsights(insightMode,true);}else if(kind==="read-all"){const store=notificationStore();store.read=(insightCache?.notifications||[]).map(n=>n.id);saveNotificationStore(store);renderInsightsPanel();}return;}
   if(read){const store=notificationStore();if(!store.read.includes(read.dataset.insightRead))store.read.push(read.dataset.insightRead);saveNotificationStore(store);renderInsightsPanel();return;}

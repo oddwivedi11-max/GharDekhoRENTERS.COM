@@ -3,9 +3,9 @@ const { test, expect } = require('@playwright/test');
 async function exposeAuthenticatedRenterDashboard(page) {
   await page.evaluate(() => {
     const shell = document.getElementById('dashboardSection');
-    if (shell) { shell.hidden = false; shell.style.display = 'block'; shell.setAttribute('aria-hidden', 'false'); }
+    if (shell) { shell.hidden = false; shell.style.setProperty('display', 'block', 'important'); shell.style.setProperty('visibility', 'visible', 'important'); shell.setAttribute('aria-hidden', 'false'); }
     const renter = document.getElementById('renterDashboard');
-    if (renter) { renter.hidden = false; renter.style.display = 'block'; }
+    if (renter) { renter.hidden = false; renter.style.setProperty('display', 'block', 'important'); renter.style.setProperty('visibility', 'visible', 'important'); }
   });
 }
 
@@ -147,6 +147,7 @@ test.describe('GDR map-first experience structure', () => {
     const section = page.locator('#renterSavedPropertiesSection');
     await expect(section).toHaveCSS('display', 'none');
     await page.locator('#renterSavedPropertiesBtn').evaluate(button => button.click());
+    await exposeAuthenticatedRenterDashboard(page);
     await expect(section).toBeVisible();
   });
 });

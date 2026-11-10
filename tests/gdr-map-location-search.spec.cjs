@@ -48,7 +48,8 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).toContain('Tap anywhere on the map to place your starting location');
     expect(script).toContain('$("gdrMapPlaceSearch")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchTypedMapLocation();}})');
     expect(script).toContain('state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false})');
-    expect(script).toContain('$("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap)searchRenterArea();})');
+    expect(script).toContain('radiusInput.addEventListener("input",e=>{state.radiusKm=Math.max(.5,Math.min(10,Number(e.target.value)||5));');
+    expect(script).toContain('$("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap&&state.searchCenter)searchRenterArea(undefined,state.searchUsesRadius);})');
     expect(script).toContain('state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");})');
     expect(script).toContain('draggable:true');
     expect(script).toContain('async function reverseGeocodeRenter(lat,lng)');

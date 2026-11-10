@@ -90,7 +90,7 @@
       <div id="gdrStudioPhotoPreview" hidden></div>
       <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" autocomplete="off" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
     </section>
-    data-gdr-studio-panel="4" hidden>
+    <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
       <h2 class="gdr-studio-panel-title">Review before publishing</h2><p class="gdr-studio-panel-subtitle">Check the details carefully. Your listing will be saved in My Properties and follow the existing verification process.</p><div id="gdrStudioPreview"></div>
     </section>
     <div class="gdr-studio-form-navigation" aria-label="Manual property listing navigation">

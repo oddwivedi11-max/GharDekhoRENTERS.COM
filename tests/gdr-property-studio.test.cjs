@@ -110,7 +110,9 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION=\"20261109-draft-gallery2\"/);
+  assert.match(studio, /const VERSION="20261110-review-panel-markup1"/);
+  assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
+  assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
 });

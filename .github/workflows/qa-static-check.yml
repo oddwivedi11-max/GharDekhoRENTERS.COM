@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "fix/gdr-prod-recovery-analytics-20261110"
       - "fix/gdr-location-safe-drafts-cloudflare-verify-20261110"
       - "feature/gdr-master-followup-final-20261109"
       - "fix/gdr-pin-location-safety-20261109"

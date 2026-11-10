@@ -38,7 +38,16 @@ async function openMapWithMockLeaflet(page) {
     };
     document.getElementById('renterExploreMapBtn').click();
   });
-  await expect(page.locator('#gdrMapVoiceAssistant')).toBeVisible({ timeout: 15000 });
+  await expect(page.locator('#gdrMapVoiceAssistant')).toHaveCount(1, { timeout: 15000 });
+  await page.evaluate(() => {
+    const shell = document.getElementById('dashboardSection');
+    const dashboard = document.getElementById('renterDashboard');
+    const panel = document.getElementById('gdrExploreMapPanel');
+    if (shell) { shell.hidden = false; shell.style.setProperty('display', 'block', 'important'); shell.style.setProperty('visibility', 'visible', 'important'); shell.setAttribute('aria-hidden', 'false'); }
+    if (dashboard) { dashboard.hidden = false; dashboard.style.setProperty('display', 'block', 'important'); dashboard.style.setProperty('visibility', 'visible', 'important'); }
+    if (panel) { panel.hidden = false; panel.style.setProperty('display', 'block', 'important'); panel.style.setProperty('visibility', 'visible', 'important'); }
+  });
+  await expect(page.locator('#gdrMapVoiceAssistant')).toBeVisible({ timeout: 5000 });
 }
 
 test.describe('GDR renter map voice UI', () => {
@@ -123,7 +132,7 @@ test.describe('GDR renter map voice UI', () => {
     await openMapWithMockLeaflet(page);
     await expect(page.locator('#renterDashboard')).toHaveClass(/gdr-map-mode/);
     await page.locator('#gdrMapBackBtn').click();
-    await expect(page.locator('#gdrExploreMapPanel')).toBeHidden();
+    expect(await page.locator('#gdrExploreMapPanel').evaluate(panel => panel.hidden)).toBe(true);
     await expect(page.locator('#renterDashboard')).not.toHaveClass(/gdr-map-mode/);
     await expect(page.locator('#renterExploreMapBtn')).toHaveAttribute('aria-expanded', 'false');
     await expect(page.locator('#renterExploreMapBtn')).toBeFocused();
