@@ -125,7 +125,7 @@ function bindContent(){
  const searchBox=$("gdrPaySearch");if(searchBox)searchBox.addEventListener("input",e=>{search=e.target.value;recordsDisplayLimit=50;const pos=e.target.selectionStart;render();const n=$("gdrPaySearch");n?.focus();n?.setSelectionRange(pos,pos);});
  const pf=$("gdrPayPropertyFilter");if(pf)pf.addEventListener("change",e=>{activeProperty=e.target.value;recordsDisplayLimit=50;render();});
  const sf=$("gdrPayStatusFilter");if(sf)sf.addEventListener("change",e=>{filterStatus=e.target.value;recordsDisplayLimit=50;render();});
- const more=$("[data-load-more]");if(more)more.addEventListener("click",()=>{recordsDisplayLimit+=50;render();});
+ const more=root.querySelector("[data-load-more]");if(more)more.addEventListener("click",()=>{recordsDisplayLimit+=50;render();});
  root.querySelectorAll("[data-retry-proof]").forEach(b=>b.addEventListener("click",()=>{const row=payments.find(x=>String(x.id)===String(b.dataset.retryProof));if(row){row.proof_url_failed=false;render();}}));
  root.querySelectorAll("[data-verify]").forEach(b=>b.addEventListener("click",()=>verify(b.dataset.verify,b.dataset.decision)));
  const addChargeButton=$("gdrPayAddCharge");if(addChargeButton)addChargeButton.addEventListener("click",openChargeForm);
