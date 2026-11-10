@@ -147,6 +147,7 @@ test.describe('GDR map-first experience structure', () => {
     const section = page.locator('#renterSavedPropertiesSection');
     await expect(section).toHaveCSS('display', 'none');
     await page.locator('#renterSavedPropertiesBtn').evaluate(button => button.click());
+    await exposeAuthenticatedRenterDashboard(page);
     await expect(section).toBeVisible();
   });
 });
