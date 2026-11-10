@@ -84,5 +84,6 @@ test("My Payments pages all owner data, renders small batches and signs only vis
  assert.doesNotMatch(payments,/\.limit\(250\)/);
  assert.match(payments,/recordsDisplayLimit=50/);
  assert.match(payments,/data-load-more/);
+ assert.match(payments,/root\.querySelector\("\[data-load-more\]"\)/);
  assert.match(payments,/async function loadVisibleProofs\(\)/);
 });
