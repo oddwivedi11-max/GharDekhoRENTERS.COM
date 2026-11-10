@@ -121,13 +121,46 @@ jobs:
           wranglerVersion: "4.151.1"
           command: deploy
 
+      - name: Purge stale GharDekho HTML cache
+        env:
+          CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: |
+          set -euo pipefail
+          zone_response=""
+          if ! zone_response="$(curl --silent --show-error --fail \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones?name=ghardekhorenters.com&account.id=$CF_ACCOUNT_ID")"; then
+            echo "::warning::Could not list the Cloudflare zone with the deployment token; live cache verification will still run."
+            exit 0
+          fi
+          zone_id="$(printf '%s' "$zone_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("result",[{}])[0].get("id","") if d.get("success") else "")')"
+          if [[ -z "$zone_id" ]]; then
+            echo "::warning::Cloudflare zone ID was not available to this token; live cache verification will still run."
+            exit 0
+          fi
+          purge_payload='{"files":["https://ghardekhorenters.com/","https://ghardekhorenters.com/index.html","https://ghardekhorenters.com/login"]}'
+          if ! purge_response="$(curl --silent --show-error --fail -X POST \
+            "https://api.cloudflare.com/client/v4/zones/$zone_id/purge_cache" \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            -H "Content-Type: application/json" \
+            --data "$purge_payload")"; then
+            echo "::warning::The token could not purge the three HTML URLs; live cache verification will still run."
+            exit 0
+          fi
+          if ! printf '%s' "$purge_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("success") else 1)'; then
+            echo "::warning::Cloudflare did not accept the targeted HTML cache purge; live cache verification will still run."
+            exit 0
+          fi
+          echo "Cloudflare accepted a targeted cache purge for the GharDekho root, index and login HTML URLs."
+
       - name: Verify deployed production assets
         shell: bash
         run: |
           set -euo pipefail
           trap 'echo "FAILED at line $LINENO: $BASH_COMMAND"' ERR
           VERIFIED_BASE_URL=""
-          for candidate in "https://ghardekhorenters.com" "https://ghardekhorenters-com.od-dwived11.workers.dev"; do
+          for candidate in "https://ghardekhorenters.com" "https://ghardekhorenters-com.od-dwivedi11.workers.dev"; do
             echo "Checking deployed HTML on $candidate"
             if ! curl --retry 3 --retry-delay 2 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$candidate/?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-root.html; then
               continue
@@ -141,10 +174,16 @@ jobs:
             if grep -q 'gdr-owner-command-center-hotfix.js?v=20261110-owner-analytics1' /tmp/gdr-live-root.html \
               || grep -q 'gdr-owner-command-center-hotfix.js?v=20261110-owner-analytics1' /tmp/gdr-live-index.html \
               || grep -q 'gdr-owner-command-center-hotfix.js?v=20261110-owner-analytics1' /tmp/gdr-live-login.html; then
-              VERIFIED_BASE_URL="$candidate"
-              break
+              if grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-root.html \
+                || grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-index.html \
+                || grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-login.html; then
+                VERIFIED_BASE_URL="$candidate"
+                break
+              fi
+              echo "The owner assets are current but renter HTML is stale on $candidate; trying the next origin."
+            else
+              echo "Required Owner Command Center asset version was not found on $candidate."
             fi
-            echo "Required Owner Command Center asset version was not found on $candidate."
           done
           if [[ -z "$VERIFIED_BASE_URL" ]]; then
             echo "Neither the custom domain nor workers.dev returned the expected Owner Command Center asset version."
@@ -170,6 +209,13 @@ jobs:
           grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-root.html | sed -n '1,3p' || true
           grep -oE 'gdr-renter-experience.js[^" ]*' /tmp/gdr-live-index.html | sed -n '1,3p' || true
           grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-root.html || grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-index.html
+          # Final production acceptance requires the custom domain to serve the new HTML as well.
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "https://ghardekhorenters.com/?__gdr_custom_verify=$GITHUB_SHA" -o /tmp/gdr-custom-root.html
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "https://ghardekhorenters.com/index.html?__gdr_custom_verify=$GITHUB_SHA" -o /tmp/gdr-custom-index.html
+          if ! grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-custom-root.html && ! grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-custom-index.html; then
+            echo "Custom production domain still serves stale renter HTML after the targeted cache purge."
+            exit 1
+          fi
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
           echo "Live map script reference:"
