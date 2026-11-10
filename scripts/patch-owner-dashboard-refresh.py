@@ -551,10 +551,10 @@ for asset in ("gdr-owner-payments.js", "gdr-owner-payments.css"):
 import re
 source, controller_refs = re.subn(
     r"""((?:src|href)=["'](/assets/gdr-owner-command-center-hotfix\.js))(?:\?v=[^"']*)?(["'])""",
-    r'\g<1>?v=20261110-owner-analytics1\g<3>',
+    r'\g<1>?v=20261111-paginated-insights1\g<3>',
     source
 )
-if controller_refs == 0 and 'gdr-owner-command-center-hotfix.js' in source and '/assets/gdr-owner-command-center-hotfix.js?v=20261110-owner-analytics1' not in source:
+if controller_refs == 0 and 'gdr-owner-command-center-hotfix.js' in source and '/assets/gdr-owner-command-center-hotfix.js?v=20261111-paginated-insights1' not in source:
     raise SystemExit("Stopped safely: could not safely update the owner command-centre controller reference.")
 
 path.write_text(source, encoding="utf-8")
