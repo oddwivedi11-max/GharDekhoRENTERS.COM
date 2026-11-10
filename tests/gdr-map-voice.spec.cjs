@@ -128,6 +128,82 @@ test.describe('GDR renter map voice UI', () => {
     await expect(page.locator('#gdrMapListPanel')).toBeVisible();
   });
 
+  test('renter assistant automatically loads the next property page on mobile scroll', async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await expect.poll(() => page.evaluate(() => !!window.GDRRenterExperience?.searchAssistantListings)).toBe(true);
+    await page.evaluate(() => {
+      const section = document.getElementById('propertiesSection');
+      const container = document.getElementById('propertiesContainer');
+      if (!container) throw new Error('Available Rental Properties container is missing.');
+      if (section) {
+        section.hidden = false;
+        section.style.setProperty('display', 'block', 'important');
+        section.style.setProperty('visibility', 'visible', 'important');
+      }
+      window.__assistantCalls = [];
+      window.__assistantResultIds = [];
+      window.renderVoicePropertyResults = rows => {
+        window.__assistantResultIds = rows.map(row => String(row.id));
+        container.replaceChildren(...rows.map(row => {
+          const card = document.createElement('article');
+          card.className = 'gdr-infinite-scroll-test-card';
+          card.style.height = '90px';
+          card.textContent = row.title;
+          return card;
+        }));
+      };
+      window.__gdrSupabaseClient = {
+        rpc: (name, args) => {
+          const offset = Number(args.p_offset || 0);
+          const limit = Number(args.p_limit || 100);
+          window.__assistantCalls.push({ name, offset, limit });
+          const results = Array.from({ length: Math.max(0, Math.min(limit, 200 - offset)) }, (_, index) => {
+            const n = offset + index;
+            return {
+              id: 'scroll-property-' + n,
+              title: 'Singrauli test property ' + n,
+              location: 'Singrauli, Madhya Pradesh',
+              rent: 7000,
+              status: 'verified',
+              verification_status: 'verified',
+              owner_verified: true,
+              listing_type: 'home',
+              latitude: 24.073,
+              longitude: 82.625,
+              bhk: 2,
+              furnishing: 'Unfurnished',
+              photo_urls: []
+            };
+          });
+          return Promise.resolve({ data: { results, total_count: 200 }, error: null });
+        }
+      };
+      const target = document.createElement('div');
+      target.id = 'gdrInfiniteScrollTarget';
+      document.body.append(target);
+      window.__assistantTarget = target;
+    });
+    await page.evaluate(async () => {
+      await window.GDRRenterExperience.searchAssistantListings(
+        { location: 'Singrauli' },
+        'Singrauli',
+        window.__assistantTarget
+      );
+    });
+    await expect.poll(() => page.locator('.gdr-infinite-scroll-test-card').count()).toBe(100);
+    await page.locator('.gdrx-assistant-pagination-sentinel').scrollIntoViewIfNeeded();
+    await page.waitForFunction(() => window.__assistantCalls?.length === 2, undefined, { timeout: 15000 });
+    await expect.poll(() => page.locator('.gdr-infinite-scroll-test-card').count()).toBe(200);
+    const evidence = await page.evaluate(() => ({
+      offsets: window.__assistantCalls.map(call => call.offset),
+      ids: window.__assistantResultIds
+    }));
+    expect(evidence.offsets).toEqual([0, 100]);
+    expect(new Set(evidence.ids).size).toBe(200);
+    await expect(page.locator('.gdrx-assistant-pagination-sentinel')).toHaveCount(0);
+  });
+
   test('Back to Dashboard closes map mode and restores focus to Explore Map', async ({ page }) => {
     await openMapWithMockLeaflet(page);
     await expect(page.locator('#renterDashboard')).toHaveClass(/gdr-map-mode/);

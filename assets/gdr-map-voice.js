@@ -169,7 +169,7 @@ async function runTurn(raw){
   const count=Number(rows.totalCount??rows.length),loaded=rows.length,place=intent.nearMe?text("आपकी current location","your current location"):location;
   if(count){
    const mapNote=mapSummary&&mapSummary.unmapped?text(" "+mapSummary.mapped+" घर map पर pin हुए हैं और "+mapSummary.unmapped+" बिना verified coordinates वाले घर list में दिख रहे हैं।"," "+mapSummary.mapped+" homes are pinned on the map; "+mapSummary.unmapped+" without verified coordinates remain visible in the results list."):"";
-   const pageNote=loaded<count?text(" अभी "+loaded+" दिखाए जा रहे हैं; बाकी properties के लिए Load More दबाएँ।"," Showing "+loaded+" now; use Load More to fetch the remaining properties."):"";
+   const pageNote=loaded<count?text(" अभी "+loaded+" दिखाए जा रहे हैं; नीचे scroll करने पर बाकी matching properties अपने आप load होंगी।"," Showing "+loaded+" now; more matching properties will load automatically as you scroll."):"";
    status(text(place+" में कुल "+count+" matching properties मिली हैं।"+pageNote+mapNote+" उनकी details नीचे Available Rental Properties में देखें।","Found "+count+" matching properties in "+place+"."+pageNote+mapNote+" See their details in Available Rental Properties below."),"success");
    speak(text(place+" में कुल "+count+" properties मिली हैं।"+pageNote+mapNote,"Found "+count+" properties in "+place+"."+pageNote+mapNote));
   }else{
