@@ -45,8 +45,8 @@ test("Property Studio, owner map, renter profile and current renters use native 
 });
 
 test("Deployment serves the updated JS and CSS with fresh cache versions and runs regression coverage",()=>{
- assert.match(workflow,/gdr-rental-suite-v2\.js", "20261111-profile-nearby-scroll1"/);
- assert.match(workflow,/gdr-property-studio\.css", "20261111-profile-nearby-scroll1"/);
+ assert.match(workflow,/gdr-rental-suite-v2\.js", "20261111-owner-report-problem1"/);
+ assert.match(workflow,/gdr-property-studio\.css", "20261111-owner-report-problem1"/);
  assert.match(workflow,/gdr-owner-profile-nearby-mobile-scroll\.test\.cjs/);
  assert.doesNotMatch(workflow,/gdr-rental-suite-v2\.js\?v=20261107-paymentproof1/);
 });
