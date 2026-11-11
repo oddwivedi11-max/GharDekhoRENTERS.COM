@@ -17,7 +17,7 @@ test("Nearby Properties is a compact on-demand action beside Edit Profile",()=>{
  assert.match(fn,/gdr-owner-profile-actions/);
  assert.match(fn,/actions\.appendChild\(edit\)/);
  assert.match(fn,/actions\.appendChild\(button\)/);
- assert.match(fn,/var oldCard=\$\("gdrOwnerNearbyCard"\);if\(oldCard\)oldCard\.remove\(\)/);
+ assert.match(fn,/var oldCard=\$\("gdrOwnerNearbyCard"\);\\s*if\(oldCard\)oldCard\.remove\(\)/);
  assert.match(fn,/openOwnerNearbyMap/);
  assert.match(fn,/button\.dataset\.gdrNearbyBound/);
  assert.doesNotMatch(fn,/insertBefore\(card/);
