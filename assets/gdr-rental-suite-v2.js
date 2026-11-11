@@ -204,6 +204,16 @@ function addOwnerNearbyAction(){
   button.setAttribute("aria-label","Open nearby properties map");
  }
  if(button.parentElement!==actions)actions.appendChild(button);
+ var report=$("gdrOwnerReportProblem");
+ if(!report){
+  report=document.createElement("a");
+  report.id="gdrOwnerReportProblem";
+  report.className="gdr-owner-report-problem";
+  report.textContent="Report a Problem";
+  report.href="mailto:ghardekhorenters@gmail.com?subject="+encodeURIComponent("GharDekho owner dashboard problem")+"&body="+encodeURIComponent("Hello GharDekho Support,\n\nI want to report a problem with my owner dashboard.\n\nRegistered email: \nProperty (if relevant): \nWhat happened: \nSteps to reproduce: \n\nThank you.");
+  report.setAttribute("aria-label","Report a problem to GharDekho support");
+ }
+ if(report.parentElement!==actions)actions.appendChild(report);
  var oldCard=$("gdrOwnerNearbyCard");
  if(oldCard)oldCard.remove();
  if(button.dataset.gdrNearbyBound==="1")return;
