@@ -50,3 +50,10 @@ test("Deployment serves the updated JS and CSS with fresh cache versions and run
  assert.match(workflow,/gdr-owner-profile-nearby-mobile-scroll\.test\.cjs/);
  assert.doesNotMatch(workflow,/gdr-rental-suite-v2\.js\?v=20261107-paymentproof1/);
 });
+
+test("Owner profile exposes a working Report a Problem mail action beside Nearby Properties",()=>{
+ assert.match(rental,/gdrOwnerReportProblem/);
+ assert.match(rental,/mailto:ghardekhorenters@gmail\.com/);
+ assert.match(rental,/Report a Problem/);
+ assert.match(css,/gdrOwnerReportProblem/);
+});
