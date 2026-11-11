@@ -42,6 +42,7 @@ on:
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
       - "fix/owner-profile-nearby-mobile-scroll"
+      - "fix/property-studio-scroll-cache-test-alignment"
   workflow_dispatch:
 
 permissions:

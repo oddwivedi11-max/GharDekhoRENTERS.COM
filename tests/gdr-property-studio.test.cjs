@@ -229,7 +229,7 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.match(patcher,/if css_ref_v6 not in source:/);
  assert.match(patcher,/Normalized Property Studio controller include to exactly one script tag/);
  assert.match(patcher,/gdr-property-studio\.js\?v=20261110-review-panel-markup1/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261109-draft-gallery2/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261111-profile-nearby-scroll1/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
