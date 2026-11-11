@@ -151,9 +151,10 @@ css_ref_v4_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v
 css_ref_v4_prev = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261107-stepnav3d1">'
 css_ref_v4 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-gallery-categories1">'
 css_ref_v5 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-start-listing-clickfix1">'
-css_ref_v6 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-draft-gallery2">'
+css_ref_v6_old = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261109-draft-gallery2">'
+css_ref_v6 = '<link rel="stylesheet" href="/assets/gdr-property-studio.css?v=20261111-profile-nearby-scroll1">'
 if css_ref_v6 not in source:
-    candidates = [css_ref_v5, css_ref_v4, css_ref_v4_prev, css_ref_v4_old, css_ref_old, css_ref_v3, css_ref_v2, css_ref_v1]
+    candidates = [css_ref_v6_old, css_ref_v5, css_ref_v4, css_ref_v4_prev, css_ref_v4_old, css_ref_old, css_ref_v3, css_ref_v2, css_ref_v1]
     for old_ref in candidates:
         if old_ref in source:
             source = source.replace(old_ref, css_ref_v6, 1)
