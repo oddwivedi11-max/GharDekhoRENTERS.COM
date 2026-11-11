@@ -127,30 +127,24 @@ jobs:
           CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          zone_response=""
-          if ! zone_response="$(curl --silent --show-error --fail \
+          zone_response="$(curl --silent --show-error --fail \
             -H "Authorization: Bearer $CF_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/zones?name=ghardekhorenters.com&account.id=$CF_ACCOUNT_ID")"; then
-            echo "::warning::Could not list the Cloudflare zone with the deployment token; live cache verification will still run."
-            exit 0
-          fi
-          zone_id="$(printf '%s' "$zone_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("result",[{}])[0].get("id","") if d.get("success") else "")')"
+            "https://api.cloudflare.com/client/v4/zones?name=ghardekhorenters.com&account.id=$CF_ACCOUNT_ID")"
+          zone_id="$(printf '%s' "$zone_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("result",[{}])[0].get("id","") if d.get("success") and len(d.get("result",[])) == 1 else "")')"
           if [[ -z "$zone_id" ]]; then
-            echo "::warning::Cloudflare zone ID was not available to this token; live cache verification will still run."
-            exit 0
+            echo "::error::Could not resolve exactly one ghardekhorenters.com zone. Check Zone Read permission and zone scope on CLOUDFLARE_API_TOKEN."
+            exit 1
           fi
           purge_payload='{"files":["https://ghardekhorenters.com/","https://ghardekhorenters.com/index.html","https://ghardekhorenters.com/login"]}'
-          if ! purge_response="$(curl --silent --show-error --fail -X POST \
+          purge_response="$(curl --silent --show-error --fail -X POST \
             "https://api.cloudflare.com/client/v4/zones/$zone_id/purge_cache" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
-            --data "$purge_payload")"; then
-            echo "::warning::The token could not purge the three HTML URLs; live cache verification will still run."
-            exit 0
-          fi
+            --data "$purge_payload")"
           if ! printf '%s' "$purge_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("success") else 1)'; then
-            echo "::warning::Cloudflare did not accept the targeted HTML cache purge; live cache verification will still run."
-            exit 0
+            echo "::error::Cloudflare rejected the targeted HTML cache purge. Check Zone Cache Purge permission and zone scope on CLOUDFLARE_API_TOKEN."
+            printf '%s\n' "$purge_response"
+            exit 1
           fi
           echo "Cloudflare accepted a targeted cache purge for the GharDekho root, index and login HTML URLs."
 
