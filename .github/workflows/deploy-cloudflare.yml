@@ -124,26 +124,49 @@ jobs:
       - name: Purge stale GharDekho HTML cache
         env:
           CF_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
-          CF_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: |
           set -euo pipefail
-          zone_response="$(curl --silent --show-error --fail \
+
+          verify_response="$(curl --silent --show-error -w '\n%{http_code}' \
             -H "Authorization: Bearer $CF_API_TOKEN" \
-            "https://api.cloudflare.com/client/v4/zones?name=ghardekhorenters.com&account.id=$CF_ACCOUNT_ID")"
-          zone_id="$(printf '%s' "$zone_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("result",[{}])[0].get("id","") if d.get("success") and len(d.get("result",[])) == 1 else "")')"
-          if [[ -z "$zone_id" ]]; then
-            echo "::error::Could not resolve exactly one ghardekhorenters.com zone. Check Zone Read permission and zone scope on CLOUDFLARE_API_TOKEN."
+            "https://api.cloudflare.com/client/v4/user/tokens/verify")"
+          verify_http="${verify_response##*$'\n'}"
+          verify_body="${verify_response%$'\n'*}"
+          if [[ "$verify_http" != "200" ]] || ! printf '%s' "$verify_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("success") and d.get("result",{}).get("status") == "active" else 1)'; then
+            echo "::error::CLOUDFLARE_API_TOKEN is not verified as active. Check the GitHub Actions secret against the active Cloudflare token."
+            printf '%s\n' "$verify_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({"errors":d.get("errors",[]),"messages":d.get("messages",[]),"status":d.get("result",{}).get("status")},indent=2))' || true
             exit 1
           fi
+          echo "Cloudflare API token is active."
+
+          zone_response="$(curl --silent --show-error -w '\n%{http_code}' \
+            -H "Authorization: Bearer $CF_API_TOKEN" \
+            "https://api.cloudflare.com/client/v4/zones?name=ghardekhorenters.com&per_page=50")"
+          zone_http="${zone_response##*$'\n'}"
+          zone_body="${zone_response%$'\n'*}"
+          if [[ "$zone_http" != "200" ]]; then
+            echo "::error::Cloudflare Zone Read request failed (HTTP $zone_http)."
+            printf '%s\n' "$zone_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({"errors":d.get("errors",[]),"messages":d.get("messages",[])},indent=2))' || true
+            exit 1
+          fi
+          zone_id="$(printf '%s' "$zone_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(d.get("result",[{}])[0].get("id","") if d.get("success") and len(d.get("result",[])) == 1 else "")')"
+          if [[ -z "$zone_id" ]]; then
+            echo "::error::Could not resolve exactly one ghardekhorenters.com zone using Zone Read."
+            printf '%s\n' "$zone_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({"errors":d.get("errors",[]),"messages":d.get("messages",[]),"matches":len(d.get("result",[]))},indent=2))' || true
+            exit 1
+          fi
+
           purge_payload='{"files":["https://ghardekhorenters.com/","https://ghardekhorenters.com/index.html","https://ghardekhorenters.com/login"]}'
-          purge_response="$(curl --silent --show-error --fail -X POST \
+          purge_response="$(curl --silent --show-error -w '\n%{http_code}' -X POST \
             "https://api.cloudflare.com/client/v4/zones/$zone_id/purge_cache" \
             -H "Authorization: Bearer $CF_API_TOKEN" \
             -H "Content-Type: application/json" \
             --data "$purge_payload")"
-          if ! printf '%s' "$purge_response" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("success") else 1)'; then
-            echo "::error::Cloudflare rejected the targeted HTML cache purge. Check Zone Cache Purge permission and zone scope on CLOUDFLARE_API_TOKEN."
-            printf '%s\n' "$purge_response"
+          purge_http="${purge_response##*$'\n'}"
+          purge_body="${purge_response%$'\n'*}"
+          if [[ "$purge_http" != "200" ]] || ! printf '%s' "$purge_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("success") else 1)'; then
+            echo "::error::Cloudflare Cache Purge request failed (HTTP $purge_http)."
+            printf '%s\n' "$purge_body" | python3 -c 'import json,sys; d=json.load(sys.stdin); print(json.dumps({"errors":d.get("errors",[]),"messages":d.get("messages",[])},indent=2))' || true
             exit 1
           fi
           echo "Cloudflare accepted a targeted cache purge for the GharDekho root, index and login HTML URLs."
