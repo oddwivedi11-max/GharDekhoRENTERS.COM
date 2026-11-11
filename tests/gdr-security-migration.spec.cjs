@@ -82,3 +82,32 @@ test.describe('GharDekho 2026-11-10 database security and inventory migration', 
     expect(sql).not.toContain('delete from public.');
   });
 });
+
+
+test.describe('GharDekho policy-consolidation migrations preserve role access', () => {
+  test('SELECT policies retain public, owner, renter and admin predicates', () => {
+    const sql = migration('20261111022712_consolidate_select_policies_without_changing_access.sql').toLowerCase();
+    expect(sql).toContain('alter policy "public can view verified properties"');
+    expect(sql).toContain('on public.properties to anon');
+    expect(sql).toContain('public.is_ghardekho_admin()');
+    expect(sql).toContain('occupancy_charges_owner_select');
+    expect(sql).toContain('po.renter_id = (select auth.uid())');
+    expect(sql).toContain('rent_payment_records_owner_read');
+    expect(sql).toContain('renter_id = (select auth.uid())');
+    expect(sql).toContain('tenant_id = (select auth.uid())');
+  });
+
+  test('write policies keep admin/owner checks and owner-only payment-setting actions', () => {
+    const sql = migration('20261111022956_consolidate_remaining_permissive_policies_preserve_access.sql').toLowerCase();
+    expect(sql).toContain('create policy properties_owner_delete');
+    expect(sql).toContain('create policy properties_owner_insert_pending_only');
+    expect(sql).toContain("verification_status='pending'");
+    expect(sql).toContain('create policy properties_owner_update');
+    expect(sql).toContain('create policy users_update_own');
+    expect(sql).toContain('id=(select auth.uid())');
+    expect(sql).toContain('create policy owner_payment_settings_owner_insert');
+    expect(sql).toContain('create policy owner_payment_settings_owner_update');
+    expect(sql).toContain('create policy owner_payment_settings_owner_delete');
+    expect(sql).toContain('po.released_at is null');
+  });
+});
