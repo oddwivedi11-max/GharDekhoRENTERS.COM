@@ -464,7 +464,8 @@ body.gdr-property-studio-open{overflow:hidden!important}
  display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;flex-wrap:wrap!important;margin-left:auto!important;min-width:0;
 }
 #ownerDashboard .gdr-owner-profile-actions #ownerEditProfileBtn,
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen{
+#ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen,
+#ownerDashboard .gdr-owner-profile-actions #gdrOwnerReportProblem{
  display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
  min-height:44px!important;padding:0 14px!important;border-radius:12px!important;font-weight:850!important;white-space:nowrap!important;
  cursor:pointer!important;touch-action:manipulation;
@@ -474,6 +475,11 @@ body.gdr-property-studio-open{overflow:hidden!important}
  box-shadow:0 3px 0 #bfd8c3!important;
 }
 #ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen:active{transform:translateY(2px);box-shadow:0 1px 0 #bfd8c3!important}
+#ownerDashboard .gdr-owner-profile-actions #gdrOwnerReportProblem{
+ border:1px solid #e8c4b7!important;background:linear-gradient(180deg,#fffaf8,#fbeee9)!important;color:#93452f!important;
+ text-decoration:none!important;box-shadow:0 3px 0 #e8c4b7!important;
+}
+#ownerDashboard .gdr-owner-profile-actions #gdrOwnerReportProblem:active{transform:translateY(2px);box-shadow:0 1px 0 #e8c4b7!important}
 @media(max-width:620px){
  #ownerDashboard .owner-profile-card .dashboard-card-heading{align-items:flex-start!important}
  #ownerDashboard .gdr-owner-profile-actions{width:100%!important;margin-left:0!important;justify-content:flex-start!important}
