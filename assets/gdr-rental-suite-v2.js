@@ -181,12 +181,34 @@ async function saveSettings(e){
 }
 async function verify(id,decision,note){var r=await c().rpc("owner_verify_rent_payment",{p_payment_id:id,p_decision:decision,p_note:note||null});if(r.error){toast(r.error.message,true);return}toast(decision==="paid"?"Payment confirmed.":"Payment rejected.");loadOwnerPayments()}
 function addOwnerNearbyAction(){
- var root=$("ownerDashboard");if(!root||$("gdrOwnerNearbyCard"))return;
- var card=document.createElement("section");card.id="gdrOwnerNearbyCard";card.className="dashboard-card gdr-owner-nearby-launch";
- card.innerHTML='<div class="gdr-owner-nearby-launch-copy"><span class="gdr-owner-nearby-launch-icon">⌂</span><span><b>Nearby Properties</b><small>Explore available rental homes within 5 KM of your property.</small></span></div><button type="button" id="gdrOwnerNearbyOpen">Open nearby map →</button>';
- var before=root.querySelector(".owner-inventory-card")||root.firstElementChild;
- if(before)root.insertBefore(card,before);else root.appendChild(card);
- $("gdrOwnerNearbyOpen").addEventListener("click",function(){
+ var root=$("ownerDashboard");if(!root)return;
+ var profile=root.querySelector(".owner-profile-card");
+ var heading=profile&&profile.querySelector(".dashboard-card-heading");
+ if(!heading)return;
+ var actions=heading.querySelector(".gdr-owner-profile-actions");
+ if(!actions){
+  actions=document.createElement("div");
+  actions.className="gdr-owner-profile-actions";
+  actions.setAttribute("aria-label","Owner profile actions");
+  heading.appendChild(actions);
+ }
+ var edit=$("ownerEditProfileBtn");
+ if(edit&&edit.parentElement!==actions)actions.appendChild(edit);
+ var button=$("gdrOwnerNearbyOpen");
+ if(!button){
+  button=document.createElement("button");
+  button.type="button";
+  button.id="gdrOwnerNearbyOpen";
+  button.className="gdr-owner-nearby-inline";
+  button.textContent="⌖ Nearby Properties";
+  button.setAttribute("aria-label","Open nearby properties map");
+ }
+ if(button.parentElement!==actions)actions.appendChild(button);
+ var oldCard=$("gdrOwnerNearbyCard");
+ if(oldCard)oldCard.remove();
+ if(button.dataset.gdrNearbyBound==="1")return;
+ button.dataset.gdrNearbyBound="1";
+ button.addEventListener("click",function(){
   function launch(){
    var api=window.GDRMapExperience;
    if(!api||typeof api.openOwnerNearbyMap!=="function")throw new Error("Nearby map module is unavailable.");

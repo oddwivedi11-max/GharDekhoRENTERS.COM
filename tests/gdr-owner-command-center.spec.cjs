@@ -9,7 +9,10 @@ test("owner command center keeps dashboard sections in separate modules", async 
   await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=analytics]")).toContainText("Owner Analytics");
   await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=notifications]")).toContainText("Notifications");
   await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=nearby]")).toHaveCount(0);
-  await expect(page.locator("#gdrOwnerNearbyCard")).toHaveCount(1);
+  const profileActions = page.locator("#ownerDashboard .owner-profile-card .gdr-owner-profile-actions");
+  await expect(profileActions.locator("#ownerEditProfileBtn")).toHaveCount(1);
+  await expect(profileActions.locator("#gdrOwnerNearbyOpen")).toHaveCount(1);
+  await expect(page.locator("#gdrOwnerNearbyCard")).toHaveCount(0);
   await page.waitForFunction(() => {
     const link = document.getElementById("gdrOwnerCommandCenterStyle");
     if (!link || !link.sheet) return false;
@@ -34,9 +37,8 @@ test("owner command center keeps dashboard sections in separate modules", async 
 
   await mode("home");
   expect(await page.locator("#ownerDashboard > .owner-profile-card").evaluate(el => getComputedStyle(el).display)).toBe("block");
-  expect(await page.locator("#gdrOwnerNearbyCard").evaluate(el => getComputedStyle(el).display)).not.toBe("none");
   await mode("properties");
-  expect(await page.locator("#gdrOwnerNearbyCard").evaluate(el => getComputedStyle(el).display)).toBe("none");
+  await expect(page.locator("#gdrOwnerNearbyCard")).toHaveCount(0);
   await expect(page.locator("#gdrOwnerCommandCenterHome")).toBeHidden();
   await expect(page.locator("#gdrOwnerCommandCenterHome [data-gdr-module=payments]")).toHaveCount(1);
   // The property editor is deliberately a modal and must stay closed until

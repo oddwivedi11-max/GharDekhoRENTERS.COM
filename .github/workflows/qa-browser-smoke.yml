@@ -25,6 +25,7 @@ on:
       - "fix/gdr-map-voice-ai-20261107"
       - "fix/gdr-map-voice-ai-20261107b"
       - "fix/gdr-renter-search-accuracy-20261107c"
+      - "fix/owner-profile-nearby-mobile-scroll"
     paths:
       - "index.html"
       - "admin/**"
