@@ -58,7 +58,7 @@ jobs:
           new_studio_css = '/assets/gdr-property-studio.css?v=20261111-profile-nearby-scroll1'
           source = source.replace(old_studio_css, new_studio_css)
           studio_link = '<link rel="stylesheet" href="' + new_studio_css + '">'
-          source = re.sub(r'(?:' + re.escape(studio_link) + r'\\s*){2,}', studio_link + "\\n", source)
+          source = re.sub(r'(?:' + re.escape(studio_link) + r'\s*){2,}', studio_link + "\n", source)
           path.write_text(source, encoding="utf-8")
           print("Updated GDR voice and map assistant cache versions.")
           PY
