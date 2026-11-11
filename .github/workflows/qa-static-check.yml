@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "perf/gdr-consolidate-safe-select-policies-20261111"
       - "fix/gdr-verified-data-security-performance-20261111"
       - "fix/gdr-cloudflare-html-cache-verification-20261111"
       - "gdr-priority15-performance-20261111"
