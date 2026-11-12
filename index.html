@@ -9844,21 +9844,21 @@ body.gd-owner-explore-mode #propertiesSection {
 </section>
 
                 <div class="dashboard-stats-grid owner-stats-grid">
-                    <article class="dashboard-stat-card owner-stat-card">
+                    <article class="dashboard-stat-card owner-stat-card" data-gdr-owner-filter="all">
                         <span class="dashboard-stat-icon">🏠</span>
                         <div>
                             <span class="dashboard-stat-label">My Properties</span>
                             <strong id="ownerPropertyCount">0</strong>
                         </div>
                     </article>
-                    <article class="dashboard-stat-card owner-stat-card">
+                    <article class="dashboard-stat-card owner-stat-card" data-gdr-owner-filter="available">
                         <span class="dashboard-stat-icon">🟢</span>
                         <div>
                             <span class="dashboard-stat-label">Available</span>
                             <strong id="ownerAvailableCount">0</strong>
                         </div>
                     </article>
-                    <article class="dashboard-stat-card owner-stat-card">
+                    <article class="dashboard-stat-card owner-stat-card" data-gdr-owner-filter="occupied">
                         <span class="dashboard-stat-icon">🔴</span>
                         <div>
                             <span class="dashboard-stat-label">Occupied</span>
@@ -15336,6 +15336,81 @@ async function loadOwnerVerificationStatus() {
     }
 }
 
+
+function getOwnerPropertyStatus(property) {
+    if (!property) return { key: "available", label: "Vacant" };
+    if (property.status === "pending" || property.verification_status === "pending") return { key: "pending", label: "Pending verification" };
+    if (property.status === "occupied") return { key: "occupied", label: "Occupied" };
+    if (property.status === "soon_available") return { key: "soon", label: "Vacating Soon" };
+    if (property.status === "rejected" || property.verification_status === "rejected") return { key: "rejected", label: "Rejected" };
+    return { key: "available", label: "Vacant" };
+}
+
+function applyOwnerPropertyFilter(filter) {
+    const allowed = ["all", "available", "occupied"];
+    const selected = allowed.includes(filter) ? filter : "all";
+    window.__gdrOwnerPropertyFilter = selected;
+    const container = document.getElementById("ownerPropertiesContainer");
+    document.querySelectorAll("#ownerDashboard [data-gdr-owner-filter]").forEach(control => {
+        const active = control.dataset.gdrOwnerFilter === selected;
+        control.classList.toggle("is-filter-active", active);
+        control.setAttribute("aria-pressed", active ? "true" : "false");
+    });
+    if (!container) return;
+    const cards = Array.from(container.querySelectorAll(".owner-property-premium-card"));
+    let visible = 0;
+    cards.forEach(card => {
+        const badge = card.querySelector(".owner-property-photo-badge");
+        const status = badge && badge.classList.contains("occupied") ? "occupied"
+            : badge && (badge.classList.contains("available") || badge.classList.contains("vacant")) ? "available"
+            : badge && badge.classList.contains("soon") ? "soon"
+            : badge && badge.classList.contains("pending") ? "pending"
+            : badge && badge.classList.contains("rejected") ? "rejected" : "available";
+        const show = selected === "all" || status === selected;
+        card.hidden = !show;
+        if (show) visible++;
+    });
+    let empty = document.getElementById("gdrOwnerPropertiesFilterEmpty");
+    if (cards.length && !empty) {
+        empty = document.createElement("p");
+        empty.id = "gdrOwnerPropertiesFilterEmpty";
+        empty.className = "dashboard-empty";
+        empty.hidden = true;
+        container.appendChild(empty);
+    }
+    if (empty) {
+        empty.textContent = selected === "occupied" ? "No occupied properties yet."
+            : selected === "available" ? "No vacant properties are currently listed."
+            : "You have not added any properties yet.";
+        empty.hidden = visible > 0 || cards.length === 0;
+    }
+}
+
+function bindOwnerPropertyFilterControls() {
+    const filters = [
+        ["ownerPropertyCount", "all", "Show all of my properties"],
+        ["ownerAvailableCount", "available", "Show available properties"],
+        ["ownerOccupiedCount", "occupied", "Show occupied properties"]
+    ];
+    filters.forEach(([id, filter, label]) => {
+        const control = document.getElementById(id)?.closest("[data-gdr-owner-filter]");
+        if (!control || control.dataset.gdrOwnerFilterBound === "1") return;
+        control.dataset.gdrOwnerFilterBound = "1";
+        control.setAttribute("role", "button");
+        control.setAttribute("tabindex", "0");
+        control.setAttribute("aria-label", label);
+        const activate = () => applyOwnerPropertyFilter(filter);
+        control.addEventListener("click", activate);
+        control.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                activate();
+            }
+        });
+    });
+    applyOwnerPropertyFilter(window.__gdrOwnerPropertyFilter || "all");
+}
+
 async function loadOwnerProperties() {
             if (!currentUser || !accountHasRole("owner")) {
                 return;
@@ -15345,6 +15420,7 @@ async function loadOwnerProperties() {
                 document.getElementById(
                     "ownerPropertiesContainer"
                 );
+            bindOwnerPropertyFilterControls();
 
             const verificationBadge = document.getElementById("ownerVerificationBadge");
             const verificationText = document.getElementById("ownerVerificationText");
@@ -15452,7 +15528,7 @@ async function loadOwnerProperties() {
                 ? data.filter(property => property.status === "occupied").length
                 : 0;
             const ownerAvailableCount = Array.isArray(data)
-                ? data.filter(property => property.status !== "occupied" && property.status !== "rejected").length
+                ? data.filter(property => getOwnerPropertyStatus(property).key === "available").length
                 : 0;
             const ownerPropertyCountEl = document.getElementById("ownerPropertyCount");
             const ownerAvailableCountEl = document.getElementById("ownerAvailableCount");
@@ -15470,28 +15546,16 @@ async function loadOwnerProperties() {
 
             container.innerHTML =
                 data.map(function (property) {
-                    let statusLabel = "Vacant";
-                    let statusClass = "available";
-                    if (property.status === "pending" || property.verification_status === "pending") {
-                        statusLabel = "Pending verification";
-                        statusClass = "pending";
-                    } else if (property.status === "occupied") {
-                        statusLabel = "Occupied";
-                        statusClass = "occupied";
-                    } else if (property.status === "soon_available") {
-                        statusLabel = "Vacating Soon";
-                        statusClass = "soon";
-                    } else if (property.status === "rejected" || property.verification_status === "rejected") {
-                        statusLabel = "Rejected";
-                        statusClass = "rejected";
-                    }
+                    const propertyStatus = getOwnerPropertyStatus(property);
+                    const statusLabel = propertyStatus.label;
+                    const statusClass = propertyStatus.key;
                     const propertyId = escapeHtml(property.id);
                     const image = property.image_url || getDefaultPropertyImage();
                     const typeLabel = property.listing_type === "pg" ? "🛏️ PG" : property.listing_type === "hostel" ? "🏫 Hostel" : "🏠 Home";
                     const configLabel = property.listing_type === "home" || !property.listing_type ? (property.bhk ? property.bhk + " BHK" : "BHK not specified") : (property.room_type || "Shared stay");
 
                     return `
-                        <article class="owner-property-premium-card" data-property-id="${propertyId}">
+                        <article class="owner-property-premium-card" data-property-id="${propertyId}" data-owner-status="${statusClass}">
                             <div class="owner-property-photo">
                                 <img src="${escapeHtml(image)}" alt="${escapeHtml(property.title || "Rental property")}" loading="lazy" onerror="this.src='${getDefaultPropertyImage()}'">
                                 <span class="owner-property-photo-badge ${statusClass}">${statusLabel}</span>
@@ -15551,6 +15615,9 @@ async function loadOwnerProperties() {
             }));
 
             await loadOwnerCurrentRenters(data);
+            // Live occupancy rows can override a stale properties.status value.
+            // Re-apply the selected filter after those badges have been refreshed.
+            applyOwnerPropertyFilter(window.__gdrOwnerPropertyFilter || "all");
         }
 
 async function loadOwnerCurrentRenters(properties) {
