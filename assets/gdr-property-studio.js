@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261110-review-panel-markup1";
+const VERSION="20261112-owner-pin1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={

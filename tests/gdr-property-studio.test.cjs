@@ -110,7 +110,7 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION="20261110-review-panel-markup1"/);
+  assert.match(studio, /const VERSION="20261112-owner-pin1"/);
   assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
   assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
@@ -228,8 +228,8 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.ok(html.includes("gdr-property-studio.css") || patcher.includes("css_ref_v6"));
  assert.match(patcher,/if css_ref_v6 not in source:/);
  assert.match(patcher,/Normalized Property Studio controller include to exactly one script tag/);
- assert.match(patcher,/gdr-property-studio\.js\?v=20261110-review-panel-markup1/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261111-profile-nearby-scroll1/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261112-owner-pin1/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261112-touch-swipe1/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
