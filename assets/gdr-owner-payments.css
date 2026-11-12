@@ -276,3 +276,29 @@ body.gdr-pay-lock :is(
 .gdr-payment-proof-preview img{display:block;width:min(100%,360px);max-height:300px;object-fit:contain;border-radius:10px;background:#fff}
 .gdr-payment-proof-link,.gdr-pay-proof-link{display:inline-flex;margin-top:8px;color:#176b4a;font-size:12px;font-weight:850;text-decoration:underline;overflow-wrap:anywhere}
 @media(max-width:560px){.gdr-upi-app-grid{grid-template-columns:1fr}.gdr-upi-app{grid-template-columns:1fr auto;align-items:center}.gdr-upi-app small{grid-column:1/-1}}
+
+
+/* Premium, accessible "Back to Dashboard" action for the payments workspace. */
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{
+  display:inline-flex!important;align-items:center!important;justify-content:center!important;
+  gap:9px!important;min-width:178px!important;min-height:46px!important;
+  padding:0 17px!important;border:1px solid #8ab7d6!important;border-radius:13px!important;
+  background:linear-gradient(180deg,#fff 0%,#eaf5fd 100%)!important;color:#174f78!important;
+  font-size:13px!important;font-weight:900!important;letter-spacing:.005em!important;
+  box-shadow:0 4px 0 #8ab7d6,0 9px 18px rgba(34,105,153,.16)!important;
+  cursor:pointer!important;touch-action:manipulation!important;
+  transition:transform .16s ease,box-shadow .16s ease,filter .16s ease!important;
+}
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close:hover{filter:brightness(1.02);transform:translateY(-1px)}
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close:active{
+  transform:translateY(3px)!important;box-shadow:0 1px 0 #8ab7d6,0 3px 8px rgba(34,105,153,.12)!important;
+}
+#gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close:focus-visible{
+  outline:3px solid rgba(49,129,181,.28)!important;outline-offset:3px!important;
+}
+@media(max-width:560px){
+  #gdrPaymentsPage .gdr-pay-header--minimal .gdr-pay-close{
+    min-width:0!important;width:auto!important;min-height:42px!important;
+    padding:0 12px!important;font-size:11px!important;white-space:nowrap!important;
+  }
+}
