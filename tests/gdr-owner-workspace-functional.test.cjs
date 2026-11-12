@@ -87,3 +87,10 @@ test("My Payments pages all owner data, renders small batches and signs only vis
  assert.match(payments,/root\.querySelector\("\[data-load-more\]"\)/);
  assert.match(payments,/async function loadVisibleProofs\(\)/);
 });
+
+test("Owner Payments returns to the dashboard and uses the blue 3D return control",()=>{
+ assert.match(payments,/function close\(\)[\s\S]*?dash\.scrollIntoView\(\{behavior:"smooth",block:"start"\}\)/);
+ assert.match(payments,/gdrPayClose/);
+ assert.match(paymentsCss,/#gdrPaymentsPage \.gdr-pay-header--minimal \.gdr-pay-close\{[\s\S]*?background:linear-gradient/);
+ assert.match(paymentsCss,/gdr-pay-header--minimal \.gdr-pay-close:active/);
+});

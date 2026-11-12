@@ -231,7 +231,7 @@ async function resolveStudioPincode(rawPin){
   const record=Array.isArray(postalPayload)?postalPayload[0]:null;
   const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice.filter(item=>item&&item.Name):[];
   if(!offices.length)throw new Error("No post office was found for PIN "+pin+". Check the six digits or enter the locality manually.");
-  const office=offices[0],officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
+  const office=offices.find(item=>/head office/i.test(String(item.BranchType||item.OfficeType||"")))||offices.find(item=>/sub office/i.test(String(item.BranchType||item.OfficeType||"")))||offices.find(item=>/delivery/i.test(String(item.DeliveryStatus||"")) )||offices[0],officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
   const query=[officeName,district,region,"India"].filter(Boolean).join(", ");
   const geoResponse=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
   if(!isCurrent())return false;

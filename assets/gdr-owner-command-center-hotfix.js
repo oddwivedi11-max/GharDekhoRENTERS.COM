@@ -359,6 +359,63 @@ function setMode(dash,mode){
 function setTextIfChanged(node,value){
  if(node && node.textContent!==value)node.textContent=value;
 }
+function ensureOwnerPropertyFilters(dash){
+ const card=dash&&dash.querySelector(".owner-inventory-card");
+ const heading=card&&card.querySelector(".premium-section-heading");
+ if(!heading)return null;
+ let root=heading.querySelector(".gdr-owner-property-filters");
+ if(!root){
+  root=document.createElement("div");root.className="gdr-owner-property-filters";
+  root.setAttribute("role","group");root.setAttribute("aria-label","Filter my properties by availability");
+  root.innerHTML='<button type="button" data-gdr-owner-property-filter="all" aria-pressed="true" class="is-active">My Properties <span data-filter-count="all">0</span></button><button type="button" data-gdr-owner-property-filter="available" aria-pressed="false">Available <span data-filter-count="available">0</span></button><button type="button" data-gdr-owner-property-filter="occupied" aria-pressed="false">Occupied <span data-filter-count="occupied">0</span></button>';
+  heading.appendChild(root);
+ }
+ if(root.dataset.gdrBound!=="1"){
+  root.dataset.gdrBound="1";
+  root.addEventListener("click",event=>{
+   const button=event.target&&event.target.closest?event.target.closest("[data-gdr-owner-property-filter]"):null;
+   if(!button||!root.contains(button))return;
+   event.preventDefault();
+   dash.dataset.gdrOwnerPropertyFilter=button.dataset.gdrOwnerPropertyFilter||"all";
+   refreshOwnerPropertyFilter(dash);
+  });
+ }
+ return root;
+}
+function refreshOwnerPropertyFilter(dash){
+ const root=ensureOwnerPropertyFilters(dash);
+ if(!root)return;
+ const container=dash.querySelector("#ownerPropertiesContainer");
+ if(!container)return;
+ const cards=Array.from(container.querySelectorAll(".owner-property-premium-card"));
+ const statusOf=card=>card.querySelector(".owner-property-photo-badge");
+ const counts={
+  all:cards.length,
+  available:cards.filter(card=>statusOf(card)?.classList.contains("available")).length,
+  occupied:cards.filter(card=>statusOf(card)?.classList.contains("occupied")).length
+ };
+ const selected=["all","available","occupied"].includes(dash.dataset.gdrOwnerPropertyFilter)?dash.dataset.gdrOwnerPropertyFilter:"all";
+ dash.dataset.gdrOwnerPropertyFilter=selected;
+ root.querySelectorAll("[data-gdr-owner-property-filter]").forEach(button=>{
+  const active=button.dataset.gdrOwnerPropertyFilter===selected;
+  button.classList.toggle("is-active",active);
+  button.setAttribute("aria-pressed",active?"true":"false");
+  const count=button.querySelector("[data-filter-count]");
+  setTextIfChanged(count,String(counts[button.dataset.gdrOwnerPropertyFilter]||0));
+ });
+ let visible=0;
+ cards.forEach(card=>{
+  const badge=statusOf(card);
+  const match=selected==="all"||(selected==="available"&&badge?.classList.contains("available"))||(selected==="occupied"&&badge?.classList.contains("occupied"));
+  card.hidden=!match;
+  card.setAttribute("aria-hidden",match?"false":"true");
+  if(match)visible++;
+ });
+ let empty=container.querySelector("[data-gdr-filter-empty]");
+ if(!empty){empty=document.createElement("p");empty.className="dashboard-empty gdr-owner-filter-empty";empty.dataset.gdrFilterEmpty="1";empty.hidden=true;container.appendChild(empty);}
+ empty.hidden=!(selected!=="all"&&visible===0);
+ if(!empty.hidden)empty.textContent=selected==="available"?"No available properties right now.":"No occupied properties right now.";
+}
 function updateCounts(dash){
  const p=countText("ownerPropertyCount"),v=countText("ownerPendingVisitCount");
  const pc=$('[data-gdr-count="properties"]',dash),rc=$('[data-gdr-count="renters"]',dash),vc=$('[data-gdr-count="visits"]',dash);
@@ -367,6 +424,7 @@ function updateCounts(dash){
  setTextIfChanged(pc,p);
  setTextIfChanged(rc,renterCount());
  setTextIfChanged(vc,v);
+ refreshOwnerPropertyFilter(dash);
  refreshNotificationBadge();
 }
 function openExternal(dash,module){
@@ -433,7 +491,7 @@ function bind(dash){
  });
 }
 function styles(){
- const href="/assets/gdr-owner-command-center.css?v=20261109-owner-insights1";
+ const href="/assets/gdr-owner-command-center.css?v=20261112-owner-filters-nearby1";
  let link=$("#gdrOwnerCommandCenterStyle");
  if(!link){
   link=document.querySelector('link[rel="stylesheet"][href*="gdr-owner-command-center.css"]');

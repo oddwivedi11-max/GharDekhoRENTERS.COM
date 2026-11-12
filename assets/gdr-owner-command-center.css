@@ -515,3 +515,41 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
  #ownerDashboard .gdr-insight-property-row{grid-template-columns:minmax(0,1fr) minmax(94px,.8fr);gap:8px}
  #ownerDashboard .gdr-insight-property-row>strong{grid-column:1/-1}
 }
+
+/* Owner inventory: status filters are real controls backed by the cards' database status. */
+#ownerDashboard .gdr-owner-property-filters{
+ display:flex;align-items:center;gap:8px;flex-wrap:wrap;min-width:0;margin:10px 0 2px;
+}
+#ownerDashboard .gdr-owner-property-filters button{
+ display:inline-flex;align-items:center;justify-content:center;gap:7px;min-height:38px;padding:0 12px;
+ border:1px solid #d8e5dc;border-radius:999px;background:#f8fbf8;color:#365b47;font-size:11px;font-weight:850;
+ white-space:nowrap;cursor:pointer;touch-action:manipulation;transition:background .16s ease,transform .16s ease,box-shadow .16s ease;
+}
+#ownerDashboard .gdr-owner-property-filters button span{
+ display:inline-grid;place-items:center;min-width:19px;height:19px;padding:0 5px;border-radius:999px;background:#e8f1ea;color:#315a43;font-size:10px;font-weight:900;
+}
+#ownerDashboard .gdr-owner-property-filters button.is-active{
+ border-color:#1f6547;background:linear-gradient(145deg,#1d6849,#164c38);color:#fff;box-shadow:0 3px 0 #0f3e2d,0 7px 16px rgba(24,87,59,.15);
+}
+#ownerDashboard .gdr-owner-property-filters button.is-active span{background:#ffffff24;color:#fff}
+#ownerDashboard .gdr-owner-property-filters button:active{transform:translateY(2px);box-shadow:0 1px 0 #0f3e2d}
+#ownerDashboard #ownerPropertiesContainer .owner-property-premium-card[hidden]{display:none!important}
+#ownerDashboard #ownerPropertiesContainer .gdr-owner-filter-empty{grid-column:1/-1;margin:8px 0;padding:16px;border:1px dashed #c9d9ce;border-radius:14px;background:#f7faf7;color:#5c7463;text-align:center}
+#ownerDashboard .gdr-owner-nearby-entry{
+ display:flex!important;flex-direction:column!important;justify-content:space-between!important;gap:16px!important;min-width:0!important;
+ border:1px solid #c9ddcc!important;background:linear-gradient(145deg,#fff,#eff7ee 58%,#f9f6e9)!important;
+ box-shadow:0 8px 0 #d5e5d3,0 16px 28px rgba(31,83,54,.08)!important;
+}
+#ownerDashboard .gdr-owner-nearby-entry h3{margin:5px 0;color:#173e2b!important}
+#ownerDashboard .gdr-owner-nearby-entry p{margin:0;color:#627667!important;font-size:12px;line-height:1.5}
+#ownerDashboard .gdr-owner-nearby-entry #gdrOwnerNearbyOpen{
+ display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;min-height:48px!important;width:100%!important;padding:0 16px!important;
+ border:1px solid #185b3d!important;border-radius:13px!important;background:linear-gradient(145deg,#226f4c,#174c35)!important;color:#fff!important;
+ box-shadow:0 4px 0 #103a29,0 10px 18px rgba(23,81,53,.18)!important;font-size:13px!important;font-weight:900!important;cursor:pointer!important;touch-action:manipulation!important;
+}
+#ownerDashboard .gdr-owner-nearby-entry #gdrOwnerNearbyOpen:active{transform:translateY(3px)!important;box-shadow:0 1px 0 #103a29!important}
+@media(max-width:760px){
+ #ownerDashboard .gdr-owner-property-filters{flex-wrap:nowrap;overflow-x:auto;overflow-y:hidden;max-width:100%;padding:3px 2px 8px;scrollbar-width:thin;scroll-snap-type:x proximity;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+ #ownerDashboard .gdr-owner-property-filters button{flex:0 0 auto;scroll-snap-align:start}
+ #ownerDashboard .owner-dashboard-quick-grid.gdr-owner-entry-grid{grid-template-columns:1fr!important}
+}

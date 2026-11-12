@@ -51,3 +51,25 @@ test("owner map clears old marker and no longer defaults the owner picker to Bho
   assert.match(map,/clearOwnerMapSelectionForPinChange,searchRenterArea/);
   assert.doesNotMatch(map,/function initOwnerMap\(\)[\s\S]{0,350}setView\(\[23\.2599,77\.4126\],12\)/);
 });
+
+test("Owner and renter PIN resolvers prefer the principal postal office and rank map results by postal locality",()=>{
+  assert.match(studio,/offices\.find\(item=>\/head office\/i/);
+  assert.match(studio,/offices\.find\(item=>\/sub office\/i/);
+  assert.match(map,/offices\.find\(x=>\/head office\/i/);
+  assert.match(map,/offices\.find\(x=>\/sub office\/i/);
+  assert.match(map,/const postalMatches=rows=>/);
+  assert.ok(map.includes('const rankingQuery=/^\\d{6}$/.test(q)?preferredLabel:q;'));
+  assert.match(map,/renderMarkers\(\[\],INDIA_CENTER\)/);
+  assert.match(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
+});
+
+test("Owner and renter PIN resolvers prefer the principal postal office and rank map results by postal locality",()=>{
+  assert.match(studio,/offices\.find\(item=>\/head office\/i/);
+  assert.match(studio,/offices\.find\(item=>\/sub office\/i/);
+  assert.match(map,/offices\.find\(x=>\/head office\/i/);
+  assert.match(map,/offices\.find\(x=>\/sub office\/i/);
+  assert.match(map,/const postalMatches=rows=>/);
+  assert.ok(map.includes('const rankingQuery=/^\\d{6}$/.test(q)?preferredLabel:q;'));
+  assert.match(map,/renderMarkers\(\[\],INDIA_CENTER\)/);
+  assert.match(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
+});

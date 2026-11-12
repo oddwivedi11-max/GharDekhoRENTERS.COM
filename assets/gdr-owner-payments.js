@@ -13,7 +13,7 @@ function injectButton(){
 }
 function styles(){
  if($("gdr-pay-style"))return;
- const l=document.createElement("link");l.id="gdr-pay-style";l.rel="stylesheet";l.href="/assets/gdr-owner-payments.css?v=20261107-paymentproof1";document.head.appendChild(l);
+ const l=document.createElement("link");l.id="gdr-pay-style";l.rel="stylesheet";l.href="/assets/gdr-owner-payments.css?v=20261112-payment-return1";document.head.appendChild(l);
 }
 function fmtDate(v){if(!v)return"—";const d=new Date(v);return Number.isNaN(d.getTime())?"—":d.toLocaleDateString("en-IN",{day:"2-digit",month:"short",year:"numeric"});}
 function statusOf(p){return p.status==="paid"?"Paid":p.status==="rejected"?"Rejected":"Pending verification";}
@@ -178,7 +178,7 @@ async function open(){
  ensurePage();root.classList.add("open");document.body.classList.add("gdr-pay-lock");tab="overview";recordsDisplayLimit=50;notice("");
  try{await load();render();}catch(e){$("gdrPayContent").innerHTML='<div class="gdr-pay-empty"><b>Payment dashboard could not load</b><small>'+esc(e.message)+'</small><button class="gdr-pay-primary" id="gdrPayRetry">Try again</button></div>';$("gdrPayRetry")?.addEventListener("click",open);}
 }
-function close(){if(root)root.classList.remove("open");document.body.classList.remove("gdr-pay-lock");}
+function close(){if(root)root.classList.remove("open");document.body.classList.remove("gdr-pay-lock");const dash=$("ownerDashboard");if(dash&&dash.isConnected)requestAnimationFrame(()=>dash.scrollIntoView({behavior:"smooth",block:"start"}));}
 function injectButton(){
  const dash=$("ownerDashboard");if(!dash)return;
  styles();

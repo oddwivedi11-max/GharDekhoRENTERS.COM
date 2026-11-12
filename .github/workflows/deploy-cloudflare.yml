@@ -39,13 +39,14 @@ jobs:
           assets = [
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
-              ("gdr-rental-suite-v2.js", "20261111-owner-report-problem1"),
-              ("gdr-owner-payments.js", "20261111-paginated-records1"),
-              ("gdr-owner-payments.css", "20261107-paymentproof1"),
+              ("gdr-rental-suite-v2.js", "20261112-nearby-move1"),
+              ("gdr-owner-payments.js", "20261112-payment-return1"),
+              ("gdr-owner-payments.css", "20261112-payment-return1"),
+              ("gdr-owner-command-center-hotfix.js", "20261112-owner-filters-nearby1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
-              ("gdr-map-experience.js", "20261109-open-data-map-geo1"),
-              ("gdr-property-studio.js", "20261110-review-panel-markup1"),
-              ("gdr-property-studio.css", "20261111-owner-report-problem1"),
+              ("gdr-map-experience.js", "20261112-pin-accuracy1"),
+              ("gdr-property-studio.js", "20261112-owner-pin1"),
+              ("gdr-property-studio.css", "20261112-touch-swipe1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:
@@ -53,12 +54,20 @@ jobs:
               source, count = re.subn(pattern, lambda match: match.group(1) + "?v=" + version, source, count=1)
               if count != 1:
                   raise SystemExit("Could not safely version existing asset: " + asset)
-          # The legacy page contains this stylesheet twice; normalize both cache keys, then keep one copy.
-          old_studio_css = '/assets/gdr-property-studio.css?v=20261109-draft-gallery2'
-          new_studio_css = '/assets/gdr-property-studio.css?v=20261111-owner-report-problem1'
-          source = source.replace(old_studio_css, new_studio_css)
+          # Publish one authoritative Property Studio stylesheet link.
+          new_studio_css = '/assets/gdr-property-studio.css?v=20261112-touch-swipe1'
+          source, removed_studio_links = re.subn(
+              r'(?m)^\s*<link rel="stylesheet" href="/assets/gdr-property-studio\.css(?:\?v=[^"]*)?">\s*\n?',
+              '',
+              source,
+              flags=re.I
+          )
+          if removed_studio_links < 1:
+              raise SystemExit("Could not find the existing Property Studio stylesheet links")
           studio_link = '<link rel="stylesheet" href="' + new_studio_css + '">'
-          source = re.sub(r'(?:' + re.escape(studio_link) + r'\s*){2,}', studio_link + "\n", source)
+          source = source.replace("</head>", "    " + studio_link + "\n</head>", 1)
+          if source.count(studio_link) != 1:
+              raise SystemExit("Property Studio stylesheet link did not normalize to exactly one copy")
           path.write_text(source, encoding="utf-8")
           print("Updated GDR voice and map assistant cache versions.")
           PY
@@ -102,6 +111,8 @@ jobs:
           node --test tests/gdr-property-studio.test.cjs
           node --check tests/gdr-owner-profile-nearby-mobile-scroll.test.cjs
           node --test tests/gdr-owner-profile-nearby-mobile-scroll.test.cjs
+          node --check tests/gdr-owner-property-filters.test.cjs
+          node --test tests/gdr-owner-property-filters.test.cjs
           node --test tests/gdr-renter-moveout-notice.test.cjs
           node --test tests/gdr-role-portal-switch.spec.cjs
           node --test tests/gdr-role-switch-navigation.test.cjs

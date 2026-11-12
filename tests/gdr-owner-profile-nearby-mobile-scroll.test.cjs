@@ -3,57 +3,69 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const path=require("node:path");
 const root=path.join(__dirname,"..");
-const rental=fs.readFileSync(path.join(root,"assets/gdr-rental-suite-v2.js"),"utf8");
-const css=fs.readFileSync(path.join(root,"assets/gdr-property-studio.css"),"utf8");
-const workflow=fs.readFileSync(path.join(root,".github/workflows/deploy-cloudflare.yml"),"utf8");
+const read=p=>fs.readFileSync(path.join(root,p),"utf8");
+const rental=read("assets/gdr-rental-suite-v2.js");
+const css=read("assets/gdr-property-studio.css");
+const ownerCss=read("assets/gdr-owner-command-center.css");
+const renterExperience=read("assets/gdr-renter-experience.js");
+const html=read("index.html");
+const workflow=read(".github/workflows/deploy-cloudflare.yml");
 
-test("Nearby Properties is a compact on-demand action beside Edit Profile",()=>{
+test("Nearby Properties is a separate dashboard action; Edit Profile stays in its original profile card",()=>{
  const start=rental.indexOf("function addOwnerNearbyAction(){");
- const end=rental.indexOf("\nfunction boot(){",start);
+ const end=rental.indexOf("\nfunction removeDuplicateReportButtons(){",start);
  assert.ok(start>=0&&end>start);
  const fn=rental.slice(start,end);
- assert.match(fn,/\.owner-profile-card/);
- assert.match(fn,/\.dashboard-card-heading/);
- assert.match(fn,/gdr-owner-profile-actions/);
- assert.match(fn,/actions\.appendChild\(edit\)/);
- assert.match(fn,/actions\.appendChild\(button\)/);
- assert.match(fn,/var oldCard=\$\("gdrOwnerNearbyCard"\);\s*if\(oldCard\)oldCard\.remove\(\)/);
+ assert.match(fn,/\.owner-dashboard-quick-grid/);
+ assert.match(fn,/gdr-owner-nearby-entry/);
+ assert.match(fn,/grid\.appendChild\(card\)/);
+ assert.match(fn,/button\.parentElement!==card\)card\.appendChild\(button\)/);
  assert.match(fn,/openOwnerNearbyMap/);
  assert.match(fn,/button\.dataset\.gdrNearbyBound/);
+ assert.doesNotMatch(fn,/owner-profile-card|gdr-owner-profile-actions|ownerEditProfileBtn|gdrOwnerReportProblem/);
  assert.doesNotMatch(fn,/insertBefore\(card/);
 });
 
-test("Existing Report a problem/support entry is not removed by the Nearby launcher",()=>{
- assert.doesNotMatch(rental,/remove\(\).*Report a problem/i);
- assert.doesNotMatch(rental,/querySelector(All)?\([^)]*support[^)]*\).*remove/i);
+test("Duplicate Report a Problem controls are removed from app dashboards without removing Support or contact CTAs",()=>{
+ assert.match(rental,/function removeDuplicateReportButtons\(\)/);
+ assert.match(rental,/\["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"\]/);
+ assert.match(rental,/control\.id==="gdrxSupport"\|\|control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
+ assert.ok(rental.includes("if(/^report\\s+a\\s+problem$/i.test(label))"));
+ assert.match(renterExperience,/function addSupport\(\)/);
+ assert.match(renterExperience,/b\.id="gdrxSupport"/);
+ assert.match(html,/Need help/);
+ assert.match(html,/or want to get/);
+ assert.doesNotMatch(rental,/gdrOwnerReportProblem.*mailto:|mailto:ghardekhorenters@gmail\.com/);
 });
 
-test("Owner profile action layout remains compact and usable on phones",()=>{
- assert.match(css,/#ownerDashboard \.gdr-owner-profile-actions/);
- assert.match(css,/@media\(max-width:620px\)/);
- assert.match(css,/#ownerDashboard \.gdr-owner-profile-actions #gdrOwnerNearbyOpen/);
+test("Owner Profile Edit Profile is not moved, removed, or expanded by the Nearby controller",()=>{
+ assert.match(html,/id="ownerEditProfileBtn"/);
+ assert.doesNotMatch(rental,/actions\.appendChild\(edit\)/);
+ assert.doesNotMatch(rental,/ownerEditProfileBtn/);
+ assert.doesNotMatch(css,/gdr-owner-profile-actions|gdrOwnerReportProblem/);
 });
 
-test("Property Studio, owner map, renter profile and current renters use native touch scrolling",()=>{
- for(const id of ["gdrPropertyStudio","gdrOwnerNearbyExperience","gdrOwnerRenterPage","gdrOwnerCurrentRentersPage"]){
-  assert.ok(css.includes("#"+id),id+" scroll root");
- }
+test("Owner property gallery and dashboard use native touch scrolling",()=>{
+ assert.match(css,/\.gdr-property-detail-thumbs\{[^}]*overflow-x:auto/);
+ assert.match(css,/\.gdr-property-detail-thumbs\{[^}]*touch-action:pan-x pan-y/);
+ assert.match(css,/#gdrPropertyStudio \.gdr-studio-photo-grid\{[\s\S]*?overflow-x:auto!important/);
+ assert.match(css,/#ownerDashboard #ownerPropertiesContainer\.owner-properties-grid\{[\s\S]*?overflow-x:auto!important/);
+ assert.match(css,/scroll-snap-type:x mandatory/);
+ assert.match(css,/touch-action:pan-x pan-y!important/);
  assert.match(css,/-webkit-overflow-scrolling:touch!important/);
- assert.match(css,/overscroll-behavior-y:contain!important/);
- assert.match(css,/touch-action:auto!important/);
- assert.match(css,/html,body\{-webkit-overflow-scrolling:touch\}/);
 });
 
-test("Deployment serves the updated JS and CSS with fresh cache versions and runs regression coverage",()=>{
- assert.match(workflow,/gdr-rental-suite-v2\.js", "20261111-owner-report-problem1"/);
- assert.match(workflow,/gdr-property-studio\.css", "20261111-owner-report-problem1"/);
+test("Nearby Properties has a premium standalone dashboard action style",()=>{
+ assert.match(ownerCss,/gdr-owner-nearby-entry/);
+ assert.match(ownerCss,/gdr-owner-nearby-entry #gdrOwnerNearbyOpen/);
+ assert.doesNotMatch(ownerCss,/gdr-owner-profile-actions/);
+});
+
+test("Deployment versions corrected owner/map/gallery assets and runs regression coverage",()=>{
+ assert.match(workflow,/gdr-rental-suite-v2\.js", "20261112-nearby-move1"/);
+ assert.match(workflow,/gdr-map-experience\.js", "20261112-pin-accuracy1"/);
+ assert.match(workflow,/gdr-property-studio\.js", "20261112-owner-pin1"/);
+ assert.match(workflow,/gdr-property-studio\.css", "20261112-touch-swipe1"/);
+ assert.match(workflow,/gdr-owner-property-filters\.test\.cjs/);
  assert.match(workflow,/gdr-owner-profile-nearby-mobile-scroll\.test\.cjs/);
- assert.doesNotMatch(workflow,/gdr-rental-suite-v2\.js\?v=20261107-paymentproof1/);
-});
-
-test("Owner profile exposes a working Report a Problem mail action beside Nearby Properties",()=>{
- assert.match(rental,/gdrOwnerReportProblem/);
- assert.match(rental,/mailto:ghardekhorenters@gmail\.com/);
- assert.match(rental,/Report a Problem/);
- assert.match(css,/gdrOwnerReportProblem/);
 });

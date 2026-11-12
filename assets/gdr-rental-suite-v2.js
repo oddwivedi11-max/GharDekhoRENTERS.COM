@@ -182,40 +182,26 @@ async function saveSettings(e){
 async function verify(id,decision,note){var r=await c().rpc("owner_verify_rent_payment",{p_payment_id:id,p_decision:decision,p_note:note||null});if(r.error){toast(r.error.message,true);return}toast(decision==="paid"?"Payment confirmed.":"Payment rejected.");loadOwnerPayments()}
 function addOwnerNearbyAction(){
  var root=$("ownerDashboard");if(!root)return;
- var profile=root.querySelector(".owner-profile-card");
- var heading=profile&&profile.querySelector(".dashboard-card-heading");
- if(!heading)return;
- var actions=heading.querySelector(".gdr-owner-profile-actions");
- if(!actions){
-  actions=document.createElement("div");
-  actions.className="gdr-owner-profile-actions";
-  actions.setAttribute("aria-label","Owner profile actions");
-  heading.appendChild(actions);
+ var grid=root.querySelector(".owner-dashboard-quick-grid");if(!grid)return;
+ var card=root.querySelector(".gdr-owner-nearby-entry");
+ if(!card){
+  card=document.createElement("div");
+  card.className="dashboard-card owner-quick-card gdr-owner-entry-card gdr-owner-nearby-entry";
+  card.innerHTML='<div><span class="dashboard-section-kicker">NEARBY DISCOVERY</span><h3>Nearby Properties</h3><p class="dashboard-muted">Explore genuine rental homes around a selected property or area.</p></div>';
+  grid.appendChild(card);
  }
- var edit=$("ownerEditProfileBtn");
- if(edit&&edit.parentElement!==actions)actions.appendChild(edit);
  var button=$("gdrOwnerNearbyOpen");
  if(!button){
   button=document.createElement("button");
   button.type="button";
   button.id="gdrOwnerNearbyOpen";
   button.className="gdr-owner-nearby-inline";
-  button.textContent="⌖ Nearby Properties";
+  button.innerHTML='<span aria-hidden="true">⌖</span><span>Nearby Properties</span><span aria-hidden="true">→</span>';
   button.setAttribute("aria-label","Open nearby properties map");
  }
- if(button.parentElement!==actions)actions.appendChild(button);
- var report=$("gdrOwnerReportProblem");
- if(!report){
-  report=document.createElement("a");
-  report.id="gdrOwnerReportProblem";
-  report.className="gdr-owner-report-problem";
-  report.textContent="Report a Problem";
-  report.href="mailto:ghardekhorenters@gmail.com?subject="+encodeURIComponent("GharDekho owner dashboard problem")+"&body="+encodeURIComponent("Hello GharDekho Support,\n\nI want to report a problem with my owner dashboard.\n\nRegistered email: \nProperty (if relevant): \nWhat happened: \nSteps to reproduce: \n\nThank you.");
-  report.setAttribute("aria-label","Report a problem to GharDekho support");
- }
- if(report.parentElement!==actions)actions.appendChild(report);
- var oldCard=$("gdrOwnerNearbyCard");
- if(oldCard)oldCard.remove();
+ if(button.parentElement!==card)card.appendChild(button);
+ var oldReport=$("gdrOwnerReportProblem");if(oldReport)oldReport.remove();
+ var oldCard=$("gdrOwnerNearbyCard");if(oldCard)oldCard.remove();
  if(button.dataset.gdrNearbyBound==="1")return;
  button.dataset.gdrNearbyBound="1";
  button.addEventListener("click",function(){
@@ -243,7 +229,18 @@ function addOwnerNearbyAction(){
   }catch(error){console.error("Owner nearby map failed:",error);toast(error&&error.message||"Nearby map could not be opened.",true);}
  });
 }
-function boot(){addRenter();addOwnerNearbyAction();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
+
+function removeDuplicateReportButtons(){
+ ["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"].forEach(function(selector){
+  var scope=$(selector);if(!scope)return;
+  Array.from(scope.querySelectorAll("a,button,[role='button']")).forEach(function(control){
+   if(control.id==="gdrxSupport"||control.closest("#gd-contact-section,.gd-contact-section"))return;
+   var label=String(control.innerText||control.textContent||"").replace(/\s+/g," ").trim();
+   if(control.id==="gdrOwnerReportProblem"||/^report\s+a\s+problem$/i.test(label))control.remove();
+  });
+ });
+}
+function boot(){addRenter();addOwnerNearbyAction();removeDuplicateReportButtons();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
 document.addEventListener("click",function(event){
  var target=event.target&&event.target.closest?event.target.closest("#ownerDashboard button,#ownerDashboard a,#ownerDashboard [role='button']"):null;
  if(!target||target.id==="gdrOwnerNearbyOpen")return;

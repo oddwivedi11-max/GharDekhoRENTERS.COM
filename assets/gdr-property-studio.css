@@ -185,8 +185,8 @@ body.gdr-property-studio-open{overflow:hidden!important}
 /* Renter-facing Property Studio gallery and nearby places */
 .gdr-property-detail-gallery{display:grid;gap:10px}
 .gdr-property-detail-gallery .property-detail-image{display:block;width:100%;max-height:460px;object-fit:cover;border-radius:16px}
-.gdr-property-detail-thumbs{display:flex;gap:8px;overflow-x:auto;padding:2px 0 6px}
-.gdr-property-detail-thumbs button{flex:0 0 86px;width:86px;height:66px;padding:0;border:2px solid #dbe5d8;border-radius:10px;overflow:hidden;background:#f5f7f1;cursor:pointer}
+.gdr-property-detail-thumbs{display:flex;gap:8px;overflow-x:auto;overflow-y:hidden;padding:2px 0 8px;scroll-snap-type:x proximity;scrollbar-width:thin;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain;touch-action:pan-x pan-y}
+.gdr-property-detail-thumbs button{flex:0 0 86px;width:86px;height:66px;scroll-snap-align:start;scroll-snap-stop:normal;padding:0;border:2px solid #dbe5d8;border-radius:10px;overflow:hidden;background:#f5f7f1;cursor:pointer}
 .gdr-property-detail-thumbs img{width:100%;height:100%;object-fit:cover}
 .gdr-property-nearby-public{margin:22px 0;padding:16px;border:1px solid #dce6d8;border-radius:16px;background:#f8faf5}
 .gdr-property-nearby-public h3{margin:0 0 12px;color:#1b432d}
@@ -456,43 +456,46 @@ body.gdr-property-studio-open{overflow:hidden!important}
 }
 
 
-/* Owner profile actions: nearby discovery is on-demand, not a permanent full-width card. */
-#ownerDashboard .owner-profile-card .dashboard-card-heading{
- display:flex!important;align-items:center!important;justify-content:space-between!important;gap:12px!important;flex-wrap:wrap!important;
-}
-#ownerDashboard .gdr-owner-profile-actions{
- display:flex!important;align-items:center!important;justify-content:flex-end!important;gap:9px!important;flex-wrap:wrap!important;margin-left:auto!important;min-width:0;
-}
-#ownerDashboard .gdr-owner-profile-actions #ownerEditProfileBtn,
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen,
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerReportProblem{
- display:inline-flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;
- min-height:44px!important;padding:0 14px!important;border-radius:12px!important;font-weight:850!important;white-space:nowrap!important;
- cursor:pointer!important;touch-action:manipulation;
-}
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen{
- border:1px solid #bfd8c3!important;background:linear-gradient(180deg,#f8fff7,#eaf5ea)!important;color:#245c37!important;
- box-shadow:0 3px 0 #bfd8c3!important;
-}
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen:active{transform:translateY(2px);box-shadow:0 1px 0 #bfd8c3!important}
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerReportProblem{
- border:1px solid #e8c4b7!important;background:linear-gradient(180deg,#fffaf8,#fbeee9)!important;color:#93452f!important;
- text-decoration:none!important;box-shadow:0 3px 0 #e8c4b7!important;
-}
-#ownerDashboard .gdr-owner-profile-actions #gdrOwnerReportProblem:active{transform:translateY(2px);box-shadow:0 1px 0 #e8c4b7!important}
-@media(max-width:620px){
- #ownerDashboard .owner-profile-card .dashboard-card-heading{align-items:flex-start!important}
- #ownerDashboard .gdr-owner-profile-actions{width:100%!important;margin-left:0!important;justify-content:flex-start!important}
- #ownerDashboard .gdr-owner-profile-actions #ownerEditProfileBtn,
- #ownerDashboard .gdr-owner-profile-actions #gdrOwnerNearbyOpen{
-  flex:1 1 calc(50% - 6px)!important;min-width:0!important;padding-inline:9px!important;font-size:12px!important;white-space:normal!important;
- }
-}
-
+/* Nearby Properties is styled as a separate dashboard action. Edit Profile stays in its original card header. */
+#ownerDashboard .gdr-owner-nearby-entry{min-width:0}
+#ownerDashboard .gdr-owner-nearby-entry #gdrOwnerNearbyOpen{touch-action:manipulation!important}
 /* Native page/overlay scrolling: keep finger swipes and momentum inside fixed workspaces. */
 html,body{-webkit-overflow-scrolling:touch}
 html:has(#ownerDashboard),body:has(#ownerDashboard){scroll-behavior:smooth}
 #gdrPropertyStudio,#gdrOwnerNearbyExperience,#gdrOwnerRenterPage,#gdrOwnerCurrentRentersPage{
  max-height:100dvh!important;overflow-x:hidden!important;overflow-y:auto!important;
  -webkit-overflow-scrolling:touch!important;overscroll-behavior-y:contain!important;touch-action:auto!important;
+}
+
+/* Owner My Properties is a native card-by-card swipe carousel on phone widths. */
+@media(max-width:760px){
+ #ownerDashboard #ownerPropertiesContainer.owner-properties-grid{
+  display:flex!important;flex-flow:row nowrap!important;align-items:stretch!important;gap:12px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;
+  padding:2px 2px 14px!important;scroll-snap-type:x mandatory;scroll-padding-inline:2px;
+  scrollbar-width:thin;-webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;touch-action:pan-x pan-y!important;
+ }
+ #ownerDashboard #ownerPropertiesContainer.owner-properties-grid>.owner-property-premium-card{
+  flex:0 0 min(88vw,420px)!important;width:min(88vw,420px)!important;max-width:100%!important;min-width:0!important;
+  scroll-snap-align:start;scroll-snap-stop:always;
+ }
+ #ownerDashboard #ownerPropertiesContainer.owner-properties-grid>.gdr-owner-filter-empty{flex:0 0 min(88vw,420px);scroll-snap-align:start}
+}
+@media(max-width:380px){
+ #ownerDashboard #ownerPropertiesContainer.owner-properties-grid>.owner-property-premium-card{flex-basis:86vw!important;width:86vw!important}
+}
+
+/* Add Listing photo previews become a true horizontal, finger-scrollable gallery on phones. */
+@media(max-width:760px){
+ #gdrPropertyStudio #gdrStudioPhotoPreview{display:grid!important;grid-template-columns:minmax(0,1fr)!important}
+ #gdrPropertyStudio .gdr-studio-photo-grid{
+  display:flex!important;flex-flow:row nowrap!important;align-items:stretch!important;gap:10px!important;
+  width:100%!important;max-width:100%!important;min-width:0!important;overflow-x:auto!important;overflow-y:hidden!important;
+  padding:2px 2px 12px!important;scroll-snap-type:x mandatory;scroll-padding-inline:2px;scrollbar-width:thin;
+  -webkit-overflow-scrolling:touch!important;overscroll-behavior-x:contain!important;touch-action:pan-x pan-y!important;
+ }
+ #gdrPropertyStudio .gdr-studio-photo-grid>.gdr-studio-photo-card{
+  flex:0 0 min(76vw,300px)!important;width:min(76vw,300px)!important;max-width:100%!important;min-width:0!important;
+  scroll-snap-align:start;scroll-snap-stop:always;
+ }
 }

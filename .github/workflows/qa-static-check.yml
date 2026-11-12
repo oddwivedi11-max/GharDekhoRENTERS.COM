@@ -43,6 +43,7 @@ on:
       - "hotfix/versioned-owner-command-loader-20261105"
       - "fix/owner-profile-nearby-mobile-scroll"
       - "fix/property-studio-scroll-cache-test-alignment"
+      - "fix/master-ui-map-swipe-20261112"
   workflow_dispatch:
 
 permissions:
@@ -128,6 +129,8 @@ jobs:
           node --test tests/gdr-property-studio.test.cjs
           node --check tests/gdr-owner-profile-nearby-mobile-scroll.test.cjs
           node --test tests/gdr-owner-profile-nearby-mobile-scroll.test.cjs
+          node --check tests/gdr-owner-property-filters.test.cjs
+          node --test tests/gdr-owner-property-filters.test.cjs
           node --check tests/gdr-property-studio-voice.test.cjs
           node --test tests/gdr-property-studio-voice.test.cjs
           node --check tests/gdr-property-studio-pincode.test.cjs
