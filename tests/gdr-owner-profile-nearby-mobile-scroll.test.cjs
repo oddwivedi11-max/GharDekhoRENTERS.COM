@@ -54,13 +54,13 @@ test("Property Studio, owner map, renter profile and current renters use native 
 
 test("Deployment serves the updated JS and CSS with fresh cache versions and runs regression coverage",()=>{
  assert.match(workflow,/gdr-rental-suite-v2\.js", "20261112-owner-nearby-separate1"/);
- assert.match(workflow,/gdr-property-studio\.css", "20261112-owner-nearby-separate1"/);
+ assert.match(workflow,/gdr-property-studio\.css", "20261112-touch-gallery1"/);
  assert.match(workflow,/gdr-owner-profile-nearby-mobile-scroll\.test\.cjs/);
  assert.doesNotMatch(workflow,/gdr-rental-suite-v2\.js\?v=20261107-paymentproof1/);
 });
 
 test("Owner profile does not inject a duplicate Report action and original support remains available",()=>{
- assert.match(rental,/if\\(duplicateReport\\)duplicateReport\\.remove\\(\\)/);
+ assert.match(rental,/if\(duplicateReport\)duplicateReport\.remove\(\)/);
  assert.doesNotMatch(rental,/Report a Problem/);
  assert.doesNotMatch(css,/gdrOwnerReportProblem/);
  const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
