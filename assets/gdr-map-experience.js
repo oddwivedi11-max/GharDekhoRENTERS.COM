@@ -576,10 +576,30 @@
       return {feature,score,index};
     }).sort((a,b)=>a.score-b.score||a.index-b.index).map(item=>item.feature);
   }
+  function rankIndiaPinFeatures(features,pin,office,district,stateName){
+    const expectedPin=String(pin||"").replace(/\D/g,"");
+    const expectedOffice=normalizedText(office),expectedDistrict=normalizedText(district),expectedState=normalizedText(stateName);
+    return (Array.isArray(features)?features:[]).map((feature,index)=>{
+      const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
+      const country=String(props.countrycode||"").toLowerCase();
+      const postcode=String(props.postcode||"").replace(/\D/g,"");
+      const stateText=normalizedText(props.state||props.state_name||"");
+      const districtFields=[props.district,props.county,props.city,props.locality,props.suburb,props.village,props.town,props.name].map(normalizedText).filter(Boolean);
+      const districtMatch=!expectedDistrict||!districtFields.length||districtFields.some(value=>value===expectedDistrict||value.includes(expectedDistrict)||expectedDistrict.includes(value));
+      const stateMatch=!expectedState||!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText);
+      const localityText=normalizedText([props.name,props.locality,props.suburb,props.village,props.town].filter(Boolean).join(" "));
+      const score=(postcode===expectedPin?100:0)+(localityText.includes(expectedOffice)?35:0)+(districtMatch?20:0)+(stateMatch?10:0)-index/1000;
+      return {feature,props,coords,score,districtMatch,stateMatch,country,postcode};
+    }).filter(item=>{
+      return (!item.country||item.country==="in")&&(!item.postcode||item.postcode===expectedPin)&&
+        Array.isArray(item.coords)&&item.coords.length>=2&&validPoint(item.coords[1],item.coords[0])&&
+        item.districtMatch&&item.stateMatch;
+    }).sort((a,b)=>b.score-a.score).map(item=>item.feature);
+  }
   async function resolveMapQuery(query){
     const q=String(query||"").trim();
     if(!q)throw new Error("Enter a city, locality or six-digit PIN code first.");
-    let features=[],expectedDistrict="",expectedState="",pin=q;
+    let features=[],postalLabel="",pin=q;
     if(/^\d{6}$/.test(q)){
       setStatus("Verifying PIN "+pin+" with India Post…");
       const response=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"}});
@@ -588,34 +608,32 @@
       const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice:[];
       if(!offices.length)throw new Error("PIN "+pin+" was not found. Check the six digits and try again.");
       const office=offices.find(x=>x&&x.BranchType==="Head Office")||offices.find(x=>x&&x.Name)||offices[0];
-      expectedDistrict=String(office.District||"");
-      expectedState=String(office.State||"");
+      const expectedDistrict=String(office.District||office.Block||"");
+      const expectedState=String(office.State||"");
       const locality=String(office.Name||expectedDistrict).trim();
+      postalLabel=[locality,expectedDistrict,expectedState,pin,"India"].filter(Boolean).join(", ");
       setStatus("PIN "+pin+" belongs to "+[locality,expectedDistrict,expectedState].filter(Boolean).join(", ")+". Finding its map coordinates…");
       const queries=[
         [locality,expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
         [expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
-        pin+", "+expectedDistrict+", "+expectedState+", India"
+        [pin,expectedDistrict,expectedState,"India"].filter(Boolean).join(", ")
       ];
       for(const candidate of queries){
-        try{features=await photonGeocode(candidate);if(features.length)break;}catch(error){console.warn("PIN geocoding attempt failed:",error);}
+        try{
+          const candidateFeatures=await photonGeocode(candidate);
+          const matches=rankIndiaPinFeatures(candidateFeatures,pin,locality,expectedDistrict,expectedState);
+          if(matches.length){features=matches;break;}
+        }catch(error){console.warn("PIN geocoding attempt failed:",error);}
       }
-      const district=normalizedText(expectedDistrict),stateName=normalizedText(expectedState);
-      features=features.filter(f=>{
-        const p=f.properties||{},pState=normalizedText(p.state),pDistrict=normalizedText(p.district||p.county||p.city||p.name),postcode=normalizedText(p.postcode);
-        if(pState&&stateName&&!pState.includes(stateName)&&!stateName.includes(pState))return false;
-        if(postcode&&postcode!==normalizedText(pin))return false;
-        if(pDistrict&&district&&!pDistrict.includes(district)&&!district.includes(pDistrict)&&!normalizedText(p.city).includes(district))return false;
-        return true;
-      });
       if(!features.length)throw new Error("PIN "+pin+" belongs to "+[expectedDistrict,expectedState].filter(Boolean).join(", ")+", but map coordinates could not be verified. Search the locality name instead.");
     }else{
       features=await photonGeocode(q+", India");
       if(!features.length)throw new Error("We could not locate “"+q+"”. Try a nearby locality, city or PIN code.");
     }
-    const ranked=rankPhotonFeatures(features,q),feature=ranked[0];if(!feature)throw new Error("We could not verify the requested location. Try adding the district or PIN code.");
+    const feature=/^\d{6}$/.test(q)?features[0]:rankPhotonFeatures(features,q)[0];
+    if(!feature)throw new Error("We could not verify the requested location. Try adding the district or PIN code.");
     const coords=feature.geometry.coordinates,props=feature.properties||{};
-    return {lat:Number(coords[1]),lng:Number(coords[0]),label:photonLabel(props)||q,query:q,properties:props};
+    return {lat:Number(coords[1]),lng:Number(coords[0]),label:postalLabel||photonLabel(props)||q,query:q,properties:props};
   }
   async function searchTypedMapLocation(){
     const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();
@@ -623,7 +641,10 @@
     const locationSearchId=++state.locationSearchId,button=$("gdrMapSearchAreaBtn");
     if(button){button.disabled=true;button.textContent="Locating…";}
     state.boundsRows=[];state.visible=[];state.browseInventory=null;state.browseCenter=null;
-    if(state.renterMap)renderMarkers([],state.searchCenter||INDIA_CENTER);
+    // Clear the previously selected city immediately; a failed new search must
+    // never leave stale Bhopal markers/coordinates active for a Singrauli query.
+    state.renterPin=null;state.searchCenter=INDIA_CENTER.slice();state.resolvedQuery="";
+    if(state.renterMap){state.renterMap.setView(INDIA_CENTER,5,{animate:false});renderMarkers([],INDIA_CENTER);}
     setStatus("Finding "+query+" on the map…");
     try{
       const point=await resolveMapQuery(query);
@@ -646,7 +667,8 @@
     }catch(error){
       if(locationSearchId!==state.locationSearchId)return false;
       console.warn("GDR map location search failed:",error);
-      state.boundsRows=[];state.visible=[];renderMarkers([],state.searchCenter||INDIA_CENTER);
+      state.boundsRows=[];state.visible=[];state.renterPin=null;state.searchCenter=INDIA_CENTER.slice();state.resolvedQuery="";
+      if(state.renterMap){state.renterMap.setView(INDIA_CENTER,5,{animate:false});renderMarkers([],INDIA_CENTER);}
       setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");
       return false;
     }finally{if(locationSearchId===state.locationSearchId&&button){button.disabled=false;button.textContent="Search this area";}}
