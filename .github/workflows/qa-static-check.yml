@@ -42,6 +42,7 @@ on:
       - "hotfix/prevent-owner-counter-observer-loop-20261105"
       - "hotfix/versioned-owner-command-loader-20261105"
       - "fix/owner-profile-nearby-mobile-scroll"
+      - "fix/gdr-owner-touch-pin-filter-20261112"
       - "fix/property-studio-scroll-cache-test-alignment"
   workflow_dispatch:
 
@@ -132,6 +133,8 @@ jobs:
           node --test tests/gdr-property-studio-voice.test.cjs
           node --check tests/gdr-property-studio-pincode.test.cjs
           node --test tests/gdr-property-studio-pincode.test.cjs
+          node --check tests/gdr-owner-inventory-touch-filters.test.cjs
+          node --test tests/gdr-owner-inventory-touch-filters.test.cjs
           node --test tests/gdr-renter-moveout-notice.test.cjs
           node --test tests/gdr-role-portal-switch.spec.cjs
           node --test tests/gdr-role-enablement.test.cjs
