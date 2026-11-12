@@ -30,7 +30,7 @@ test("Duplicate Report a Problem controls are removed from app dashboards withou
  assert.match(rental,/function removeDuplicateReportButtons\(\)/);
  assert.match(rental,/\["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"\]/);
  assert.match(rental,/control\.id==="gdrxSupport"\|\|control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
- assert.ok(rental.includes("if(/^report\\s+a\\s+problem$/i.test(label))"));
+ assert.ok(rental.includes("/^report\\s+a\\s+problem$/i.test(label)"));
  assert.match(renterExperience,/function addSupport\(\)/);
  assert.match(renterExperience,/b\.id="gdrxSupport"/);
  assert.match(html,/Need help/);

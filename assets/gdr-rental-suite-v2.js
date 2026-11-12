@@ -200,7 +200,6 @@ function addOwnerNearbyAction(){
   button.setAttribute("aria-label","Open nearby properties map");
  }
  if(button.parentElement!==card)card.appendChild(button);
- var oldReport=$("gdrOwnerReportProblem");if(oldReport)oldReport.remove();
  var oldCard=$("gdrOwnerNearbyCard");if(oldCard)oldCard.remove();
  if(button.dataset.gdrNearbyBound==="1")return;
  button.dataset.gdrNearbyBound="1";
