@@ -184,38 +184,34 @@ function addOwnerNearbyAction(){
  var root=$("ownerDashboard");if(!root)return;
  var profile=root.querySelector(".owner-profile-card");
  var heading=profile&&profile.querySelector(".dashboard-card-heading");
- if(!heading)return;
- var actions=heading.querySelector(".gdr-owner-profile-actions");
- if(!actions){
-  actions=document.createElement("div");
-  actions.className="gdr-owner-profile-actions";
-  actions.setAttribute("aria-label","Owner profile actions");
-  heading.appendChild(actions);
- }
+ if(!profile||!heading)return;
+ // Restore Edit Profile to the original heading; Near Properties is separate.
  var edit=$("ownerEditProfileBtn");
- if(edit&&edit.parentElement!==actions)actions.appendChild(edit);
+ if(edit&&edit.parentElement!==heading)heading.appendChild(edit);
+ var legacyActions=heading.querySelector(".gdr-owner-profile-actions");
+ if(legacyActions)legacyActions.remove();
+ // This injected report link duplicated the existing Contact / Support section.
+ var duplicateReport=$("gdrOwnerReportProblem");
+ if(duplicateReport)duplicateReport.remove();
+ var nearbyActions=root.querySelector("#gdrOwnerNearbyActions");
+ if(!nearbyActions){
+  nearbyActions=document.createElement("div");
+  nearbyActions.id="gdrOwnerNearbyActions";
+  nearbyActions.className="gdr-owner-nearby-actions";
+  nearbyActions.setAttribute("aria-label","Nearby property actions");
+  profile.insertAdjacentElement("afterend",nearbyActions);
+ }
  var button=$("gdrOwnerNearbyOpen");
  if(!button){
   button=document.createElement("button");
   button.type="button";
   button.id="gdrOwnerNearbyOpen";
   button.className="gdr-owner-nearby-inline";
-  button.textContent="⌖ Nearby Properties";
+  button.textContent="⌖ Near Properties";
   button.setAttribute("aria-label","Open nearby properties map");
  }
- if(button.parentElement!==actions)actions.appendChild(button);
- var report=$("gdrOwnerReportProblem");
- if(!report){
-  report=document.createElement("a");
-  report.id="gdrOwnerReportProblem";
-  report.className="gdr-owner-report-problem";
-  report.textContent="Report a Problem";
-  report.href="mailto:ghardekhorenters@gmail.com?subject="+encodeURIComponent("GharDekho owner dashboard problem")+"&body="+encodeURIComponent("Hello GharDekho Support,\n\nI want to report a problem with my owner dashboard.\n\nRegistered email: \nProperty (if relevant): \nWhat happened: \nSteps to reproduce: \n\nThank you.");
-  report.setAttribute("aria-label","Report a problem to GharDekho support");
- }
- if(report.parentElement!==actions)actions.appendChild(report);
- var oldCard=$("gdrOwnerNearbyCard");
- if(oldCard)oldCard.remove();
+ if(button.parentElement!==nearbyActions)nearbyActions.appendChild(button);
+ var oldCard=$("gdrOwnerNearbyCard");if(oldCard)oldCard.remove();
  if(button.dataset.gdrNearbyBound==="1")return;
  button.dataset.gdrNearbyBound="1";
  button.addEventListener("click",function(){
@@ -232,7 +228,7 @@ function addOwnerNearbyAction(){
    if(!window.__gdrMapExperienceLoadPromise){
     window.__gdrMapExperienceLoadPromise=new Promise(function(resolve,reject){
      var script=document.createElement("script");
-     script.src="/assets/gdr-map-experience.js?owner-nearby-retry=1";
+     script.src="/assets/gdr-map-experience.js?v=20261112-pin-consistency1";
      script.async=true;
      script.onload=resolve;
      script.onerror=function(){reject(new Error("Nearby map module failed to load."));};
@@ -255,4 +251,4 @@ document.addEventListener("click",function(event){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
 })();
-// Cache release: renter move-out notice v3.
+// Cache release: owner profile action separation v4.
