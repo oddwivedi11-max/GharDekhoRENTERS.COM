@@ -27,7 +27,7 @@ test("filter results use the actual rendered listing status, including live occu
 test("filter selection and empty states are accessible and visibly selected",()=>{
   assert.match(html,/aria-pressed/);
   assert.match(html,/gdrOwnerPropertiesFilterEmpty/);
-  assert.match(css,/#ownerDashboard \.owner-stat-card\[data-gdr-owner-filter\]\.is-filter-active/);
+  assert.match(css,/#ownerDashboard \.owner-stats-grid \.owner-stat-card\[data-gdr-owner-filter\]\.is-filter-active/);
   assert.match(css,/owner-property-premium-card\[hidden\]\{display:none!important\}/);
 });
 
