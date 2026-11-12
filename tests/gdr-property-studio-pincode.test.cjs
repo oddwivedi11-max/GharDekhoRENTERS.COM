@@ -34,7 +34,7 @@ test("changing a PIN clears the previous location and ignores stale lookup respo
   assert.match(studio,/const isCurrent=\(\)=>run===pinResolveSequence/);
   assert.match(studio,/if\(nextPin\.length===6\)pinResolveTimer=setTimeout\(\(\)=>resolveStudioPincode\(nextPin\),450\)/);
   assert.match(studio,/districtMatch=!expectedDistrict\|\|districtText\.includes\(expectedDistrict\)/);
-  assert.match(studio,/stateMatch=!expectedState\|\|!!stateText/);
+  assert.match(studio,/stateMatch=!expectedState\|\|assert.match(studio,/stateMatch=!expectedState\|\|!stateText\|\|stateText===expectedState/);
 });
 
 test("approximate PIN and address coordinates cannot publish before exact entrance confirmation",()=>{
@@ -50,4 +50,31 @@ test("owner map clears old marker and no longer defaults the owner picker to Bho
   assert.match(map,/function clearOwnerMapSelectionForPinChange\(/);
   assert.match(map,/clearOwnerMapSelectionForPinChange,searchRenterArea/);
   assert.doesNotMatch(map,/function initOwnerMap\(\)[\s\S]{0,350}setView\(\[23\.2599,77\.4126\],12\)/);
+});
+
+
+test("Owner and renter PIN resolvers prefer the same India Post Head Office locality",()=>{
+  assert.match(studio,/offices\.find\(item=>item&&item\.BranchType==="Head Office"\)\|\|offices\.find\(item=>item&&item\.Name\)\|\|offices\[0\]/);
+  assert.match(map,/offices\.find\(x=>x&&x\.BranchType==="Head Office"\)\|\|offices\.find\(x=>x&&x\.Name\)\|\|offices\[0\]/);
+  assert.match(studio,/\[officeName,district,region,"India"\]/);
+  assert.match(map,/rankIndiaPinFeatures\(candidateFeatures,pin,locality,expectedDistrict,expectedState\)/);
+});
+
+test("PIN geocoding prefers matching postcode/locality and rejects a different postcode",()=>{
+  assert.match(studio,/postcode===pin/);
+  assert.match(studio,/localityText\.includes\(expectedOffice\)/);
+  assert.match(map,/function rankIndiaPinFeatures/);
+  assert.match(map,/item\.postcode===expectedPin/);
+  assert.match(map,/item\.stateMatch/);
+});
+
+test("a failed new renter location search clears the previous city instead of retaining old markers",()=>{
+  assert.match(map,/state\.renterPin=null;state\.searchCenter=INDIA_CENTER\.slice\(\);state\.resolvedQuery=""/);
+  assert.match(map,/state\.renterMap\.setView\(INDIA_CENTER,5,\{animate:false\}\)/);
+});
+
+test("owner Nearby map ignores stale postal and inventory responses",()=>{
+  assert.match(map,/searchRequestId:0,loadRequestId:0/);
+  assert.match(map,/if\(requestId!==ownerNearby\.searchRequestId\)return/);
+  assert.match(map,/if\(requestId!==ownerNearby\.loadRequestId\)return/);
 });
