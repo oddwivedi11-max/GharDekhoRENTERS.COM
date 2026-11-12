@@ -433,7 +433,7 @@ function bind(dash){
  });
 }
 function styles(){
- const href="/assets/gdr-owner-command-center.css?v=20261109-owner-insights1";
+ const href="/assets/gdr-owner-command-center.css?v=20261112-owner-inventory-swipe1";
  let link=$("#gdrOwnerCommandCenterStyle");
  if(!link){
   link=document.querySelector('link[rel="stylesheet"][href*="gdr-owner-command-center.css"]');
