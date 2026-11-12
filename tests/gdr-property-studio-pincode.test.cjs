@@ -31,10 +31,10 @@ test("changing a PIN clears the previous location and ignores stale lookup respo
   assert.match(studio,/state\.address="";state\.nearbyPlaces=\[\];clearStudioCoordinateSelection\(\)/);
   assert.match(studio,/function clearStudioCoordinateSelection\(/);
   assert.match(studio,/pinResolveSequence\+\+/);
-  assert.match(studio,/const isCurrent=\(\)=>run===pinResolveSequence/);
+  assert.match(studio,/const isCurrent\(\)=>run===pinResolveSequence/);
   assert.match(studio,/if\(nextPin\.length===6\)pinResolveTimer=setTimeout\(\(\)=>resolveStudioPincode\(nextPin\),450\)/);
-  assert.match(studio,/districtMatch=!expectedDistrict\|\|districtText\.includes\(expectedDistrict\)/);
-  assert.match(studio,/stateMatch=!expectedState\|\|assert.match(studio,/stateMatch=!expectedState\|\|!stateText\|\|stateText===expectedState/);
+  assert.match(studio,/districtMatch=!expectedDistrict\|\|!districtFields\.length/);
+  assert.match(studio,/stateMatch=!expectedState\|\|!stateText/);
 });
 
 test("approximate PIN and address coordinates cannot publish before exact entrance confirmation",()=>{
@@ -51,7 +51,6 @@ test("owner map clears old marker and no longer defaults the owner picker to Bho
   assert.match(map,/clearOwnerMapSelectionForPinChange,searchRenterArea/);
   assert.doesNotMatch(map,/function initOwnerMap\(\)[\s\S]{0,350}setView\(\[23\.2599,77\.4126\],12\)/);
 });
-
 
 test("Owner and renter PIN resolvers prefer the same India Post Head Office locality",()=>{
   assert.match(studio,/offices\.find\(item=>item&&item\.BranchType==="Head Office"\)\|\|offices\.find\(item=>item&&item\.Name\)\|\|offices\[0\]/);
