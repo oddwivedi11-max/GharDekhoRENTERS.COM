@@ -31,7 +31,7 @@ test("changing a PIN clears the previous location and ignores stale lookup respo
   assert.match(studio,/state\.address="";state\.nearbyPlaces=\[\];clearStudioCoordinateSelection\(\)/);
   assert.match(studio,/function clearStudioCoordinateSelection\(/);
   assert.match(studio,/pinResolveSequence\+\+/);
-  assert.match(studio,/const isCurrent\(\)=>run===pinResolveSequence/);
+  assert.match(studio,/const isCurrent=\(\)=>run===pinResolveSequence/);
   assert.match(studio,/if\(nextPin\.length===6\)pinResolveTimer=setTimeout\(\(\)=>resolveStudioPincode\(nextPin\),450\)/);
   assert.match(studio,/districtMatch=!expectedDistrict\|\|!districtFields\.length/);
   assert.match(studio,/stateMatch=!expectedState\|\|!stateText/);
