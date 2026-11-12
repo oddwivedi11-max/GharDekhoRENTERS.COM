@@ -117,12 +117,13 @@ test("owner My Properties supports card-by-card horizontal touch swipes at phone
     await page.waitForFunction(() => Array.from(document.styleSheets).some(sheet => sheet.href && sheet.href.includes("gdr-property-studio.css")), { timeout: 15000 });
     await page.evaluate(() => {
       const shell = document.getElementById("dashboardSection");
-      if (shell) { shell.hidden = false; shell.style.display = "block"; }
+      if (shell) { shell.hidden = false; shell.setAttribute("aria-hidden", "false"); shell.style.setProperty("display", "block", "important"); }
       const dashboard = document.getElementById("ownerDashboard");
       dashboard.hidden = false;
       dashboard.classList.add("active", "gdr-owner-mode-properties");
       dashboard.classList.remove("gdr-owner-mode-home", "gdr-owner-mode-visits", "gdr-owner-mode-analytics", "gdr-owner-mode-notifications");
-      dashboard.style.display = "block";
+      dashboard.setAttribute("aria-hidden", "false");
+      dashboard.style.setProperty("display", "block", "important");
       const home = dashboard.querySelector("#gdrOwnerCommandCenterHome");
       if (home) home.hidden = true;
       const header = dashboard.querySelector("#gdrOwnerModuleHeader");
@@ -195,7 +196,9 @@ test("Add Listing exterior/interior photo previews support horizontal finger swi
         document.body.appendChild(root);
       }
       root.hidden = false;
-      root.style.display = "block";
+      document.body.classList.add("gdr-property-studio-open");
+      root.setAttribute("aria-hidden", "false");
+      root.style.setProperty("display", "block", "important");
       root.innerHTML = "<div id='gdrStudioPhotoPreview'><section class='gdr-studio-photo-group'><h3>Exterior photos · 4</h3><div class='gdr-studio-photo-grid'>" +
         Array.from({ length: 4 }, (_, i) => "<article class='gdr-studio-photo-card'><img alt='QA exterior " + (i + 1) + "' src='/assets/gdr-property-placeholder.svg'><div><span>QA exterior " + (i + 1) + "</span><button type='button'>Set as cover</button></div></article>").join("") +
         "</div></section></div>";

@@ -63,10 +63,10 @@ test("Owner My Properties status filters show the correct status subset and coun
  await page.goto("/");
  await page.evaluate(()=>{
   const shell=document.getElementById("dashboardSection");
-  if(shell){shell.hidden=false;shell.style.display="block";}
+  if(shell){shell.hidden=false;shell.setAttribute("aria-hidden","false");shell.style.setProperty("display","block","important");}
   const dash=document.getElementById("ownerDashboard");
   if(dash){
-   dash.hidden=false;dash.classList.add("active","gdr-owner-mode-properties");dash.style.display="block";
+   dash.hidden=false;dash.setAttribute("aria-hidden","false");dash.classList.add("active","gdr-owner-mode-properties");dash.style.setProperty("display","block","important");
    dash.classList.remove("gdr-owner-mode-home","gdr-owner-mode-visits","gdr-owner-mode-analytics","gdr-owner-mode-notifications");
    const home=dash.querySelector("#gdrOwnerCommandCenterHome");if(home)home.hidden=true;
    const header=dash.querySelector("#gdrOwnerModuleHeader");if(header)header.hidden=false;
