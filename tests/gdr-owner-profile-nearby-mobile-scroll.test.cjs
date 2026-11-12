@@ -5,6 +5,7 @@ const path=require("node:path");
 const root=path.join(__dirname,"..");
 const rental=fs.readFileSync(path.join(root,"assets/gdr-rental-suite-v2.js"),"utf8");
 const css=fs.readFileSync(path.join(root,"assets/gdr-property-studio.css"),"utf8");
+const ownerCss=fs.readFileSync(path.join(root,"assets/gdr-owner-command-center.css"),"utf8");
 const workflow=fs.readFileSync(path.join(root,".github/workflows/deploy-cloudflare.yml"),"utf8");
 
 test("Near Properties is separate from Edit Profile and stays a single dashboard action",()=>{
@@ -35,9 +36,9 @@ test("Duplicate injected Report a Problem entry is removed but the original supp
 });
 
 test("Near Properties has a separate, touch-friendly layout outside the profile header",()=>{
- assert.match(css,/#ownerDashboard #gdrOwnerNearbyActions/);
+ assert.match(ownerCss,/#ownerDashboard #gdrOwnerNearbyActions/);
  assert.match(css,/@media\(max-width:680px\)/);
- assert.match(css,/#ownerDashboard #gdrOwnerNearbyActions #gdrOwnerNearbyOpen/);
+ assert.match(ownerCss,/#ownerDashboard #gdrOwnerNearbyActions #gdrOwnerNearbyOpen/);
  assert.doesNotMatch(css,/gdr-owner-profile-actions #gdrOwnerReportProblem/);
 });
 
