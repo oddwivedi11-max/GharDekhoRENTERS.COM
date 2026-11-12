@@ -21,6 +21,11 @@ def replace_once(old, new, label):
         if label == "show pending status on public property cards" and 'property.status === "pending"' in source and 'property.status === "soon_available"' in source and ("Vacating Soon" in source or "Soon Available" in source):
             print(f"Already applied: {label}")
             return
+        # The owner inventory now uses a shared status classifier so its
+        # Available/Occupied filters and property cards cannot disagree.
+        if label == "pending property status label" and "function getOwnerPropertyStatus(property)" in source and "const statusLabel = propertyStatus.label;" in source:
+            print(f"Already applied through shared status mapping: {label}")
+            return
         if label == "activate the selected dashboard after successful role switch" and "saveActiveAccountRole(target)" in source and "await supabaseClient.auth.signOut()" in source and "window.location.reload()" in source:
             print(f"Already applied: {label}")
             return
