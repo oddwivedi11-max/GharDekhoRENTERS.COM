@@ -39,13 +39,13 @@ jobs:
           assets = [
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
-              ("gdr-rental-suite-v2.js", "20261111-owner-report-problem1"),
+              ("gdr-rental-suite-v2.js", "20261112-owner-nearby-separate1"),
               ("gdr-owner-payments.js", "20261111-paginated-records1"),
-              ("gdr-owner-payments.css", "20261107-paymentproof1"),
+              ("gdr-owner-payments.css", "20261112-back-dashboard3d1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
-              ("gdr-map-experience.js", "20261109-open-data-map-geo1"),
-              ("gdr-property-studio.js", "20261110-review-panel-markup1"),
-              ("gdr-property-studio.css", "20261111-owner-report-problem1"),
+              ("gdr-map-experience.js", "20261112-pin-consistency1"),
+              ("gdr-property-studio.js", "20261112-pin-locality1"),
+              ("gdr-property-studio.css", "20261112-touch-gallery1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:
@@ -53,11 +53,11 @@ jobs:
               source, count = re.subn(pattern, lambda match: match.group(1) + "?v=" + version, source, count=1)
               if count != 1:
                   raise SystemExit("Could not safely version existing asset: " + asset)
-          # The legacy page contains this stylesheet twice; normalize both cache keys, then keep one copy.
-          old_studio_css = '/assets/gdr-property-studio.css?v=20261109-draft-gallery2'
-          new_studio_css = '/assets/gdr-property-studio.css?v=20261111-owner-report-problem1'
-          source = source.replace(old_studio_css, new_studio_css)
+          # Normalize every Property Studio stylesheet URL and keep exactly one link.
+          new_studio_css = '/assets/gdr-property-studio.css?v=20261112-touch-gallery1'
+          studio_pattern = r'<link rel="stylesheet" href="/assets/gdr-property-studio\.css(?:\?v=[^"]*)?">'
           studio_link = '<link rel="stylesheet" href="' + new_studio_css + '">'
+          source = re.sub(studio_pattern, studio_link, source)
           source = re.sub(r'(?:' + re.escape(studio_link) + r'\s*){2,}', studio_link + "\n", source)
           path.write_text(source, encoding="utf-8")
           print("Updated GDR voice and map assistant cache versions.")
@@ -128,6 +128,8 @@ jobs:
           node --check assets/gdr-property-studio.js
           node --check assets/gdr-owner-property-archive.js
           node --test tests/gdr-property-studio-pincode.test.cjs
+          node --check tests/gdr-owner-inventory-touch-filters.test.cjs
+          node --test tests/gdr-owner-inventory-touch-filters.test.cjs
           node --test tests/gdr-owner-property-archive.test.cjs
           node --test tests/gdr-renter-promotional-banner.test.cjs
           node --test tests/gdr-pincode-search.test.cjs
