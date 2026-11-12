@@ -58,9 +58,11 @@ test("Deployment serves the updated JS and CSS with fresh cache versions and run
  assert.doesNotMatch(workflow,/gdr-rental-suite-v2\.js\?v=20261107-paymentproof1/);
 });
 
-test("Owner profile exposes a working Report a Problem mail action beside Nearby Properties",()=>{
- assert.match(rental,/gdrOwnerReportProblem/);
- assert.match(rental,/mailto:ghardekhorenters@gmail\.com/);
- assert.match(rental,/Report a Problem/);
- assert.match(css,/gdrOwnerReportProblem/);
+test("Owner profile does not inject a duplicate Report action and original support remains available",()=>{
+ assert.match(rental,/if\\(duplicateReport\\)duplicateReport\\.remove\\(\\)/);
+ assert.doesNotMatch(rental,/Report a Problem/);
+ assert.doesNotMatch(css,/gdrOwnerReportProblem/);
+ const html=fs.readFileSync(path.join(root,"index.html"),"utf8");
+ assert.match(html,/Need help/);
+ assert.match(html,/Open Gmail to contact GharDekho Renters/);
 });
