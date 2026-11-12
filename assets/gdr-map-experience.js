@@ -894,7 +894,7 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
 
   // Dedicated owner Nearby Properties map. This is intentionally independent
   // from the renter's Find Homes/Explore map and never requests browser GPS.
-  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,hiddenSiblings:[],overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false,searchCenter:null,searchLabel:""};
+  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,hiddenSiblings:[],overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false,searchCenter:null,searchLabel:"",searchRequestId:0,loadRequestId:0};
   const OWNER_NEARBY_FIELDS="id,owner_id,title,name,location,address,latitude,longitude,rent,status,verification_status,bhk,furnishing,image_url,listing_type,available_beds,total_beds";
   function ownerNearbyAvailable(p){
     const type=String(p.listing_type||"home").toLowerCase();
@@ -998,48 +998,78 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
   async function searchOwnerNearbyArea(){
     const input=$("gdrOnAreaSearch"),query=String(input&&input.value||"").trim(),button=$("gdrOnAreaSearchBtn");
     if(!query){ownerNearbyStatus("Enter a locality, city or six-digit PIN code, for example Patel Nagar, Bhopal.");return;}
+    const requestId=++ownerNearby.searchRequestId;
+    // Immediately invalidate any previous area/results so a failed PIN lookup
+    // cannot leave unrelated city markers on screen.
+    ownerNearby.loadRequestId++;
+    ownerNearby.searchCenter=null;ownerNearby.searchLabel="";ownerNearby.visible=[];
+    if(ownerNearby.layer&&typeof ownerNearby.layer.clearLayers==="function")ownerNearby.layer.clearLayers();
+    if(ownerNearby.map)ownerNearby.map.setView(INDIA_CENTER,5,{animate:false});
+    const scene=$("gdrOnSocietyScene");if(scene)scene.replaceChildren();
+    const preview=$("gdrOnPreview");if(preview)preview.hidden=true;
+    const empty=$("gdrOnEmpty");if(empty){empty.hidden=true;empty.textContent="";}
+    const count=$("gdrOnCount");if(count)count.textContent="0";
     if(button){button.disabled=true;button.textContent="Locating…";}
     try{
       ownerNearbyStatus("Finding "+query+" on the map…");
       const point=await resolveMapQuery(query);
+      if(requestId!==ownerNearby.searchRequestId)return;
       ownerNearby.searchCenter=[point.lat,point.lng];ownerNearby.searchLabel=point.label||query;
       const hint=$("gdrOnAreaSearchHint");if(hint)hint.textContent="Showing homes around "+ownerNearby.searchLabel+". Choose My Property to return to your saved property location.";
       const sub=$("gdrOnSubheading");if(sub)sub.textContent="Homes around "+ownerNearby.searchLabel;
       await loadOwnerNearbyHomes();
-    }catch(error){console.warn("Owner Nearby area search failed:",error);ownerNearbyStatus(error.message||"This area could not be located. Try a nearby locality or PIN code.");}
-    finally{if(button){button.disabled=false;button.textContent="Search area →";}}
+    }catch(error){
+      if(requestId!==ownerNearby.searchRequestId)return;
+      console.warn("Owner Nearby area search failed:",error);
+      ownerNearbyStatus(error.message||"This area could not be located. Try a nearby locality or PIN code.");
+      const failedEmpty=$("gdrOnEmpty");if(failedEmpty){failedEmpty.hidden=false;failedEmpty.textContent="Location could not be verified. Search again with a valid locality or PIN code.";}
+    }finally{
+      if(requestId===ownerNearby.searchRequestId&&button){button.disabled=false;button.textContent="Search area →";}
+    }
   }
   async function loadOwnerNearbyHomes(){
-    if(ownerNearby.loading||!ownerNearby.selected)return;
+    if(!ownerNearby.selected)return;
+    const requestId=++ownerNearby.loadRequestId;
     const fallbackCenter=[asNumber(ownerNearby.selected.latitude),asNumber(ownerNearby.selected.longitude)];
     const center=ownerNearby.searchCenter||fallbackCenter;
+    const radius=ownerNearby.radius;
     if(center.some(v=>v===null)){ownerNearbyStatus("This property is missing exact latitude/longitude. Please update its location pin first.");ownerNearbyLoading(false);return;}
-    ownerNearby.loading=true;ownerNearbyLoading(true);ownerNearbyStatus("Searching real listings within "+ownerNearby.radius+" KM of "+(ownerNearby.searchLabel||"your selected property")+"…");
+    ownerNearby.loading=true;ownerNearbyLoading(true);ownerNearbyStatus("Searching real listings within "+radius+" KM of "+(ownerNearby.searchLabel||"your selected property")+"…");
     try{
       const client=db();if(!client)throw new Error("Account service is not ready. Refresh and sign in again.");
       const bounds=radiusBounds(center),sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
       let inventory=[],source="viewport";
       const viewport=await client.rpc("get_map_properties_in_bounds",{p_south:sw.lat,p_west:sw.lng,p_north:ne.lat,p_east:ne.lng,p_limit:200});
+      if(requestId!==ownerNearby.loadRequestId)return;
       if(!viewport.error){
         inventory=(Array.isArray(viewport.data)?viewport.data:[]);
       }else{
         console.warn("Owner Nearby viewport lookup unavailable; using public inventory fallback:",viewport.error);
         source="public inventory";
         const fallback=await client.rpc("get_public_properties");
+        if(requestId!==ownerNearby.loadRequestId)return;
         if(fallback.error)throw fallback.error;
         inventory=Array.isArray(fallback.data)?fallback.data:[];
       }
+      if(requestId!==ownerNearby.loadRequestId)return;
       const selectedId=String(ownerNearby.selected.id);
       const rows=inventory.map(p=>({...p,name:p.name||p.title,address:p.address||p.location}))
         .filter(p=>String(p.id)!==selectedId&&validPoint(p.latitude,p.longitude))
         .map(p=>({...p,gdrDistanceKm:distanceKm(center,[Number(p.latitude),Number(p.longitude)])}))
-        .filter(p=>Number.isFinite(p.gdrDistanceKm)&&p.gdrDistanceKm<=ownerNearby.radius)
+        .filter(p=>Number.isFinite(p.gdrDistanceKm)&&p.gdrDistanceKm<=radius)
         .sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm);
+      if(requestId!==ownerNearby.loadRequestId)return;
       renderOwnerNearbyHomes(rows,center);
       const sub=$("gdrOnSubheading");if(sub)sub.textContent="Homes around "+(ownerNearby.searchLabel||ownerNearby.selected.location||ownerNearby.selected.address||"your property");
       if(source==="public inventory")ownerNearbyStatus(rows.length+" nearby listings found. Viewport search was unavailable; results use the existing public inventory.");
-    }catch(error){console.error("Owner Nearby Properties query failed:",error);ownerNearbyStatus(error.message||"Nearby properties could not be loaded. Check your connection and permissions.");const empty=$("gdrOnEmpty");if(empty){empty.hidden=false;empty.textContent="Could not load nearby homes. Please refresh and try again.";}}
-    finally{ownerNearby.loading=false;ownerNearbyLoading(false);}
+    }catch(error){
+      if(requestId!==ownerNearby.loadRequestId)return;
+      console.error("Owner Nearby Properties query failed:",error);
+      ownerNearbyStatus(error.message||"Nearby properties could not be loaded. Check your connection and permissions.");
+      const failedEmpty=$("gdrOnEmpty");if(failedEmpty){failedEmpty.hidden=false;failedEmpty.textContent="Could not load nearby homes. Please refresh and try again.";}
+    }finally{
+      if(requestId===ownerNearby.loadRequestId){ownerNearby.loading=false;ownerNearbyLoading(false);}
+    }
   }
   async function openOwnerNearbyMap(){
     const overlay=ownerNearbyOverlay();overlay.hidden=false;document.body.classList.add("gdr-owner-nearby-open");hideOwnerNearbyBackground();overlay.scrollTop=0;window.scrollTo(0,0);
