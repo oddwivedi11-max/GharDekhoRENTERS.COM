@@ -231,25 +231,44 @@ async function resolveStudioPincode(rawPin){
   const record=Array.isArray(postalPayload)?postalPayload[0]:null;
   const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice.filter(item=>item&&item.Name):[];
   if(!offices.length)throw new Error("No post office was found for PIN "+pin+". Check the six digits or enter the locality manually.");
-  const office=offices[0],officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
-  const query=[officeName,district,region,"India"].filter(Boolean).join(", ");
-  const geoResponse=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
-  if(!isCurrent())return false;
-  if(!geoResponse.ok)throw new Error("Map location lookup is unavailable");
-  const geoPayload=await geoResponse.json();if(!isCurrent())return false;
+  // Use the same preferred postal office as Explore Map so owner and renter
+  // searches resolve the same postal locality rather than whichever office is first.
+  const office=offices.find(item=>item&&item.BranchType==="Head Office")||offices.find(item=>item&&item.Name)||offices[0];
+  const officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
   const normalize=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\bdistrict\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
-  const expectedDistrict=normalize(district),expectedState=normalize(region);
-  const candidates=(Array.isArray(geoPayload.features)?geoPayload.features:[]).map(feature=>{
-   const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
-   const stateText=normalize(props.state||props.state_name||"");
-   const districtText=normalize([props.county,props.city,props.district,props.locality,props.suburb,props.village,props.town,props.name].filter(Boolean).join(" "));
-   const stateMatch=!expectedState||!!stateText&&(stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText));
-   const districtMatch=!expectedDistrict||districtText.includes(expectedDistrict);
-   return {props,coords,stateMatch,districtMatch,score:(stateMatch?10:0)+(districtMatch?20:0)+(normalize(props.name).includes(normalize(officeName))?4:0)};
-  }).filter(item=>String(item.props.countrycode||"").toLowerCase()==="in"&&item.coords.length>=2&&validIndiaPoint(Number(item.coords[1]),Number(item.coords[0]))&&item.stateMatch&&item.districtMatch).sort((a,b)=>b.score-a.score);
+  const expectedDistrict=normalize(district),expectedState=normalize(region),expectedOffice=normalize(officeName);
+  const queries=[
+   [officeName,district,region,"India"].filter(Boolean).join(", "),
+   [district,region,"India"].filter(Boolean).join(", "),
+   [pin,district,region,"India"].filter(Boolean).join(", ")
+  ];
+  let candidates=[];
+  for(const query of queries){
+   const geoResponse=await fetch("https://photon.komoot.io/api/?limit=16&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
+   if(!isCurrent())return false;
+   if(!geoResponse.ok)throw new Error("Map location lookup is unavailable");
+   const geoPayload=await geoResponse.json();if(!isCurrent())return false;
+   const ranked=(Array.isArray(geoPayload.features)?geoPayload.features:[]).map(feature=>{
+    const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
+    const stateText=normalize(props.state||props.state_name||"");
+    const districtFields=[props.district,props.county,props.city,props.locality,props.suburb,props.village,props.town,props.name].map(normalize).filter(Boolean);
+    const districtMatch=!expectedDistrict||!districtFields.length||districtFields.some(value=>value===expectedDistrict||value.includes(expectedDistrict)||expectedDistrict.includes(value));
+    const stateMatch=!expectedState||!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText);
+    const postcode=String(props.postcode||"").replace(/\D/g,"");
+    const country=String(props.countrycode||"").toLowerCase();
+    const localityText=normalize([props.name,props.locality,props.suburb,props.village,props.town].filter(Boolean).join(" "));
+    const score=(postcode===pin?100:0)+(localityText.includes(expectedOffice)?35:0)+(districtMatch?20:0)+(stateMatch?10:0);
+    return {props,coords,score,districtMatch,stateMatch,country,postcode};
+   }).filter(item=>{
+    return (!item.country||item.country==="in")&&(!item.postcode||item.postcode===pin)&&
+      item.coords.length>=2&&validIndiaPoint(Number(item.coords[1]),Number(item.coords[0]))&&
+      item.districtMatch&&item.stateMatch;
+   }).sort((a,b)=>b.score-a.score);
+   if(ranked.length){candidates=ranked;break;}
+  }
   if(!candidates.length)throw new Error("PIN "+pin+" was verified, but no map result matched "+[district,region].filter(Boolean).join(", ")+". The previous location remains cleared; search the locality manually.");
   if(!isCurrent())return false;
-  const coords=candidates[0].coords,lat=Number(coords[1]),lng=Number(coords[0]),label=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  const coords=candidates[0].coords,lat=Number(coords[1]),lng=Number(coords[0]),label=[officeName,district,region,pin,"India"].filter(Boolean).join(", ");
   state.pinCenter={lat,lng};state.resolvedPincode=pin;setLocation(label,lat,lng,pin,false);
   if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
   if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". This is an approximate post-office centre, not the house location. Open the map, zoom in and tap or drag to the exact entrance before submitting.";
