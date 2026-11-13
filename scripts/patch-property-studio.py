@@ -204,7 +204,7 @@ source = source.replace("● Soon Available", "● Vacating Soon")
 source = source.replace('"Soon Available"', '"Vacating Soon"')
 source = source.replace('"Soon available"', '"Vacating Soon"')
 
-script_ref = '<script src="/assets/gdr-property-studio.js?v=20261112-owner-pin1" defer></script>'
+script_ref = '<script src="/assets/gdr-property-studio.js?v=20261113-pin-auto-map1" defer></script>'
 old_script_refs = [
     '<script src="/assets/gdr-property-studio.js?v=20261109-start-listing-rescue3" defer></script>',
     '<script src="/assets/gdr-property-studio.js?v=20261107-stepnav3d1" defer></script>',
