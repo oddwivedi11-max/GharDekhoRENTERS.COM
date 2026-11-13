@@ -65,7 +65,7 @@ test("Nearby Properties has a premium standalone dashboard action style",()=>{
 
 test("Deployment versions corrected owner/map/gallery assets and runs regression coverage",()=>{
  assert.match(workflow,/gdr-rental-suite-v2\.js", "20261113-owner-report-remove1"/);
- assert.match(workflow,/gdr-map-experience\.js", "20261112-pin-accuracy1"/);
+ assert.match(workflow,/gdr-map-experience\.js", "20261113-pin-auto-center1"/);
  assert.match(workflow,/gdr-property-studio\.js", "20261112-owner-pin1"/);
  assert.match(workflow,/gdr-property-studio\.css", "20261112-touch-swipe1"/);
  assert.match(workflow,/gdr-owner-property-filters\.test\.cjs/);
