@@ -230,37 +230,37 @@ function addOwnerNearbyAction(){
 }
 
 function removeDuplicateReportButtons(){
- ["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"].forEach(function(selector){
-  var scope=$(selector);if(!scope)return;
-  // The legacy ID is the retired Owner report tile. Remove by identity even
-  // if its visible text or nested markup changes on a later dashboard render.
-  // Keep this ID-based removal strictly inside Owner Dashboard.
-  if(selector==="#ownerDashboard"){
-   Array.from(scope.querySelectorAll("#gdrxSupport")).forEach(function(retired){
-    var target=retired,parent=retired.parentElement;
-    while(parent&&parent!==scope){
-     var actions=parent.querySelectorAll("a,button,[role='button']").length;
-     var label=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
-     if(actions<=1&&/report\s+a\s+problem/i.test(label)){target=parent;parent=parent.parentElement;}
-     else break;
-    }
-    if(target&&target!==scope)target.remove();
-   });
+ // Retired Report a Problem action is removed only from the Owner Dashboard.
+ // Renter Support and all contact/help links outside Owner remain untouched.
+ var scope=$("#ownerDashboard");
+ if(!scope)return;
+ var removeTarget=function(node){
+  if(!node||node===scope||!node.isConnected)return;
+  var target=node,parent=node.parentElement;
+  while(parent&&parent!==scope){
+   var label=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
+   var actionCount=parent.querySelectorAll("a,button,[role='button'],[tabindex],[onclick]").length;
+   if(/\breport\s+a\s+problem\b/i.test(label)&&label.length<=220&&actionCount<=1){
+    target=parent;parent=parent.parentElement;
+   }else break;
   }
-  Array.from(scope.querySelectorAll("a,button,[role='button']")).forEach(function(control){
-   var label=String(control.innerText||control.textContent||"").replace(/\s+/g," ").trim();
-   var isReportControl=control.id==="gdrOwnerReportProblem"||/^report\s+a\s+problem$/i.test(label)||/\breport\s+a\s+problem\b/i.test(label);
-   if(control.closest("#gd-contact-section,.gd-contact-section"))return;
-   if(!isReportControl)return;
-   var target=control,parent=control.parentElement;
-   while(parent&&parent!==scope){
-    var parentLabel=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
-    var actionCount=parent.querySelectorAll("a,button,[role='button']").length;
-    if(/\breport\s+a\s+problem\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){target=parent;parent=parent.parentElement;}
-    else break;
-   }
-   if(target&&target!==scope)target.remove();
-  });
+  if(target&&target!==scope)target.remove();
+ };
+ Array.from(scope.querySelectorAll("#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]")).forEach(removeTarget);
+ // Also catch the legacy tile when it is rendered as a non-button div or
+ // its wrapper/ID changes. Match the short visible label, not broad sections.
+ var candidates=Array.from(scope.querySelectorAll("*")).filter(function(node){
+  if(node.children.length>3)return false;
+  var label=String(node.innerText||node.textContent||"").replace(/\s+/g," ").trim();
+  return label.length>0&&label.length<=220&&/\breport\s+a\s+problem\b/i.test(label);
+ });
+ candidates.sort(function(a,b){
+  return String(a.innerText||a.textContent||"").length-String(b.innerText||b.textContent||"").length;
+ });
+ candidates.forEach(function(node){
+  if(!node.isConnected)return;
+  var label=String(node.innerText||node.textContent||"").replace(/\s+/g," ").trim();
+  if(/\breport\s+a\s+problem\b/i.test(label)&&label.length<=220)removeTarget(node);
  });
 }
 function boot(){addRenter();addOwnerNearbyAction();removeDuplicateReportButtons();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
@@ -275,4 +275,4 @@ document.addEventListener("click",function(event){
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
 new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
 })();
-// Cache release: owner report tile removal v1.
+// Cache release: owner report tile removal v2.
