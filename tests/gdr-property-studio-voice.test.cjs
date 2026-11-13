@@ -102,7 +102,7 @@ test("owner listing hero makes manual listing primary and keeps voice only in th
  assert.ok(!hero.includes('id="gdrListPropertySpeak"'));
  assert.ok(markup.includes("Manual entry is the primary option"));
  assert.ok(markup.indexOf('class="gdr-studio-voice"')>markup.indexOf('data-gdr-studio-panel="4"'));
- assert.match(index,/gdr-property-studio\.js\?v=20261112-owner-pin1/);
+ assert.match(index,/gdr-property-studio\.js\?v=20261113-pin-auto-map1/);
  assert.match(index,/gdr-property-studio\.css\?v=20261112-touch-swipe1/);
 });
 test("owner profile edit remains connected to its existing secure update flow",()=>{
