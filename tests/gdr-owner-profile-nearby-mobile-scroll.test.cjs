@@ -83,5 +83,5 @@ test("Report a Problem cards with support subtext are removed without removing S
  assert.ok(rental.includes("var isReportControl="));
  assert.ok(rental.includes("actionCount<=1"));
  assert.ok(rental.includes("target.remove()"));
- assert.ok(rental.includes("control.id===\\"gdrxSupport\\""));
+ assert.ok(rental.includes('control.id==="gdrxSupport"'));
 });
