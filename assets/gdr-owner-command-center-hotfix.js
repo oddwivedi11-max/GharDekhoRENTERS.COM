@@ -305,7 +305,7 @@ function refreshNotificationBadge(){
 }
 
 function countText(id){const n=document.getElementById(id);return n?(n.textContent||"0").trim():"0";}
-function renterCount(){const n=$("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card");return String(n.length);}
+function renterCount(){return String($("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card").length);}
 function ensureOwnerDashboardStatActions(dash){
  const stats=dash&&dash.querySelector(".dashboard-stats-grid.owner-stats-grid");
  if(!stats)return;
