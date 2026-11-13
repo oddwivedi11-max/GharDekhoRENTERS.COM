@@ -218,3 +218,6 @@ User decisions recorded:
 - Collapsed the Owner Profile details grid by default. The existing Edit Profile control continues to open the current profile editor with the saved owner fields.
 - Updated the asset cache versions in the Cloudflare deployment workflow so the changes are served as fresh production assets.
 - No Supabase schema, production data, authentication, renter dashboard or payment logic was modified.
+
+
+- Follow-up validation note (2026-11-13): the first push's automated checks caught an over-escaped regular-expression and over-strict test assertions. Corrected the detector and assertions in a follow-up commit. The Cloudflare deployment gate stopped before Wrangler; production deployment has not yet occurred.

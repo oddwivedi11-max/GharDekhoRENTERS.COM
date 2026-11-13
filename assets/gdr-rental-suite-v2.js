@@ -234,16 +234,16 @@ function removeDuplicateReportButtons(){
   var scope=$(selector);if(!scope)return;
   Array.from(scope.querySelectorAll("a,button,[role='button']")).forEach(function(control){
    if(control.id==="gdrxSupport"||control.closest("#gd-contact-section,.gd-contact-section"))return;
-   var label=String(control.innerText||control.textContent||"").replace(/\\s+/g," ").trim();
-   var isReportControl=control.id==="gdrOwnerReportProblem"||/^report\\s+a\\s+problem$/i.test(label)||/\\breport\\s+a\\s+problem\\b/i.test(label);
+   var label=String(control.innerText||control.textContent||"").replace(/\s+/g," ").trim();
+   var isReportControl=control.id==="gdrOwnerReportProblem"||/^report\s+a\s+problem$/i.test(label)||/\breport\s+a\s+problem\b/i.test(label);
    if(!isReportControl)return;
    // Remove the small report tile wrapper too, when it contains no other action.
    // Keep the surrounding dashboard and all Support/contact controls intact.
    var target=control,parent=control.parentElement;
    while(parent&&parent!==scope){
-    var parentLabel=String(parent.innerText||parent.textContent||"").replace(/\\s+/g," ").trim();
+    var parentLabel=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
     var actionCount=parent.querySelectorAll("a,button,[role='button']").length;
-    if(/\\breport\\s+a\\s+problem\\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){
+    if(/\breport\s+a\s+problem\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){
      target=parent;parent=parent.parentElement;
     }else break;
    }
