@@ -20787,7 +20787,7 @@ body.gd-auth-page #gdAuthFormShell #gdLoginPhoneField input{
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();
 })();
 </script>
-<script src="/assets/gdr-map-experience.js?v=20261113-pin-auto-center1"></script>
+<script src="/assets/gdr-map-experience.js?v=20261113-pin-auto-center2"></script>
 <script src="/assets/gdr-owner-renter-page.js?v=20261109-renter-actions-functional1"></script>
 <script src="/assets/gdr-rental-suite-v2.js?v=20261113-owner-report-remove1"></script>
   <script src="/assets/gdr-owner-payments.js?v=20261112-payment-return1" defer></script>
@@ -22868,6 +22868,8 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
     }
     if(pin===lastPin) return;
     lastPin=pin;
+    if(window.GDRMapExperience&&typeof window.GDRMapExperience.clearOwnerMapSelectionForPinChange==="function")window.GDRMapExperience.clearOwnerMapSelectionForPinChange();
+    ["gdSelectedLat","gdSelectedLng","gdSelectedDisplayName"].forEach(key=>delete addressInput.dataset[key]);
     if(controller) controller.abort();
     controller=new AbortController();
     setStatus("Finding area, district and state…");
@@ -22898,7 +22900,18 @@ body.gd-auth-page.gd-password-recovery #passwordResetSection #updatePasswordBtn{
       pinInput.dataset.gdrAppliedPin=pin;
       pinInput.dataset.gdrAppliedBase=base;
       addressInput.setAttribute("placeholder","Enter house/flat number, street, landmark or any extra address details");
-      setStatus("✓ Area: "+area+" · District: "+district+" · State: "+state+". Your full location will include PIN "+pin+". Enter property address details beside this field.","success");
+      setStatus("✓ Area: "+area+" · District: "+district+" · State: "+state+". Updating the map to this PIN area…","success");
+      if(window.GDRMapExperience&&typeof window.GDRMapExperience.resolveMapQuery==="function"){
+        try{
+          const point=await window.GDRMapExperience.resolveMapQuery(pin);
+          if(pinInput.value!==pin||pinInput.dataset.gdrAppliedPin!==pin)return;
+          window.GDRMapExperience.centerOwnerMapPicker(point.lat,point.lng,point.label||base);
+          await window.GDRMapExperience.openOwnerMapPicker();
+          if(pinInput.value===pin)setStatus("✓ "+base+" · Map updated to this PIN area. Zoom in and tap or drag to the exact property entrance before submitting.","success");
+        }catch(mapError){
+          if(pinInput.value===pin)setStatus("✓ "+base+" · PIN verified, but the map could not locate this area. Use address search or GPS to set the exact pin.","error");
+        }
+      }
     }catch(error){
       if(error.name==="AbortError") return;
       lastPin="";

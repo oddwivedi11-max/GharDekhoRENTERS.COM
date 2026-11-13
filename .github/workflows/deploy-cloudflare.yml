@@ -44,7 +44,7 @@ jobs:
               ("gdr-owner-payments.css", "20261112-payment-return1"),
               ("gdr-owner-command-center-hotfix.js", "20261113-owner-report-remove1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
-              ("gdr-map-experience.js", "20261113-pin-auto-center1"),
+              ("gdr-map-experience.js", "20261113-pin-auto-center2"),
               ("gdr-property-studio.js", "20261113-pin-auto-map1"),
               ("gdr-property-studio.css", "20261112-touch-swipe1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
@@ -273,7 +273,7 @@ jobs:
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
           echo "Live map script reference:"
           grep -oE 'gdr-map-experience.js[^"]*' /tmp/gdr-live-login.html | head -5
-          grep -q 'gdr-map-experience.js?v=20261113-pin-auto-center1' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js?v=20261113-pin-auto-center1' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js?v=20261113-pin-auto-center1' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261113-pin-auto-center2' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js?v=20261113-pin-auto-center2' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js?v=20261113-pin-auto-center2' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js

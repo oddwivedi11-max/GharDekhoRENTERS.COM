@@ -13,6 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
+  const MAP_PIN_VERSION="20261113-pin-auto-center2";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -916,7 +917,7 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
 
   // Dedicated owner Nearby Properties map. This is intentionally independent
   // from the renter's Find Homes/Explore map and never requests browser GPS.
-  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,hiddenSiblings:[],overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false,searchCenter:null,searchLabel:""};
+  const ownerNearby={map:null,layer:null,circle:null,ownerMarker:null,tileLayer:null,tileFallback:false,hiddenSiblings:[],overlay:null,owner:null,properties:[],inventory:[],selected:null,radius:5,visible:[],loading:false,searchCenter:null,searchLabel:"",pinTimer:null};
   const OWNER_NEARBY_FIELDS="id,owner_id,title,name,location,address,latitude,longitude,rent,status,verification_status,bhk,furnishing,image_url,listing_type,available_beds,total_beds";
   function ownerNearbyAvailable(p){
     const type=String(p.listing_type||"home").toLowerCase();
@@ -931,6 +932,16 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
     $("gdrOnBack").addEventListener("click",closeOwnerNearbyMap);
     $("gdrOnPropertySelect").addEventListener("change",()=>{const p=ownerNearby.properties.find(x=>String(x.id)===$("gdrOnPropertySelect").value);if(p){ownerNearby.selected=p;ownerNearby.searchCenter=null;ownerNearby.searchLabel="";const input=$("gdrOnAreaSearch");if(input)input.value="";focusOwnerNearbyProperty();loadOwnerNearbyHomes();}});
     $("gdrOnAreaSearchForm").addEventListener("submit",async e=>{e.preventDefault();await searchOwnerNearbyArea();});
+    const ownerAreaInput=$("gdrOnAreaSearch");
+    ownerAreaInput.addEventListener("input",()=>{
+      if(ownerNearby.pinTimer)clearTimeout(ownerNearby.pinTimer);
+      const value=String(ownerAreaInput.value||"").replace(/\D/g,"").slice(0,6);
+      if(/^\d{6}$/.test(value)){
+        ownerNearby.pinTimer=setTimeout(()=>{
+          if(String(ownerAreaInput.value||"").replace(/\D/g,"").slice(0,6)===value)searchOwnerNearbyArea();
+        },450);
+      }
+    });
     $("gdrOnRadius").addEventListener("change",()=>{ownerNearby.radius=Math.max(1,Math.min(10,Number($("gdrOnRadius").value)||5));$("gdrOnMapChip").textContent=ownerNearby.radius+" KM radius";loadOwnerNearbyHomes();});
     $("gdrOnRecenter").addEventListener("click",focusOwnerNearbyProperty);
     $("gdrOnRefresh").addEventListener("click",loadOwnerNearbyHomes);
@@ -1019,6 +1030,7 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
   }
   async function searchOwnerNearbyArea(){
     const input=$("gdrOnAreaSearch"),query=String(input&&input.value||"").trim(),button=$("gdrOnAreaSearchBtn");
+    if(ownerNearby.pinTimer){clearTimeout(ownerNearby.pinTimer);ownerNearby.pinTimer=null;}
     if(!query){ownerNearbyStatus("Enter a locality, city or six-digit PIN code, for example Patel Nagar, Bhopal.");return;}
     if(button){button.disabled=true;button.textContent="Locating…";}
     try{
