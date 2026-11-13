@@ -233,8 +233,8 @@ function removeDuplicateReportButtons(){
  ["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"].forEach(function(selector){
   var scope=$(selector);if(!scope)return;
   Array.from(scope.querySelectorAll("a,button,[role='button']")).forEach(function(control){
-   var label=String(control.innerText||control.textContent||"").replace(/\\s+/g," ").trim();
-   var isReportControl=control.id==="gdrOwnerReportProblem"||/^report\\s+a\\s+problem$/i.test(label)||/\\breport\\s+a\\s+problem\\b/i.test(label);
+   var label=String(control.innerText||control.textContent||"").replace(/\s+/g," ").trim();
+   var isReportControl=control.id==="gdrOwnerReportProblem"||/^report\s+a\s+problem$/i.test(label)||/\breport\s+a\s+problem\b/i.test(label);
    // gdrxSupport is the old Owner "Report a problem" tile on this dashboard.
    // Remove it only when its own visible label identifies it as that retired tile.
    // The Renter's independent Support control must remain available.
@@ -244,9 +244,9 @@ function removeDuplicateReportButtons(){
    if(!isReportControl)return;
    var target=control,parent=control.parentElement;
    while(parent&&parent!==scope){
-    var parentLabel=String(parent.innerText||parent.textContent||"").replace(/\\s+/g," ").trim();
+    var parentLabel=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
     var actionCount=parent.querySelectorAll("a,button,[role='button']").length;
-    if(/\\breport\\s+a\\s+problem\\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){
+    if(/\breport\s+a\s+problem\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){
      target=parent;parent=parent.parentElement;
     }else break;
    }
