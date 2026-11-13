@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261112-owner-pin1";
+const VERSION="20261113-pin-auto-map1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -252,8 +252,9 @@ async function resolveStudioPincode(rawPin){
   const coords=candidates[0].coords,lat=Number(coords[1]),lng=Number(coords[0]),label=[officeName,district,region,"India"].filter(Boolean).join(", ");
   state.pinCenter={lat,lng};state.resolvedPincode=pin;setLocation(label,lat,lng,pin,false);
   if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
-  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". This is an approximate post-office centre, not the house location. Open the map, zoom in and tap or drag to the exact entrance before submitting.";
-  message("PIN verified and the map moved to the matching district. Confirm the exact property entrance on the map before submitting.","success");
+  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". The map is opening at this matching locality. This is an approximate post-office centre; confirm the exact property entrance before submitting.";
+  message("PIN verified. Opening the map at "+label+". Confirm the exact property entrance before submitting.","success");
+  openMap();
   return true;
  }catch(error){
   if(error&&error.name==="AbortError")return false;

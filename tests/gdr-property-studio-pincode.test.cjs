@@ -73,3 +73,19 @@ test("Owner and renter PIN resolvers prefer the principal postal office and rank
   assert.match(map,/renderMarkers\(\[\],INDIA_CENTER\)/);
   assert.match(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
 });
+
+test("owner PIN map centre is queued until Leaflet initializes and then applied",()=>{
+  assert.ok(map.includes("pendingOwnerMapCenter:null"));
+  assert.ok(map.includes("state.pendingOwnerMapCenter=point"));
+  assert.ok(map.includes("if(state.pendingOwnerMapCenter)"));
+  assert.ok(map.includes("setOwnerPin(pending,pending.label,false)"));
+});
+test("six-digit owner listing PIN automatically opens the map at the verified locality",()=>{
+  assert.ok(studio.includes("openMap();"));
+  assert.ok(studio.includes("The map is opening at this matching locality."));
+});
+test("renter and owner map search fields automatically resolve six-digit PINs",()=>{
+  assert.ok(map.includes('if(/^\\d{6}$/.test(q)&&kind==="renter")'));
+  assert.ok(map.includes('if(/^\\d{6}$/.test(q)&&kind==="owner")'));
+  assert.ok(map.includes("const point=await resolveMapQuery(q)"));
+});

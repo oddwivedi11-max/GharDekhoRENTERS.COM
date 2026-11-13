@@ -4,7 +4,7 @@
   const $ = id => document.getElementById(id);
   const state = {
     renterMap:null, ownerMap:null, renterLayer:null, radiusCircle:null,
-    ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, renterPin:null, inventory:[], boundsRows:[], visible:[],
+    ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, pendingOwnerMapCenter:null, renterPin:null, inventory:[], boundsRows:[], visible:[],
     searchCenter:null, radiusKm:5, searchUsesRadius:false, viewportRpc:null, loadedOnce:false, resolvedQuery:"", mapSearchId:0, locationSearchId:0,
     geolocationAttempted:false, searchTimer:null, searchController:null,
     ownerSearchTimer:null, ownerSearchController:null,
@@ -789,6 +789,22 @@
     input.addEventListener("input",()=>{
       if(state[timerKey])clearTimeout(state[timerKey]);if(state[controllerKey])state[controllerKey].abort();
       const q=input.value.trim();panel.replaceChildren();panel.classList.remove("gdr-open");if(q.length<3)return;
+      if(/^\d{6}$/.test(q)&&kind==="renter"){
+        state[timerKey]=setTimeout(()=>searchTypedMapLocation(),450);
+        return;
+      }
+      if(/^\d{6}$/.test(q)&&kind==="owner"){
+        state[timerKey]=setTimeout(async()=>{
+          try{
+            const point=await resolveMapQuery(q);
+            if(!state.ownerMap)return;
+            state.ownerMap.setView([point.lat,point.lng],16,{animate:true});
+            setOwnerPin({lat:point.lat,lng:point.lng},point.label,false);
+            updateOwnerStatus("PIN "+q+" verified · "+point.label+". Approximate locality only; tap or drag to the exact property entrance.");
+          }catch(error){updateOwnerStatus(error.message||"This PIN could not be verified. Check the six digits and retry.");}
+        },450);
+        return;
+      }
       state[timerKey]=setTimeout(async()=>{
         const controller=new AbortController();state[controllerKey]=controller;
         try{const response=await fetch(PHOTON+"?limit=6&lang=en&q="+encodeURIComponent(q+", India"),{headers:{Accept:"application/json"},signal:controller.signal});if(!response.ok)throw new Error("Location suggestions unavailable");
@@ -816,7 +832,13 @@
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
     state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);addMapExploreControls(state.ownerMap,"owner");window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
-    state.ownerMap.setView([22.5937,78.9629],5);state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
+    state.ownerMap.setView([22.5937,78.9629],5);
+    if(state.pendingOwnerMapCenter){
+      const pending=state.pendingOwnerMapCenter;state.pendingOwnerMapCenter=null;
+      state.ownerMap.setView([pending.lat,pending.lng],16,{animate:false});
+      setOwnerPin(pending,pending.label,false);
+    }
+    state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
   }
   async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
@@ -836,15 +858,18 @@
     }catch(error){console.error("Owner map picker failed:",error);updateOwnerStatus("The map could not load. Use address suggestions or current location instead.");}
   }
   function centerOwnerMapPicker(lat,lng,label){
-    const point={lat:Number(lat),lng:Number(lng)};
-    if(!validPoint(point.lat,point.lng)||!state.ownerMap)return false;
+    const point={lat:Number(lat),lng:Number(lng),label:String(label||"PIN code location")};
+    if(!validPoint(point.lat,point.lng))return false;
+    state.pendingOwnerMapCenter=point;
+    if(!state.ownerMap)return true;
     state.ownerMap.setView([point.lat,point.lng],16,{animate:true});
-    setOwnerPin(point,String(label||"PIN code location"),false);
+    setOwnerPin(point,point.label,false);
+    state.pendingOwnerMapCenter=null;
     requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
     return true;
   }
   function clearOwnerMapSelectionForPinChange(){
- state.ownerSelection=null;state.ownerPinManuallyConfirmed=false;
+ state.pendingOwnerMapCenter=null;state.ownerSelection=null;state.ownerPinManuallyConfirmed=false;
  if(state.ownerMarker&&state.ownerMap){try{state.ownerMap.removeLayer(state.ownerMarker);}catch(e){}}
  state.ownerMarker=null;
  if(state.ownerAccuracyCircle&&state.ownerMap){try{state.ownerMap.removeLayer(state.ownerAccuracyCircle);}catch(e){}}
