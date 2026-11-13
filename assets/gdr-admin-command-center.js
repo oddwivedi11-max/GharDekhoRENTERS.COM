@@ -648,9 +648,7 @@
     // Remove any already-rendered copy before handling renter support.
     const ownerDashboard = $("#ownerDashboard");
     if (ownerDashboard) {
-      ownerDashboard
-        .querySelectorAll("[data-gdr-user-support-launch],.gdr-cc-support-launch")
-        .forEach(button => button.remove());
+      ownerDashboard.querySelectorAll("[data-gdr-user-support-launch],.gdr-cc-support-launch").forEach(button => button.remove());
     }
 
     // Keep the dedicated support entry point for renters only.
