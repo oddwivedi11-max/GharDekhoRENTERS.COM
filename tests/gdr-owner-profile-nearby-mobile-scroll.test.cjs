@@ -29,7 +29,9 @@ test("Nearby Properties is a separate dashboard action; Edit Profile stays in it
 test("Duplicate Report a Problem controls are removed from app dashboards without removing Support or contact CTAs",()=>{
  assert.match(rental,/function removeDuplicateReportButtons\(\)/);
  assert.match(rental,/\["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"\]/);
- assert.match(rental,/control\.id==="gdrxSupport"\|\|control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
+ assert.match(rental,/selector==="#ownerDashboard"&&control\.id==="gdrxSupport"&&isReportControl/);
+ assert.match(rental,/if\(control\.id==="gdrxSupport"&&!ownerRetiredReportTile\)return/);
+ assert.match(rental,/control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
  assert.ok(rental.includes("/^report\\s+a\\s+problem$/i.test(label)"));
  assert.match(renterExperience,/function addSupport\(\)/);
  assert.match(renterExperience,/b\.id="gdrxSupport"/);
@@ -62,7 +64,7 @@ test("Nearby Properties has a premium standalone dashboard action style",()=>{
 });
 
 test("Deployment versions corrected owner/map/gallery assets and runs regression coverage",()=>{
- assert.match(workflow,/gdr-rental-suite-v2\.js", "20261113-owner-nearby-report1"/);
+ assert.match(workflow,/gdr-rental-suite-v2\.js", "20261113-owner-report-remove1"/);
  assert.match(workflow,/gdr-map-experience\.js", "20261112-pin-accuracy1"/);
  assert.match(workflow,/gdr-property-studio\.js", "20261112-owner-pin1"/);
  assert.match(workflow,/gdr-property-studio\.css", "20261112-touch-swipe1"/);
@@ -83,5 +85,6 @@ test("Report a Problem cards with support subtext are removed without removing S
  assert.ok(rental.includes("var isReportControl="));
  assert.ok(rental.includes("actionCount<=1"));
  assert.ok(rental.includes("target.remove()"));
- assert.ok(rental.includes('control.id==="gdrxSupport"'));
+ assert.ok(rental.includes('var ownerRetiredReportTile=selector==="#ownerDashboard"&&control.id==="gdrxSupport"&&isReportControl'));
+ assert.ok(rental.includes('if(control.id==="gdrxSupport"&&!ownerRetiredReportTile)return'));
 });
