@@ -81,10 +81,10 @@ test("Owner home restores only the dedicated Nearby Properties action and keeps 
  assert.match(html,/id="ownerEditProfileBtn"/);
  assert.match(html,/id="ownerProfileEditor"/);
 });
-test("Report a Problem cards with support subtext are removed without removing Support or contact actions",()=>{
+test("Retired Owner Report a Problem tile is removed by legacy ID without touching Renter support",()=>{
  assert.ok(rental.includes("var isReportControl="));
- assert.ok(rental.includes("actionCount<=1"));
+ assert.ok(rental.includes('if(selector==="#ownerDashboard")'));
+ assert.ok(rental.includes('scope.querySelectorAll("#gdrxSupport")'));
  assert.ok(rental.includes("target.remove()"));
- assert.ok(rental.includes('var ownerRetiredReportTile=selector==="#ownerDashboard"&&control.id==="gdrxSupport"&&isReportControl'));
- assert.ok(rental.includes('if(control.id==="gdrxSupport"&&!ownerRetiredReportTile)return'));
+ assert.ok(rental.includes('control.closest("#gd-contact-section,.gd-contact-section")'));
 });
