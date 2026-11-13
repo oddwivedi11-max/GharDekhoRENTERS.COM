@@ -26,18 +26,17 @@ test("Nearby Properties is a separate dashboard action; Edit Profile stays in it
  assert.doesNotMatch(fn,/insertBefore\(card/);
 });
 
-test("Duplicate Report a Problem controls are removed without removing Support or contact CTAs",()=>{
+test("Retired Report a Problem tile is removed only inside Owner Dashboard",()=>{
  assert.match(rental,/function removeDuplicateReportButtons\(\)/);
- assert.match(rental,/\["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"\]/);
- assert.match(rental,/selector==="#ownerDashboard"/);
- assert.match(rental,/scope\.querySelectorAll\("#gdrxSupport"\)/);
+ assert.match(rental,/var scope=\$\("#ownerDashboard"\)/);
+ assert.match(rental,/scope\.querySelectorAll\("#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"\)/);
+ assert.match(rental,/scope\.querySelectorAll\("\*"\)/);
  assert.match(rental,/target\.remove\(\)/);
- assert.match(rental,/control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
  assert.match(renterExperience,/function addSupport\(\)/);
  assert.match(renterExperience,/b\.id="gdrxSupport"/);
  assert.match(html,/Need help/);
  assert.match(html,/or want to get/);
- assert.doesNotMatch(rental,/gdrOwnerReportProblem.*mailto:|mailto:ghardekhorenters@gmail\.com/);
+ assert.doesNotMatch(rental,/selector==="#renterDashboard"/);
 });
 
 test("Owner Profile Edit Profile is not moved, removed, or expanded by the Nearby controller",()=>{
@@ -81,10 +80,10 @@ test("Owner home restores only the dedicated Nearby Properties action and keeps 
  assert.match(html,/id="ownerEditProfileBtn"/);
  assert.match(html,/id="ownerProfileEditor"/);
 });
-test("Retired Owner Report a Problem tile is removed by legacy ID without touching Renter support",()=>{
- assert.ok(rental.includes("var isReportControl="));
- assert.ok(rental.includes('if(selector==="#ownerDashboard")'));
- assert.ok(rental.includes('scope.querySelectorAll("#gdrxSupport")'));
+test("Retired Owner Report a Problem tile catches non-button legacy wrappers",()=>{
+ assert.ok(rental.includes('var scope=$("#ownerDashboard")'));
+ assert.ok(rental.includes('scope.querySelectorAll("#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]")'));
+ assert.ok(rental.includes('scope.querySelectorAll("*")'));
+ assert.ok(rental.includes('if(!node.isConnected)return;'));
  assert.ok(rental.includes("target.remove()"));
- assert.ok(rental.includes('control.closest("#gd-contact-section,.gd-contact-section")'));
 });
