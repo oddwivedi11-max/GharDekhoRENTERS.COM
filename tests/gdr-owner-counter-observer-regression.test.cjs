@@ -28,3 +28,12 @@ test("all owner dashboard counters use the guarded updater",()=>{
  assert.match(body,/setTextIfChanged\(vc,v\)/);
  assert.doesNotMatch(body,/\b(?:pc|rc|vc)\.textContent\s*=/);
 });
+
+test("renter count safely handles a missing occupancy list",()=>{
+ const start=source.indexOf("function renterCount()");
+ const end=source.indexOf("\n",start);
+ assert.notEqual(start,-1,"renterCount helper must exist");
+ const body=source.slice(start,end);
+ assert.match(body,/document\.querySelectorAll\(/,"renterCount must count a collection safely");
+ assert.doesNotMatch(body,/document\.querySelector\([^)]*\)\.length/,"renterCount must not read length from a single element");
+});
