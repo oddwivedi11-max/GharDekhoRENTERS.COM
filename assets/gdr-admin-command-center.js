@@ -644,19 +644,27 @@
   }
 
   function addSupportLaunchers() {
-    ["ownerDashboard", "renterDashboard"].forEach(id => {
-      const dash = $("#" + id);
-      if (!dash || $("[data-gdr-user-support-launch]", dash)) return;
-      const button = document.createElement("button");
-      button.type = "button";
-      button.className = "gdr-cc-support-launch";
-      button.setAttribute("data-gdr-user-support-launch", "1");
-      button.innerHTML = '<span aria-hidden="true">?</span><span><strong>Report a problem</strong><small>Contact GharDekho support</small></span>';
-      button.addEventListener("click", openUserSupport);
-      const heading = $(".dashboard-heading", dash) || dash.firstElementChild;
-      if (heading) heading.insertAdjacentElement("afterend", button);
-      else dash.prepend(button);
-    });
+    // The Owner Dashboard must not expose the retired Report a Problem action.
+    // Remove any already-rendered copy before handling renter support.
+    const ownerDashboard = $("#ownerDashboard");
+    if (ownerDashboard) {
+      ownerDashboard
+        .querySelectorAll("[data-gdr-user-support-launch],.gdr-cc-support-launch")
+        .forEach(button => button.remove());
+    }
+
+    // Keep the dedicated support entry point for renters only.
+    const dash = $("#renterDashboard");
+    if (!dash || $("[data-gdr-user-support-launch]", dash)) return;
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = "gdr-cc-support-launch";
+    button.setAttribute("data-gdr-user-support-launch", "1");
+    button.innerHTML = '<span aria-hidden="true">?</span><span><strong>Report a problem</strong><small>Contact GharDekho support</small></span>';
+    button.addEventListener("click", openUserSupport);
+    const heading = $(".dashboard-heading", dash) || dash.firstElementChild;
+    if (heading) heading.insertAdjacentElement("afterend", button);
+    else dash.prepend(button);
   }
 
   function sanitizeError(value) {
