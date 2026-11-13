@@ -9,6 +9,7 @@ const payments=read("assets/gdr-owner-payments.js");
 const renters=read("assets/gdr-owner-current-renters-dashboard.js");
 const profile=read("assets/gdr-owner-renter-page.js");
 const patch=read("scripts/patch-owner-dashboard-refresh.py");
+const rentalSuite=read("assets/gdr-rental-suite-v2.js");
 
 test("My Properties and Visit Requests module headers have readable high contrast",()=>{
  assert.match(css,/#gdrOwnerModuleHeader[\s\S]*?background:linear-gradient/);
@@ -67,4 +68,12 @@ test("Back navigation cannot activate the hidden property image file picker",()=
 
 test("Production asset patch references a fresh cache version",()=>{
  assert.match(patch,/20261105-workspace3/);
+});
+
+test("Retired Report a Problem tile is removed from Owner while Renter support remains",()=>{
+ const removal=rentalSuite.slice(rentalSuite.indexOf("function removeDuplicateReportButtons"),rentalSuite.indexOf("function boot()",rentalSuite.indexOf("function removeDuplicateReportButtons")));
+ assert.match(removal,/selector==="#ownerDashboard"&&control\.id==="gdrxSupport"&&isReportControl/);
+ assert.match(removal,/if\(control\.id==="gdrxSupport"&&!ownerRetiredReportTile\)return/);
+ assert.match(removal,/control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
+ assert.match(rentalSuite,/new MutationObserver\(boot\)/);
 });
