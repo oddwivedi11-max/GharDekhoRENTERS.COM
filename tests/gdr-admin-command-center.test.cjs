@@ -24,6 +24,15 @@ test('command center calls real admin-guarded RPCs and adds support entry points
     'admin_get_audit_logs','admin_get_client_errors','create_support_ticket',
     'my_support_tickets','my_support_ticket_events','report_client_error'
   ]) assert.ok(source.includes(rpc), 'missing RPC integration: ' + rpc);
+  const launcherStart = source.indexOf('function addSupportLaunchers()');
+  const launcherEnd = source.indexOf('function sanitizeError', launcherStart);
+  assert.ok(launcherStart >= 0 && launcherEnd > launcherStart, 'support launcher function exists');
+  const launcher = source.slice(launcherStart, launcherEnd);
+  assert.match(launcher, /const ownerDashboard = \$\("#ownerDashboard"\)/);
+  assert.match(launcher, /querySelectorAll\("\[data-gdr-user-support-launch\],\.gdr-cc-support-launch"\)/);
+  assert.match(launcher, /const dash = \$\("#renterDashboard"\)/);
+  assert.doesNotMatch(launcher, /\["ownerDashboard",\s*"renterDashboard"\]/);
+  assert.match(launcher, /Report a problem/, 'renter support action remains available');
   assert.match(source, /ownerDashboard/);
   assert.match(source, /renterDashboard/);
   assert.match(source, /createSignedUrl/);
