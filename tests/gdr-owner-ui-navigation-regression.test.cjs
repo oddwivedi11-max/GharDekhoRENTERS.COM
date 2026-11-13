@@ -70,11 +70,14 @@ test("Production asset patch references a fresh cache version",()=>{
  assert.match(patch,/20261105-workspace3/);
 });
 
-test("Retired Report a Problem tile is removed by legacy ID only inside Owner dashboard",()=>{
- const removal=rentalSuite.slice(rentalSuite.indexOf("function removeDuplicateReportButtons"),rentalSuite.indexOf("function boot()",rentalSuite.indexOf("function removeDuplicateReportButtons")));
- assert.match(removal,/selector==="#ownerDashboard"/);
- assert.match(removal,/scope\.querySelectorAll\("#gdrxSupport"\)/);
- assert.match(removal,/target\.remove\(\)/);
- assert.match(removal,/control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
+test("Retired Report a Problem tile is removed only inside Owner dashboard",()=>{
+ const start=rentalSuite.indexOf("function removeDuplicateReportButtons");
+ const removal=rentalSuite.slice(start,rentalSuite.indexOf("function boot()",start));
+ assert.notEqual(start,-1);
+ assert.match(removal,/var scope=\$\("#ownerDashboard"\)/);
+ assert.match(removal,/scope\.querySelectorAll\("#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"\)/);
+ assert.match(removal,/report\\s\+a\\s\+problem/i);
+ assert.match(removal,/target&&target!==scope\)target\.remove\(\)/);
+ assert.match(removal,/candidates=Array\.from\(scope\.querySelectorAll\("\*"\)\)/);
  assert.match(rentalSuite,/new MutationObserver\(boot\)/);
 });
