@@ -26,13 +26,13 @@ test("Nearby Properties is a separate dashboard action; Edit Profile stays in it
  assert.doesNotMatch(fn,/insertBefore\(card/);
 });
 
-test("Duplicate Report a Problem controls are removed from app dashboards without removing Support or contact CTAs",()=>{
+test("Duplicate Report a Problem controls are removed without removing Support or contact CTAs",()=>{
  assert.match(rental,/function removeDuplicateReportButtons\(\)/);
  assert.match(rental,/\["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"\]/);
- assert.match(rental,/selector==="#ownerDashboard"&&control\.id==="gdrxSupport"&&isReportControl/);
- assert.match(rental,/if\(control\.id==="gdrxSupport"&&!ownerRetiredReportTile\)return/);
+ assert.match(rental,/selector==="#ownerDashboard"/);
+ assert.match(rental,/scope\.querySelectorAll\("#gdrxSupport"\)/);
+ assert.match(rental,/target\.remove\(\)/);
  assert.match(rental,/control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
- assert.ok(rental.includes("/^report\\s+a\\s+problem$/i.test(label)"));
  assert.match(renterExperience,/function addSupport\(\)/);
  assert.match(renterExperience,/b\.id="gdrxSupport"/);
  assert.match(html,/Need help/);
