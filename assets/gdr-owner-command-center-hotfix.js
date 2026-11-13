@@ -305,8 +305,29 @@ function refreshNotificationBadge(){
 }
 
 function countText(id){const n=document.getElementById(id);return n?(n.textContent||"0").trim():"0";}
-function renterCount(){const n=$$("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card");return String(n.length);}
+function renterCount(){const n=$("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card");return String(n.length);}
+function ensureOwnerDashboardStatActions(dash){
+ const stats=dash&&dash.querySelector(".dashboard-stats-grid.owner-stats-grid");
+ if(!stats)return;
+ const definitions=[
+  ["ownerPropertyCount","properties","Open all of your properties"],
+  ["ownerAvailableCount","available","Show available properties"],
+  ["ownerOccupiedCount","occupied","Show occupied properties"],
+  ["ownerPendingVisitCount","pending-visits","Show pending visit requests"]
+ ];
+ definitions.forEach(([counterId,action,label])=>{
+  const counter=document.getElementById(counterId);
+  const card=counter&&counter.closest(".dashboard-stat-card");
+  if(!card||!stats.contains(card))return;
+  card.dataset.gdrOwnerStatAction=action;
+  card.setAttribute("role","button");
+  card.setAttribute("tabindex","0");
+  card.setAttribute("aria-label",label);
+  card.setAttribute("aria-controls",action==="pending-visits"?"ownerVisitsContainer":"ownerPropertiesContainer");
+ });
+}
 function ensureHome(dash){
+ ensureOwnerDashboardStatActions(dash);
  let home=$("#gdrOwnerCommandCenterHome",dash);
  if(!home){
   home=document.createElement("section");home.id="gdrOwnerCommandCenterHome";home.setAttribute("aria-label","Owner dashboard shortcuts");
@@ -336,6 +357,7 @@ function ensureHome(dash){
  return {home,header};
 }
 function setMode(dash,mode){
+ if(mode==="home"||mode==="visits")dash.dataset.gdrOwnerVisitFilter="all";
  const {home,header}=ensureHome(dash);
  dash.classList.remove("gdr-owner-mode-home","gdr-owner-mode-properties","gdr-owner-mode-visits","gdr-owner-mode-analytics","gdr-owner-mode-notifications");
  dash.classList.add("gdr-owner-mode-"+mode);
@@ -416,6 +438,49 @@ function refreshOwnerPropertyFilter(dash){
  empty.hidden=!(selected!=="all"&&visible===0);
  if(!empty.hidden)empty.textContent=selected==="available"?"No available properties right now.":"No occupied properties right now.";
 }
+function refreshOwnerVisitFilter(dash){
+ const container=dash&&dash.querySelector("#ownerVisitsContainer");
+ if(!container)return;
+ const selected=dash.dataset.gdrOwnerVisitFilter==="pending"?"pending":"all";
+ const cards=Array.from(container.querySelectorAll(".premium-visit-card"));
+ let visible=0;
+ cards.forEach(card=>{
+  const status=card.querySelector(".premium-visit-status");
+  const match=selected==="all"||status?.classList.contains("pending");
+  card.hidden=!match;
+  card.setAttribute("aria-hidden",match?"false":"true");
+  if(match)visible++;
+ });
+ let empty=container.querySelector("[data-gdr-visit-filter-empty]");
+ if(!empty){
+  empty=document.createElement("p");
+  empty.className="dashboard-empty gdr-owner-visit-filter-empty";
+  empty.dataset.gdrVisitFilterEmpty="1";
+  empty.setAttribute("role","status");
+  empty.hidden=true;
+  container.appendChild(empty);
+ }
+ const noRequests=Array.from(container.children).find(child=>child.tagName==="P"&&/no visit requests yet/i.test(child.textContent||""));
+ const loadIssue=cards.length===0&&/unable to load|unable to verify|could not load|failed/i.test(container.textContent||"");
+ const showEmpty=selected==="pending"&&visible===0&&!loadIssue;
+ if(noRequests)noRequests.hidden=showEmpty;
+ empty.hidden=!showEmpty;
+ if(showEmpty)empty.textContent="No pending visit requests right now.";
+}
+function applyOwnerDashboardStatAction(dash,action){
+ if(!dash)return;
+ if(action==="properties"||action==="available"||action==="occupied"){
+  dash.dataset.gdrOwnerPropertyFilter=action==="properties"?"all":action;
+  setMode(dash,"properties");
+  refreshOwnerPropertyFilter(dash);
+  return;
+ }
+ if(action==="pending-visits"){
+  setMode(dash,"visits");
+  dash.dataset.gdrOwnerVisitFilter="pending";
+  refreshOwnerVisitFilter(dash);
+ }
+}
 function updateCounts(dash){
  const p=countText("ownerPropertyCount"),v=countText("ownerPendingVisitCount");
  const pc=$('[data-gdr-count="properties"]',dash),rc=$('[data-gdr-count="renters"]',dash),vc=$('[data-gdr-count="visits"]',dash);
@@ -425,6 +490,7 @@ function updateCounts(dash){
  setTextIfChanged(rc,renterCount());
  setTextIfChanged(vc,v);
  refreshOwnerPropertyFilter(dash);
+ refreshOwnerVisitFilter(dash);
  refreshNotificationBadge();
 }
 function openExternal(dash,module){
@@ -481,6 +547,12 @@ function bind(dash){
  if(dash.dataset.gdrCommandBound==="1")return;
  dash.dataset.gdrCommandBound="1";
  dash.addEventListener("click",function(e){
+  const stat=e.target&&e.target.closest?e.target.closest("[data-gdr-owner-stat-action]"):null;
+  if(stat&&dash.contains(stat)&&stat.closest(".dashboard-stats-grid.owner-stats-grid")){
+   e.preventDefault();
+   applyOwnerDashboardStatAction(dash,stat.dataset.gdrOwnerStatAction);
+   return;
+  }
   const card=e.target.closest("[data-gdr-module]");
   if(card&&dash.contains(card)){
    e.preventDefault();const m=card.dataset.gdrModule;
@@ -489,9 +561,16 @@ function bind(dash){
   }
   if(e.target.closest("[data-gdr-owner-home]")){e.preventDefault();setMode(dash,"home");}
  });
+ dash.addEventListener("keydown",function(e){
+  if(e.key!=="Enter"&&e.key!==" ")return;
+  const stat=e.target&&e.target.closest?e.target.closest("[data-gdr-owner-stat-action]"):null;
+  if(!stat||!dash.contains(stat))return;
+  e.preventDefault();
+  applyOwnerDashboardStatAction(dash,stat.dataset.gdrOwnerStatAction);
+ });
 }
 function styles(){
- const href="/assets/gdr-owner-command-center.css?v=20261113-owner-profile-nearby-report1";
+ const href="/assets/gdr-owner-command-center.css?v=20261113-owner-dashboard-stat-actions1";
  let link=$("#gdrOwnerCommandCenterStyle");
  if(!link){
   link=document.querySelector('link[rel="stylesheet"][href*="gdr-owner-command-center.css"]');
@@ -527,5 +606,5 @@ window.addEventListener("click",function(event){
  event.stopImmediatePropagation();
  setMode(dash,"home");
 },true);
-window.GDROwnerCommandCenter={refresh:init,showHome:function(){const d=$("#ownerDashboard");if(d)setMode(d,"home");}};
+window.GDROwnerCommandCenter={refresh:init,showHome:function(){const d=$("#ownerDashboard");if(d)setMode(d,"home");},showProperties:function(filter){const d=$("#ownerDashboard");if(!d)return;d.dataset.gdrOwnerPropertyFilter=["all","available","occupied"].includes(filter)?filter:"all";setMode(d,"properties");refreshOwnerPropertyFilter(d);},showPendingVisits:function(){const d=$("#ownerDashboard");if(!d)return;setMode(d,"visits");d.dataset.gdrOwnerVisitFilter="pending";refreshOwnerVisitFilter(d);}};
 })();

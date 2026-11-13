@@ -43,7 +43,7 @@ test("owner Nearby Properties has one launch card, not a second command-centre s
 test("stylesheet loader replaces an existing unversioned command-centre stylesheet",()=>{
  assert.match(controller,/querySelector\('link\[rel="stylesheet"\]\[href\*="gdr-owner-command-center\.css"\]'\)/);
  assert.match(controller,/if\(link\.getAttribute\("href"\)!==href\)link\.setAttribute\("href",href\)/);
- assert.match(controller,/gdr-owner-command-center\.css\?v=20261113-owner-profile-nearby-report1/);
+ assert.match(controller,/gdr-owner-command-center\.css\?v=20261113-owner-dashboard-stat-actions1/);
 });
 test("workspace heading uses the requested high-contrast premium palette",()=>{
  assert.match(styles,/#e8d18a/);
@@ -51,4 +51,44 @@ test("workspace heading uses the requested high-contrast premium palette",()=>{
  assert.match(styles,/#b9f36b/);
  assert.match(styles,/-webkit-text-fill-color:#fff!important/);
  assert.match(styles,/font-size:clamp\(32px,3\.1vw,38px\)/);
+});
+
+test("the four top owner summary cards expose accessible click and keyboard actions",()=>{
+ assert.match(controller,/function ensureOwnerDashboardStatActions\(dash\)/);
+ for(const [counter,action] of [
+  ["ownerPropertyCount","properties"],
+  ["ownerAvailableCount","available"],
+  ["ownerOccupiedCount","occupied"],
+  ["ownerPendingVisitCount","pending-visits"]
+ ]){
+  assert.match(controller,new RegExp('\\["'+counter+'","'+action+'"'));
+ }
+ assert.match(controller,/role","button"/);
+ assert.match(controller,/tabindex","0"/);
+ assert.match(controller,/data-gdr-owner-stat-action/);
+ assert.match(controller,/addEventListener\("keydown"/);
+ assert.match(controller,/applyOwnerDashboardStatAction\(dash,stat\.dataset\.gdrOwnerStatAction\)/);
+});
+
+test("My Properties, Available and Occupied top cards open the matching inventory filter",()=>{
+ assert.match(controller,/dash\.dataset\.gdrOwnerPropertyFilter=action==="properties"\?"all":action/);
+ assert.match(controller,/setMode\(dash,"properties"\)/);
+ assert.match(controller,/refreshOwnerPropertyFilter\(dash\)/);
+ assert.match(controller,/data-gdr-owner-property-filter/);
+});
+
+test("Pending Visits top card opens only pending requests without changing the other visit shortcuts",()=>{
+ assert.match(controller,/function refreshOwnerVisitFilter\(dash\)/);
+ assert.match(controller,/querySelectorAll\("\.premium-visit-card"\)/);
+ assert.match(controller,/status\?\.classList\.contains\("pending"\)/);
+ assert.match(controller,/dash\.dataset\.gdrOwnerVisitFilter="pending"/);
+ assert.match(controller,/No pending visit requests right now\./);
+ assert.match(controller,/refreshOwnerVisitFilter\(dash\)/);
+});
+
+test("top summary cards have touch-friendly hover, pressed and keyboard focus states",()=>{
+ assert.match(styles,/dashboard-stats-grid\.owner-stats-grid>\.dashboard-stat-card\[data-gdr-owner-stat-action\]/);
+ assert.match(styles,/touch-action:manipulation/);
+ assert.match(styles,/focus-visible/);
+ assert.match(styles,/prefers-reduced-motion:reduce/);
 });
