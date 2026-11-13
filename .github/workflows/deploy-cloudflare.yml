@@ -39,6 +39,7 @@ jobs:
           assets = [
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
+              ("gdr-admin-command-center.js", "20261113-owner-report-launcher-remove1"),
               ("gdr-rental-suite-v2.js", "20261113-owner-report-remove2"),
               ("gdr-owner-payments.js", "20261112-payment-return1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
@@ -245,13 +246,19 @@ jobs:
           BASE_URL="$VERIFIED_BASE_URL"
 
           # Verify the new Admin Command Center bundles, not only legacy assets.
-          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-admin-command-center.js?v=20261110-commandcenter1" -o /tmp/gdr-admin-command-center.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-admin-command-center.js?v=20261113-owner-report-launcher-remove1" -o /tmp/gdr-admin-command-center.js
           grep -q 'GDRAdminCommandCenter' /tmp/gdr-admin-command-center.js
           grep -q 'admin_get_command_center_stats' /tmp/gdr-admin-command-center.js
+          grep -Fq 'const dash = $("#renterDashboard");' /tmp/gdr-admin-command-center.js
+          grep -Fq 'ownerDashboard.querySelectorAll("[data-gdr-user-support-launch],.gdr-cc-support-launch")' /tmp/gdr-admin-command-center.js
+          if grep -Fq '["ownerDashboard", "renterDashboard"]' /tmp/gdr-admin-command-center.js; then
+            echo "Owner Report a Problem launcher is still configured for both dashboards."
+            exit 1
+          fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -H "Cache-Control: no-cache" -fsS "$BASE_URL/assets/gdr-admin-command-center.css?v=20261110-commandcenter1" -o /tmp/gdr-admin-command-center.css
           grep -q 'gdr-cc-kpi-grid' /tmp/gdr-admin-command-center.css
           grep -q 'gdr-cc-support-launch' /tmp/gdr-admin-command-center.css
-          grep -q 'gdr-admin-command-center.js?v=20261110-commandcenter1' /tmp/gdr-live-root.html || grep -q 'gdr-admin-command-center.js?v=20261110-commandcenter1' /tmp/gdr-live-index.html || grep -q 'gdr-admin-command-center.js?v=20261110-commandcenter1' /tmp/gdr-live-login.html
+          grep -q 'gdr-admin-command-center.js?v=20261113-owner-report-launcher-remove1' /tmp/gdr-live-root.html || grep -q 'gdr-admin-command-center.js?v=20261113-owner-report-launcher-remove1' /tmp/gdr-live-index.html || grep -q 'gdr-admin-command-center.js?v=20261113-owner-report-launcher-remove1' /tmp/gdr-live-login.html
           grep -q 'gdr-admin-command-center.css?v=20261110-commandcenter1' /tmp/gdr-live-root.html || grep -q 'gdr-admin-command-center.css?v=20261110-commandcenter1' /tmp/gdr-live-index.html || grep -q 'gdr-admin-command-center.css?v=20261110-commandcenter1' /tmp/gdr-live-login.html
           echo "Verified live Admin Command Center JavaScript, CSS and HTML references."
 

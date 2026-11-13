@@ -10,7 +10,10 @@ test('existing Admin Login and dashboard are preserved on both page entry files'
     assert.match(html, /id="adminDashboard"/, file + ': existing admin dashboard remains');
     assert.match(html, /function openAdminArea\(\)/, file + ': existing admin entry remains');
     assert.match(html, /SUPABASE_PUBLISHABLE_KEY/, file + ': current Supabase client wiring remains');
-    assert.match(html, /gdr-admin-command-center\.js\?v=20261110-commandcenter1/, file + ': command center script loaded');
+    const expectedCommandCenterVersion = file === 'index.html'
+      ? '20261113-owner-report-launcher-remove1'
+      : '20261110-commandcenter1';
+    assert.match(html, new RegExp('gdr-admin-command-center\\.js\\?v=' + expectedCommandCenterVersion), file + ': command center script loaded');
     assert.match(html, /gdr-admin-command-center\.css\?v=20261110-commandcenter1/, file + ': command center styles loaded');
     assert.match(html, /(?:async )?function loginUser\(\)/, file + ': existing login handler remains');
   }
@@ -24,6 +27,15 @@ test('command center calls real admin-guarded RPCs and adds support entry points
     'admin_get_audit_logs','admin_get_client_errors','create_support_ticket',
     'my_support_tickets','my_support_ticket_events','report_client_error'
   ]) assert.ok(source.includes(rpc), 'missing RPC integration: ' + rpc);
+  const launcherStart = source.indexOf('function addSupportLaunchers()');
+  const launcherEnd = source.indexOf('function sanitizeError', launcherStart);
+  assert.ok(launcherStart >= 0 && launcherEnd > launcherStart, 'support launcher function exists');
+  const launcher = source.slice(launcherStart, launcherEnd);
+  assert.match(launcher, /const ownerDashboard = \$\("#ownerDashboard"\)/);
+  assert.match(launcher, /querySelectorAll\("\[data-gdr-user-support-launch\],\.gdr-cc-support-launch"\)/);
+  assert.match(launcher, /const dash = \$\("#renterDashboard"\)/);
+  assert.doesNotMatch(launcher, /\["ownerDashboard",\s*"renterDashboard"\]/);
+  assert.match(launcher, /Report a problem/, 'renter support action remains available');
   assert.match(source, /ownerDashboard/);
   assert.match(source, /renterDashboard/);
   assert.match(source, /createSignedUrl/);
