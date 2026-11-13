@@ -553,3 +553,55 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
  #ownerDashboard .gdr-owner-property-filters button{flex:0 0 auto;scroll-snap-align:start}
  #ownerDashboard .owner-dashboard-quick-grid.gdr-owner-entry-grid{grid-template-columns:1fr!important}
 }
+
+
+/* Owner dashboard home: reveal only the dedicated Nearby Properties card.
+   The other legacy quick actions are already represented in the new workspace. */
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid{
+ display:grid!important;grid-template-columns:minmax(0,1fr)!important;
+ gap:14px!important;margin:16px 0 22px!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>:not(.gdr-owner-nearby-entry){
+ display:none!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry{
+ display:flex!important;grid-column:1/-1!important;min-height:132px!important;
+ border-radius:20px!important;padding:20px!important;
+ background:linear-gradient(145deg,#f7fcf7 0%,#e6f2e8 54%,#f7f1df 100%)!important;
+ border:1px solid #c4dcc9!important;
+ box-shadow:0 7px 0 #b9d2bf,0 18px 34px rgba(20,76,48,.13),inset 0 1px 0 #fff!important;
+ transition:transform .2s ease,box-shadow .2s ease!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry:hover{
+ transform:translateY(-3px)!important;
+ box-shadow:0 10px 0 #b9d2bf,0 24px 40px rgba(20,76,48,.17),inset 0 1px 0 #fff!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry h3{
+ color:#173e2b!important;font-size:19px!important;font-weight:950!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry p{
+ color:#526b59!important;font-size:13px!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry #gdrOwnerNearbyOpen{
+ min-height:48px!important;border-radius:13px!important;
+ background:linear-gradient(145deg,#216c49,#103f2b)!important;
+ border:1px solid #0e3928!important;color:#fff!important;
+ box-shadow:0 5px 0 #0a2d20,0 12px 22px rgba(14,66,42,.2),inset 0 1px 0 rgba(255,255,255,.2)!important;
+ font-weight:950!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry #gdrOwnerNearbyOpen:hover{
+ transform:translateY(-2px)!important;
+ box-shadow:0 7px 0 #0a2d20,0 16px 26px rgba(14,66,42,.24)!important;
+}
+#ownerDashboard.gdr-owner-mode-home>.owner-profile-card>.renter-profile-grid{
+ display:none!important;
+}
+@media(max-width:760px){
+ #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid{grid-template-columns:minmax(0,1fr)!important;margin:12px 0 18px!important}
+ #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry{padding:16px!important;gap:13px!important;min-height:0!important}
+ #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry #gdrOwnerNearbyOpen{width:100%!important}
+}
+@media(prefers-reduced-motion:reduce){
+ #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry,
+ #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry #gdrOwnerNearbyOpen{transition:none!important}
+}

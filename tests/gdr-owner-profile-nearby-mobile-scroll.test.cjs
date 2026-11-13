@@ -62,10 +62,24 @@ test("Nearby Properties has a premium standalone dashboard action style",()=>{
 });
 
 test("Deployment versions corrected owner/map/gallery assets and runs regression coverage",()=>{
- assert.match(workflow,/gdr-rental-suite-v2\.js", "20261112-nearby-move1"/);
+ assert.match(workflow,/gdr-rental-suite-v2\.js", "20261113-owner-nearby-report1"/);
  assert.match(workflow,/gdr-map-experience\.js", "20261112-pin-accuracy1"/);
  assert.match(workflow,/gdr-property-studio\.js", "20261112-owner-pin1"/);
  assert.match(workflow,/gdr-property-studio\.css", "20261112-touch-swipe1"/);
  assert.match(workflow,/gdr-owner-property-filters\.test\.cjs/);
  assert.match(workflow,/gdr-owner-profile-nearby-mobile-scroll\.test\.cjs/);
+});
+
+test("Owner home restores only the dedicated Nearby Properties action and keeps profile details collapsed until Edit Profile",()=>{
+ assert.match(ownerCss,/#ownerDashboard\\.gdr-owner-mode-home>\\.owner-dashboard-quick-grid\\{[\\s\\S]*?display:grid!important/);
+ assert.match(ownerCss,/#ownerDashboard\\.gdr-owner-mode-home>\\.owner-dashboard-quick-grid>:not\\(\\.gdr-owner-nearby-entry\\)\\{display:none!important/);
+ assert.match(ownerCss,/#ownerDashboard\\.gdr-owner-mode-home>\\.owner-profile-card>\\.renter-profile-grid\\{display:none!important/);
+ assert.match(html,/id="ownerEditProfileBtn"/);
+ assert.match(html,/id="ownerProfileEditor"/);
+});
+test("Report a Problem cards with support subtext are removed without removing Support or contact actions",()=>{
+ assert.match(rental,/\\breport\\s\\+a\\s\\+problem\\b/i);
+ assert.match(rental,/actionCount<=1/);
+ assert.match(rental,/target\.remove\(\)/);
+ assert.match(rental,/control\.id==="gdrxSupport"\|\|control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
 });

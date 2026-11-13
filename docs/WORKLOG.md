@@ -209,3 +209,12 @@ User decisions recorded:
 - Exact address, Indian PIN code, latitude and longitude are no longer written into local storage. Draft schema version 3 invalidates previous version-2 drafts, which may have contained those values.
 - Restored drafts that had reached Location or a later step resume at Location. The owner must re-enter the address/PIN and reconfirm the exact map marker before publishing.
 - No production database, storage policy, payment data, account data or existing property records were changed.
+
+
+## Owner dashboard follow-up — 2026-11-13
+
+- Restored the existing dedicated Owner Dashboard Nearby Properties card in the home view. It continues to use the existing GDRMapExperience owner map launcher and the 5 KM owner-nearby experience; no second command-centre shortcut or duplicate map implementation was added.
+- Updated Report a Problem removal to detect buttons/cards whose visible text also includes the support subtitle, and remove the small enclosing tile when it contains no other action. Existing Support and contact CTAs remain excluded.
+- Collapsed the Owner Profile details grid by default. The existing Edit Profile control continues to open the current profile editor with the saved owner fields.
+- Updated the asset cache versions in the Cloudflare deployment workflow so the changes are served as fresh production assets.
+- No Supabase schema, production data, authentication, renter dashboard or payment logic was modified.

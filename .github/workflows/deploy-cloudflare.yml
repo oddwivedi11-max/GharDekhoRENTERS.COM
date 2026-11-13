@@ -39,10 +39,10 @@ jobs:
           assets = [
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
-              ("gdr-rental-suite-v2.js", "20261112-nearby-move1"),
+              ("gdr-rental-suite-v2.js", "20261113-owner-nearby-report1"),
               ("gdr-owner-payments.js", "20261112-payment-return1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
-              ("gdr-owner-command-center-hotfix.js", "20261112-owner-filters-nearby1"),
+              ("gdr-owner-command-center-hotfix.js", "20261113-owner-profile-nearby-report1"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
               ("gdr-map-experience.js", "20261112-pin-accuracy1"),
               ("gdr-property-studio.js", "20261112-owner-pin1"),
