@@ -196,7 +196,7 @@ function addOwnerNearbyAction(){
   button.type="button";
   button.id="gdrOwnerNearbyOpen";
   button.className="gdr-owner-nearby-inline";
-  button.innerHTML='<span aria-hidden="true">⌖</span><span>Nearby Properties</span><span aria-hidden="true">→</span>';
+  button.innerHTML='<span class="gdr-nearby-btn-icon" aria-hidden="true">⌖</span><span class="gdr-nearby-btn-copy"><strong>Explore Nearby Properties</strong><small>Discover homes around your selected location</small></span><span class="gdr-nearby-btn-arrow" aria-hidden="true">↗</span>';
   button.setAttribute("aria-label","Open nearby properties map");
  }
  if(button.parentElement!==card)card.appendChild(button);
