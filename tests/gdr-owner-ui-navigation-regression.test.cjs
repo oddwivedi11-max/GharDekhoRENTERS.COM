@@ -70,10 +70,11 @@ test("Production asset patch references a fresh cache version",()=>{
  assert.match(patch,/20261105-workspace3/);
 });
 
-test("Retired Report a Problem tile is removed from Owner while Renter support remains",()=>{
+test("Retired Report a Problem tile is removed by legacy ID only inside Owner dashboard",()=>{
  const removal=rentalSuite.slice(rentalSuite.indexOf("function removeDuplicateReportButtons"),rentalSuite.indexOf("function boot()",rentalSuite.indexOf("function removeDuplicateReportButtons")));
- assert.match(removal,/selector==="#ownerDashboard"&&control\.id==="gdrxSupport"&&isReportControl/);
- assert.match(removal,/if\(control\.id==="gdrxSupport"&&!ownerRetiredReportTile\)return/);
+ assert.match(removal,/selector==="#ownerDashboard"/);
+ assert.match(removal,/scope\.querySelectorAll\("#gdrxSupport"\)/);
+ assert.match(removal,/target\.remove\(\)/);
  assert.match(removal,/control\.closest\("#gd-contact-section,\.gd-contact-section"\)/);
  assert.match(rentalSuite,/new MutationObserver\(boot\)/);
 });

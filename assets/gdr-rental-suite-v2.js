@@ -232,23 +232,32 @@ function addOwnerNearbyAction(){
 function removeDuplicateReportButtons(){
  ["#renterDashboard","#ownerDashboard","#gdrPropertyStudio"].forEach(function(selector){
   var scope=$(selector);if(!scope)return;
+  // The legacy ID is the retired Owner report tile. Remove by identity even
+  // if its visible text or nested markup changes on a later dashboard render.
+  // Keep this ID-based removal strictly inside Owner Dashboard.
+  if(selector==="#ownerDashboard"){
+   Array.from(scope.querySelectorAll("#gdrxSupport")).forEach(function(retired){
+    var target=retired,parent=retired.parentElement;
+    while(parent&&parent!==scope){
+     var actions=parent.querySelectorAll("a,button,[role='button']").length;
+     var label=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
+     if(actions<=1&&/report\s+a\s+problem/i.test(label)){target=parent;parent=parent.parentElement;}
+     else break;
+    }
+    if(target&&target!==scope)target.remove();
+   });
+  }
   Array.from(scope.querySelectorAll("a,button,[role='button']")).forEach(function(control){
    var label=String(control.innerText||control.textContent||"").replace(/\s+/g," ").trim();
    var isReportControl=control.id==="gdrOwnerReportProblem"||/^report\s+a\s+problem$/i.test(label)||/\breport\s+a\s+problem\b/i.test(label);
-   // gdrxSupport is the old Owner "Report a problem" tile on this dashboard.
-   // Remove it only when its own visible label identifies it as that retired tile.
-   // The Renter's independent Support control must remain available.
-   var ownerRetiredReportTile=selector==="#ownerDashboard"&&control.id==="gdrxSupport"&&isReportControl;
-   if(control.id==="gdrxSupport"&&!ownerRetiredReportTile)return;
    if(control.closest("#gd-contact-section,.gd-contact-section"))return;
    if(!isReportControl)return;
    var target=control,parent=control.parentElement;
    while(parent&&parent!==scope){
     var parentLabel=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
     var actionCount=parent.querySelectorAll("a,button,[role='button']").length;
-    if(/\breport\s+a\s+problem\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){
-     target=parent;parent=parent.parentElement;
-    }else break;
+    if(/\breport\s+a\s+problem\b/i.test(parentLabel)&&parentLabel.length<=280&&actionCount<=1){target=parent;parent=parent.parentElement;}
+    else break;
    }
    if(target&&target!==scope)target.remove();
   });
