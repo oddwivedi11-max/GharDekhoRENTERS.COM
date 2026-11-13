@@ -85,3 +85,10 @@ test("Pending Visits top card opens only pending requests without changing the o
  assert.match(controller,/No pending visit requests right now\./);
  assert.match(controller,/refreshOwnerVisitFilter\(dash\)/);
 });
+
+test("top summary cards have touch-friendly hover, pressed and keyboard focus states",()=>{
+ assert.match(styles,/dashboard-stats-grid\.owner-stats-grid>\.dashboard-stat-card\[data-gdr-owner-stat-action\]/);
+ assert.match(styles,/touch-action:manipulation/);
+ assert.match(styles,/focus-visible/);
+ assert.match(styles,/prefers-reduced-motion:reduce/);
+});
