@@ -78,6 +78,8 @@ test("Nearby Properties launcher has a high-contrast 3D visual hierarchy",()=>{
  assert.match(suiteV2,/Explore Nearby Properties/);
  assert.match(suiteV2,/Discover homes around your selected location/);
  assert.match(suiteV2,/gdr-nearby-btn-arrow/);
+ assert.match(suiteV2,/A legacy dashboard script may create this button first/);
+ assert.match(suiteV2,/button\.className="gdr-owner-nearby-inline";[\s\S]*?button\.innerHTML=/);
  assert.match(ownerStyle,/background:linear-gradient\(118deg,#e8ffb5 0%,#c9f779 38%,#a8ed62 72%,#8ddd55 100%\)!important/);
  assert.match(ownerStyle,/-webkit-text-fill-color:#143c2b!important/);
  assert.match(ownerStyle,/box-shadow:0 7px 0 #438a48/);
