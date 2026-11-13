@@ -605,3 +605,24 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){min-height:100%;height:auto;
  #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry,
  #ownerDashboard.gdr-owner-mode-home>.owner-dashboard-quick-grid>.gdr-owner-nearby-entry #gdrOwnerNearbyOpen{transition:none!important}
 }
+
+/* Owner dashboard top summary cards are real, keyboard-accessible navigation controls. */
+#ownerDashboard .dashboard-stats-grid.owner-stats-grid>.dashboard-stat-card[data-gdr-owner-stat-action]{
+ cursor:pointer!important;touch-action:manipulation;user-select:none;
+ transition:transform .16s ease,box-shadow .16s ease,border-color .16s ease;
+}
+#ownerDashboard .dashboard-stats-grid.owner-stats-grid>.dashboard-stat-card[data-gdr-owner-stat-action]:hover{
+ transform:translateY(-2px);border-color:#91b8a1!important;
+ box-shadow:0 13px 27px rgba(17,67,49,.12)!important;
+}
+#ownerDashboard .dashboard-stats-grid.owner-stats-grid>.dashboard-stat-card[data-gdr-owner-stat-action]:active{
+ transform:translateY(1px);box-shadow:0 4px 10px rgba(17,67,49,.09)!important;
+}
+#ownerDashboard .dashboard-stats-grid.owner-stats-grid>.dashboard-stat-card[data-gdr-owner-stat-action]:focus-visible{
+ outline:3px solid #3b8062!important;outline-offset:3px;
+}
+#ownerDashboard #ownerVisitsContainer .premium-visit-card[hidden],
+#ownerDashboard #ownerVisitsContainer [data-gdr-visit-filter-empty][hidden]{display:none!important}
+@media(prefers-reduced-motion:reduce){
+ #ownerDashboard .dashboard-stats-grid.owner-stats-grid>.dashboard-stat-card[data-gdr-owner-stat-action]{transition:none}
+}
