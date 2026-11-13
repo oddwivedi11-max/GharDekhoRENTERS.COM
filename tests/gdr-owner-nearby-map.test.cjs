@@ -6,6 +6,8 @@ const root=path.join(__dirname,"..");
 const map=fs.readFileSync(path.join(root,"assets/gdr-map-experience.js"),"utf8");
 const style=fs.readFileSync(path.join(root,"assets/gdr-map-experience.css"),"utf8");
 const suite=fs.readFileSync(path.join(root,"assets/gdr-rental-suite.js"),"utf8");
+const suiteV2=fs.readFileSync(path.join(root,"assets/gdr-rental-suite-v2.js"),"utf8");
+const ownerStyle=fs.readFileSync(path.join(root,"assets/gdr-owner-command-center.css"),"utf8");
 test("owner Nearby opens a separate map and never calls renter search or browser GPS",()=>{
  assert.match(map,/async function openOwnerNearbyMap\(\)/);
  assert.match(map,/function closeOwnerNearbyMap\(\)/);
@@ -68,4 +70,18 @@ test("renter PIN search uses live exact inventory before optional India Post loo
  assert.ok(html.indexOf("if (pinTerms.length && !pinInventoryMatches.length)")>start);
  assert.match(html,/const pinOnlyMatches = pinInventoryMatches\.filter/);
  assert.match(html,/if \(!finalResults\.length && pinTerms\.length\)/);
+});
+
+
+test("Nearby Properties launcher has a high-contrast 3D visual hierarchy",()=>{
+ assert.match(suiteV2,/gdr-nearby-btn-icon/);
+ assert.match(suiteV2,/Explore Nearby Properties/);
+ assert.match(suiteV2,/Discover homes around your selected location/);
+ assert.match(suiteV2,/gdr-nearby-btn-arrow/);
+ assert.match(ownerStyle,/background:linear-gradient\(118deg,#e8ffb5 0%,#c9f779 38%,#a8ed62 72%,#8ddd55 100%\)!important/);
+ assert.match(ownerStyle,/-webkit-text-fill-color:#143c2b!important/);
+ assert.match(ownerStyle,/box-shadow:0 7px 0 #438a48/);
+ assert.match(ownerStyle,/gdr-nearby-btn-copy small/);
+ assert.match(ownerStyle,/focus-visible/);
+ assert.match(ownerStyle,/@media\(max-width:760px\)/);
 });
