@@ -22,7 +22,7 @@ test("verified PIN locality is geocoded as an approximate centre, not an exact h
 
 test("owner map recenters to the resolved PIN while requiring exact entrance confirmation", () => {
   assert.match(map, /function centerOwnerMapPicker\(lat,lng,label\)/);
-  assert.match(map, /setOwnerPin\(point,String\(label\|\|"PIN code location"\),false\)/);
+  assert.match(map, /setOwnerPin\(point,point\.label,false\)/);
   assert.match(map, /centerOwnerMapPicker/);
 });
 
