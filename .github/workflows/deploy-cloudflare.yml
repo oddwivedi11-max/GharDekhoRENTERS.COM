@@ -43,7 +43,7 @@ jobs:
               ("gdr-rental-suite-v2.js", "20261113-owner-report-remove2"),
               ("gdr-owner-payments.js", "20261112-payment-return1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
-              ("gdr-owner-command-center-hotfix.js", "20261113-owner-stat-actions1"),
+              ("gdr-owner-command-center-hotfix.js", "20261113-owner-stat-actions2"),
               ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
               ("gdr-map-experience.js", "20261113-pin-auto-center2"),
               ("gdr-property-studio.js", "20261113-pin-auto-map1"),
@@ -134,6 +134,7 @@ jobs:
           node --check tests/gdr-owner-ui-navigation-regression.test.cjs
           node --test tests/gdr-owner-ui-navigation-regression.test.cjs
           node --test tests/gdr-owner-dashboard-navigation.test.cjs
+          node --test tests/gdr-owner-counter-observer-regression.test.cjs
           node --test tests/gdr-owner-workspace-functional.test.cjs
           node --test tests/gdr-owner-renter-page.test.cjs
           node --test tests/gdr-owner-nearby-map.test.cjs
@@ -225,9 +226,9 @@ jobs:
             if ! curl --retry 3 --retry-delay 2 --retry-connrefused -H "Cache-Control: no-cache" -H "Pragma: no-cache" -fsS "$candidate/login?__gdr_verify=$GITHUB_SHA" -o /tmp/gdr-live-login.html; then
               continue
             fi
-            if grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1' /tmp/gdr-live-root.html \
-              || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1' /tmp/gdr-live-index.html \
-              || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1' /tmp/gdr-live-login.html; then
+            if grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2' /tmp/gdr-live-root.html \
+              || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2' /tmp/gdr-live-index.html \
+              || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2' /tmp/gdr-live-login.html; then
               if grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-root.html \
                 || grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-index.html \
                 || grep -q 'gdr-renter-experience.js?v=20261111-infinite-scroll1' /tmp/gdr-live-login.html; then
@@ -388,14 +389,15 @@ jobs:
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-root.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-login.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
           grep -q 'gdrxSupport' /tmp/gdr-live-root.html || grep -q 'gdrxSupport' /tmp/gdr-live-login.html || grep -q 'gdrxSupport' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261113-owner-report-remove2' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261113-owner-report-remove2' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261113-owner-report-remove2' /tmp/gdr-live-index.html
-          grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1' /tmp/gdr-live-index.html
+          grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-root.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-login.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-root.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-login.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.css?v=20261112-payment-return1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.css?v=20261112-payment-return1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.css?v=20261112-payment-return1' /tmp/gdr-live-index.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions1" -o /tmp/gdr-owner-command-center-hotfix.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions2" -o /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'data-gdr-owner-stat-action' /tmp/gdr-owner-command-center-hotfix.js
+          grep -Fq 'document.querySelectorAll("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card").length' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'gdr-owner-command-center.css?v=20261113-owner-dashboard-stat-actions1' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'function refreshOwnerVisitFilter' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
