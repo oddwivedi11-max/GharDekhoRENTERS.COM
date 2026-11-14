@@ -33,8 +33,8 @@ test("changing a PIN clears the previous location and ignores stale lookup respo
   assert.match(studio,/pinResolveSequence\+\+/);
   assert.match(studio,/const isCurrent=\(\)=>run===pinResolveSequence/);
   assert.match(studio,/if\(nextPin\.length===6\)pinResolveTimer=setTimeout\(\(\)=>resolveStudioPincode\(nextPin\),450\)/);
-  assert.match(studio,/districtMatch=!expectedDistrict\|\|districtText\.includes\(expectedDistrict\)/);
-  assert.match(studio,/stateMatch=!expectedState\|\|!!stateText/);
+  assert.match(studio,/return item\.officeMatch\|\|item\.postcodeMatch/);
+  assert.match(studio,/stateMatch=!expectedState\|\|!stateText/);
 });
 
 test("approximate PIN and address coordinates cannot publish before exact entrance confirmation",()=>{
@@ -53,10 +53,10 @@ test("owner map clears old marker and no longer defaults the owner picker to Bho
 });
 
 test("Owner and renter PIN resolvers prefer the principal postal office and rank map results by postal locality",()=>{
-  assert.match(studio,/offices\.find\(item=>\/head office\/i/);
-  assert.match(studio,/offices\.find\(item=>\/sub office\/i/);
-  assert.match(map,/offices\.find\(x=>\/head office\/i/);
-  assert.match(map,/offices\.find\(x=>\/sub office\/i/);
+  assert.match(studio,/function preferredPostOffice\(offices\)/);
+  assert.match(studio,/rows\.find\(item=>\/sub office\/i/);
+  assert.match(map,/function preferredPinOffice\(offices\)/);
+  assert.match(map,/rows\.find\(item=>\/sub office\/i/);
   assert.match(map,/const postalMatches=rows=>/);
   assert.ok(map.includes('const rankingQuery=/^\\d{6}$/.test(q)?preferredLabel:q;'));
   assert.match(map,/renderMarkers\(\[\],INDIA_CENTER\)/);
@@ -107,4 +107,13 @@ test("owner PIN entry ignores stale requests and centers the map at the verified
   assert.match(map,/if\(kind==="owner"\)state\.ownerLocationSearchId\+\+/);
   assert.match(map,/if\(searchId!==state\.ownerLocationSearchId\|\|!state\.ownerMap\)return/);
   assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],16,\{animate:false\}\)/);
+});
+
+
+test("PIN 486886 prefers Waidhan Sub Office and does not reject a legitimate district-label difference",()=>{
+  assert.match(studio,/function preferredPostOffice\(offices\)[\s\S]*?rows\.find\(item=>\/sub office\/i[\s\S]*?rows\.find\(item=>\/head office\/i/);
+  assert.match(map,/function preferredPinOffice\(offices\)[\s\S]*?rows\.find\(item=>\/sub office\/i[\s\S]*?rows\.find\(item=>\/head office\/i/);
+  assert.match(studio,/const query=\[officeName,region,"India"\]/);
+  assert.match(studio,/return item\.officeMatch\|\|item\.postcodeMatch/);
+  assert.match(map,/return item\.officeMatch\|\|item\.postcodeMatch/);
 });
