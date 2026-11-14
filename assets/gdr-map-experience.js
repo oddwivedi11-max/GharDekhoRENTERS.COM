@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-pin-suboffice-locality2";
+  const MAP_PIN_VERSION="20261115-pin-postal-coordinate-fallback1";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -554,6 +554,39 @@
       return {feature,score,index};
     }).sort((a,b)=>a.score-b.score||a.index-b.index).map(item=>item.feature);
   }
+
+  const POSTAL_COORD_CACHE_TTL=30*24*60*60*1000;
+  function postalOfficeNameKey(value){
+    const clean=String(value||"").replace(/\\b(?:branch\\s+office|sub\\s+office|head\\s+office)\\b/gi," ").replace(/\\b(?:B|S|H)\\s*\\.?\\s*O\\.?\\b/gi," ");
+    return normalizedText(clean);
+  }
+  async function lookupPostalApiCoordinates(pin,officeName,stateName){
+    const officeKey=postalOfficeNameKey(officeName);
+    if(!/^\\d{6}$/.test(String(pin||""))||officeKey.length<4)return null;
+    const cacheKey="gdr:postal-office-coordinate:v1:"+pin+":"+officeKey;
+    const validCached=value=>value&&value.pincode===String(pin)&&value.officeKey===officeKey&&Date.now()-Number(value.cachedAt||0)<POSTAL_COORD_CACHE_TTL&&validPoint(Number(value.lat),Number(value.lng));
+    try{const saved=JSON.parse(localStorage.getItem(cacheKey)||"null");if(validCached(saved))return saved;}catch(_){}
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+    try{
+      const response=await fetch("https://api.pincodeapi.in/api/v1/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"},signal:controller.signal});
+      if(!response.ok)return null;
+      const payload=await response.json(),rows=payload&&payload.success===true&&payload.data&&Array.isArray(payload.data.post_offices)?payload.data.post_offices:[];
+      const expectedState=normalizedText(stateName);
+      const matches=rows.map(row=>{
+        const rowPin=String(row&&row.pincode||""),rowName=postalOfficeNameKey(row&&row.office_name),rowState=normalizedText(row&&row.state);
+        const lat=Number(row&&row.latitude),lng=Number(row&&row.longitude);
+        const nameMatch=rowName===officeKey||(rowName.length>=5&&officeKey.length>=5&&(rowName.includes(officeKey)||officeKey.includes(rowName)));
+        const stateMatch=!expectedState||!rowState||rowState===expectedState||rowState.includes(expectedState)||expectedState.includes(rowState);
+        return {row,rowPin,rowName,lat,lng,nameMatch,stateMatch,score:(rowName===officeKey?100:10)+(stateMatch?10:0)};
+      }).filter(item=>item.rowPin===String(pin)&&item.nameMatch&&item.stateMatch&&validPoint(item.lat,item.lng)).sort((a,b)=>b.score-a.score);
+      if(!matches.length)return null;
+      const best=matches[0],result={pincode:String(pin),officeKey,officeName:String(best.row.office_name||officeName),district:String(best.row.district||""),state:String(best.row.state||stateName||""),lat:best.lat,lng:best.lng,cachedAt:Date.now()};
+      try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
+      return result;
+    }catch(error){if(error&&error.name!=="AbortError")console.warn("Postal coordinate fallback unavailable:",error);return null;}
+    finally{clearTimeout(timer);}
+  }
+
   function preferredPinOffice(offices){
     const rows=Array.isArray(offices)?offices.filter(item=>item&&item.Name):[];
     return rows.find(item=>/sub office/i.test(String(item.BranchType||item.OfficeType||"")))
@@ -610,7 +643,15 @@
           if(matches.length){features=matches;break;}
         }catch(error){console.warn("PIN geocoding attempt failed:",error);}
       }
-      if(!features.length)throw new Error("PIN "+pin+" belongs to "+[expectedDistrict,expectedState].filter(Boolean).join(", ")+", but map coordinates could not be verified. Search the locality name instead.");
+      let usedPostalCoordinateFallback=false;
+      if(!features.length){
+        const postalPoint=await lookupPostalApiCoordinates(pin,locality,expectedState);
+        if(postalPoint){
+          features=[{geometry:{coordinates:[postalPoint.lng,postalPoint.lat]},properties:{name:postalPoint.officeName||locality,locality:locality,city:expectedDistrict,district:expectedDistrict,state:postalPoint.state||expectedState,postcode:pin,country:"India",countrycode:"in"}}];
+          usedPostalCoordinateFallback=true;
+        }
+      }
+      if(!features.length)throw new Error("PIN "+pin+" was verified for "+locality+", "+expectedState+", but neither the map index nor the postal coordinate record returned a matching post office. Try the locality name or retry shortly.");
     }else{
       features=await photonGeocode(q+", India");
       if(!features.length)throw new Error("We could not locate “"+q+"”. Try a nearby locality, city or PIN code.");
@@ -619,7 +660,7 @@
     const ranked=rankPhotonFeatures(features,rankingQuery),feature=ranked[0];
     if(!feature)throw new Error("We could not verify the requested location. Try adding the district or PIN code.");
     const coords=feature.geometry.coordinates,props=feature.properties||{};
-    return {lat:Number(coords[1]),lng:Number(coords[0]),label:photonLabel(props)||preferredLabel,query:q,properties:props};
+    return {lat:Number(coords[1]),lng:Number(coords[0]),label:usedPostalCoordinateFallback?preferredLabel:(photonLabel(props)||preferredLabel),query:q,properties:props};
   }
   async function searchTypedMapLocation(){
     const input=$("gdrMapPlaceSearch"),query=String(input&&input.value||"").trim();

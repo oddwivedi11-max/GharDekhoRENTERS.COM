@@ -108,3 +108,14 @@ test("PIN 486886 prefers Waidhan Sub Office and does not reject a legitimate dis
   assert.match(studio,/return item\.officeMatch\|\|item\.postcodeMatch/);
   assert.match(map,/return item\.officeMatch\|\|item\.postcodeMatch/);
 });
+
+test("postal coordinate fallback is available when Photon has no matching post-office feature",()=>{
+  assert.ok(studio.includes("api.pincodeapi.in/api/v1/pincode/"));
+  assert.ok(studio.includes("function lookupPostalApiCoordinates("));
+  assert.ok(studio.includes("row.office_name"));
+  assert.ok(studio.includes("row.latitude"));
+  assert.ok(studio.includes("row.longitude"));
+  assert.ok(studio.includes("localStorage.setItem(cacheKey,JSON.stringify(result))"));
+  assert.ok(map.includes("api.pincodeapi.in/api/v1/pincode/"));
+  assert.ok(map.includes("function lookupPostalApiCoordinates("));
+});

@@ -66,6 +66,35 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(result.label).toContain('Bhopal');
   });
 
+  test('PIN 462022 resolves Jamunia Kalan from postal coordinates when Photon has no indexed match', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForFunction(() => window.GDRMapExperience && typeof window.GDRMapExperience.resolveMapQuery === 'function');
+    const result = await page.evaluate(async () => {
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = async input => {
+        const url = String(input);
+        if (url.includes('api.postalpincode.in/pincode/462022')) {
+          return { ok: true, json: async () => [{ Status: 'Success', PostOffice: [
+            { Name: 'BHEL H.O.', District: 'Bhopal', State: 'Madhya Pradesh', BranchType: 'Head Office' },
+            { Name: 'Jamunia Kalan B.O.', District: 'Bhopal', State: 'Madhya Pradesh', BranchType: 'Branch Office', DeliveryStatus: 'Delivery' }
+          ] }] };
+        }
+        if (url.includes('photon.komoot.io/api/')) return { ok: true, json: async () => ({ features: [] }) };
+        if (url.includes('api.pincodeapi.in/api/v1/pincode/462022')) {
+          return { ok: true, json: async () => ({ success: true, data: { pincode: '462022', post_offices: [
+            { office_name: 'BHEL H.O.', pincode: '462022', office_type: 'HO', district: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2400, longitude: 77.4700 },
+            { office_name: 'Jamunia Kalan B.O.', pincode: '462022', office_type: 'BO', district: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2405833, longitude: 77.4704722 }
+          ] } } }) };
+        }
+        return originalFetch(input);
+      };
+      return await window.GDRMapExperience.resolveMapQuery('462022');
+    });
+    expect(result.lat).toBeCloseTo(23.2405833, 5);
+    expect(result.lng).toBeCloseTo(77.4704722, 5);
+    expect(result.label).toContain('Jamunia Kalan');
+  });
+
   test('PIN 486886 selects Waidhan Sub Office instead of the Sidhi Head Office', async ({ page }) => {
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.waitForFunction(() => window.GDRMapExperience && typeof window.GDRMapExperience.resolveMapQuery === 'function');
