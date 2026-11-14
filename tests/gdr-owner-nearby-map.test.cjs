@@ -79,11 +79,20 @@ test("Nearby Properties launcher has a high-contrast 3D visual hierarchy",()=>{
  assert.match(suiteV2,/Discover homes around your selected location/);
  assert.match(suiteV2,/gdr-nearby-btn-arrow/);
  assert.match(suiteV2,/A legacy dashboard script may create this button first/);
- assert.match(suiteV2,/button\.className="gdr-owner-nearby-inline";[\s\S]*?button\.innerHTML=/);
- assert.match(ownerStyle,/background:linear-gradient\(118deg,#e8ffb5 0%,#c9f779 38%,#a8ed62 72%,#8ddd55 100%\)!important/);
+ assert.match(suiteV2,/if\(button\.className!=="gdr-owner-nearby-inline"\)button\.className=/);
+ assert.match(suiteV2,/if\(button\.dataset\.gdrNearbyPremiumMarkup!=="v1"\)\{[\s\S]*?button\.innerHTML=/);
  assert.match(ownerStyle,/-webkit-text-fill-color:#143c2b!important/);
  assert.match(ownerStyle,/box-shadow:0 7px 0 #438a48/);
  assert.match(ownerStyle,/gdr-nearby-btn-copy small/);
  assert.match(ownerStyle,/focus-visible/);
  assert.match(ownerStyle,/@media\(max-width:760px\)/);
+});
+
+ 
+test("dashboard boot observer cannot retrigger itself from presentation writes",()=>{
+ assert.match(suiteV2,/function hasDashboardMutation\(records\)/);
+ assert.match(suiteV2,/function scheduleDashboardBoot\(\)/);
+ assert.match(suiteV2,/if\(hasDashboardMutation\(records\)\)scheduleDashboardBoot\(\)/);
+ assert.match(suiteV2,/observe\(document\.body,\{subtree:true,childList:true\}\)/);
+ assert.doesNotMatch(suiteV2,/attributes:true,attributeFilter:\["class","style"\]/);
 });
