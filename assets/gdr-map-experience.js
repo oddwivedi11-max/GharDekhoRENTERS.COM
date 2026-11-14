@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-pin-poi-failover2";
+  const MAP_PIN_VERSION="20261115-pin-poi-failover3";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -37,7 +37,7 @@
     });
   }
   async function ensureLeaflet(){
-    loadStylesheet("/assets/gdr-map-experience.css?v=20261115-owner-map-raster-auto1","data-gdr-map-geo-style");
+    loadStylesheet("/assets/gdr-map-experience.css?v=20261115-pin-poi-failover3","data-gdr-map-geo-style");
     if(!window.L){
       try{await loadScript("https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js");}
       catch(primaryError){
