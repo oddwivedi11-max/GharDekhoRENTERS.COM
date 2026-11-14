@@ -943,6 +943,10 @@
   function centerOwnerMapPicker(lat,lng,label){
     const point={lat:Number(lat),lng:Number(lng),label:String(label||"PIN code location")};
     if(!validPoint(point.lat,point.lng))return false;
+    // Keep the visible map search label in sync with the newly verified PIN.
+    // The map may still be uninitialized here, so update the input before queueing the centre.
+    const searchInput=$("gdrOwnerMapSearch");
+    if(searchInput)searchInput.value=point.label;
     state.pendingOwnerMapCenter=point;
     if(!state.ownerMap)return true;
     state.ownerMap.setView([point.lat,point.lng],13,{animate:false});
@@ -952,6 +956,8 @@
     return true;
   }
   function clearOwnerMapSelectionForPinChange(){
+ const searchInput=$("gdrOwnerMapSearch");
+ if(searchInput)searchInput.value="";
  state.pendingOwnerMapCenter=null;state.ownerSelection=null;state.ownerPinManuallyConfirmed=false;
  if(state.ownerMarker&&state.ownerMap){try{state.ownerMap.removeLayer(state.ownerMarker);}catch(e){}}
  state.ownerMarker=null;
