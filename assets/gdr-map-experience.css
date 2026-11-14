@@ -911,6 +911,7 @@ body.gdr-owner-nearby-open> :not(#gdrOwnerNearbyExperience){display:none!importa
 }
 .gdr-poi-status[data-state="empty"]{color:#765b2c;border-color:#e6d4ae}
 .gdr-poi-status[data-state="loaded"]{color:#145b40}
+.gdr-poi-status[data-state="error"]{color:#8a3f2e;border-color:#e8c2b5}
 .gdr-poi-marker-wrap{background:transparent;border:0}
 .gdr-poi-marker{
   display:grid;place-items:center;width:32px;height:32px;border:2px solid #fff;border-radius:50%;

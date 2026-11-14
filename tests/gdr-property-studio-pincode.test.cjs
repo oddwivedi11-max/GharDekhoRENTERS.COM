@@ -129,3 +129,12 @@ test("automatic nearby map places load around the PIN and retry the backup data 
   assert.match(map,/gdr-poi-status/);
   assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],13,\{animate:false\}\)/);
 });
+
+test("nearby map uses the current free endpoint and cannot remain loading forever",()=>{
+  assert.match(map,/overpass\\.private\\.coffee\\/api\\/interpreter/);
+  assert.match(map,/maps\\.mail\\.ru\\/osm\\/tools\\/overpass\\/api\\/interpreter/);
+  assert.match(map,/\[out:json\]\[timeout:9\]/);
+  assert.match(map,/const overallTimer=setTimeout\(\(\)=>request\.abort\(\),35000\)/);
+  assert.match(map,/gdr:poi-nearby:v2:/);
+  assert.match(map,/tags\.place/);
+});

@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-pin-poi-visible1";
+  const MAP_PIN_VERSION="20261115-pin-poi-failover2";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -51,7 +51,7 @@
       catch(error){console.warn("Marker clustering unavailable; standard markers will be used.",error);}
     }
   }
-  const OVERPASS_ENDPOINTS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
+  const OVERPASS_ENDPOINTS=["https://overpass.private.coffee/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass-api.de/api/interpreter"];
   const poiCache=new Map();
   const POI_FILTERS={
     all:{label:"All nearby places",selectors:[
@@ -60,7 +60,8 @@
       'nwr["shop"~"mall|supermarket|department_store"]',
       'nwr["tourism"~"attraction|museum|hotel|viewpoint"]',
       'nwr["railway"~"station|halt"]',
-      'nwr["natural"~"water|wetland"]'
+      'nwr["natural"~"water|wetland"]',
+      'nwr["place"~"city|town|village|hamlet|suburb|neighbourhood|isolated_dwelling"]'
     ]},
     education:{label:"Schools & colleges",selectors:['nwr["amenity"~"school|college|university|kindergarten"]']},
     health:{label:"Hospitals & clinics",selectors:['nwr["amenity"~"hospital|clinic|doctors|pharmacy|dentist"]']},
@@ -109,9 +110,10 @@
     if(/park|playground|garden/.test(leisure)||tags.natural==="water"||tags.waterway)return "parks";
     if(/stadium|sports_centre|pitch/.test(leisure)||tags.sport)return "sports";
     if(tourism)return "tourism";
+    if(tags.place)return "location";
     return "other";
   }
-  const POI_ICONS={education:"🎓",health:"🏥",transport:"🚉",shopping:"🛍️",food:"🍽️",parks:"🌳",sports:"🏟️",worship:"🛕",finance:"🏦",fuel:"⛽",tourism:"📍",other:"📌"};
+  const POI_ICONS={education:"🎓",health:"🏥",transport:"🚉",shopping:"🛍️",food:"🍽️",parks:"🌳",sports:"🏟️",worship:"🛕",finance:"🏦",fuel:"⛽",tourism:"📍",location:"🏘️",other:"📌"};
   function poiName(tags){
     tags=tags||{};
     return String(tags.name||tags["name:en"]||tags.official_name||tags.operator||tags.amenity||tags.shop||tags.leisure||tags.tourism||"Mapped place");
@@ -119,7 +121,7 @@
   function poiQuery(category,bounds){
     const sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),filter=POI_FILTERS[category]||POI_FILTERS.all;
     const clauses=filter.selectors.map(selector=>selector+"("+[sw.lat,sw.lng,ne.lat,ne.lng].map(v=>Number(v).toFixed(5)).join(",")+");").join("\n");
-    return "[out:json][timeout:18];("+clauses+");out center tags 160;";
+    return "[out:json][timeout:9];("+clauses+");out center tags 160;";
   }
   function poiSearchBounds(map,radiusKm=3){
     const center=map.getCenter(),latDelta=radiusKm/110.574;
@@ -162,8 +164,17 @@
     }
     const category="all",key=poiCacheKey(category,bounds),cached=poiCache.get(key);
     if(!force&&cached&&Date.now()-cached.at<300000){renderNearbyPlaces(map,cached.places);return true;}
+    if(!force){
+      try{
+        const stored=JSON.parse(localStorage.getItem("gdr:poi-nearby:v2:"+key)||"null");
+        if(stored&&Date.now()-Number(stored.savedAt||0)<12*60*60*1000&&Array.isArray(stored.places)){
+          poiCache.set(key,{at:Date.now(),places:stored.places});renderNearbyPlaces(map,stored.places);return true;
+        }
+      }catch(_){}
+    }
     if(geo.request)geo.request.abort();
     const request=new AbortController();geo.request=request;const requestId=++geo.requestId;
+    const overallTimer=setTimeout(()=>request.abort(),35000);
     if(geo.status)geo.status.textContent="Loading nearby places…";
     try{
       const query=poiQuery(category,bounds);
@@ -173,7 +184,7 @@
         const abortWithParent=()=>endpointController.abort();
         if(request.signal.aborted)break;
         request.signal.addEventListener("abort",abortWithParent,{once:true});
-        const timer=setTimeout(()=>endpointController.abort(),12000);
+        const timer=setTimeout(()=>endpointController.abort(),11000);
         try{
           const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:endpointController.signal});
           if(!response.ok)throw new Error("Nearby-place data returned HTTP "+response.status+".");
@@ -196,12 +207,13 @@
       if(requestId!==geo.requestId)return false;
       if(poiCache.size>70)poiCache.clear();
       poiCache.set(key,{at:Date.now(),places});
+      try{localStorage.setItem("gdr:poi-nearby:v2:"+key,JSON.stringify({savedAt:Date.now(),places}));}catch(_){}
       renderNearbyPlaces(map,places);
       return true;
     }catch(error){
-      if(requestId===geo.requestId&&geo.status)geo.status.textContent="Nearby places are temporarily unavailable; the map and property pin are still ready.";
+      if(requestId===geo.requestId&&geo.status){geo.status.textContent="Nearby places could not load from the free map services. The map and property pin are ready; try moving the map once to retry.";geo.status.dataset.state="error";}
       return false;
-    }finally{if(requestId===geo.requestId)geo.request=null;}
+    }finally{clearTimeout(overallTimer);if(requestId===geo.requestId)geo.request=null;}
   }
   function addAutomaticNearbyPlaces(map){
     if(!map||map._gdrPoi||!window.L.layerGroup)return;
