@@ -89,3 +89,22 @@ test("renter and owner map search fields automatically resolve six-digit PINs",(
   assert.ok(map.includes('if(/^\\d{6}$/.test(q)&&kind==="owner")'));
   assert.ok(map.includes("const point=await resolveMapQuery(q)"));
 });
+
+
+test("property map stays on one page, uses raster tiles and auto-shows nearby places",()=>{
+  assert.match(map,/tile\.openstreetmap\.org\/\{z\}\/\{x\}\/\{y\}\.png/);
+  assert.match(map,/function addAutomaticNearbyPlaces\(map\)/);
+  assert.match(map,/category:"all"/);
+  assert.match(map,/map\.on\("moveend",schedule\)/);
+  assert.doesNotMatch(map,/function addMapExploreControls/);
+  assert.doesNotMatch(map,/360° street imagery|openMapillaryAt|Mapillary|maplibregl|openfreemap/);
+  assert.doesNotMatch(map,/window\.open\(/);
+  assert.ok(studio.includes("centerOwnerMapPicker(lat,lng,label)"));
+  assert.ok(studio.includes("openMap();"));
+});
+test("owner PIN entry ignores stale requests and centers the map at the verified locality",()=>{
+  assert.match(map,/ownerLocationSearchId:0/);
+  assert.match(map,/if\(kind==="owner"\)state\.ownerLocationSearchId\+\+/);
+  assert.match(map,/if\(searchId!==state\.ownerLocationSearchId\|\|!state\.ownerMap\)return/);
+  assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],16,\{animate:false\}\)/);
+});
