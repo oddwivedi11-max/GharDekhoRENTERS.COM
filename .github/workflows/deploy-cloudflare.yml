@@ -500,7 +500,8 @@ jobs:
            grep -q 'observe(document.body,{subtree:true,childList:true})' /tmp/gdr-rental-suite.js
            if grep -q 'attributes:true,attributeFilter' /tmp/gdr-rental-suite.js; then echo "Global class/style observer can retrigger dashboard boot."; exit 1; fi
           grep -q 'renter_submit_move_out_notice' /tmp/gdr-rental-suite.js
-          grep -Fq 'scope.querySelectorAll("#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]")' /tmp/gdr-rental-suite.js
+           grep -Fq 'var selector="#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]"' /tmp/gdr-rental-suite.js
+           grep -Fq 'scope.querySelectorAll(selector)' /tmp/gdr-rental-suite.js
           grep -q 'function removeDuplicateReportButtons' /tmp/gdr-rental-suite.js
           # The payment module has its own independently versioned dynamic stylesheet;
           # the payment JS and the new Property Studio assets are verified above.
