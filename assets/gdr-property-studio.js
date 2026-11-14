@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261113-pin-auto-map1";
+const VERSION="20261115-studio-pin-suboffice2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
