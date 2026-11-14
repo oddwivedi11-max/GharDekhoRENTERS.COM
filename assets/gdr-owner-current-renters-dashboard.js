@@ -4,6 +4,8 @@
   const money = value => "₹" + new Intl.NumberFormat("en-IN", { maximumFractionDigits: 0 }).format(Number(value || 0));
   const db = () => window.__gdrSupabaseClient || window.supabaseClient || null;
   let page = null, occupancySection = null, originalParent = null, originalNext = null, returnScroll = 0, previousBodyOverflow = "", busy = false;
+  let currentRenterObserver = null, currentRenterFrame = 0;
+  const pendingRenterNodes = new Set();
 
   function styles() {
     if ($("gdr-owner-renters-dashboard-style")) return;
@@ -251,8 +253,12 @@
     button.addEventListener("click", open);
   }
 
-  function ensureRenterActions() {
-    document.querySelectorAll("#ownerDashboard .owner-occupancy-card .gd-current-renter-card-v2,#gdrOwnerCurrentRentersPage .gd-current-renter-card-v2").forEach(card => {
+  function ensureRenterActions(root = document) {
+    const selector = "#ownerDashboard .owner-occupancy-card .gd-current-renter-card-v2,#gdrOwnerCurrentRentersPage .gd-current-renter-card-v2";
+    const cards = [];
+    if (root && root.nodeType === 1 && root.matches && root.matches(selector)) cards.push(root);
+    if (root && root.querySelectorAll) cards.push(...root.querySelectorAll(selector));
+    cards.forEach(card => {
       if (card.querySelector(".gd-current-renter-view-action")) return;
       const action=document.createElement("span");
       action.className="gd-current-renter-view-action";
@@ -262,14 +268,51 @@
     });
   }
 
+  function isCurrentRenterMountNode(node) {
+    if (!node || node.nodeType !== 1) return false;
+    const selector = ".owner-dashboard-quick-grid,.owner-occupancy-card,.gd-current-renter-card-v2,#gdrOwnerCurrentRentersPage";
+    return !!((node.matches && node.matches(selector)) || (node.querySelector && node.querySelector(selector)));
+  }
+
+  function scheduleCurrentRenterRefresh(nodes) {
+    nodes.forEach(node => pendingRenterNodes.add(node));
+    if (currentRenterFrame) return;
+    const run = () => {
+      currentRenterFrame = 0;
+      addEntryCard();
+      bindButton();
+      const batch = Array.from(pendingRenterNodes);
+      pendingRenterNodes.clear();
+      batch.forEach(node => ensureRenterActions(node));
+    };
+    currentRenterFrame = typeof window.requestAnimationFrame === "function"
+      ? window.requestAnimationFrame(run)
+      : window.setTimeout(run, 16);
+  }
+
+  function observeCurrentRenterMounts() {
+    if (!document.body || currentRenterObserver) return;
+    currentRenterObserver = new MutationObserver(records => {
+      const added = [];
+      records.forEach(record => Array.from(record.addedNodes || []).forEach(node => {
+        if (isCurrentRenterMountNode(node)) added.push(node);
+      }));
+      if (added.length) scheduleCurrentRenterRefresh(added);
+    });
+    currentRenterObserver.observe(document.body, { childList: true, subtree: true });
+  }
+
   function boot() {
     styles();
     addEntryCard();
     bindButton();
     ensureRenterActions();
   }
-  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot, { once: true });
-  else boot();
-  new MutationObserver(() => { addEntryCard(); bindButton(); ensureRenterActions(); }).observe(document.body, { childList: true, subtree: true });
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", () => { boot(); observeCurrentRenterMounts(); }, { once: true });
+  } else {
+    boot();
+    observeCurrentRenterMounts();
+  }
   window.GDROwnerCurrentRenters = { open, close };
 })();
