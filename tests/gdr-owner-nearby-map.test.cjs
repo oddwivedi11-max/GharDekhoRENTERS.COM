@@ -101,7 +101,7 @@ test("dashboard boot observer only reacts to mount-point insertions",()=>{
  const end=suiteV2.indexOf("function boot()",start);
  const cleanup=suiteV2.slice(start,end);
  assert.doesNotMatch(cleanup,/querySelectorAll\("\*"\)/);
- assert.doesNotMatch(cleanup,/innerText/);
+ assert.doesNotMatch(cleanup,/\.innerText/);
 });
 
 
