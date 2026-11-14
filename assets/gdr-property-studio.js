@@ -227,29 +227,47 @@ function postalOfficeNameKey(value){
   .replace(/\b(?:B|S|H)\s*\.?\s*O\.?\b/gi," ");
  return String(clean).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 }
-async function lookupPostalApiCoordinates(pin,officeName,stateName,signal){
- const officeKey=postalOfficeNameKey(officeName);
- if(!/^\d{6}$/.test(String(pin||""))||officeKey.length<4)return null;
- const cacheKey="gdr:postal-office-coordinate:v1:"+pin+":"+officeKey;
- const validCached=value=>value&&value.pincode===String(pin)&&value.officeKey===officeKey&&Date.now()-Number(value.cachedAt||0)<30*24*60*60*1000&&validIndiaPoint(Number(value.lat),Number(value.lng));
+async function lookupPostalApiCoordinates(pin,officeRecords,stateName,districtName,signal){
+ const officeNames=(Array.isArray(officeRecords)?officeRecords:[officeRecords])
+  .map(item=>typeof item==="string"?item:(item&&(item.Name||item.office_name||item.officeName||item.name))||"")
+  .map(value=>String(value||"").trim()).filter(Boolean);
+ const officeKeys=Array.from(new Set(officeNames.map(postalOfficeNameKey).filter(value=>value.length>=3)));
+ if(!/^\d{6}$/.test(String(pin||"")))return null;
+ const cacheKey="gdr:postal-office-coordinate:v2:"+pin;
+ const validCached=value=>value&&value.pincode===String(pin)&&Date.now()-Number(value.cachedAt||0)<30*24*60*60*1000&&validIndiaPoint(Number(value.lat),Number(value.lng));
  try{const saved=JSON.parse(localStorage.getItem(cacheKey)||"null");if(validCached(saved))return saved;}catch(_){}
- const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000),relayAbort=()=>controller.abort();
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),9000),relayAbort=()=>controller.abort();
  if(signal){if(signal.aborted)controller.abort();else signal.addEventListener("abort",relayAbort,{once:true});}
  try{
   const response=await fetch("https://api.pincodeapi.in/api/v1/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"},signal:controller.signal});
   if(!response.ok)return null;
   const payload=await response.json(),rows=payload&&payload.success===true&&payload.data&&Array.isArray(payload.data.post_offices)?payload.data.post_offices:[];
-  const expectedState=String(stateName||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+  const expectedState=postalOfficeNameKey(stateName),expectedDistrict=postalOfficeNameKey(districtName);
   const matches=rows.map(row=>{
-   const rowPin=String(row&&row.pincode||""),rowName=postalOfficeNameKey(row&&row.office_name);
-   const rowState=String(row&&row.state||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+   // The request URL is already scoped to this PIN. Some data sources omit
+   // pincode from each office row, so use the requested PIN in that case.
+   const rowPin=String(row&&(row.pincode||row.pin_code||row.postal_code)||pin);
+   const rowName=postalOfficeNameKey(row&&(row.office_name||row.officeName||row.name)||"");
+   const rowState=postalOfficeNameKey(row&&(row.state||row.state_name||row.stateName)||"");
+   const rowDistrict=postalOfficeNameKey(row&&(row.district||row.district_name||row.districtName)||"");
    const lat=Number(row&&row.latitude),lng=Number(row&&row.longitude);
-   const nameMatch=rowName===officeKey||(rowName.length>=5&&officeKey.length>=5&&(rowName.includes(officeKey)||officeKey.includes(rowName)));
+   const nameScore=officeKeys.reduce((best,key)=>{
+    if(!rowName||!key)return best;
+    if(rowName===key)return Math.max(best,100);
+    if(rowName.includes(key)||key.includes(rowName))return Math.max(best,65);
+    const parts=key.split(" ").filter(part=>part.length>=4);
+    const overlap=parts.filter(part=>rowName.includes(part)).length;
+    return Math.max(best,parts.length?Math.round(overlap/parts.length*40):0);
+   },0);
    const stateMatch=!expectedState||!rowState||rowState===expectedState||rowState.includes(expectedState)||expectedState.includes(rowState);
-   return {row,rowPin,rowName,lat,lng,nameMatch,stateMatch,score:(rowName===officeKey?100:10)+(stateMatch?10:0)};
-  }).filter(item=>item.rowPin===String(pin)&&item.nameMatch&&item.stateMatch&&validIndiaPoint(item.lat,item.lng)).sort((a,b)=>b.score-a.score);
+   const districtMatch=!expectedDistrict||!rowDistrict||rowDistrict===expectedDistrict||rowDistrict.includes(expectedDistrict)||expectedDistrict.includes(rowDistrict);
+   const type=String(row&&(row.office_type||row.officeType||row.type)||"").toUpperCase();
+   const delivery=postalOfficeNameKey(row&&(row.delivery_status||row.deliveryStatus)||"")==="delivery";
+   const score=nameScore+(stateMatch?20:0)+(districtMatch?10:0)+(type==="SO"?8:type==="HO"?6:type==="BO"?2:0)+(delivery?3:0);
+   return {row,rowPin,lat,lng,stateMatch,districtMatch,score};
+  }).filter(item=>item.rowPin===String(pin)&&item.stateMatch&&item.districtMatch&&validIndiaPoint(item.lat,item.lng)).sort((a,b)=>b.score-a.score);
   if(!matches.length)return null;
-  const best=matches[0],result={pincode:String(pin),officeKey,officeName:String(best.row.office_name||officeName),district:String(best.row.district||""),state:String(best.row.state||stateName||""),lat:best.lat,lng:best.lng,cachedAt:Date.now()};
+  const best=matches[0],result={pincode:String(pin),officeName:String(best.row.office_name||best.row.officeName||best.row.name||officeNames[0]||""),district:String(best.row.district||best.row.district_name||districtName||""),state:String(best.row.state||best.row.state_name||stateName||""),lat:best.lat,lng:best.lng,cachedAt:Date.now()};
   try{localStorage.setItem(cacheKey,JSON.stringify(result));}catch(_){}
   return result;
  }catch(error){if(error&&error.name!=="AbortError")console.warn("Postal coordinate fallback unavailable:",error);return null;}
@@ -268,56 +286,89 @@ async function resolveStudioPincode(rawPin){
  const signal=pincodeResolveController.signal,run=++pinResolveSequence;
  const isCurrent=()=>run===pinResolveSequence&&(!input||String(input.value||"").replace(/\D/g,"").slice(0,6)===pin);
  const status=$("#gdrStudioLocationStatus");state.pincode=pin;
- if(status)status.textContent="Verifying PIN "+pin+" and locating its matching post office…";
+ if(status)status.textContent="Verifying PIN "+pin+" with India Post and finding its locality…";
  try{
   const postalResponse=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"},signal});
   if(!isCurrent())return false;
-  if(!postalResponse.ok)throw new Error("India Post lookup is unavailable");
+  if(!postalResponse.ok)throw new Error("India Post lookup is unavailable. Please retry.");
   const postalPayload=await postalResponse.json();if(!isCurrent())return false;
   const record=Array.isArray(postalPayload)?postalPayload[0]:null;
   const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice.filter(item=>item&&item.Name):[];
-  if(!offices.length)throw new Error("No post office was found for PIN "+pin+". Check the six digits or enter the locality manually.");
-  const office=preferredPostOffice(offices),officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
-  const query=[officeName,region,"India"].filter(Boolean).join(", ");
-  const geoResponse=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
-  if(!isCurrent())return false;
-  if(!geoResponse.ok)throw new Error("Map location lookup is unavailable");
-  const geoPayload=await geoResponse.json();if(!isCurrent())return false;
-  const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/\\bdistrict\\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
-  const expectedDistrict=normalize(district),expectedState=normalize(region),expectedOffice=normalize(officeName);
-  const candidates=(Array.isArray(geoPayload.features)?geoPayload.features:[]).map(feature=>{
-   const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
-   const stateText=normalize(props.state||props.state_name||props.region||"");
-   const countryCode=String(props.countrycode||"").toLowerCase(),countryText=normalize(props.country||"");
-   const postcode=normalize(props.postcode||"");
-   const localityFields=[props.name,props.locality,props.suburb,props.village,props.town,props.city,props.district,props.county].map(normalize).filter(Boolean);
-   const officeMatch=localityFields.some(value=>value===expectedOffice||value.includes(expectedOffice)||expectedOffice.includes(value));
-   const postcodeMatch=postcode===normalize(pin);
-   const stateMatch=!expectedState||!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText);
-   const districtText=normalize([props.county,props.city,props.district,props.locality,props.suburb,props.village,props.town,props.name].filter(Boolean).join(" "));
-   const districtMatch=!expectedDistrict||districtText.includes(expectedDistrict);
-   const countryMatch=countryCode==="in"||countryText==="india";
-   return {props,coords,officeMatch,postcodeMatch,stateMatch,districtMatch,score:(postcodeMatch?1000:0)+(officeMatch?100:0)+(stateMatch?25:0)+(districtMatch?10:0)};
-  }).filter(item=>{
-   if(!item.coords||item.coords.length<2||!validIndiaPoint(Number(item.coords[1]),Number(item.coords[0])))return false;
-   if(!item.countryMatch||!item.stateMatch)return false;
-   // Postal PIN areas can straddle old/current district labels. Match the
-   // selected post office or exact PIN, while still enforcing India + state.
-   return item.officeMatch||item.postcodeMatch;
-  }).sort((a,b)=>b.score-a.score);
-  let resolvedCoords=candidates.length?candidates[0].coords:null;
-  let postalCoordinateFallback=false;
-  if(!resolvedCoords){
-   const postalPoint=await lookupPostalApiCoordinates(pin,officeName,region,signal);
+  if(!offices.length)throw new Error("PIN "+pin+" was not found in the India Post directory. Check the six digits and try again.");
+  const office=preferredPostOffice(offices),officeName=String(office.Name||"").trim();
+  const district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
+  if(!officeName||!region)throw new Error("India Post returned incomplete locality details for PIN "+pin+". Please retry.");
+  const label=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  const normalize=value=>postalOfficeNameKey(value).replace(/\bdistrict\b/g," ").trim();
+  const expectedDistrict=normalize(district),expectedState=normalize(region);
+  const officeNames=offices.map(item=>String(item&&item.Name||"").trim()).filter(Boolean);
+  const matchesFromPhoton=(rows,allowDistrictFallback)=>{
+   return (Array.isArray(rows)?rows:[]).map(feature=>{
+    const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
+    const stateText=normalize(props.state||props.state_name||props.region||"");
+    const countryCode=String(props.countrycode||"").toLowerCase(),countryText=normalize(props.country||"");
+    const postcode=normalize(props.postcode||"");
+    const fields=[props.name,props.locality,props.suburb,props.village,props.town,props.city,props.district,props.county].map(normalize).filter(Boolean);
+    const officeMatch=officeNames.some(name=>{const key=normalize(name);return key&&fields.some(value=>value===key||value.includes(key)||key.includes(value));});
+    const postcodeMatch=postcode===normalize(pin);
+    const districtText=normalize([props.county,props.city,props.district,props.locality,props.suburb,props.village,props.town,props.name].filter(Boolean).join(" "));
+    const districtMatch=!!expectedDistrict&&districtText.includes(expectedDistrict);
+    const stateMatch=!!expectedState&&(!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText));
+    const countryMatch=countryCode==="in"||countryText==="india"||(!countryCode&&!countryText&&stateMatch);
+    const score=(postcodeMatch?1000:0)+(officeMatch?200:0)+(districtMatch?50:0)+(stateMatch?25:0);
+    return {coords,officeMatch,postcodeMatch,districtMatch,stateMatch,countryMatch,score};
+   }).filter(item=>{
+    if(!Array.isArray(item.coords)||item.coords.length<2||!validIndiaPoint(Number(item.coords[1]),Number(item.coords[0])))return false;
+    if(!item.countryMatch||!item.stateMatch)return false;
+    return item.officeMatch||item.postcodeMatch||(allowDistrictFallback&&item.districtMatch);
+   }).sort((a,b)=>b.score-a.score);
+  };
+  const exactQueries=Array.from(new Set([
+   [officeName,district,region,"India"],
+   [officeName,region,"India"],
+   [pin,officeName,district,region,"India"],
+   [pin,district,region,"India"]
+  ].map(parts=>parts.filter(Boolean).join(", "))));
+  let candidates=[];
+  for(const query of exactQueries){
    if(!isCurrent())return false;
-   if(postalPoint){resolvedCoords=[postalPoint.lng,postalPoint.lat];postalCoordinateFallback=true;}
+   try{
+    const response=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
+    if(!isCurrent())return false;
+    if(!response.ok)continue;
+    const payload=await response.json();if(!isCurrent())return false;
+    candidates=matchesFromPhoton(payload&&payload.features,false);
+    if(candidates.length)break;
+   }catch(error){if(error&&error.name==="AbortError")return false;console.info("PIN locality geocoding attempt unavailable:",error);}
   }
-  if(!resolvedCoords)throw new Error("PIN "+pin+" was verified for "+officeName+", "+region+", but neither the map index nor the postal coordinate record returned a matching post office. Try the locality name or retry shortly.");
-  const lat=Number(resolvedCoords[1]),lng=Number(resolvedCoords[0]),label=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  let resolvedCoords=candidates.length?candidates[0].coords:null;
+  let coordinateSource="post-office";
+  if(!resolvedCoords){
+   const postalPoint=await lookupPostalApiCoordinates(pin,offices,region,district,signal);
+   if(!isCurrent())return false;
+   if(postalPoint){resolvedCoords=[postalPoint.lng,postalPoint.lat];coordinateSource="postal-coordinate";}
+  }
+  // A genuine PIN can lack an OSM feature at post-office level. Use only
+  // a geocoded feature in the verified district + state as the final fallback.
+  if(!resolvedCoords&&district){
+   const districtQuery=[district,region,"India"].filter(Boolean).join(", ");
+   try{
+    const response=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(districtQuery),{headers:{Accept:"application/json"},signal});
+    if(!isCurrent())return false;
+    if(response.ok){
+     const payload=await response.json();if(!isCurrent())return false;
+     candidates=matchesFromPhoton(payload&&payload.features,true);
+     if(candidates.length){resolvedCoords=candidates[0].coords;coordinateSource="district-centre";}
+    }
+   }catch(error){if(error&&error.name==="AbortError")return false;console.info("Verified district-centre fallback unavailable:",error);}
+  }
+  if(!resolvedCoords)throw new Error("PIN "+pin+" was verified for "+officeName+", "+district+", "+region+", but no matching map coordinates are available yet. The PIN is valid; try Select on Map and search the locality.");
+  const lat=Number(resolvedCoords[1]),lng=Number(resolvedCoords[0]);
   state.pinCenter={lat,lng};state.resolvedPincode=pin;setLocation(label,lat,lng,pin,false);
   if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
-  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+". The map is opening at this matching locality"+(postalCoordinateFallback?" using the postal-office coordinate record":"")+". This is an approximate post-office centre; confirm the exact property entrance before submitting.";
-  message("PIN verified. Opening the map at "+label+". Confirm the exact property entrance before submitting.","success");
+  const note=coordinateSource==="district-centre"?" The map is centred on the verified district as an approximate starting point; adjust to the exact property entrance.":coordinateSource==="postal-coordinate"?" The map is centred using the PIN-specific postal coordinate record.":" The map is centred on a matching post-office map feature.";
+  if(status)status.textContent="✓ PIN "+pin+" verified · "+label+"."+note+" Confirm the exact property entrance before submitting.";
+  message("PIN verified. "+label+" has been placed on the map. Review and confirm the exact property entrance.","success");
   openMap();
   return true;
  }catch(error){
@@ -330,8 +381,7 @@ async function resolveStudioPincode(rawPin){
   updateLocationStatus();
   if(status)status.textContent=error.message||"Could not locate this PIN. The old map pin was cleared; enter the locality manually or use GPS.";
   return false;
- }
-}
+ }}
 function escapeHtml(value){
  return String(value??"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/'/g,"&#039;");
 }

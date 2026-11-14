@@ -151,3 +151,23 @@ test("owner PIN map search label follows the latest verified PIN and clears stal
   assert.ok(clearBlock.includes('const searchInput=$("gdrOwnerMapSearch");'));
   assert.ok(clearBlock.includes('if(searchInput)searchInput.value="";'));
 });
+
+test("postal coordinate fallback accepts rows without a repeated PIN and ranks all post offices from a PIN-scoped lookup",()=>{
+  assert.match(studio,/const rowPin=String\(row&&\(row\.pincode\|\|row\.pin_code\|\|row\.postal_code\)\|\|pin\)/);
+  assert.match(map,/const rowPin=String\(row&&\(row\.pincode\|\|row\.pin_code\|\|row\.postal_code\)\|\|pin\)/);
+  assert.match(studio,/const officeNames=\(Array\.isArray\(officeRecords\)\?officeRecords:\[officeRecords\]\)/);
+  assert.match(map,/const officeNames=\(Array\.isArray\(officeRecords\)\?officeRecords:\[officeRecords\]\)/);
+  assert.match(studio,/const nameScore=officeKeys\.reduce/);
+  assert.match(map,/const nameScore=officeKeys\.reduce/);
+});
+
+test("all valid India Post PINs try locality variants, postal coordinates and verified district fallback",()=>{
+  assert.match(studio,/const exactQueries=Array\.from\(new Set\(/);
+  assert.match(studio,/lookupPostalApiCoordinates\(pin,offices,region,district,signal\)/);
+  assert.match(studio,/matchesFromPhoton\(payload&&payload\.features,true\)/);
+  assert.match(map,/const queries=Array\.from\(new Set\(/);
+  assert.match(map,/lookupPostalApiCoordinates\(pin,offices,expectedState,expectedDistrict\)/);
+  assert.match(map,/postalMatches\(districtFeatures,true\)/);
+  assert.match(studio,/state\.resolvedPincode=pin;setLocation\(label,lat,lng,pin,false\)/);
+  assert.match(map,/const label=\/\^\\\\d\{6\}\$\/\.test\(q\)\?preferredLabel/);
+});
