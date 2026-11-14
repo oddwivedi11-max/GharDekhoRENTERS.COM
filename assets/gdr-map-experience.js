@@ -628,13 +628,14 @@
         const rowState=normalizedText(row&&(row.state||row.state_name||row.stateName)||"");
         const rowDistrict=normalizedText(row&&(row.district||row.district_name||row.districtName)||"");
         const lat=Number(row&&row.latitude),lng=Number(row&&row.longitude);
-        const nameScore=officeKeys.reduce((best,key)=>{
+        const nameScore=officeKeys.reduce((best,key,index)=>{
           if(!rowName||!key)return best;
-          if(rowName===key)return Math.max(best,100);
-          if(rowName.includes(key)||key.includes(rowName))return Math.max(best,65);
+          const preferredOfficeBonus=Math.max(0,200-index*20);
+          if(rowName===key)return Math.max(best,preferredOfficeBonus+30);
+          if(rowName.includes(key)||key.includes(rowName))return Math.max(best,preferredOfficeBonus+20);
           const parts=key.split(" ").filter(part=>part.length>=4);
           const overlap=parts.filter(part=>rowName.includes(part)).length;
-          return Math.max(best,parts.length?Math.round(overlap/parts.length*40):0);
+          return Math.max(best,parts.length?preferredOfficeBonus+Math.round(overlap/parts.length*10):0);
         },0);
         const stateMatch=!expectedState||!rowState||rowState===expectedState||rowState.includes(expectedState)||expectedState.includes(rowState);
         const districtMatch=!expectedDistrict||!rowDistrict||rowDistrict===expectedDistrict||rowDistrict.includes(expectedDistrict)||expectedDistrict.includes(rowDistrict);
@@ -710,7 +711,8 @@
         }catch(error){console.warn("PIN geocoding attempt failed:",error);}
       }
       if(!features.length){
-        const postalPoint=await lookupPostalApiCoordinates(pin,offices,expectedState,expectedDistrict);
+        const prioritizedOffices=[office,...offices.filter(item=>item!==office)];
+        const postalPoint=await lookupPostalApiCoordinates(pin,prioritizedOffices,expectedState,expectedDistrict);
         if(postalPoint){
           features=[{geometry:{coordinates:[postalPoint.lng,postalPoint.lat]},properties:{name:postalPoint.officeName||locality,locality:locality,city:expectedDistrict,district:expectedDistrict,state:postalPoint.state||expectedState,postcode:pin,country:"India",countrycode:"in"}}];
           usedPostalCoordinateFallback=true;

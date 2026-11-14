@@ -173,3 +173,10 @@ test("all valid India Post PINs try locality variants, postal coordinates and ve
   assert.match(studio,/state\.resolvedPincode=pin;setLocation\(label,lat,lng,pin,false\)/);
   assert.ok(map.includes(String.raw`const label=/^\d{6}$/.test(q)?preferredLabel:`));
 });
+
+test("postal coordinate fallback prioritises the India Post-selected delivery office",()=>{
+  assert.match(studio,/const prioritizedOffices=\\[office,\\.\\.\\.offices\\.filter\\(item=>item!==office\\)\\]/);
+  assert.match(map,/const prioritizedOffices=\\[office,\\.\\.\\.offices\\.filter\\(item=>item!==office\\)\\]/);
+  assert.match(studio,/const preferredOfficeBonus=Math\\.max\\(0,200-index\\*20\\)/);
+  assert.match(map,/const preferredOfficeBonus=Math\\.max\\(0,200-index\\*20\\)/);
+});
