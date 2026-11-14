@@ -96,3 +96,10 @@ test("dashboard boot observer cannot retrigger itself from presentation writes",
  assert.match(suiteV2,/observe\(document\.body,\{subtree:true,childList:true\}\)/);
  assert.doesNotMatch(suiteV2,/attributes:true,attributeFilter:\["class","style"\]/);
 });
+
+
+test("legacy rental bundle cannot recreate the Nearby card after the v2 card exists",()=>{
+ assert.match(suite,/root\.querySelector\("\.gdr-owner-nearby-entry"\)/);
+ assert.doesNotMatch(suite,/new MutationObserver\(boot\)\.observe\(document\.body/);
+ assert.doesNotMatch(suite,/attributes:true,attributeFilter:\["class","style"\]/);
+});
