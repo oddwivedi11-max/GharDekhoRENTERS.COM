@@ -236,37 +236,22 @@ function addOwnerNearbyAction(){
 }
 
 function removeDuplicateReportButtons(){
- // Retired Report a Problem action is removed only from the Owner Dashboard.
- // Renter Support and all contact/help links outside Owner remain untouched.
+ // Remove only explicitly marked legacy owner actions. Avoid scanning the
+ // full dashboard or reading innerText, which forces expensive layout work.
  var scope=$("#ownerDashboard");
  if(!scope)return;
- var removeTarget=function(node){
-  if(!node||node===scope||!node.isConnected)return;
-  var target=node,parent=node.parentElement;
-  while(parent&&parent!==scope){
-   var label=String(parent.innerText||parent.textContent||"").replace(/\s+/g," ").trim();
+ var selector="#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]";
+ Array.from(scope.querySelectorAll(selector)).forEach(function(node){
+  if(!node.isConnected)return;
+  var target=node,parent=node.parentElement,depth=0;
+  while(parent&&parent!==scope&&depth<3){
+   var label=String(parent.textContent||"").replace(/\s+/g," ").trim();
    var actionCount=parent.querySelectorAll("a,button,[role='button'],[tabindex],[onclick]").length;
    if(/\breport\s+a\s+problem\b/i.test(label)&&label.length<=220&&actionCount<=1){
-    target=parent;parent=parent.parentElement;
+    target=parent;parent=parent.parentElement;depth++;
    }else break;
   }
   if(target&&target!==scope)target.remove();
- };
- Array.from(scope.querySelectorAll("#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]")).forEach(removeTarget);
- // Also catch the legacy tile when it is rendered as a non-button div or
- // its wrapper/ID changes. Match the short visible label, not broad sections.
- var candidates=Array.from(scope.querySelectorAll("*")).filter(function(node){
-  if(node.children.length>3)return false;
-  var label=String(node.innerText||node.textContent||"").replace(/\s+/g," ").trim();
-  return label.length>0&&label.length<=220&&/\breport\s+a\s+problem\b/i.test(label);
- });
- candidates.sort(function(a,b){
-  return String(a.innerText||a.textContent||"").length-String(b.innerText||b.textContent||"").length;
- });
- candidates.forEach(function(node){
-  if(!node.isConnected)return;
-  var label=String(node.innerText||node.textContent||"").replace(/\s+/g," ").trim();
-  if(/\breport\s+a\s+problem\b/i.test(label)&&label.length<=220)removeTarget(node);
  });
 }
 function boot(){addRenter();addOwnerNearbyAction();removeDuplicateReportButtons();var obsoleteOwnerPayments=$("gdrOwnerPaymentsCard");if(obsoleteOwnerPayments)obsoleteOwnerPayments.remove();}
@@ -278,14 +263,17 @@ document.addEventListener("click",function(event){
  if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function")window.GDRMapExperience.openOwnerNearbyMap();
  else toast("Nearby map is loading. Please try again in a moment.",true);
 },true);
+function isDashboardMountNode(node){
+ if(!node||node.nodeType!==1)return false;
+ var selector=".owner-dashboard-quick-grid,.renter-dashboard-actions,#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem],#gdrOwnerPaymentsCard";
+ return !!((node.matches&&node.matches(selector))||(node.querySelector&&node.querySelector(selector)));
+}
 function hasDashboardMutation(records){
+ // Only react when a dashboard mount-point or an explicitly retired action
+ // is inserted. Property cards, counter updates, animations and map renders
+ // must not schedule a full dashboard boot.
  return records.some(function(record){
-  var target=record.target;
-  if(target&&target.nodeType!==1)target=target.parentElement;
-  if(target&&target.closest&&target.closest("#ownerDashboard,#renterDashboard"))return true;
-  return Array.from(record.addedNodes||[]).some(function(node){
-   return node.nodeType===1&&((node.matches&&node.matches("#ownerDashboard,#renterDashboard"))||(node.querySelector&&node.querySelector("#ownerDashboard,#renterDashboard")));
-  });
+  return Array.from(record.addedNodes||[]).some(isDashboardMountNode);
  });
 }
 var bootQueued=false;

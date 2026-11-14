@@ -79,8 +79,11 @@ test("Retired Report a Problem tile is removed only inside Owner dashboard",()=>
  assert.match(removal,/report\\s\+a\\s\+problem/i);
  assert.match(removal,/target&&target!==scope\)target\.remove\(\)/);
  assert.match(removal,/candidates=Array\.from\(scope\.querySelectorAll\("\*"\)\)/);
+ assert.match(rentalSuite,/function isDashboardMountNode\(node\)/);
  assert.match(rentalSuite,/function hasDashboardMutation\(records\)/);
- assert.match(rentalSuite,/if\(hasDashboardMutation\(records\)\)scheduleDashboardBoot\(\)/);
+ assert.match(rentalSuite,/record\.addedNodes/);
+ assert.match(rentalSuite,/some\(isDashboardMountNode\)/);
  assert.match(rentalSuite,/observe\(document\.body,\{subtree:true,childList:true\}\)/);
+ assert.doesNotMatch(rentalSuite,/querySelectorAll\("\*"\)/);
  assert.doesNotMatch(rentalSuite,/attributes:true,attributeFilter:\["class","style"\]/);
 });

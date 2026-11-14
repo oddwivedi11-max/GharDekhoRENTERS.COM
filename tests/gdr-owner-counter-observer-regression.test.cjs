@@ -37,3 +37,16 @@ test("renter count safely handles a missing occupancy list",()=>{
  assert.match(body,/document\.querySelectorAll\(/,"renterCount must count a collection safely");
  assert.doesNotMatch(body,/document\.querySelector\([^)]*\)\.length/,"renterCount must not read length from a single element");
 });
+
+
+test("owner dashboard observer batches only relevant mutations",()=>{
+ assert.match(source,/function hasRelevantOwnerMutation\(records\)/);
+ assert.match(source,/function scheduleOwnerCountRefresh\(\)/);
+ assert.match(source,/if\(!hasRelevantOwnerMutation\(records\)\)return/);
+ assert.match(source,/window\.requestAnimationFrame\(run\)/);
+ assert.match(source,/observer\.observe\(dash,\{childList:true,subtree:true,characterData:true\}\)/);
+});
+test("empty-state messages do not rewrite identical text during observer refresh",()=>{
+ assert.match(source,/empty\.textContent!==emptyMessage/);
+ assert.match(source,/empty\.textContent!=="No pending visit requests right now\."/);
+});

@@ -2,7 +2,7 @@
 "use strict";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
-let observer=null;
+let observer=null,observerFrame=0;
 let insightCache=null,insightCacheAt=0,insightLoading=null,insightOwnerId=null,insightMode="analytics",insightRange="monthly";
 const moduleMeta={
  properties:{eyebrow:"GDR PROPERTIES",title:"My Properties",subtitle:"Manage your listings, availability and property details."},
@@ -436,7 +436,8 @@ function refreshOwnerPropertyFilter(dash){
  let empty=container.querySelector("[data-gdr-filter-empty]");
  if(!empty){empty=document.createElement("p");empty.className="dashboard-empty gdr-owner-filter-empty";empty.dataset.gdrFilterEmpty="1";empty.hidden=true;container.appendChild(empty);}
  empty.hidden=!(selected!=="all"&&visible===0);
- if(!empty.hidden)empty.textContent=selected==="available"?"No available properties right now.":"No occupied properties right now.";
+ const emptyMessage=selected==="available"?"No available properties right now.":"No occupied properties right now.";
+ if(!empty.hidden&&empty.textContent!==emptyMessage)empty.textContent=emptyMessage;
 }
 function refreshOwnerVisitFilter(dash){
  const container=dash&&dash.querySelector("#ownerVisitsContainer");
@@ -465,7 +466,7 @@ function refreshOwnerVisitFilter(dash){
  const showEmpty=selected==="pending"&&visible===0&&!loadIssue;
  if(noRequests)noRequests.hidden=showEmpty;
  empty.hidden=!showEmpty;
- if(showEmpty)empty.textContent="No pending visit requests right now.";
+ if(showEmpty&&empty.textContent!=="No pending visit requests right now.")empty.textContent="No pending visit requests right now.";
 }
 function applyOwnerDashboardStatAction(dash,action){
  if(!dash)return;
@@ -585,13 +586,39 @@ function styles(){
  if(link.getAttribute("href")!==href)link.setAttribute("href",href);
  link.media="all";
 }
+function hasRelevantOwnerMutation(records){
+ const selector="#ownerPropertyCount,#ownerPendingVisitCount,#ownerPropertiesContainer,#ownerVisitsContainer,#ownerOccupancyContainer";
+ return records.some(record=>{
+  let target=record.target;
+  if(target&&target.nodeType!==1)target=target.parentElement;
+  if(target&&target.closest&&target.closest(selector))return true;
+  return Array.from(record.addedNodes||[]).some(node=>{
+   if(!node||node.nodeType!==1)return false;
+   return (node.matches&&node.matches(selector))||(node.querySelector&&node.querySelector(selector));
+  });
+ });
+}
+function scheduleOwnerCountRefresh(){
+ if(observerFrame)return;
+ const run=()=>{
+  observerFrame=0;
+  const current=$("#ownerDashboard");if(!current)return;
+  ensureHome(current);updateCounts(current);
+ };
+ observerFrame=typeof window.requestAnimationFrame==="function"
+  ?window.requestAnimationFrame(run)
+  :window.setTimeout(run,16);
+}
 function init(){
  styles();
  bindLogout();
  const dash=$("#ownerDashboard");if(!dash)return;
  ensureHome(dash);bind(dash);setMode(dash,"home");updateCounts(dash);
  if(observer)observer.disconnect();
- observer=new MutationObserver(()=>{const current=$("#ownerDashboard");if(!current)return;ensureHome(current);updateCounts(current);});
+ observer=new MutationObserver(records=>{
+  if(!hasRelevantOwnerMutation(records))return;
+  scheduleOwnerCountRefresh();
+ });
  observer.observe(dash,{childList:true,subtree:true,characterData:true});
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",init,{once:true});else init();

@@ -89,12 +89,19 @@ test("Nearby Properties launcher has a high-contrast 3D visual hierarchy",()=>{
 });
 
  
-test("dashboard boot observer cannot retrigger itself from presentation writes",()=>{
+test("dashboard boot observer only reacts to mount-point insertions",()=>{
+ assert.match(suiteV2,/function isDashboardMountNode\(node\)/);
  assert.match(suiteV2,/function hasDashboardMutation\(records\)/);
+ assert.match(suiteV2,/record\.addedNodes/);
+ assert.match(suiteV2,/some\(isDashboardMountNode\)/);
  assert.match(suiteV2,/function scheduleDashboardBoot\(\)/);
- assert.match(suiteV2,/if\(hasDashboardMutation\(records\)\)scheduleDashboardBoot\(\)/);
  assert.match(suiteV2,/observe\(document\.body,\{subtree:true,childList:true\}\)/);
  assert.doesNotMatch(suiteV2,/attributes:true,attributeFilter:\["class","style"\]/);
+ const start=suiteV2.indexOf("function removeDuplicateReportButtons()");
+ const end=suiteV2.indexOf("function boot()",start);
+ const cleanup=suiteV2.slice(start,end);
+ assert.doesNotMatch(cleanup,/querySelectorAll\("\*"\)/);
+ assert.doesNotMatch(cleanup,/innerText/);
 });
 
 
