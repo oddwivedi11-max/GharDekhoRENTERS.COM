@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-studio-pin-coordinate-fallback3";
+const VERSION="20261115-india-pin-all-offices1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
