@@ -75,7 +75,11 @@ test("Retired Report a Problem tile is removed only inside Owner dashboard",()=>
  const removal=rentalSuite.slice(start,rentalSuite.indexOf("function boot()",start));
  assert.notEqual(start,-1);
  assert.match(removal,/var scope=\$\("#ownerDashboard"\)/);
- assert.match(removal,/scope\.querySelectorAll\("#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"\)/);
+ assert.match(removal,/var selector="#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"/);
+ assert.match(removal,/scope\.querySelectorAll\(selector\)/);
+ assert.doesNotMatch(removal,/querySelectorAll\("\*"\)/);
+ assert.doesNotMatch(removal,/\.innerText/);
+ assert.match(removal,/parent\.textContent/);
  assert.match(removal,/report\\s\+a\\s\+problem/i);
  assert.match(removal,/target&&target!==scope\)target\.remove\(\)/);
  assert.match(removal,/candidates=Array\.from\(scope\.querySelectorAll\("\*"\)\)/);
