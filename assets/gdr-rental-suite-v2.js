@@ -195,12 +195,16 @@ function addOwnerNearbyAction(){
   button=document.createElement("button");
   button.id="gdrOwnerNearbyOpen";
  }
- // A legacy dashboard script may create this button first. Always refresh its
- // presentation so the premium launcher is consistent regardless of load order.
- button.type="button";
- button.className="gdr-owner-nearby-inline";
- button.innerHTML='<span class="gdr-nearby-btn-icon" aria-hidden="true">⌖</span><span class="gdr-nearby-btn-copy"><strong>Explore Nearby Properties</strong><small>Discover homes around your selected location</small></span><span class="gdr-nearby-btn-arrow" aria-hidden="true">↗</span>';
- button.setAttribute("aria-label","Open nearby properties map");
+ // A legacy dashboard script may create this button first. Upgrade it once;
+ // repeated MutationObserver callbacks must never rewrite the same DOM subtree.
+ if(button.type!=="button")button.type="button";
+ if(button.className!=="gdr-owner-nearby-inline")button.className="gdr-owner-nearby-inline";
+ if(button.dataset.gdrNearbyPremiumMarkup!=="v1"){
+  button.innerHTML='<span class="gdr-nearby-btn-icon" aria-hidden="true">⌖</span><span class="gdr-nearby-btn-copy"><strong>Explore Nearby Properties</strong><small>Discover homes around your selected location</small></span><span class="gdr-nearby-btn-arrow" aria-hidden="true">↗</span>';
+  button.dataset.gdrNearbyPremiumMarkup="v1";
+ }
+ var nearbyAriaLabel="Open nearby properties map";
+ if(button.getAttribute("aria-label")!==nearbyAriaLabel)button.setAttribute("aria-label",nearbyAriaLabel);
  if(button.parentElement!==card)card.appendChild(button);
  var oldCard=$("gdrOwnerNearbyCard");if(oldCard)oldCard.remove();
  if(button.dataset.gdrNearbyBound==="1")return;
@@ -274,7 +278,37 @@ document.addEventListener("click",function(event){
  if(window.GDRMapExperience&&typeof window.GDRMapExperience.openOwnerNearbyMap==="function")window.GDRMapExperience.openOwnerNearbyMap();
  else toast("Nearby map is loading. Please try again in a moment.",true);
 },true);
-if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
-new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
+function hasDashboardMutation(records){
+ return records.some(function(record){
+  var target=record.target;
+  if(target&&target.nodeType!==1)target=target.parentElement;
+  if(target&&target.closest&&target.closest("#ownerDashboard,#renterDashboard"))return true;
+  return Array.from(record.addedNodes||[]).some(function(node){
+   return node.nodeType===1&&((node.matches&&node.matches("#ownerDashboard,#renterDashboard"))||(node.querySelector&&node.querySelector("#ownerDashboard,#renterDashboard")));
+  });
+ });
+}
+var bootQueued=false;
+function scheduleDashboardBoot(){
+ if(bootQueued)return;
+ bootQueued=true;
+ var run=function(){bootQueued=false;boot();};
+ if(typeof window.requestAnimationFrame==="function")window.requestAnimationFrame(run);else window.setTimeout(run,16);
+}
+function observeDashboardMutations(){
+ if(!document.body||window.__gdrRentalSuiteV2Observer)return;
+ window.__gdrRentalSuiteV2Observer=new MutationObserver(function(records){
+  if(hasDashboardMutation(records))scheduleDashboardBoot();
+ });
+ // Only dashboard subtree changes matter. Ignore global class/style animation
+ // churn so the homepage cannot trigger repeated full-dashboard setup work.
+ window.__gdrRentalSuiteV2Observer.observe(document.body,{subtree:true,childList:true});
+}
+if(document.readyState==="loading"){
+ document.addEventListener("DOMContentLoaded",function(){boot();observeDashboardMutations();},{once:true});
+}else{
+ boot();
+ observeDashboardMutations();
+}
 })();
 // Cache release: owner report tile removal v2.
