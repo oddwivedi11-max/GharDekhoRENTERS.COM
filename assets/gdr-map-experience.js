@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-owner-map-raster-auto1";
+  const MAP_PIN_VERSION="20261115-pin-suboffice-locality2";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -554,6 +554,15 @@
       return {feature,score,index};
     }).sort((a,b)=>a.score-b.score||a.index-b.index).map(item=>item.feature);
   }
+  function preferredPinOffice(offices){
+    const rows=Array.isArray(offices)?offices.filter(item=>item&&item.Name):[];
+    return rows.find(item=>/sub office/i.test(String(item.BranchType||item.OfficeType||"")))
+      ||rows.find(item=>/branch office/i.test(String(item.BranchType||item.OfficeType||""))&&/delivery/i.test(String(item.DeliveryStatus||"")))
+      ||rows.find(item=>/delivery/i.test(String(item.DeliveryStatus||"")))
+      ||rows.find(item=>/branch office/i.test(String(item.BranchType||item.OfficeType||"")))
+      ||rows.find(item=>/head office/i.test(String(item.BranchType||item.OfficeType||"")))
+      ||rows[0];
+  }
   async function resolveMapQuery(query){
     const q=String(query||"").trim();
     if(!q)throw new Error("Enter a city, locality or six-digit PIN code first.");
@@ -565,31 +574,36 @@
       const data=await response.json(),record=Array.isArray(data)?data[0]:null;
       const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice.filter(x=>x&&x.Name):[];
       if(!offices.length)throw new Error("PIN "+pin+" was not found. Check the six digits and try again.");
-      const office=offices.find(x=>/head office/i.test(String(x.BranchType||x.OfficeType||"")))
-        ||offices.find(x=>/sub office/i.test(String(x.BranchType||x.OfficeType||"")))
-        ||offices.find(x=>/delivery/i.test(String(x.DeliveryStatus||"")))
-        ||offices[0];
+       const office=preferredPinOffice(offices);
       expectedDistrict=String(office.District||office.Block||"").trim();
       expectedState=String(office.State||"").trim();
       const locality=String(office.Name||expectedDistrict).trim();
       preferredLabel=[locality,expectedDistrict,expectedState,"India"].filter(Boolean).join(", ");
       setStatus("PIN "+pin+" belongs to "+[locality,expectedDistrict,expectedState].filter(Boolean).join(", ")+". Finding its map coordinates…");
-      const district=normalizedText(expectedDistrict),stateName=normalizedText(expectedState);
-      const postalMatches=rows=>(Array.isArray(rows)?rows:[]).filter(feature=>{
-        const p=feature&&feature.properties||{},postcode=normalizedText(p.postcode),country=normalizedText(p.country);
-        const stateFields=[p.state,p.state_name,p.region].map(normalizedText).filter(Boolean);
-        const districtFields=[p.district,p.county,p.city,p.locality,p.name,p.state_district].map(normalizedText).filter(Boolean);
-        if(country&&country!=="india"&&!country.includes("india"))return false;
-        if(postcode&&postcode!==normalizedText(pin))return false;
-        if(stateName&&stateFields.length&&!stateFields.some(value=>value.includes(stateName)||stateName.includes(value)))return false;
-        if(district&&districtFields.length&&!districtFields.some(value=>value.includes(district)||district.includes(value)))return false;
-        return true;
-      });
-      const queries=[
-        [locality,expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
-        [expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
-        [pin,expectedDistrict,expectedState,"India"].filter(Boolean).join(", ")
-      ];
+       const district=normalizedText(expectedDistrict),stateName=normalizedText(expectedState),officeName=normalizedText(locality);
+       const postalMatches=rows=>(Array.isArray(rows)?rows:[]).map(feature=>{
+         const p=feature&&feature.properties||{},postcode=normalizedText(p.postcode),country=normalizedText(p.country),countryCode=String(p.countrycode||"").toLowerCase();
+         const stateFields=[p.state,p.state_name,p.region].map(normalizedText).filter(Boolean);
+         const localityFields=[p.name,p.locality,p.suburb,p.village,p.town,p.city,p.district,p.county].map(normalizedText).filter(Boolean);
+         const officeMatch=localityFields.some(value=>value===officeName||value.includes(officeName)||officeName.includes(value));
+         const postcodeMatch=postcode===normalizedText(pin);
+         const stateMatch=!stateName||!stateFields.length||stateFields.some(value=>value.includes(stateName)||stateName.includes(value));
+         const countryMatch=countryCode==="in"||country==="india";
+         const districtFields=[p.district,p.county,p.city,p.locality,p.name,p.state_district].map(normalizedText).filter(Boolean);
+         const districtMatch=!district||districtFields.some(value=>value.includes(district)||district.includes(value));
+         return {feature,officeMatch,postcodeMatch,stateMatch,countryMatch,score:(postcodeMatch?1000:0)+(officeMatch?100:0)+(stateMatch?25:0)+(districtMatch?10:0)};
+       }).filter(item=>{
+         if(!item.countryMatch||!item.stateMatch)return false;
+         const coords=item.feature&&item.feature.geometry&&item.feature.geometry.coordinates;
+         if(!Array.isArray(coords)||!validPoint(coords[1],coords[0]))return false;
+         return item.officeMatch||item.postcodeMatch;
+       }).sort((a,b)=>b.score-a.score).map(item=>item.feature);
+       const queries=[
+         [locality,expectedState,"India"].filter(Boolean).join(", "),
+         [locality,expectedDistrict,expectedState,"India"].filter(Boolean).join(", "),
+         [pin,locality,expectedState,"India"].filter(Boolean).join(", ")
+       ];
+
       for(const candidate of queries){
         try{
           const matches=postalMatches(await photonGeocode(candidate));
