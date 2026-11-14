@@ -40,7 +40,7 @@ jobs:
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
               ("gdr-admin-command-center.js", "20261113-owner-report-launcher-remove1"),
-              ("gdr-rental-suite-v2.js", "20261113-nearby-button-3d1"),
+              ("gdr-rental-suite-v2.js", "20261114-nearby-loop-guard1"),
               ("gdr-owner-payments.js", "20261112-payment-return1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
               ("gdr-owner-command-center-hotfix.js", "20261113-owner-stat-actions3"),
@@ -388,7 +388,7 @@ jobs:
           grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-root.html || grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-login.html || grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-index.html
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-root.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-login.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
           grep -q 'gdrxSupport' /tmp/gdr-live-root.html || grep -q 'gdrxSupport' /tmp/gdr-live-login.html || grep -q 'gdrxSupport' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions3' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions3' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261113-owner-stat-actions3' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-root.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-login.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-index.html
@@ -398,7 +398,7 @@ jobs:
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'data-gdr-owner-stat-action' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'document.querySelectorAll("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card").length' /tmp/gdr-owner-command-center-hotfix.js
-          grep -Fq 'gdr-owner-command-center.css?v=20261113-nearby-button-3d1' /tmp/gdr-owner-command-center-hotfix.js
+          grep -Fq 'gdr-owner-command-center.css?v=20261114-nearby-loop-guard1' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'function refreshOwnerVisitFilter' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261109-renter-actions-functional1" -o /tmp/gdr-owner-renter-page.js
@@ -415,7 +415,7 @@ jobs:
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
           grep -q 'previousBodyOverflow' /tmp/gdr-owner-current-renters-dashboard.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261113-nearby-button-3d1" -o /tmp/gdr-owner-command-center.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261114-nearby-loop-guard1" -o /tmp/gdr-owner-command-center.css
           grep -q "#e8ffb5" /tmp/gdr-owner-command-center.css
           grep -q "gdr-nearby-btn-arrow" /tmp/gdr-owner-command-center.css
           grep -q '#e8d18a' /tmp/gdr-owner-command-center.css
@@ -441,7 +441,7 @@ jobs:
           grep -q 'List Your Property' /tmp/gdr-live-root.html || grep -q 'List Your Property' /tmp/gdr-live-login.html || grep -q 'List Your Property' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.js?v=20261113-pin-auto-map1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261113-pin-auto-map1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261113-pin-auto-map1' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261112-touch-swipe1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261112-touch-swipe1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261112-touch-swipe1' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-root.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-login.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-root.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-login.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261113-pin-auto-map1" -o /tmp/gdr-property-studio.js
@@ -486,9 +486,13 @@ jobs:
           grep -q 'autocomplete="off"' /tmp/gdr-property-studio.html
           grep -q 'value="hi-IN-hinglish"' /tmp/gdr-property-studio.html
           grep -q 'gdr-studio-mic-button' /tmp/gdr-property-studio.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261113-nearby-button-3d1" -o /tmp/gdr-rental-suite.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261114-nearby-loop-guard1" -o /tmp/gdr-rental-suite.js
           grep -q "Explore Nearby Properties" /tmp/gdr-rental-suite.js
           grep -q "gdr-nearby-btn-copy" /tmp/gdr-rental-suite.js
+           grep -q "function hasDashboardMutation" /tmp/gdr-rental-suite.js
+           grep -q 'if(button.dataset.gdrNearbyPremiumMarkup!=="v1")' /tmp/gdr-rental-suite.js
+           grep -q 'observe(document.body,{subtree:true,childList:true})' /tmp/gdr-rental-suite.js
+           if grep -q 'attributes:true,attributeFilter' /tmp/gdr-rental-suite.js; then echo "Global class/style observer can retrigger dashboard boot."; exit 1; fi
           grep -q 'renter_submit_move_out_notice' /tmp/gdr-rental-suite.js
           grep -Fq 'scope.querySelectorAll("#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]")' /tmp/gdr-rental-suite.js
           grep -q 'function removeDuplicateReportButtons' /tmp/gdr-rental-suite.js
