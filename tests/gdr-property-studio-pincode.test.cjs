@@ -138,3 +138,8 @@ test("nearby map uses the current free endpoint and cannot remain loading foreve
   assert.match(map,/gdr:poi-nearby:v2:/);
   assert.match(map,/tags\.place/);
 });
+
+test("owner PIN map search label follows the latest verified PIN and clears stale labels on PIN changes",()=>{
+  assert.match(map,/function centerOwnerMapPicker\\(lat,lng,label\\)[\\s\\S]*?const searchInput=\\$\\("gdrOwnerMapSearch"\\);[\\s\\S]*?if\\(searchInput\\)searchInput\\.value=point\\.label/);
+  assert.match(map,/function clearOwnerMapSelectionForPinChange\\(\\)[\\s\\S]*?const searchInput=\\$\\("gdrOwnerMapSearch"\\);[\\s\\S]*?if\\(searchInput\\)searchInput\\.value=""/);
+});
