@@ -34,7 +34,7 @@ test("changing a PIN clears the previous location and ignores stale lookup respo
   assert.match(studio,/const isCurrent=\(\)=>run===pinResolveSequence/);
   assert.match(studio,/if\(nextPin\.length===6\)pinResolveTimer=setTimeout\(\(\)=>resolveStudioPincode\(nextPin\),450\)/);
   assert.match(studio,/return item\.officeMatch\|\|item\.postcodeMatch/);
-  assert.match(studio,/stateMatch=!expectedState\|\|!stateText/);
+  assert.match(studio,/const stateMatch=!expectedState\\|\\|!rowState\\|\\|rowState===expectedState/);
 });
 
 test("approximate PIN and address coordinates cannot publish before exact entrance confirmation",()=>{
