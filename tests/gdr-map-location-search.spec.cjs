@@ -23,8 +23,8 @@ test.describe('Map location search uses the requested place, not a stale invento
             ok: true,
             json: async () => ({
               features: [
-                { geometry: { coordinates: [82.66, 24.10] }, properties: { city: 'Waidhan', district: 'Singrauli', state: 'Madhya Pradesh', postcode: '486886' } },
-                { geometry: { coordinates: [77.41, 23.23] }, properties: { city: 'Bhopal', district: 'Bhopal', state: 'Madhya Pradesh', postcode: '462022' } }
+                { geometry: { coordinates: [82.66, 24.10] }, properties: { city: 'Waidhan', district: 'Singrauli', state: 'Madhya Pradesh', postcode: '486886', country: 'India', countrycode: 'in' } },
+                { geometry: { coordinates: [77.41, 23.23] }, properties: { city: 'Bhopal', district: 'Bhopal', state: 'Madhya Pradesh', postcode: '462022', country: 'India', countrycode: 'in' } }
               ]
             })
           };
@@ -64,6 +64,37 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(result.lat).toBeCloseTo(23.23, 2);
     expect(result.lng).toBeCloseTo(77.41, 2);
     expect(result.label).toContain('Bhopal');
+  });
+
+  test('PIN 486886 selects Waidhan Sub Office instead of the Sidhi Head Office', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    await page.waitForFunction(() => window.GDRMapExperience && typeof window.GDRMapExperience.resolveMapQuery === 'function');
+
+    const result = await page.evaluate(async () => {
+      const originalFetch = window.fetch.bind(window);
+      window.fetch = async input => {
+        const url = String(input);
+        if (url.includes('api.postalpincode.in/pincode/486886')) {
+          return { ok: true, json: async () => [{ Status: 'Success', PostOffice: [
+            { Name: 'Sidhi H.O.', District: 'Sidhi', State: 'Madhya Pradesh', BranchType: 'Head Office' },
+            { Name: 'Waidhan S.O.', District: 'Sidhi', State: 'Madhya Pradesh', BranchType: 'Sub Office' }
+          ] }] };
+        }
+        if (url.includes('photon.komoot.io/api/')) {
+          return { ok: true, json: async () => ({ features: [
+            { geometry: { coordinates: [77.41, 24.40] }, properties: { city: 'Sidhi', district: 'Sidhi', state: 'Madhya Pradesh', postcode: '486661', country: 'India', countrycode: 'in' } },
+            { geometry: { coordinates: [82.66, 24.10] }, properties: { city: 'Waidhan', district: 'Singrauli', state: 'Madhya Pradesh', postcode: '486886', country: 'India', countrycode: 'in' } },
+            { geometry: { coordinates: [82.67, 24.20] }, properties: { city: 'Singrauli', district: 'Singrauli', state: 'Madhya Pradesh', postcode: '486889', country: 'India', countrycode: 'in' } }
+          ] }) };
+        }
+        return originalFetch(input);
+      };
+      return await window.GDRMapExperience.resolveMapQuery('486886');
+    });
+
+    expect(result.lat).toBeCloseTo(24.10, 2);
+    expect(result.lng).toBeCloseTo(82.66, 2);
+    expect(result.label).toContain('Waidhan');
   });
 
   test('Singrauli PIN 486889 resolves to Singrauli rather than an unrelated Bhopal or Waidhan result', async ({ page }) => {
