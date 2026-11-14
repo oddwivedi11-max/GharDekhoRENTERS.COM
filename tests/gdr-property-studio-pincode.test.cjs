@@ -57,7 +57,7 @@ test("Owner and renter PIN resolvers prefer the principal postal office and rank
   assert.match(studio,/rows\.find\(item=>\/sub office\/i/);
   assert.match(map,/function preferredPinOffice\(offices\)/);
   assert.match(map,/rows\.find\(item=>\/sub office\/i/);
-  assert.match(map,/const postalMatches=rows=>/);
+  assert.match(map,/const postalMatches=\(rows,allowDistrictFallback\)=>/);
   assert.ok(map.includes('const rankingQuery=/^\\d{6}$/.test(q)?preferredLabel:q;'));
   assert.match(map,/renderMarkers\(\[\],INDIA_CENTER\)/);
   assert.match(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
@@ -73,7 +73,8 @@ test("owner PIN map centre is queued until Leaflet initializes and then applied"
 });
 test("six-digit owner listing PIN automatically opens the map at the verified locality",()=>{
   assert.ok(studio.includes("openMap();"));
-  assert.ok(studio.includes("The map is opening at this matching locality"));
+  assert.ok(studio.includes("PIN verified. "));
+  assert.ok(studio.includes("openMap();"));
 });
 test("renter and owner map search fields automatically resolve six-digit PINs",()=>{
   assert.ok(map.includes('if(/^\\d{6}$/.test(q)&&kind==="renter")'));
@@ -104,7 +105,8 @@ test("owner PIN entry ignores stale requests and centers the map at the verified
 test("PIN 486886 prefers Waidhan Sub Office and does not reject a legitimate district-label difference",()=>{
   assert.match(studio,/function preferredPostOffice\(offices\)[\s\S]*?rows\.find\(item=>\/sub office\/i[\s\S]*?rows\.find\(item=>\/head office\/i/);
   assert.match(map,/function preferredPinOffice\(offices\)[\s\S]*?rows\.find\(item=>\/sub office\/i[\s\S]*?rows\.find\(item=>\/head office\/i/);
-  assert.match(studio,/const query=\[officeName,region,"India"\]/);
+  assert.match(studio,/const exactQueries=Array\.from\(new Set\(/);
+  assert.match(studio,/\[officeName,district,region,"India"\]/);
   assert.match(studio,/return item\.officeMatch\|\|item\.postcodeMatch/);
   assert.match(map,/return item\.officeMatch\|\|item\.postcodeMatch/);
 });
@@ -169,5 +171,5 @@ test("all valid India Post PINs try locality variants, postal coordinates and ve
   assert.match(map,/lookupPostalApiCoordinates\(pin,offices,expectedState,expectedDistrict\)/);
   assert.match(map,/postalMatches\(districtFeatures,true\)/);
   assert.match(studio,/state\.resolvedPincode=pin;setLocation\(label,lat,lng,pin,false\)/);
-  assert.match(map,/const label=\/\^\\\\d\{6\}\$\/\.test\(q\)\?preferredLabel/);
+  assert.ok(map.includes(String.raw`const label=/^\d{6}$/.test(q)?preferredLabel:`));
 });
