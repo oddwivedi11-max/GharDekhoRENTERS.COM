@@ -3,6 +3,8 @@ const assert=require("node:assert/strict");
 const fs=require("node:fs");
 const vm=require("node:vm");
 const source=fs.readFileSync(require("node:path").join(__dirname,"..","assets","gdr-owner-command-center-hotfix.js"),"utf8");
+const currentRenters=fs.readFileSync(require("node:path").join(__dirname,"..","assets","gdr-owner-current-renters-dashboard.js"),"utf8");
+const renterPage=fs.readFileSync(require("node:path").join(__dirname,"..","assets","gdr-owner-renter-page.js"),"utf8");
 
 test("owner counter updates do not rewrite unchanged DOM text",()=>{
  const match=source.match(/function setTextIfChanged\(node,value\)\s*\{[\s\S]*?\n\}/);
@@ -49,4 +51,18 @@ test("owner dashboard observer batches only relevant mutations",()=>{
 test("empty-state messages do not rewrite identical text during observer refresh",()=>{
  assert.match(source,/empty\.textContent!==emptyMessage/);
  assert.match(source,/empty\.textContent!=="No pending visit requests right now\."/);
+});
+
+
+test("Current Renters observer only decorates inserted renter mounts and batches work",()=>{
+ assert.match(currentRenters,/function isCurrentRenterMountNode\(node\)/);
+ assert.match(currentRenters,/function scheduleCurrentRenterRefresh\(nodes\)/);
+ assert.match(currentRenters,/if\(currentRenterFrame\)return/);
+ assert.match(currentRenters,/requestAnimationFrame\(run\)/);
+ assert.match(currentRenters,/batch\.forEach\(node=>ensureRenterActions\(node\)\)/);
+ assert.doesNotMatch(currentRenters,/new MutationObserver\(\(\)=>\{ addEntryCard\(\); bindButton\(\); ensureRenterActions\(\); \}\)/);
+});
+test("Owner renter detail page does not install a global mutation observer",()=>{
+ assert.doesNotMatch(renterPage,/new MutationObserver/);
+ assert.match(renterPage,/setInterval\(\(\)=>\{attempts\+\+/);
 });
