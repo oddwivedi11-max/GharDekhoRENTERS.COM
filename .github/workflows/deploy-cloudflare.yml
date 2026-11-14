@@ -46,7 +46,7 @@ jobs:
               ("gdr-owner-command-center-hotfix.js", "20261114-owner-observer-batch1"),
               ("gdr-owner-renter-page.js", "20261114-renter-detail-route1"),
               ("gdr-owner-current-renters-dashboard.js", "20261114-current-renters-mount1"),
-              ("gdr-map-experience.js", "20261115-pin-postal-coordinate-fallback3"),
+              ("gdr-map-experience.js", "20261115-pin-poi-visible1"),
               ("gdr-property-studio.js", "20261115-studio-pin-coordinate-fallback3"),
               ("gdr-property-studio.css", "20261112-touch-swipe1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
@@ -282,7 +282,7 @@ jobs:
           grep -q 'gdr-map-experience.js' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js' /tmp/gdr-live-index.html
           echo "Live map script reference:"
           grep -oE 'gdr-map-experience.js[^"]*' /tmp/gdr-live-login.html | head -5
-          grep -q 'gdr-map-experience.js?v=20261115-pin-postal-coordinate-fallback3' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js?v=20261115-pin-postal-coordinate-fallback3' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js?v=20261115-pin-postal-coordinate-fallback3' /tmp/gdr-live-index.html
+          grep -q 'gdr-map-experience.js?v=20261115-pin-poi-visible1' /tmp/gdr-live-login.html || grep -q 'gdr-map-experience.js?v=20261115-pin-poi-visible1' /tmp/gdr-live-root.html || grep -q 'gdr-map-experience.js?v=20261115-pin-poi-visible1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-map-experience.js" -o /tmp/gdr-map-experience.js
           grep -q 'GDRMapExperience' /tmp/gdr-map-experience.js
           grep -q 'const rent=Number(p.rent||0),short=money(rent)' /tmp/gdr-map-experience.js

@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-pin-postal-coordinate-fallback3";
+  const MAP_PIN_VERSION="20261115-pin-poi-visible1";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -121,6 +121,11 @@
     const clauses=filter.selectors.map(selector=>selector+"("+[sw.lat,sw.lng,ne.lat,ne.lng].map(v=>Number(v).toFixed(5)).join(",")+");").join("\n");
     return "[out:json][timeout:18];("+clauses+");out center tags 160;";
   }
+  function poiSearchBounds(map,radiusKm=3){
+    const center=map.getCenter(),latDelta=radiusKm/110.574;
+    const lngDelta=radiusKm/(111.320*Math.max(.2,Math.cos(center.lat*Math.PI/180)));
+    return window.L.latLngBounds([center.lat-latDelta,center.lng-lngDelta],[center.lat+latDelta,center.lng+lngDelta]);
+  }
   function poiCacheKey(category,bounds){
     const sw=bounds.getSouthWest(),ne=bounds.getNorthEast();
     return category+":"+[sw.lat,sw.lng,ne.lat,ne.lng].map(v=>Number(v).toFixed(3)).join(",");
@@ -142,12 +147,16 @@
       // street-imagery redirects are added to property location selection.
       popup.append(heading,detail);marker.bindPopup(popup);geo.layer.addLayer(marker);
     });
-    if(geo.status)geo.status.textContent=geo.layer.getLayers().length+" nearby places shown";
+    if(geo.status){
+      const count=geo.layer.getLayers().length;
+      geo.status.textContent=count?count+" nearby places found within 3 km":"No mapped public places found within 3 km";
+      geo.status.dataset.state=count?"loaded":"empty";
+    }
   }
   async function loadNearbyPlaces(map,force){
     const geo=map&&map._gdrPoi;if(!geo)return false;
-    const bounds=map.getBounds(),sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),latSpan=Math.abs(ne.lat-sw.lat),lngSpan=Math.abs(ne.lng-sw.lng);
-    if(map.getZoom()<12||latSpan>.55||lngSpan>.55||latSpan*lngSpan>.18){
+    const bounds=poiSearchBounds(map,3);
+    if(map.getZoom()<12){
       if(geo.status)geo.status.textContent="Zoom in to a neighbourhood to show nearby places.";
       return false;
     }
@@ -158,19 +167,31 @@
     if(geo.status)geo.status.textContent="Loading nearby places…";
     try{
       const query=poiQuery(category,bounds);
-      let places=null,lastError=null;
+      let places=null,lastError=null,emptyResponses=0;
       for(const endpoint of OVERPASS_ENDPOINTS){
-        const timer=setTimeout(()=>request.abort(),18000);
+        const endpointController=new AbortController();
+        const abortWithParent=()=>endpointController.abort();
+        if(request.signal.aborted)break;
+        request.signal.addEventListener("abort",abortWithParent,{once:true});
+        const timer=setTimeout(()=>endpointController.abort(),12000);
         try{
-          const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:request.signal});
-          if(!response.ok)throw new Error("Nearby-place data is temporarily busy.");
-          const payload=await response.json();places=Array.isArray(payload.elements)?payload.elements:[];
-          break;
+          const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:endpointController.signal});
+          if(!response.ok)throw new Error("Nearby-place data returned HTTP "+response.status+".");
+          const payload=await response.json();
+          if(payload&&payload.remark)throw new Error("Nearby-place service: "+String(payload.remark).slice(0,180));
+          if(!payload||!Array.isArray(payload.elements))throw new Error("Nearby-place service returned an invalid response.");
+          if(payload.elements.length){places=payload.elements;break;}
+          emptyResponses++;
+          lastError=new Error("No mapped places from this source. Trying the backup source…");
         }catch(error){
           lastError=error;
           if(request.signal.aborted)break;
-        }finally{clearTimeout(timer);}
+        }finally{
+          clearTimeout(timer);
+          request.signal.removeEventListener("abort",abortWithParent);
+        }
       }
+      if(places===null&&emptyResponses===OVERPASS_ENDPOINTS.length&&!request.signal.aborted)places=[];
       if(!places)throw lastError||new Error("Nearby-place data is unavailable.");
       if(requestId!==geo.requestId)return false;
       if(poiCache.size>70)poiCache.clear();
@@ -184,8 +205,18 @@
   }
   function addAutomaticNearbyPlaces(map){
     if(!map||map._gdrPoi||!window.L.layerGroup)return;
-    const geo={layer:window.L.layerGroup().addTo(map),category:"all",status:null,active:true,request:null,requestId:0,timer:null,schedule:null};
+    const geo={layer:window.L.layerGroup().addTo(map),category:"all",status:null,statusControl:null,active:true,request:null,requestId:0,timer:null,schedule:null};
     map._gdrPoi=geo;
+    if(window.L.control&&window.L.DomUtil){
+      const statusControl=window.L.control({position:"topleft"});
+      statusControl.onAdd=function(){
+        const el=window.L.DomUtil.create("div","gdr-poi-status");
+        el.textContent="Finding nearby places…";el.setAttribute("role","status");el.setAttribute("aria-live","polite");
+        if(window.L.DomEvent){window.L.DomEvent.disableClickPropagation(el);window.L.DomEvent.disableScrollPropagation(el);}
+        geo.status=el;return el;
+      };
+      statusControl.addTo(map);geo.statusControl=statusControl;
+    }
     const schedule=()=>{
       if(geo.timer)clearTimeout(geo.timer);
       geo.timer=setTimeout(()=>{geo.timer=null;loadNearbyPlaces(map,false);},650);
@@ -835,7 +866,7 @@
           try{
             const point=await resolveMapQuery(q);
             if(searchId!==state.ownerLocationSearchId||!state.ownerMap)return;
-            state.ownerMap.setView([point.lat,point.lng],16,{animate:false});
+            state.ownerMap.setView([point.lat,point.lng],13,{animate:false});
             setOwnerPin({lat:point.lat,lng:point.lng},point.label,false);
             requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
             updateOwnerStatus("PIN "+q+" verified · "+point.label+". Map centered at this locality. Drag the pin to the exact property entrance.");
@@ -875,7 +906,7 @@
     state.ownerMap.setView([22.5937,78.9629],5);
     if(state.pendingOwnerMapCenter){
       const pending=state.pendingOwnerMapCenter;state.pendingOwnerMapCenter=null;
-      state.ownerMap.setView([pending.lat,pending.lng],16,{animate:false});
+      state.ownerMap.setView([pending.lat,pending.lng],13,{animate:false});
       setOwnerPin(pending,pending.label,false);
     }
     state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
@@ -893,7 +924,7 @@
       }
       requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
       const input=$("propertyLocation"),lat=asNumber(input&&input.dataset.gdSelectedLat),lng=asNumber(input&&input.dataset.gdSelectedLng);
-      if(lat!==null&&lng!==null){state.ownerMap.setView([lat,lng],16);setOwnerPin({lat,lng},input.dataset.gdSelectedDisplayName||input.value);}
+      if(lat!==null&&lng!==null){state.ownerMap.setView([lat,lng],13);setOwnerPin({lat,lng},input.dataset.gdSelectedDisplayName||input.value);}
       else if(!state.ownerSelection){const c=state.ownerMap.getCenter();setOwnerPin(c,"Choose the exact property location");}
     }catch(error){console.error("Owner map picker failed:",error);updateOwnerStatus("The map could not load. Use address suggestions or current location instead.");}
   }
@@ -902,7 +933,7 @@
     if(!validPoint(point.lat,point.lng))return false;
     state.pendingOwnerMapCenter=point;
     if(!state.ownerMap)return true;
-    state.ownerMap.setView([point.lat,point.lng],16,{animate:true});
+    state.ownerMap.setView([point.lat,point.lng],13,{animate:false});
     setOwnerPin(point,point.label,false);
     state.pendingOwnerMapCenter=null;
     requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());

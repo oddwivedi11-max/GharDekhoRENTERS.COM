@@ -97,7 +97,7 @@ test("owner PIN entry ignores stale requests and centers the map at the verified
   assert.match(map,/ownerLocationSearchId:0/);
   assert.match(map,/if\(kind==="owner"\)state\.ownerLocationSearchId\+\+/);
   assert.match(map,/if\(searchId!==state\.ownerLocationSearchId\|\|!state\.ownerMap\)return/);
-  assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],16,\{animate:false\}\)/);
+  assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],13,\{animate:false\}\)/);
 });
 
 
@@ -118,4 +118,14 @@ test("postal coordinate fallback is available when Photon has no matching post-o
   assert.ok(studio.includes("localStorage.setItem(cacheKey,JSON.stringify(result))"));
   assert.ok(map.includes("api.pincodeapi.in/api/v1/pincode/"));
   assert.ok(map.includes("function lookupPostalApiCoordinates("));
+});
+
+test("automatic nearby map places load around the PIN and retry the backup data source",()=>{
+  assert.match(map,/function poiSearchBounds\(map,radiusKm=3\)/);
+  assert.match(map,/const bounds=poiSearchBounds\(map,3\)/);
+  assert.match(map,/const endpointController=new AbortController\(\)/);
+  assert.match(map,/payload&&payload\.remark/);
+  assert.match(map,/emptyResponses===OVERPASS_ENDPOINTS\.length/);
+  assert.match(map,/gdr-poi-status/);
+  assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],13,\{animate:false\}\)/);
 });
