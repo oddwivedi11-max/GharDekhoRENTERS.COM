@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-pin-postal-coordinate-fallback2";
+  const MAP_PIN_VERSION="20261115-pin-postal-coordinate-fallback3";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -564,7 +564,7 @@
   }
   async function lookupPostalApiCoordinates(pin,officeName,stateName){
     const officeKey=postalOfficeNameKey(officeName);
-    if(!/^\\d{6}$/.test(String(pin||""))||officeKey.length<4)return null;
+    if(!/^\d{6}$/.test(String(pin||""))||officeKey.length<4)return null;
     const cacheKey="gdr:postal-office-coordinate:v1:"+pin+":"+officeKey;
     const validCached=value=>value&&value.pincode===String(pin)&&value.officeKey===officeKey&&Date.now()-Number(value.cachedAt||0)<POSTAL_COORD_CACHE_TTL&&validPoint(Number(value.lat),Number(value.lng));
     try{const saved=JSON.parse(localStorage.getItem(cacheKey)||"null");if(validCached(saved))return saved;}catch(_){}
@@ -601,7 +601,7 @@
   async function resolveMapQuery(query){
     const q=String(query||"").trim();
     if(!q)throw new Error("Enter a city, locality or six-digit PIN code first.");
-    let features=[],expectedDistrict="",expectedState="",pin=q,preferredLabel=q;
+    let features=[],expectedDistrict="",expectedState="",pin=q,preferredLabel=q,usedPostalCoordinateFallback=false;
     if(/^\d{6}$/.test(q)){
       setStatus("Verifying PIN "+pin+" with India Post…");
       const response=await fetch("https://api.postalpincode.in/pincode/"+encodeURIComponent(pin),{headers:{Accept:"application/json"}});

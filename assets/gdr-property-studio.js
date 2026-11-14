@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-studio-pin-coordinate-fallback2";
+const VERSION="20261115-studio-pin-coordinate-fallback3";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -229,7 +229,7 @@ function postalOfficeNameKey(value){
 }
 async function lookupPostalApiCoordinates(pin,officeName,stateName,signal){
  const officeKey=postalOfficeNameKey(officeName);
- if(!/^\\d{6}$/.test(String(pin||""))||officeKey.length<4)return null;
+ if(!/^\d{6}$/.test(String(pin||""))||officeKey.length<4)return null;
  const cacheKey="gdr:postal-office-coordinate:v1:"+pin+":"+officeKey;
  const validCached=value=>value&&value.pincode===String(pin)&&value.officeKey===officeKey&&Date.now()-Number(value.cachedAt||0)<30*24*60*60*1000&&validIndiaPoint(Number(value.lat),Number(value.lng));
  try{const saved=JSON.parse(localStorage.getItem(cacheKey)||"null");if(validCached(saved))return saved;}catch(_){}
