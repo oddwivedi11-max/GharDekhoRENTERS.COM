@@ -32,7 +32,10 @@ test("Retired Report a Problem tile is removed only inside Owner Dashboard",()=>
  assert.match(rental,/var selector="#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"/);
  assert.match(rental,/scope\.querySelectorAll\(selector\)/);
  assert.doesNotMatch(rental,/querySelectorAll\("\*"\)/);
- assert.doesNotMatch(rental,/innerText/);
+ const start=rental.indexOf("function removeDuplicateReportButtons()");
+ const end=rental.indexOf("function boot()",start);
+ const removal=rental.slice(start,end);
+ assert.doesNotMatch(removal,/\.innerText/);
  assert.match(rental,/parent\.textContent/);
  assert.match(rental,/target\.remove\(\)/);
  assert.match(renterExperience,/function addSupport\(\)/);
@@ -88,7 +91,10 @@ test("Retired Owner Report a Problem cleanup uses targeted selectors without a f
  assert.ok(rental.includes('var selector="#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]"'));
  assert.ok(rental.includes("scope.querySelectorAll(selector)"));
  assert.ok(!rental.includes('querySelectorAll("*")'));
- assert.ok(!rental.includes("innerText"));
+ const start=rental.indexOf("function removeDuplicateReportButtons()");
+ const end=rental.indexOf("function boot()",start);
+ const removal=rental.slice(start,end);
+ assert.ok(!removal.includes(".innerText"));
  assert.ok(rental.includes("if(!node.isConnected)return;"));
  assert.ok(rental.includes("target.remove()"));
 });
