@@ -327,7 +327,6 @@
     loading=true;let attempts=0;const timer=setInterval(()=>{attempts++;if(rowFor(id)){clearInterval(timer);loading=false;open(id,false);}else if(attempts>80){clearInterval(timer);loading=false;history.replaceState({},"",location.pathname+location.hash);}},250);
   }
   if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",restoreDirectRoute);else restoreDirectRoute();
-  const observer=new MutationObserver(()=>{if(new URL(location.href).searchParams.has("ownerRenter")&&!page)restoreDirectRoute();});
-  observer.observe(document.body,{childList:true,subtree:true});
+   // restoreDirectRoute already polls for the requested renter row; no page-wide observer is needed.
   const ledgerScript=document.createElement("script"); ledgerScript.src="/assets/gdr-owner-renter-ledger.js"; ledgerScript.defer=true; document.head.appendChild(ledgerScript);
 })();
