@@ -59,7 +59,7 @@ test("Current Renters observer only decorates inserted renter mounts and batches
  assert.match(currentRenters,/function scheduleCurrentRenterRefresh\(nodes\)/);
  assert.match(currentRenters,/if\(currentRenterFrame\)return/);
  assert.match(currentRenters,/requestAnimationFrame\(run\)/);
- assert.match(currentRenters,/batch\.forEach\(node=>ensureRenterActions\(node\)\)/);
+ assert.match(currentRenters,/batch\.forEach\(node\s*=>\s*ensureRenterActions\(node\)\)/);
  assert.doesNotMatch(currentRenters,/new MutationObserver\(\(\)=>\{ addEntryCard\(\); bindButton\(\); ensureRenterActions\(\); \}\)/);
 });
 test("Owner renter detail page does not install a global mutation observer",()=>{
