@@ -57,7 +57,7 @@ test("empty-state messages do not rewrite identical text during observer refresh
 test("Current Renters observer only decorates inserted renter mounts and batches work",()=>{
  assert.match(currentRenters,/function isCurrentRenterMountNode\(node\)/);
  assert.match(currentRenters,/function scheduleCurrentRenterRefresh\(nodes\)/);
- assert.match(currentRenters,/if\(currentRenterFrame\)return/);
+ assert.match(currentRenters,/if\s*\(\s*currentRenterFrame\s*\)\s*return/);
  assert.match(currentRenters,/requestAnimationFrame\(run\)/);
  assert.match(currentRenters,/batch\.forEach\(node\s*=>\s*ensureRenterActions\(node\)\)/);
  assert.doesNotMatch(currentRenters,/new MutationObserver\(\(\)=>\{ addEntryCard\(\); bindButton\(\); ensureRenterActions\(\); \}\)/);
