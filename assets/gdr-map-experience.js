@@ -7,13 +7,13 @@
     ownerMarker:null, ownerSelection:null, ownerPinManuallyConfirmed:false, pendingOwnerMapCenter:null, renterPin:null, inventory:[], boundsRows:[], visible:[],
     searchCenter:null, radiusKm:5, searchUsesRadius:false, viewportRpc:null, loadedOnce:false, resolvedQuery:"", mapSearchId:0, locationSearchId:0,
     geolocationAttempted:false, searchTimer:null, searchController:null,
-    ownerSearchTimer:null, ownerSearchController:null,
+    ownerSearchTimer:null, ownerSearchController:null, ownerLocationSearchId:0,
     currentPrefs:{}, selectedPropertyId:null, markerById:new Map(), lastSearchBounds:null,
     browseInventory:null, browseCenter:null, browseTimer:null
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261113-pin-auto-center2";
+  const MAP_PIN_VERSION="20261115-owner-map-raster-auto1";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -37,20 +37,20 @@
     });
   }
   async function ensureLeaflet(){
-    if(!window.L)await loadScript("https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js");
-    if(!window.L)throw new Error("Map library is unavailable.");
+    loadStylesheet("/assets/gdr-map-experience.css?v=20261115-owner-map-raster-auto1","data-gdr-map-geo-style");
+    if(!window.L){
+      try{await loadScript("https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js");}
+      catch(primaryError){
+        console.warn("Primary Leaflet CDN unavailable; trying the fallback CDN.",primaryError);
+        await loadScript("https://unpkg.com/leaflet@1.9.4/dist/leaflet.js");
+      }
+    }
+    if(!window.L)throw new Error("Map library is unavailable. Check your connection and retry.");
     if(!window.L.markerClusterGroup){
       try{await loadScript("https://cdn.jsdelivr.net/npm/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js");}
       catch(error){console.warn("Marker clustering unavailable; standard markers will be used.",error);}
     }
-    // Real Leaflet exposes its version property. Lightweight test adapters and
-    // legacy map shims deliberately use the OSM raster fallback without loading
-    // third-party vector scripts or waiting on external CDNs.
-    if(window.L.version){
-      try{await ensureOpenFreeMap();}catch(error){console.warn("OpenFreeMap vector basemap unavailable; using the OSM raster fallback.",error);}
-    }
   }
-  const OPENFREEMAP_STYLE="https://tiles.openfreemap.org/styles/liberty";
   const OVERPASS_ENDPOINTS=["https://overpass-api.de/api/interpreter","https://overpass.kumi.systems/api/interpreter"];
   const poiCache=new Map();
   const POI_FILTERS={
@@ -88,13 +88,19 @@
     return true;
   }
   function addTiles(map){
-    const attribution='© <a href="https://openfreemap.org/" target="_blank" rel="noopener">OpenFreeMap</a> · © <a href="https://openmaptiles.org/" target="_blank" rel="noopener">OpenMapTiles</a> · © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>';
-    if(typeof window.L.maplibreGL==="function"&&window.maplibregl){
-      const vector=window.L.maplibreGL({style:OPENFREEMAP_STYLE,attribution}).addTo(map);
-      map._gdrBaseLayers={street:vector,vector};
-      return;
-    }
-    const street=window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{maxZoom:19,attribution:'© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>'}).addTo(map);
+    // Use the standard OpenStreetMap raster tiles as the primary basemap.
+    // This avoids the third-party vector renderer that was leaving blank tiles
+    // in the property picker on some browsers and networks.
+    const attribution='© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap contributors</a>';
+    const street=window.L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png",{
+      maxZoom:19,
+      maxNativeZoom:19,
+      updateWhenIdle:true,
+      updateWhenZooming:false,
+      keepBuffer:3,
+      crossOrigin:true,
+      attribution
+    }).addTo(map);
     map._gdrBaseLayers={street};
   }
   function poiKind(tags){
@@ -139,86 +145,65 @@
       const marker=window.L.marker([lat,lng],{icon:window.L.divIcon({className:"gdr-poi-marker-wrap",html:'<span class="gdr-poi-marker" aria-hidden="true">'+icon+'</span>',iconSize:[34,38],iconAnchor:[17,34]}),title,keyboard:true});
       const popup=document.createElement("div");popup.className="gdr-poi-popup";
       const heading=document.createElement("strong");heading.textContent=title;
-      const detail=document.createElement("span");detail.textContent=kind.charAt(0).toUpperCase()+kind.slice(1)+" · "+distanceKm([center.lat,center.lng],[lat,lng]).toFixed(2)+" km straight-line";
-      const source=document.createElement("a");source.href="https://www.openstreetmap.org/"+String(element.type||"node")+"/"+String(element.id||"");source.target="_blank";source.rel="noopener";source.textContent="OpenStreetMap details";
-      popup.append(heading,detail,source);marker.bindPopup(popup);geo.layer.addLayer(marker);
+      const detail=document.createElement("span");detail.textContent=kind.charAt(0).toUpperCase()+kind.slice(1)+" · "+distanceKm([center.lat,center.lng],[lat,lng]).toFixed(2)+" km away";
+      // Keep map interactions inside GharDekho; no external detail links or
+      // street-imagery redirects are added to property location selection.
+      popup.append(heading,detail);marker.bindPopup(popup);geo.layer.addLayer(marker);
     });
-    geo.status.textContent=geo.layer.getLayers().length+" mapped places shown · OpenStreetMap data";
+    if(geo.status)geo.status.textContent=geo.layer.getLayers().length+" nearby places shown";
   }
   async function loadNearbyPlaces(map,force){
     const geo=map&&map._gdrPoi;if(!geo)return false;
     const bounds=map.getBounds(),sw=bounds.getSouthWest(),ne=bounds.getNorthEast(),latSpan=Math.abs(ne.lat-sw.lat),lngSpan=Math.abs(ne.lng-sw.lng);
     if(map.getZoom()<12||latSpan>.55||lngSpan>.55||latSpan*lngSpan>.18){
-      geo.status.textContent="Zoom in to a neighbourhood to load nearby places.";
+      if(geo.status)geo.status.textContent="Zoom in to a neighbourhood to show nearby places.";
       return false;
     }
-    const key=poiCacheKey(geo.select.value,bounds),cached=poiCache.get(key);
+    const category="all",key=poiCacheKey(category,bounds),cached=poiCache.get(key);
     if(!force&&cached&&Date.now()-cached.at<300000){renderNearbyPlaces(map,cached.places);return true;}
     if(geo.request)geo.request.abort();
     const request=new AbortController();geo.request=request;const requestId=++geo.requestId;
-    geo.status.textContent="Loading nearby places from OpenStreetMap…";geo.button.disabled=true;
+    if(geo.status)geo.status.textContent="Loading nearby places…";
     try{
-      const query=poiQuery(geo.select.value,bounds);
+      const query=poiQuery(category,bounds);
       let places=null,lastError=null;
       for(const endpoint of OVERPASS_ENDPOINTS){
-        const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),20000);
+        const timer=setTimeout(()=>request.abort(),18000);
         try{
-          const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:controller.signal});
-          if(!response.ok)throw new Error("Nearby place data is temporarily busy ("+response.status+").");
-          const payload=await response.json();places=Array.isArray(payload.elements)?payload.elements:[];break;
-        }catch(error){lastError=error;}finally{clearTimeout(timer);}
+          const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:request.signal});
+          if(!response.ok)throw new Error("Nearby-place data is temporarily busy.");
+          const payload=await response.json();places=Array.isArray(payload.elements)?payload.elements:[];
+          break;
+        }catch(error){
+          lastError=error;
+          if(request.signal.aborted)break;
+        }finally{clearTimeout(timer);}
       }
-      if(!places)throw lastError||new Error("Nearby place data is unavailable.");
+      if(!places)throw lastError||new Error("Nearby-place data is unavailable.");
       if(requestId!==geo.requestId)return false;
       if(poiCache.size>70)poiCache.clear();
       poiCache.set(key,{at:Date.now(),places});
       renderNearbyPlaces(map,places);
       return true;
     }catch(error){
-      if(requestId===geo.requestId)geo.status.textContent=error.name==="AbortError"?"Nearby-place request timed out. Try again.":(error.message||"Nearby places are temporarily unavailable.");
+      if(requestId===geo.requestId&&geo.status)geo.status.textContent="Nearby places are temporarily unavailable; the map and property pin are still ready.";
       return false;
-    }finally{if(requestId===geo.requestId){geo.button.disabled=false;geo.request=null;}}
+    }finally{if(requestId===geo.requestId)geo.request=null;}
   }
-  function openMapillaryAt(map,kind){
-    if(!map)return;
-    const point=kind==="owner"&&state.ownerSelection?{lat:state.ownerSelection.lat,lng:state.ownerSelection.lng}:map.getCenter();
-    const zoom=Math.max(15,Math.min(19,Number(map.getZoom())||16));
-    const url="https://www.mapillary.com/app/?lat="+encodeURIComponent(point.lat)+"&lng="+encodeURIComponent(point.lng)+"&z="+encodeURIComponent(zoom);
-    window.open(url,"_blank","noopener,noreferrer");
-    if(map._gdrPoi)map._gdrPoi.status.textContent="Mapillary opened in a new tab. Street imagery appears only where contributors have captured it.";
-  }
-  function addMapExploreControls(map,kind){
-    // Leaflet's full control factory is optional in small embedded adapters.
-    // Skip only the optional explorer UI when the host provides map primitives
-    // but no custom-control factory; core property map interactions still work.
-    if(!map||map._gdrPoi||!window.L.control||typeof window.L.control!=="function")return;
-    const control=window.L.control({position:"topleft"});
-    control.onAdd=function(){
-      const root=window.L.DomUtil.create("div","gdr-map-explore-control");
-      const title=node("strong","gdr-map-explore-title","Explore surroundings");
-      const select=node("select","gdr-map-explore-select");select.setAttribute("aria-label","Nearby places category");
-      Object.keys(POI_FILTERS).forEach(key=>{const option=node("option","",POI_FILTERS[key].label);option.value=key;select.append(option);});
-      const button=node("button","gdr-map-explore-button","Show nearby places");button.type="button";
-      const street=node("button","gdr-map-explore-button gdr-map-street-button","360° street imagery");street.type="button";
-      const status=node("small","gdr-map-explore-status","Optional nearby places · OpenStreetMap");
-      root.append(title,select,button,street,status);
-      window.L.DomEvent.disableClickPropagation(root);window.L.DomEvent.disableScrollPropagation(root);
-      button.addEventListener("click",async()=>{
-        const geo=map._gdrPoi;
-        if(!geo.active){geo.active=true;button.textContent="Hide nearby places";await loadNearbyPlaces(map,false);}
-        else{geo.active=false;geo.layer.clearLayers();button.textContent="Show nearby places";status.textContent="Nearby-place overlay hidden.";}
-      });
-      select.addEventListener("change",()=>{if(map._gdrPoi.active)loadNearbyPlaces(map,true);});
-      street.addEventListener("click",()=>openMapillaryAt(map,kind));
-      map._gdrPoi={layer:window.L.layerGroup().addTo(map),select,button,street,status,active:false,request:null,requestId:0,timer:null};
-      return root;
-    };
-    control.addTo(map);
-    map.on("moveend",()=>{
-      const geo=map._gdrPoi;if(!geo||!geo.active)return;
+  function addAutomaticNearbyPlaces(map){
+    if(!map||map._gdrPoi||!window.L.layerGroup)return;
+    const geo={layer:window.L.layerGroup().addTo(map),category:"all",status:null,active:true,request:null,requestId:0,timer:null,schedule:null};
+    map._gdrPoi=geo;
+    const schedule=()=>{
       if(geo.timer)clearTimeout(geo.timer);
-      geo.timer=setTimeout(()=>{geo.timer=null;loadNearbyPlaces(map,true);},850);
-    });
+      geo.timer=setTimeout(()=>{geo.timer=null;loadNearbyPlaces(map,false);},650);
+    };
+    geo.schedule=schedule;
+    map.on("moveend",schedule);
+    // Start nearby discovery after the basemap has a real viewport. It is
+    // silent and optional: a slow Overpass response never blocks the map.
+    if(typeof map.whenReady==="function")map.whenReady(schedule);
+    else if(typeof map.getZoom==="function"&&map.getZoom()>=12)schedule();
   }
   function makeLayer(map){
     if(!window.L.markerClusterGroup)return window.L.layerGroup().addTo(map);
@@ -740,7 +725,7 @@
   function initRenterMap(){
     if(state.renterMap)return;const canvas=$("gdrExploreMapCanvas");if(!canvas)return;
     state.renterMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true,preferCanvas:true});addTiles(state.renterMap);window.L.control.zoom({position:"bottomright"}).addTo(state.renterMap);
-    state.renterLayer=makeLayer(state.renterMap);addMapExploreControls(state.renterMap,"renter");state.renterMap.setView([23.2599,77.4126],12);
+    state.renterLayer=makeLayer(state.renterMap);addAutomaticNearbyPlaces(state.renterMap);state.renterMap.setView([23.2599,77.4126],12);
     state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");});
     state.renterMap.on("moveend",()=>{
       if(Array.isArray(state.browseInventory)){
@@ -789,21 +774,26 @@
     const timerKey=kind==="owner"?"ownerSearchTimer":"searchTimer",controllerKey=kind==="owner"?"ownerSearchController":"searchController";
     input.addEventListener("input",()=>{
       if(state[timerKey])clearTimeout(state[timerKey]);if(state[controllerKey])state[controllerKey].abort();
+      if(kind==="owner")state.ownerLocationSearchId++;
       const q=input.value.trim();panel.replaceChildren();panel.classList.remove("gdr-open");if(q.length<3)return;
       if(/^\d{6}$/.test(q)&&kind==="renter"){
         state[timerKey]=setTimeout(()=>searchTypedMapLocation(),450);
         return;
       }
       if(/^\d{6}$/.test(q)&&kind==="owner"){
+        const searchId=state.ownerLocationSearchId;
         state[timerKey]=setTimeout(async()=>{
           try{
             const point=await resolveMapQuery(q);
-            if(!state.ownerMap)return;
-            state.ownerMap.setView([point.lat,point.lng],16,{animate:true});
+            if(searchId!==state.ownerLocationSearchId||!state.ownerMap)return;
+            state.ownerMap.setView([point.lat,point.lng],16,{animate:false});
             setOwnerPin({lat:point.lat,lng:point.lng},point.label,false);
-            updateOwnerStatus("PIN "+q+" verified · "+point.label+". Approximate locality only; tap or drag to the exact property entrance.");
-          }catch(error){updateOwnerStatus(error.message||"This PIN could not be verified. Check the six digits and retry.");}
-        },450);
+            requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
+            updateOwnerStatus("PIN "+q+" verified · "+point.label+". Map centered at this locality. Drag the pin to the exact property entrance.");
+          }catch(error){
+            if(searchId===state.ownerLocationSearchId)updateOwnerStatus(error.message||"This PIN could not be verified. Check the six digits and retry.");
+          }
+        },350);
         return;
       }
       state[timerKey]=setTimeout(async()=>{
@@ -832,7 +822,7 @@
   }
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
-    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);addMapExploreControls(state.ownerMap,"owner");window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
+    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);addAutomaticNearbyPlaces(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
     state.ownerMap.setView([22.5937,78.9629],5);
     if(state.pendingOwnerMapCenter){
       const pending=state.pendingOwnerMapCenter;state.pendingOwnerMapCenter=null;
