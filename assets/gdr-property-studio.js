@@ -210,6 +210,16 @@ function invalidateStudioLocationForPinChange(nextPin){
  const status=$("#gdrStudioLocationStatus");if(status)status.textContent="PIN changed. The previous address and map pin have been cleared; locating the latest PIN code.";
  renderNearby();saveDraft();renderLiveVoiceForm();
 }
+function preferredPostOffice(offices){
+ const rows=Array.isArray(offices)?offices.filter(item=>item&&item.Name):[];
+ // Prefer the Sub Office for this PIN; a Head Office can be far from its branch area.
+ return rows.find(item=>/sub office/i.test(String(item.BranchType||item.OfficeType||"")))
+  ||rows.find(item=>/branch office/i.test(String(item.BranchType||item.OfficeType||""))&&/delivery/i.test(String(item.DeliveryStatus||"")))
+  ||rows.find(item=>/delivery/i.test(String(item.DeliveryStatus||"")))
+  ||rows.find(item=>/branch office/i.test(String(item.BranchType||item.OfficeType||"")))
+  ||rows.find(item=>/head office/i.test(String(item.BranchType||item.OfficeType||"")))
+  ||rows[0];
+}
 let pincodeResolveController=null,pinResolveTimer=null,pinResolveSequence=0;
 async function resolveStudioPincode(rawPin){
  const input=$("#gdrStudioPincode"),pin=String(rawPin||"").replace(/\D/g,"").slice(0,6);
@@ -231,24 +241,36 @@ async function resolveStudioPincode(rawPin){
   const record=Array.isArray(postalPayload)?postalPayload[0]:null;
   const offices=record&&record.Status==="Success"&&Array.isArray(record.PostOffice)?record.PostOffice.filter(item=>item&&item.Name):[];
   if(!offices.length)throw new Error("No post office was found for PIN "+pin+". Check the six digits or enter the locality manually.");
-  const office=offices.find(item=>/head office/i.test(String(item.BranchType||item.OfficeType||"")))||offices.find(item=>/sub office/i.test(String(item.BranchType||item.OfficeType||"")))||offices.find(item=>/delivery/i.test(String(item.DeliveryStatus||"")) )||offices[0],officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
-  const query=[officeName,district,region,"India"].filter(Boolean).join(", ");
+  const office=preferredPostOffice(offices),officeName=String(office.Name||"").trim(),district=String(office.District||office.Block||"").trim(),region=String(office.State||"").trim();
+  const query=[officeName,region,"India"].filter(Boolean).join(", ");
   const geoResponse=await fetch("https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query),{headers:{Accept:"application/json"},signal});
   if(!isCurrent())return false;
   if(!geoResponse.ok)throw new Error("Map location lookup is unavailable");
   const geoPayload=await geoResponse.json();if(!isCurrent())return false;
-  const normalize=value=>String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/\bdistrict\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
-  const expectedDistrict=normalize(district),expectedState=normalize(region);
+  const normalize=value=>String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/\\bdistrict\\b/g," ").replace(/[^a-z0-9]+/g," ").trim();
+  const expectedDistrict=normalize(district),expectedState=normalize(region),expectedOffice=normalize(officeName);
   const candidates=(Array.isArray(geoPayload.features)?geoPayload.features:[]).map(feature=>{
    const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
-   const stateText=normalize(props.state||props.state_name||"");
+   const stateText=normalize(props.state||props.state_name||props.region||"");
+   const countryCode=String(props.countrycode||"").toLowerCase(),countryText=normalize(props.country||"");
+   const postcode=normalize(props.postcode||"");
+   const localityFields=[props.name,props.locality,props.suburb,props.village,props.town,props.city,props.district,props.county].map(normalize).filter(Boolean);
+   const officeMatch=localityFields.some(value=>value===expectedOffice||value.includes(expectedOffice)||expectedOffice.includes(value));
+   const postcodeMatch=postcode===normalize(pin);
+   const stateMatch=!expectedState||!stateText||stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText);
    const districtText=normalize([props.county,props.city,props.district,props.locality,props.suburb,props.village,props.town,props.name].filter(Boolean).join(" "));
-   const stateMatch=!expectedState||!!stateText&&(stateText===expectedState||stateText.includes(expectedState)||expectedState.includes(stateText));
    const districtMatch=!expectedDistrict||districtText.includes(expectedDistrict);
-   return {props,coords,stateMatch,districtMatch,score:(stateMatch?10:0)+(districtMatch?20:0)+(normalize(props.name).includes(normalize(officeName))?4:0)};
-  }).filter(item=>String(item.props.countrycode||"").toLowerCase()==="in"&&item.coords.length>=2&&validIndiaPoint(Number(item.coords[1]),Number(item.coords[0]))&&item.stateMatch&&item.districtMatch).sort((a,b)=>b.score-a.score);
-  if(!candidates.length)throw new Error("PIN "+pin+" was verified, but no map result matched "+[district,region].filter(Boolean).join(", ")+". The previous location remains cleared; search the locality manually.");
-  if(!isCurrent())return false;
+   const countryMatch=countryCode==="in"||countryText==="india";
+   return {props,coords,officeMatch,postcodeMatch,stateMatch,districtMatch,score:(postcodeMatch?1000:0)+(officeMatch?100:0)+(stateMatch?25:0)+(districtMatch?10:0)};
+  }).filter(item=>{
+   if(!item.coords||item.coords.length<2||!validIndiaPoint(Number(item.coords[1]),Number(item.coords[0])))return false;
+   if(!item.countryMatch||!item.stateMatch)return false;
+   // Postal PIN areas can straddle old/current district labels. Match the
+   // selected post office or exact PIN, while still enforcing India + state.
+   return item.officeMatch||item.postcodeMatch;
+  }).sort((a,b)=>b.score-a.score);
+  if(!candidates.length)throw new Error("PIN "+pin+" was verified for "+officeName+", "+region+", but map coordinates could not be matched. Search the post-office/locality name manually.");
+
   const coords=candidates[0].coords,lat=Number(coords[1]),lng=Number(coords[0]),label=[officeName,district,region,"India"].filter(Boolean).join(", ");
   state.pinCenter={lat,lng};state.resolvedPincode=pin;setLocation(label,lat,lng,pin,false);
   if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
