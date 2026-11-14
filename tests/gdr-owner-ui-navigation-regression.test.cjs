@@ -82,7 +82,7 @@ test("Retired Report a Problem tile is removed only inside Owner dashboard",()=>
  assert.match(removal,/parent\.textContent/);
  assert.match(removal,/report\\s\+a\\s\+problem/i);
  assert.match(removal,/target&&target!==scope\)target\.remove\(\)/);
- assert.match(removal,/candidates=Array\.from\(scope\.querySelectorAll\("\*"\)\)/);
+ assert.doesNotMatch(removal,/querySelectorAll\("\*"\)/);
  assert.match(rentalSuite,/function isDashboardMountNode\(node\)/);
  assert.match(rentalSuite,/function hasDashboardMutation\(records\)/);
  assert.match(rentalSuite,/record\.addedNodes/);
