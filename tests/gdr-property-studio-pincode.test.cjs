@@ -165,10 +165,10 @@ test("postal coordinate fallback accepts rows without a repeated PIN and ranks a
 
 test("all valid India Post PINs try locality variants, postal coordinates and verified district fallback",()=>{
   assert.match(studio,/const exactQueries=Array\.from\(new Set\(/);
-  assert.match(studio,/lookupPostalApiCoordinates\(pin,offices,region,district,signal\)/);
+  assert.ok(studio.includes("lookupPostalApiCoordinates(pin,prioritizedOffices,region,district,signal)"));
   assert.match(studio,/matchesFromPhoton\(payload&&payload\.features,true\)/);
   assert.match(map,/const queries=Array\.from\(new Set\(/);
-  assert.match(map,/lookupPostalApiCoordinates\(pin,offices,expectedState,expectedDistrict\)/);
+  assert.ok(map.includes("lookupPostalApiCoordinates(pin,prioritizedOffices,expectedState,expectedDistrict)"));
   assert.match(map,/postalMatches\(districtFeatures,true\)/);
   assert.match(studio,/state\.resolvedPincode=pin;setLocation\(label,lat,lng,pin,false\)/);
   assert.ok(map.includes(String.raw`const label=/^\d{6}$/.test(q)?preferredLabel:`));
