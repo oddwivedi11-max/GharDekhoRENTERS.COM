@@ -150,7 +150,7 @@ async function saveSettings(e){
 }
 async function verify(id,decision,note){var r=await c().rpc("owner_verify_rent_payment",{p_payment_id:id,p_decision:decision,p_note:note||null});if(r.error){toast(r.error.message,true);return}toast(decision==="paid"?"Payment confirmed.":"Payment rejected.");loadOwnerPayments()}
 function addOwnerNearbyAction(){
- var root=$("ownerDashboard");if(!root||$("gdrOwnerNearbyCard"))return;
+ var root=$("ownerDashboard");if(!root||root.querySelector(".gdr-owner-nearby-entry")||$("gdrOwnerNearbyCard"))return;
  var card=document.createElement("section");card.id="gdrOwnerNearbyCard";card.className="dashboard-card gdr-owner-nearby-launch";
  card.innerHTML='<div class="gdr-owner-nearby-launch-copy"><span class="gdr-owner-nearby-launch-icon">⌂</span><span><b>Nearby Properties</b><small>Explore available rental homes within 5 KM of your property.</small></span></div><button type="button" id="gdrOwnerNearbyOpen">Open nearby map →</button>';
  var before=root.querySelector(".owner-inventory-card")||root.firstElementChild;
@@ -190,6 +190,6 @@ document.addEventListener("click",function(event){
  else toast("Nearby map is loading. Please try again in a moment.",true);
 },true);
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();
-new MutationObserver(boot).observe(document.body,{subtree:true,childList:true,attributes:true,attributeFilter:["class","style"]});
+// The v2 rental suite owns dashboard mutation handling. Avoid a second page-wide observer.
 })();
 // Cache release: renter move-out notice v3.
