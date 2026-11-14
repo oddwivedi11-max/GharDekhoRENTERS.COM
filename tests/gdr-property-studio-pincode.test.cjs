@@ -140,6 +140,14 @@ test("nearby map uses the current free endpoint and cannot remain loading foreve
 });
 
 test("owner PIN map search label follows the latest verified PIN and clears stale labels on PIN changes",()=>{
-  assert.match(map,/function centerOwnerMapPicker\\(lat,lng,label\\)[\\s\\S]*?const searchInput=\\$\\("gdrOwnerMapSearch"\\);[\\s\\S]*?if\\(searchInput\\)searchInput\\.value=point\\.label/);
-  assert.match(map,/function clearOwnerMapSelectionForPinChange\\(\\)[\\s\\S]*?const searchInput=\\$\\("gdrOwnerMapSearch"\\);[\\s\\S]*?if\\(searchInput\\)searchInput\\.value=""/);
+  const centerStart=map.indexOf("function centerOwnerMapPicker(");
+  const clearStart=map.indexOf("function clearOwnerMapSelectionForPinChange(");
+  const clearEnd=map.indexOf("function closeOwnerMapPicker(",clearStart);
+  assert.ok(centerStart>=0&&clearStart>centerStart&&clearEnd>clearStart);
+  const centerBlock=map.slice(centerStart,clearStart);
+  const clearBlock=map.slice(clearStart,clearEnd);
+  assert.ok(centerBlock.includes('const searchInput=$("gdrOwnerMapSearch");'));
+  assert.ok(centerBlock.includes("if(searchInput)searchInput.value=point.label;"));
+  assert.ok(clearBlock.includes('const searchInput=$("gdrOwnerMapSearch");'));
+  assert.ok(clearBlock.includes('if(searchInput)searchInput.value="";'));
 });
