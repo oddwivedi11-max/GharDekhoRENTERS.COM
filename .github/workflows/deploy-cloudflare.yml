@@ -44,7 +44,8 @@ jobs:
               ("gdr-owner-payments.js", "20261112-payment-return1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
               ("gdr-owner-command-center-hotfix.js", "20261114-owner-observer-batch1"),
-              ("gdr-owner-renter-page.js", "20261109-renter-actions-functional1"),
+              ("gdr-owner-renter-page.js", "20261114-renter-detail-route1"),
+              ("gdr-owner-current-renters-dashboard.js", "20261114-current-renters-mount1"),
               ("gdr-map-experience.js", "20261113-pin-auto-center2"),
               ("gdr-property-studio.js", "20261113-pin-auto-map1"),
               ("gdr-property-studio.css", "20261112-touch-swipe1"),
@@ -392,7 +393,7 @@ jobs:
           grep -q 'gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-root.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-login.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.js?v=20261112-payment-return1' /tmp/gdr-live-index.html
-          grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-root.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-login.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261107-workspace4' /tmp/gdr-live-index.html
+          grep -q 'gdr-owner-current-renters-dashboard.js?v=20261114-current-renters-mount1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261114-current-renters-mount1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-current-renters-dashboard.js?v=20261114-current-renters-mount1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.css?v=20261112-payment-return1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.css?v=20261112-payment-return1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.css?v=20261112-payment-return1' /tmp/gdr-live-index.html
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1" -o /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
@@ -401,7 +402,7 @@ jobs:
           grep -Fq 'gdr-owner-command-center.css?v=20261113-nearby-button-3d1' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'function refreshOwnerVisitFilter' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261109-renter-actions-functional1" -o /tmp/gdr-owner-renter-page.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261114-renter-detail-route1" -o /tmp/gdr-owner-renter-page.js
           grep -q 'Additional charges could not be loaded' /tmp/gdr-owner-renter-page.js
           grep -q 'gdrPrimaryActionsBound' /tmp/gdr-owner-renter-page.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-payments.js?v=20261112-payment-return1" -o /tmp/gdr-owner-payments.js
@@ -413,7 +414,7 @@ jobs:
           grep -q 'GDR PAYMENT' /tmp/gdr-owner-payments.js
           if grep -q 'GDR FINANCE / OWNER WORKSPACE' /tmp/gdr-owner-payments.js; then echo 'Redundant finance heading still present'; exit 1; fi
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261114-current-renters-mount1" -o /tmp/gdr-owner-current-renters-dashboard.js
           grep -q 'previousBodyOverflow' /tmp/gdr-owner-current-renters-dashboard.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261113-nearby-button-3d1" -o /tmp/gdr-owner-command-center.css
           grep -q "#e8ffb5" /tmp/gdr-owner-command-center.css
