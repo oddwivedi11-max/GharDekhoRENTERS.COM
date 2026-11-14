@@ -29,8 +29,11 @@ test("Nearby Properties is a separate dashboard action; Edit Profile stays in it
 test("Retired Report a Problem tile is removed only inside Owner Dashboard",()=>{
  assert.match(rental,/function removeDuplicateReportButtons\(\)/);
  assert.match(rental,/var scope=\$\("#ownerDashboard"\)/);
- assert.match(rental,/scope\.querySelectorAll\("#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"\)/);
- assert.match(rental,/scope\.querySelectorAll\("\*"\)/);
+ assert.match(rental,/var selector="#gdrxSupport,#gdrOwnerReportProblem,\[data-owner-report-problem\]"/);
+ assert.match(rental,/scope\.querySelectorAll\(selector\)/);
+ assert.doesNotMatch(rental,/querySelectorAll\("\*"\)/);
+ assert.doesNotMatch(rental,/innerText/);
+ assert.match(rental,/parent\.textContent/);
  assert.match(rental,/target\.remove\(\)/);
  assert.match(renterExperience,/function addSupport\(\)/);
  assert.match(renterExperience,/b\.id="gdrxSupport"/);
@@ -80,10 +83,12 @@ test("Owner home restores only the dedicated Nearby Properties action and keeps 
  assert.match(html,/id="ownerEditProfileBtn"/);
  assert.match(html,/id="ownerProfileEditor"/);
 });
-test("Retired Owner Report a Problem tile catches non-button legacy wrappers",()=>{
+test("Retired Owner Report a Problem cleanup uses targeted selectors without a full DOM scan",()=>{
  assert.ok(rental.includes('var scope=$("#ownerDashboard")'));
- assert.ok(rental.includes('scope.querySelectorAll("#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]")'));
- assert.ok(rental.includes('scope.querySelectorAll("*")'));
- assert.ok(rental.includes('if(!node.isConnected)return;'));
+ assert.ok(rental.includes('var selector="#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]"'));
+ assert.ok(rental.includes("scope.querySelectorAll(selector)"));
+ assert.ok(!rental.includes('querySelectorAll("*")'));
+ assert.ok(!rental.includes("innerText"));
+ assert.ok(rental.includes("if(!node.isConnected)return;"));
  assert.ok(rental.includes("target.remove()"));
 });
