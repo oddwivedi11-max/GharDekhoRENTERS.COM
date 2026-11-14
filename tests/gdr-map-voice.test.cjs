@@ -140,16 +140,16 @@ test('map assistant starts with a greeting and an empty search field', () => {
 });
 
 
-test('shared renter and owner maps use the same OpenFreeMap vector basemap and open-data POI layer', () => {
-  assert.match(map, /tiles\.openfreemap\.org\/styles\/liberty/);
-  assert.match(map, /function addMapExploreControls\(map,kind\)/);
-  assert.match(map, /addMapExploreControls\(state\.renterMap,"renter"\)/);
-  assert.match(map, /addMapExploreControls\(state\.ownerMap,"owner"\)/);
+test('shared renter and owner maps use the stable OSM raster basemap and automatic nearby-place layer', () => {
+  assert.match(map, /tile\.openstreetmap\.org\/\{z\}\/\{x\}\/\{y\}\.png/);
+  assert.match(map, /function addAutomaticNearbyPlaces\(map\)/);
+  assert.match(map, /addAutomaticNearbyPlaces\(state\.renterMap\)/);
+  assert.match(map, /addAutomaticNearbyPlaces\(state\.ownerMap\)/);
   assert.match(map, /overpass-api\.de\/api\/interpreter/);
-  assert.match(map, /Mapillary opened in a new tab/);
-  assert.doesNotMatch(map, /ArcGIS\/rest\/services\/World_Imagery/);
-});
-test('map location ranking prefers an exact Indian locality instead of stale or unrelated city matches', () => {
+  assert.doesNotMatch(map, /function addMapExploreControls/);
+  assert.doesNotMatch(map, /Mapillary opened in a new tab|360° street imagery|window\.open\(/);
+  assert.doesNotMatch(map, /maplibregl|openfreemap|ArcGIS\/rest\/services\/World_Imagery/);
+});test('map location ranking prefers an exact Indian locality instead of stale or unrelated city matches', () => {
   const start = map.indexOf('function normalizedText(value){');
   const end = map.indexOf('async function resolveMapQuery(query){', start);
   assert.ok(start >= 0 && end > start);
