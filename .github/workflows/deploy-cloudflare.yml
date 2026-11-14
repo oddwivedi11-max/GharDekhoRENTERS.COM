@@ -398,7 +398,7 @@ jobs:
           grep -q 'function setTextIfChanged' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'data-gdr-owner-stat-action' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'document.querySelectorAll("#ownerOccupancyContainer .gd-current-renter-card-v2,#ownerOccupancyContainer .gd-current-renter-card").length' /tmp/gdr-owner-command-center-hotfix.js
-          grep -Fq 'gdr-owner-command-center.css?v=20261114-nearby-loop-guard1' /tmp/gdr-owner-command-center-hotfix.js
+          grep -Fq 'gdr-owner-command-center.css?v=20261113-nearby-button-3d1' /tmp/gdr-owner-command-center-hotfix.js
           grep -Fq 'function refreshOwnerVisitFilter' /tmp/gdr-owner-command-center-hotfix.js
           grep -q 'data-gdr-module="nearby"' /tmp/gdr-owner-command-center-hotfix.js && { echo "Duplicate Nearby Homes shortcut still present."; exit 1; } || true
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-renter-page.js?v=20261109-renter-actions-functional1" -o /tmp/gdr-owner-renter-page.js
@@ -415,7 +415,7 @@ jobs:
           grep -q 'occupancy_charges' /tmp/gdr-owner-payments.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-current-renters-dashboard.js?v=20261107-workspace4" -o /tmp/gdr-owner-current-renters-dashboard.js
           grep -q 'previousBodyOverflow' /tmp/gdr-owner-current-renters-dashboard.js
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261114-nearby-loop-guard1" -o /tmp/gdr-owner-command-center.css
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-command-center.css?v=20261113-nearby-button-3d1" -o /tmp/gdr-owner-command-center.css
           grep -q "#e8ffb5" /tmp/gdr-owner-command-center.css
           grep -q "gdr-nearby-btn-arrow" /tmp/gdr-owner-command-center.css
           grep -q '#e8d18a' /tmp/gdr-owner-command-center.css
