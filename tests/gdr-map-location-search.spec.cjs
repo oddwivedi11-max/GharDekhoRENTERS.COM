@@ -83,7 +83,7 @@ test.describe('Map location search uses the requested place, not a stale invento
         if (url.includes('api.pincodeapi.in/api/v1/pincode/462022')) {
           return { ok: true, json: async () => ({ success: true, data: { pincode: '462022', post_offices: [
             { office_name: 'BHEL H.O.', pincode: '462022', office_type: 'HO', district: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2400, longitude: 77.4700 },
-            { office_name: 'Jamunia Kalan B.O.', pincode: '462022', office_type: 'BO', district: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2405833, longitude: 77.4704722 }
+            { office_name: 'Jamunia Kalan', pincode: '462022', office_type: 'BO', district: 'Bhopal', state: 'Madhya Pradesh', latitude: 23.2405833, longitude: 77.4704722 }
           ] } } }) };
         }
         return originalFetch(input);

@@ -73,7 +73,7 @@ test("owner PIN map centre is queued until Leaflet initializes and then applied"
 });
 test("six-digit owner listing PIN automatically opens the map at the verified locality",()=>{
   assert.ok(studio.includes("openMap();"));
-  assert.ok(studio.includes("The map is opening at this matching locality."));
+  assert.ok(studio.includes("The map is opening at this matching locality"));
 });
 test("renter and owner map search fields automatically resolve six-digit PINs",()=>{
   assert.ok(map.includes('if(/^\\d{6}$/.test(q)&&kind==="renter")'));

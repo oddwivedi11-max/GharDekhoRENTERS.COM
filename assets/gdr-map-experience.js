@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-pin-postal-coordinate-fallback1";
+  const MAP_PIN_VERSION="20261115-pin-postal-coordinate-fallback2";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const money=v=>"₹"+new Intl.NumberFormat("en-IN",{maximumFractionDigits:0}).format(Number(v||0));
@@ -557,7 +557,9 @@
 
   const POSTAL_COORD_CACHE_TTL=30*24*60*60*1000;
   function postalOfficeNameKey(value){
-    const clean=String(value||"").replace(/\\b(?:branch\\s+office|sub\\s+office|head\\s+office)\\b/gi," ").replace(/\\b(?:B|S|H)\\s*\\.?\\s*O\\.?\\b/gi," ");
+    const clean=String(value||"")
+      .replace(/\b(?:branch\s+office|sub\s+office|head\s+office)\b/gi," ")
+      .replace(/\b(?:B|S|H)\s*\.?\s*O\.?\b/gi," ");
     return normalizedText(clean);
   }
   async function lookupPostalApiCoordinates(pin,officeName,stateName){

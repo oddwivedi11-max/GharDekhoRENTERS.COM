@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-studio-pin-coordinate-fallback1";
+const VERSION="20261115-studio-pin-coordinate-fallback2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -222,8 +222,10 @@ function preferredPostOffice(offices){
 }
 
 function postalOfficeNameKey(value){
- const clean=String(value||"").replace(/\\b(?:branch\\s+office|sub\\s+office|head\\s+office)\\b/gi," ").replace(/\\b(?:B|S|H)\\s*\\.?\\s*O\\.?\\b/gi," ");
- return String(clean).normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ const clean=String(value||"")
+  .replace(/\b(?:branch\s+office|sub\s+office|head\s+office)\b/gi," ")
+  .replace(/\b(?:B|S|H)\s*\.?\s*O\.?\b/gi," ");
+ return String(clean).normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 }
 async function lookupPostalApiCoordinates(pin,officeName,stateName,signal){
  const officeKey=postalOfficeNameKey(officeName);
