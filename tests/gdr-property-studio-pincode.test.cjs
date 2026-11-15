@@ -59,9 +59,14 @@ test("Owner and renter PIN resolvers prefer the principal postal office and rank
   assert.match(map,/rows\.find\(item=>\/sub office\/i/);
   assert.match(map,/const postalMatches=\(rows,allowDistrictFallback\)=>/);
   assert.ok(map.includes('const rankingQuery=/^\\d{6}$/.test(q)?preferredLabel:q;'));
-  assert.match(map,/const point=await resolveMapQuery\(query\);/);
-  assert.match(map,/A failed search must not throw the user back/);
-  assert.doesNotMatch(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
+  const typedSearchStart=map.indexOf("async function searchTypedMapLocation()");
+  const typedSearchEnd=map.indexOf("async function searchRenterArea(",typedSearchStart);
+  assert.ok(typedSearchStart>=0&&typedSearchEnd>typedSearchStart);
+  const typedSearch=map.slice(typedSearchStart,typedSearchEnd);
+  assert.match(typedSearch,/const point=await resolveMapQuery\(query\);/);
+  assert.match(typedSearch,/A failed search must not throw the user back/);
+  assert.match(typedSearch,/Keep the last successful pins and inventory visible/);
+  assert.doesNotMatch(typedSearch,/state\.boundsRows=\[\];state\.visible=\[\];renderMarkers/);
 });
 
 
