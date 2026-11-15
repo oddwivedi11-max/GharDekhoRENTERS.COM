@@ -73,7 +73,7 @@ for (const target of productionTargets) {
     // The branch is tested before it is deployed; require the corrected
     // fragment on production only after the deployment workflow runs on main.
     if (process.env.GITHUB_REF_NAME === 'main') {
-      expect(studioVersion).toBe('20261115-studio-horizontal-swipe1');
+      expect(studioVersion).toBe('20261115-studio-swipe-native2');
       expect(markup, 'Final review step must be a valid section').toContain('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>');
       expect(markup, 'Raw panel attributes must not leak as standalone text').not.toMatch(/^\s*data-gdr-studio-panel="4" hidden>/m);
     }
