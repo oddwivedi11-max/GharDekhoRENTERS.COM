@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-studio-swipe-native2";
+const VERSION="20261115-studio-address-search1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -402,24 +402,42 @@ function distanceLabel(m){
 function formatINR(v){
  const n=Number(v||0);return "₹"+n.toLocaleString("en-IN",{maximumFractionDigits:0});
 }
-function showSuggestions(items){
+function normalizeAddressSearch(value){
+ return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+}
+function showSuggestions(items,query){
  const box=$("#gdrStudioLocationSuggestions");if(!box)return;
  box.innerHTML="";
  if(!items.length){box.hidden=true;return;}
- items.forEach(item=>{
+ const queryTokens=normalizeAddressSearch(query).split(/\\s+/).filter(token=>token.length>=2);
+ const seen=new Set();
+ const ranked=items.map(item=>{
   const p=item.properties||{},coords=item.geometry&&item.geometry.coordinates||[];
-  const label=[p.name,p.street,p.locality,p.district,p.city,p.state,p.postcode,p.country].filter((v,i,a)=>v&&a.indexOf(v)===i).join(", ");
+  const parts=[p.name,p.street,p.locality,p.suburb,p.village,p.town,p.district,p.county,p.city,p.state,p.postcode].filter(Boolean);
+  const normalizedParts=parts.map(normalizeAddressSearch);
+  const haystack=normalizedParts.join(" ");
+  const tokenHits=queryTokens.filter(token=>haystack.includes(token)).length;
+  const exactName=normalizedParts.some(value=>value===normalizeAddressSearch(query));
+  const streetMatch=queryTokens.some(token=>token.length>=4&&normalizeAddressSearch([p.name,p.street].filter(Boolean).join(" ")).includes(token));
+  const cityMatch=queryTokens.some(token=>token.length>=4&&normalizeAddressSearch([p.city,p.district,p.county,p.state].filter(Boolean).join(" ")).includes(token));
+  const score=(exactName?100:0)+(streetMatch?24:0)+(cityMatch?18:0)+tokenHits*8+(p.postcode?2:0);
+  return {p,coords,score};
+ }).sort((a,b)=>b.score-a.score);
+ ranked.forEach(({p,coords})=>{
+  const label=[p.name,p.street,p.locality,p.suburb,p.village,p.town,p.district,p.county,p.city,p.state,p.postcode,p.country].filter((v,i,a)=>v&&a.indexOf(v)===i).join(", ");
   if(!label||coords.length<2)return;
-  const b=document.createElement("button");b.type="button";b.className="gdr-studio-suggestion";
+  const key=normalizeAddressSearch(label)+"|"+Number(coords[1]).toFixed(5)+"|"+Number(coords[0]).toFixed(5);
+  if(seen.has(key))return;seen.add(key);
+  const b=document.createElement("button");b.type="button";b.className="gdr-studio-suggestion";b.setAttribute("role","option");
   const strong=document.createElement("strong");strong.textContent=label;
-  const small=document.createElement("small");small.textContent="Use this address and save its map coordinates";
+  const small=document.createElement("small");small.textContent="Approximate map area · select, then confirm the exact building entrance";
   b.append(strong,small);
   b.addEventListener("click",()=>{
    const lat=Number(coords[1]),lng=Number(coords[0]);
    setLocation(label,lat,lng,p.postcode||"",false);
    if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
    box.hidden=true;
-   const status=$("#gdrStudioLocationStatus");if(status)status.textContent="Approximate address selected. Open the map, zoom in and tap or drag to the exact property entrance before confirming.";
+   const status=$("#gdrStudioLocationStatus");if(status)status.textContent="Address found. The map is centred here; zoom in and tap or drag the pin to the exact property entrance. You can edit the address above at any time.";
    openMap();
   });
   box.appendChild(b);
@@ -442,7 +460,7 @@ async function searchAddress(query){
   const data=await res.json();if(!isCurrent())return;
   const features=(Array.isArray(data.features)?data.features:[]).filter(f=>f&&f.geometry&&Array.isArray(f.geometry.coordinates)&&Number.isFinite(Number(f.geometry.coordinates[0]))&&Number.isFinite(Number(f.geometry.coordinates[1]))&&validIndiaPoint(Number(f.geometry.coordinates[1]),Number(f.geometry.coordinates[0])));
   const india=features.filter(f=>String(f.properties&&f.properties.countrycode||"").toLowerCase()==="in");
-  showSuggestions(india);
+  showSuggestions(india,query);
   if(status)status.textContent=india.length?"Choose the matching Indian locality, district and state. The map point is approximate until you confirm the exact entrance.":"No matching Indian address found. Try adding the city, district or six-digit PIN code.";
  }catch(e){
   if(e.name==="AbortError"||!isCurrent())return;
