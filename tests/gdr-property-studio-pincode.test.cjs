@@ -142,7 +142,10 @@ test("nearby map uses the current free endpoint and cannot remain loading foreve
   assert.ok(map.includes("https://overpass.private.coffee/api/interpreter"));
   assert.ok(map.includes("https://maps.mail.ru/osm/tools/overpass/api/interpreter"));
   assert.match(map,/\[out:json\]\[timeout:9\]/);
-  assert.match(map,/const overallTimer=setTimeout\(\(\)=>request\.abort\(\),35000\)/);
+  assert.match(map,/const overallTimer=setTimeout\(\(\)=>request\.abort\(\),22000\)/);
+  assert.match(map,/const timer=setTimeout\(\(\)=>endpointController\.abort\(\),7000\)/);
+  assert.match(map,/geo\.status\.dataset\.state=request\.signal\.aborted\?"timeout":"error"/);
+  assert.match(map,/Nearby-place lookup ended/);
   assert.match(map,/gdr:poi-nearby:v2:/);
   assert.match(map,/tags\.place/);
 });
