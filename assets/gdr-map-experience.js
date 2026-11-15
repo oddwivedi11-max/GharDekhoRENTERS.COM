@@ -829,7 +829,8 @@
     }catch(error){
       if(locationSearchId!==state.locationSearchId)return false;
       console.warn("GDR map location search failed:",error);
-      state.boundsRows=[];state.visible=[];renderMarkers([],state.searchCenter||INDIA_CENTER);
+      // Keep the last successful pins and inventory visible when a typed
+      // location cannot be resolved; only update the status message.
       setStatus(error.message||"This location could not be found. Try another city, locality or PIN code.");
       return false;
     }finally{if(locationSearchId===state.locationSearchId&&button){button.disabled=false;button.textContent="Search this area";}}
