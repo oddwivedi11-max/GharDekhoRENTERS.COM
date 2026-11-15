@@ -175,8 +175,8 @@
     }
     if(geo.request)geo.request.abort();
     const request=new AbortController();geo.request=request;const requestId=++geo.requestId;
-    const overallTimer=setTimeout(()=>request.abort(),35000);
-    if(geo.status)geo.status.textContent="Loading nearby places…";
+    const overallTimer=setTimeout(()=>request.abort(),22000);
+    if(geo.status){geo.status.textContent="Checking nearby places…";geo.status.dataset.state="loading";}
     try{
       const query=poiQuery(category,bounds);
       let places=null,lastError=null,emptyResponses=0;
@@ -185,7 +185,7 @@
         const abortWithParent=()=>endpointController.abort();
         if(request.signal.aborted)break;
         request.signal.addEventListener("abort",abortWithParent,{once:true});
-        const timer=setTimeout(()=>endpointController.abort(),11000);
+        const timer=setTimeout(()=>endpointController.abort(),7000);
         try{
           const response=await fetch(endpoint,{method:"POST",headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},body:"data="+encodeURIComponent(query),signal:endpointController.signal});
           if(!response.ok)throw new Error("Nearby-place data returned HTTP "+response.status+".");
@@ -212,9 +212,18 @@
       renderNearbyPlaces(map,places);
       return true;
     }catch(error){
-      if(requestId===geo.requestId&&geo.status){geo.status.textContent="Nearby places could not load from the free map services. The map and property pin are ready; try moving the map once to retry.";geo.status.dataset.state="error";}
+      if(requestId===geo.requestId&&geo.status){geo.status.textContent=request.signal.aborted?"Nearby-place lookup timed out or was cancelled. The map and property pin are ready; move the map to retry.":"Nearby places could not load from the free map services. The map and property pin are ready; move the map to retry.";geo.status.dataset.state=request.signal.aborted?"timeout":"error";}
       return false;
-    }finally{clearTimeout(overallTimer);if(requestId===geo.requestId)geo.request=null;}
+    }finally{
+      clearTimeout(overallTimer);
+      if(requestId===geo.requestId){
+        geo.request=null;
+        if(geo.status&&geo.status.dataset.state==="loading"){
+          geo.status.textContent="Nearby-place lookup ended. The property map is ready; move the map to retry.";
+          geo.status.dataset.state="idle";
+        }
+      }
+    }
   }
   function addAutomaticNearbyPlaces(map){
     if(!map||map._gdrPoi||!window.L.layerGroup)return;
