@@ -47,8 +47,8 @@ jobs:
               ("gdr-owner-renter-page.js", "20261114-renter-detail-route1"),
               ("gdr-owner-current-renters-dashboard.js", "20261114-current-renters-mount1"),
               ("gdr-map-experience.js", "20261115-renter-map-precision1"),
-              ("gdr-property-studio.js", "20261115-studio-swipe-native2"),
-              ("gdr-property-studio.css", "20261115-studio-swipe-touch2"),
+              ("gdr-property-studio.js", "20261115-studio-address-search1"),
+              ("gdr-property-studio.css", "20261115-studio-address-search1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
           for asset, version in assets:
