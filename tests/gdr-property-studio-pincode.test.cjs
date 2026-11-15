@@ -59,8 +59,9 @@ test("Owner and renter PIN resolvers prefer the principal postal office and rank
   assert.match(map,/rows\.find\(item=>\/sub office\/i/);
   assert.match(map,/const postalMatches=\(rows,allowDistrictFallback\)=>/);
   assert.ok(map.includes('const rankingQuery=/^\\d{6}$/.test(q)?preferredLabel:q;'));
-  assert.match(map,/renderMarkers\(\[\],INDIA_CENTER\)/);
-  assert.match(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
+  assert.match(map,/const point=await resolveMapQuery\(query\);/);
+  assert.match(map,/A failed search must not throw the user back/);
+  assert.doesNotMatch(map,/state\.renterMap\.setView\(INDIA_CENTER,5/);
 });
 
 
