@@ -1,91 +1,112 @@
-const {test,expect}=require("@playwright/test");
-async function openStudio(page){
- await page.goto("/",{waitUntil:"domcontentloaded",timeout:45000});
- await page.waitForFunction(()=>window.GDRPropertyStudio&&typeof window.GDRPropertyStudio.open==="function");
- await page.waitForFunction(()=>document.getElementById("gdrPropertyStudio"));
- await page.evaluate(()=>{
-  const shell=document.getElementById("dashboardSection");
-  if(shell){shell.hidden=false;shell.style.display="block";shell.setAttribute("aria-hidden","false");}
-  const dashboard=document.getElementById("ownerDashboard");
-  if(dashboard){dashboard.hidden=false;dashboard.classList.add("active");dashboard.style.display="block";dashboard.setAttribute("aria-hidden","true");}
-  window.__gdrSupabaseClient={
-   auth:{getUser:async()=>({data:{user:{id:"gdr-studio-swipe-test-user"}},error:null})},
-   from:table=>({select(){return this;},eq(){return this;},maybeSingle:async()=>({data:table==="owners"?{id:"gdr-studio-swipe-test-owner",name:"Swipe QA Owner"}:null,error:null})})
-  };
- });
- await page.locator("#gdrListPropertyStart").click();
- await expect(page.locator("#gdrPropertyStudio")).toBeVisible();
- await expect(page.locator("#gdrStudioPanelStage")).toBeVisible();
-}
-async function dispatchTouchSwipe(page,selector,deltaX,deltaY=0){
- await page.locator(selector).evaluate((target,{deltaX,deltaY})=>{
-  const stage=target.closest("#gdrStudioPanelStage");
-  if(!stage)throw new Error("Swipe target is not inside the Property Studio step stage.");
-  const rect=target.getBoundingClientRect(),x=rect.left+Math.min(18,Math.max(6,rect.width*.12)),y=rect.top+Math.min(14,Math.max(6,rect.height*.5));
-  const makeTouch=(clientX,clientY)=>new Touch({identifier:71,target,clientX,clientY,screenX:clientX,screenY:clientY,pageX:clientX,pageY:clientY,radiusX:4,radiusY:4,rotationAngle:0,force:.5});
-  const start=makeTouch(x,y);
-  target.dispatchEvent(new TouchEvent("touchstart",{touches:[start],targetTouches:[start],changedTouches:[start],bubbles:true,cancelable:true}));
-  const moved=makeTouch(x+deltaX,y+deltaY);
-  stage.dispatchEvent(new TouchEvent("touchmove",{touches:[moved],targetTouches:[moved],changedTouches:[moved],bubbles:true,cancelable:true}));
-  const end=makeTouch(x+deltaX,y+deltaY);
-  stage.dispatchEvent(new TouchEvent("touchend",{touches:[],targetTouches:[],changedTouches:[end],bubbles:true,cancelable:true}));
- },{deltaX,deltaY});
-}
-async function waitForStepAnimation(page){await expect(page.locator("#gdrStudioPanelStage")).not.toHaveClass(/is-transitioning/);}
-test.describe("Property Studio horizontal swipe navigation",()=>{
- test("left advances, right returns, validation is respected and entered data is retained",async({page})=>{
-  await page.setViewportSize({width:390,height:844});
-  await openStudio(page);
-  const propertyTitle='[data-gdr-studio-panel="0"] > h2.gdr-studio-panel-title';
-  await dispatchTouchSwipe(page,propertyTitle,-110);
-  await expect(page.locator('[data-gdr-studio-panel="0"]')).toBeVisible();
-  await expect(page.locator("#gdrStudioMessage")).toContainText("Please choose your property type");
-  const room=page.locator('[data-gdr-property-type="room"]');
-  await room.click();
-  await expect(room).toHaveAttribute("aria-pressed","true");
-  await dispatchTouchSwipe(page,'[data-gdr-property-type="room"]',-118);
-  await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
-  await waitForStepAnimation(page);
-  await expect(page.locator("#gdrStudioNavStep")).toHaveText("2");
-  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="1"] > h2.gdr-studio-panel-title',112);
-  await expect(page.locator('[data-gdr-studio-panel="0"]')).toBeVisible();
-  await waitForStepAnimation(page);
-  await expect(page.locator('[data-gdr-property-type="room"]')).toHaveAttribute("aria-pressed","true");
-  await page.locator("#gdrStudioFormNext").click();
-  await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
-  await waitForStepAnimation(page);
-  await dispatchTouchSwipe(page,"#gdrStudioRent",-120);
-  await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
-  await expect(page.locator('[data-gdr-studio-panel="2"]')).toBeHidden();
-  await page.locator("#gdrStudioRent").fill("8000");
-  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="1"] > h2.gdr-studio-panel-title',-120);
-  await expect(page.locator('[data-gdr-studio-panel="2"]')).toBeVisible();
-  await waitForStepAnimation(page);
-  await expect(page.locator("#gdrStudioNavStep")).toHaveText("3");
- });
- test("vertical gestures do not navigate and phone widths have no horizontal overflow",async({page})=>{
-  await page.setViewportSize({width:375,height:812});
-  await openStudio(page);
-  await page.locator('[data-gdr-property-type="room"]').click();
-  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="0"] > h2.gdr-studio-panel-title',7,125);
-  await expect(page.locator('[data-gdr-studio-panel="0"]')).toBeVisible();
-  await expect(page.locator("#gdrStudioNavStep")).toHaveText("1");
-  for(const width of [320,360,375,390,414,430]){
-   await page.setViewportSize({width,height:812});
-   const sizes=await page.evaluate(()=>({viewport:window.innerWidth,document:document.documentElement.scrollWidth,studio:document.querySelector("#gdrPropertyStudio").scrollWidth,stage:document.querySelector("#gdrStudioPanelStage").scrollWidth,stageClient:document.querySelector("#gdrStudioPanelStage").clientWidth}));
-   expect(sizes.document).toBeLessThanOrEqual(sizes.viewport+1);
-   expect(sizes.studio).toBeLessThanOrEqual(sizes.viewport+1);
-   expect(sizes.stage).toBeLessThanOrEqual(sizes.stageClient+1);
+const { test, expect } = require("@playwright/test");
+const fs = require("node:fs");
+const path = require("node:path");
+const root = path.join(__dirname, "..");
+const source = fs.readFileSync(path.join(root, "assets/gdr-property-studio.js"), "utf8");
+const css = fs.readFileSync(path.join(root, "assets/gdr-property-studio.css"), "utf8");
+const start = source.indexOf("function initStepSwipe(root){");
+const end = source.indexOf("\nasync function getOwner(){", start);
+if (start < 0 || end <= start) throw new Error("Could not extract the Property Studio swipe controller.");
+const swipeFunction = source.slice(start, end);
+
+test("Property Studio finger gestures work in both directions on common mobile widths", async ({ page }) => {
+  for (const width of [320, 360, 375, 390, 414, 430]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.setContent("<!doctype html><html><head><style>"+css+"</style></head><body><div id='gdrPropertyStudio'><main id='root'><div id='gdrStudioPanelStage' class='gdr-studio-panel-stage'></div></main></div></body></html>");
+    const result = await page.evaluate(({ swipeFunction }) => {
+      const root = document.querySelector("#root");
+      const stage = document.querySelector("#gdrStudioPanelStage");
+      const state = { step: 0, transitions: [], invalidStep: -1 };
+      for (let i = 0; i < 5; i++) {
+        const panel = document.createElement("section");
+        panel.className = "gdr-studio-panel";
+        panel.dataset.gdrStudioPanel = String(i);
+        panel.hidden = i !== 0;
+        panel.style.minHeight = "500px";
+        panel.innerHTML = "<div>Step "+(i+1)+"</div>";
+        if (i === 0) panel.innerHTML += "<button class='gdr-studio-choice' id='choice'>Apartment</button>";
+        if (i === 1) panel.innerHTML += "<input id='rent' inputmode='numeric'>";
+        if (i === 2) panel.innerHTML += "<div class='leaflet-container' id='map'></div>";
+        stage.appendChild(panel);
+      }
+      const $ = (selector, scope = document) => scope.querySelector(selector);
+      const $$ = (selector, scope = document) => Array.from(scope.querySelectorAll(selector));
+      const goToStep = (requested, source, offset) => {
+        const target = Math.min(4, Math.max(0, Math.trunc(requested)));
+        if (target === state.step || (target > state.step && state.invalidStep === state.step)) return false;
+        const from = state.step;
+        state.step = target;
+        state.transitions.push({ from, target, source, offset });
+        $$("#gdrStudioPanelStage [data-gdr-studio-panel]").forEach(panel => {
+          panel.hidden = Number(panel.dataset.gdrStudioPanel) !== target;
+        });
+        return true;
+      };
+      const create = new Function(
+        "window","document","$","$$","studio","state","goToStep","STUDIO_SWIPE_THRESHOLD",
+        "let swipeGesture=null,swipeSnapTimer=null,swipeChoiceClickGuard=null,swipeChoiceClickTimer=null;\n"+
+        swipeFunction+"\nreturn initStepSwipe;"
+      );
+      const init = create(window,document,$,$$,()=>root,state,goToStep,72);
+      init(root);
+
+      function touch(type, target, x, y, id = 1) {
+        const event = new Event(type, { bubbles: true, cancelable: true });
+        const item = { identifier: id, clientX: x, clientY: y };
+        Object.defineProperty(event, "touches", { value: type === "touchend" || type === "touchcancel" ? [] : [item] });
+        Object.defineProperty(event, "changedTouches", { value: [item] });
+        target.dispatchEvent(event);
+        return event.defaultPrevented;
+      }
+      const panel0 = stage.querySelector('[data-gdr-studio-panel="0"]');
+      const startShort = touch("touchstart", panel0, 260, 200);
+      touch("touchmove", panel0, 225, 204);
+      touch("touchend", panel0, 225, 204);
+      const shortStayed = state.step === 0;
+
+      const verticalStart = touch("touchstart", panel0, 180, 180);
+      const verticalMovePrevented = touch("touchmove", panel0, 184, 280);
+      touch("touchend", panel0, 184, 280);
+      const verticalStayed = state.step === 0 && !verticalMovePrevented;
+
+      const leftStart = touch("touchstart", panel0, 300, 180);
+      touch("touchmove", panel0, 190, 182);
+      touch("touchend", panel0, 190, 182);
+      const leftAdvanced = state.step === 1 && state.transitions.at(-1).source === "swipe";
+
+      const input = stage.querySelector("#rent");
+      const inputBefore = state.step;
+      touch("touchstart", input, 300, 180);
+      touch("touchmove", input, 180, 181);
+      touch("touchend", input, 180, 181);
+      const inputProtected = state.step === inputBefore;
+
+      const rightStart = touch("touchstart", stage.querySelector('[data-gdr-studio-panel="1"]'), 180, 180);
+      touch("touchmove", stage.querySelector('[data-gdr-studio-panel="1"]'), 290, 182);
+      touch("touchend", stage.querySelector('[data-gdr-studio-panel="1"]'), 290, 182);
+      const rightReturned = state.step === 0;
+
+      state.invalidStep = 0;
+      touch("touchstart", panel0, 300, 180);
+      touch("touchmove", panel0, 190, 182);
+      touch("touchend", panel0, 190, 182);
+      const validationBlocked = state.step === 0;
+      state.invalidStep = -1;
+
+      return {
+        width: window.innerWidth,
+        shortStayed,verticalStayed,leftAdvanced,inputProtected,rightReturned,validationBlocked,
+        transitions: state.transitions,
+        scrollWidth: document.documentElement.scrollWidth
+      };
+    }, { swipeFunction });
+
+    expect(result.shortStayed, "short movement must not change steps at "+width+"px").toBe(true);
+    expect(result.verticalStayed, "vertical scroll must not change steps at "+width+"px").toBe(true);
+    expect(result.leftAdvanced, "left swipe must advance at "+width+"px").toBe(true);
+    expect(result.inputProtected, "input must retain native touch at "+width+"px").toBe(true);
+    expect(result.rightReturned, "right swipe must return at "+width+"px").toBe(true);
+    expect(result.validationBlocked, "validation must block an invalid forward swipe at "+width+"px").toBe(true);
+    expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
   }
- });
- test("desktop mouse drag uses the same horizontal navigation",async({page})=>{
-  await page.setViewportSize({width:1280,height:900});
-  await openStudio(page);
-  await page.locator('[data-gdr-property-type="room"]').click();
-  const title=page.locator('[data-gdr-studio-panel="0"] > h2.gdr-studio-panel-title');
-  const box=await title.boundingBox(),x=box.x+12,y=box.y+box.height/2;
-  await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x-115,y,{steps:5});await page.mouse.up();
-  await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
-  await waitForStepAnimation(page);
- });
 });

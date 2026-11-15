@@ -110,7 +110,7 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION="20261115-studio-horizontal-swipe1"/);
+  assert.match(studio, /const VERSION="20261115-studio-swipe-native2"/);
   assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
   assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
@@ -228,8 +228,8 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.ok(html.includes("gdr-property-studio.css") || patcher.includes("css_ref_v6"));
  assert.match(patcher,/if css_ref_v6 not in source:/);
  assert.match(patcher,/Normalized Property Studio controller include to exactly one script tag/);
- assert.match(patcher,/gdr-property-studio\.js\?v=20261115-studio-horizontal-swipe1/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261112-touch-swipe1/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261115-studio-swipe-native2/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261115-studio-swipe-touch2/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
@@ -297,4 +297,18 @@ test("Owner Analytics uses scoped production tables and derives payment renter n
   assert.match(ownerWorkspace,/data-insight-read/);
   assert.match(ownerWorkspace,/data-insight-dismiss/);
   assert.match(ownerWorkspace,/gdr_owner_notice_state_v1:/);
+});
+
+test("Property Studio swipe navigation tracks both panels and preserves native mobile controls", () => {
+  const controller = studio.slice(studio.indexOf("function initStepSwipe(root){"), studio.indexOf("\\nasync function getOwner(){"));
+  assert.match(controller, /const targetStep=state\\.step\\+\\(direction==="next"\\?1:-1\\)/);
+  assert.match(controller, /candidate\\.style\\.transform="translate3d\\"\\+incomingOffset/);
+  assert.match(controller, /goToStep\\(state\\.step\\+\\(gesture\\.deltaX<0\\?1:-1\\),"swipe",gesture\\.deltaX\\)/);
+  assert.match(controller, /input/);
+  assert.match(controller, /textarea/);
+  assert.match(controller, /leaflet-container/);
+  assert.match(controller, /data-native-horizontal-scroll/);
+  assert.match(studio, /if\\(target>state\\.step&&!validateStep\\(state\\.step\\)\\)return false/);
+  assert.match(studioCss, /prefers-reduced-motion:reduce/);
+  assert.match(studioCss, /clip-path:inset\\(0\\)/);
 });

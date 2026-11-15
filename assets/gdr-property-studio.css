@@ -508,6 +508,8 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){scroll-behavior:smooth}
 #gdrPropertyStudio .gdr-studio-panel-stage>[data-gdr-studio-panel]{
  grid-area:1 / 1;width:100%;min-width:0;max-width:100%;
 }
+#gdrPropertyStudio .gdr-studio-panel-stage.is-transitioning{clip-path:inset(0)}
+#gdrPropertyStudio .gdr-studio-panel-stage.is-swipe-dragging{clip-path:inset(0)}
 #gdrPropertyStudio .gdr-studio-panel-stage.is-transitioning>[data-gdr-studio-panel]{backface-visibility:hidden}
 #gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-panel-exit-left,
 #gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-panel-exit-right,
@@ -519,13 +521,15 @@ html:has(#ownerDashboard),body:has(#ownerDashboard){scroll-behavior:smooth}
 #gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-panel-exit-right{z-index:1;animation:gdrStudioPanelExitRight 290ms cubic-bezier(.22,.72,.22,1) both}
 #gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-panel-enter-from-right{z-index:2;animation:gdrStudioPanelEnterFromRight 290ms cubic-bezier(.22,.72,.22,1) both}
 #gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-panel-enter-from-left{z-index:2;animation:gdrStudioPanelEnterFromLeft 290ms cubic-bezier(.22,.72,.22,1) both}
-@keyframes gdrStudioPanelExitLeft{from{transform:translate3d(var(--gdr-step-swipe-start-x,0px),0,0);opacity:1}to{transform:translate3d(-17%,0,0);opacity:.72}}
-@keyframes gdrStudioPanelExitRight{from{transform:translate3d(var(--gdr-step-swipe-start-x,0px),0,0);opacity:1}to{transform:translate3d(17%,0,0);opacity:.72}}
-@keyframes gdrStudioPanelEnterFromRight{from{transform:translate3d(19%,0,0);opacity:.72}to{transform:translate3d(0,0,0);opacity:1}}
-@keyframes gdrStudioPanelEnterFromLeft{from{transform:translate3d(-19%,0,0);opacity:.72}to{transform:translate3d(0,0,0);opacity:1}}
+@keyframes gdrStudioPanelExitLeft{from{transform:translate3d(var(--gdr-step-swipe-start-x,0px),0,0);opacity:1}to{transform:translate3d(var(--gdr-step-swipe-end-x,-17%),0,0);opacity:.72}}
+@keyframes gdrStudioPanelExitRight{from{transform:translate3d(var(--gdr-step-swipe-start-x,0px),0,0);opacity:1}to{transform:translate3d(var(--gdr-step-swipe-end-x,17%),0,0);opacity:.72}}
+@keyframes gdrStudioPanelEnterFromRight{from{transform:translate3d(var(--gdr-step-enter-start-x,19%),0,0);opacity:var(--gdr-step-enter-start-opacity,.72)}to{transform:translate3d(0,0,0);opacity:1}}
+@keyframes gdrStudioPanelEnterFromLeft{from{transform:translate3d(var(--gdr-step-enter-start-x,-19%),0,0);opacity:var(--gdr-step-enter-start-opacity,.72)}to{transform:translate3d(0,0,0);opacity:1}}
 #gdrPropertyStudio .gdr-studio-panel-stage.is-swipe-dragging{user-select:none;-webkit-user-select:none;cursor:grabbing}
+#gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-swipe-preview{pointer-events:none!important}
 #gdrPropertyStudio .gdr-studio-panel-stage.is-swipe-dragging>[data-gdr-studio-panel]:not([hidden]){transition:none!important}
 #gdrPropertyStudio .gdr-studio-panel-stage>[data-gdr-studio-panel]:not([hidden]){overflow-wrap:anywhere}
+/* touch-action:auto is intentional: JS cancels only confirmed horizontal swipes, leaving vertical scroll, pinch zoom, Leaflet maps and native controls untouched. */
 @media(max-width:760px){#gdrPropertyStudio .gdr-studio-panel-stage{touch-action:auto;overscroll-behavior-x:contain}#gdrPropertyStudio .gdr-studio-panel-stage>[data-gdr-studio-panel]{min-width:0}}
 @media(prefers-reduced-motion:reduce){
  #gdrPropertyStudio .gdr-studio-panel-stage .gdr-studio-panel-exit-left,

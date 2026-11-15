@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-studio-horizontal-swipe1";
+const VERSION="20261115-studio-swipe-native2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -831,11 +831,14 @@ function finishStepPanelTransition(sequence,activeStep){
   panel.hidden=!active;
   if(active){panel.removeAttribute("inert");panel.setAttribute("aria-hidden","false");}
   else{panel.setAttribute("inert","");panel.setAttribute("aria-hidden","true");}
-  panel.classList.remove("gdr-studio-panel-exit-left","gdr-studio-panel-exit-right","gdr-studio-panel-enter-from-right","gdr-studio-panel-enter-from-left");
+  panel.classList.remove("gdr-studio-panel-exit-left","gdr-studio-panel-exit-right","gdr-studio-panel-enter-from-right","gdr-studio-panel-enter-from-left","gdr-studio-swipe-preview");
   panel.style.removeProperty("transform");
   panel.style.removeProperty("transition");
   panel.style.removeProperty("opacity");
   panel.style.removeProperty("--gdr-step-swipe-start-x");
+  panel.style.removeProperty("--gdr-step-swipe-end-x");
+  panel.style.removeProperty("--gdr-step-enter-start-x");
+  panel.style.removeProperty("--gdr-step-enter-start-opacity");
  });
  if(stage){stage.classList.remove("is-transitioning","is-swipe-dragging");stage.removeAttribute("data-transition-direction");}
 }
@@ -848,7 +851,7 @@ function updateStep(transition){
  if(stage){stage.classList.remove("is-transitioning","is-swipe-dragging");stage.removeAttribute("data-transition-direction");}
  const panels=$$("[data-gdr-studio-panel]",root);
  panels.forEach(panel=>{
-  panel.classList.remove("gdr-studio-panel-exit-left","gdr-studio-panel-exit-right","gdr-studio-panel-enter-from-right","gdr-studio-panel-enter-from-left");
+  panel.classList.remove("gdr-studio-panel-exit-left","gdr-studio-panel-exit-right","gdr-studio-panel-enter-from-right","gdr-studio-panel-enter-from-left","gdr-studio-swipe-preview");
   panel.style.removeProperty("transform");panel.style.removeProperty("transition");panel.style.removeProperty("opacity");panel.style.removeProperty("--gdr-step-swipe-start-x");
  });
  const fromStep=transition&&Number.isInteger(Number(transition.fromStep))?Number(transition.fromStep):null;
@@ -865,7 +868,16 @@ function updateStep(transition){
   });
   const direction=transition.direction==="previous"?"previous":"next";
   const offset=Number(transition.swipeOffset)||0;
-  if(offset)fromPanel.style.setProperty("--gdr-step-swipe-start-x",Math.max(-100,Math.min(100,offset))+"px");
+  if(offset){
+   const width=Math.max(1,stage.getBoundingClientRect().width||stage.clientWidth||window.innerWidth||1);
+   const travel=Math.min(width,Math.abs(offset));
+   const signedTravel=offset<0?-travel:travel;
+   const progress=Math.min(1,travel/width);
+   fromPanel.style.setProperty("--gdr-step-swipe-start-x",signedTravel+"px");
+   fromPanel.style.setProperty("--gdr-step-swipe-end-x",direction==="next"?"-100%":"100%");
+   activePanel.style.setProperty("--gdr-step-enter-start-x",direction==="next"?"calc(100% - "+travel+"px)":"calc(-100% + "+travel+"px)");
+   activePanel.style.setProperty("--gdr-step-enter-start-opacity",String(.78+progress*.22));
+  }
   stage.dataset.transitionDirection=direction;stage.classList.add("is-transitioning");
   fromPanel.classList.add(direction==="next"?"gdr-studio-panel-exit-left":"gdr-studio-panel-exit-right");
   activePanel.classList.add(direction==="next"?"gdr-studio-panel-enter-from-right":"gdr-studio-panel-enter-from-left");
@@ -912,40 +924,78 @@ function initStepSwipe(root){
  const stage=$("#gdrStudioPanelStage",root);
  if(!stage||stage.dataset.gdrSwipeBound==="1")return;
  stage.dataset.gdrSwipeBound="1";
- const excluded="input,textarea,select,button:not(.gdr-studio-choice),a,[contenteditable='true'],[role='button'],#gdrStudioMapHost,.leaflet-container,.leaflet-control-container,.gdr-studio-photo-categories,#gdrStudioPhotoPreview,.gdr-studio-photo-grid,[data-gdr-studio-photo-upload],[data-gdr-studio-photo-camera],[data-gdr-studio-no-swipe],[data-native-horizontal-scroll]";
+
+ // Keep native controls, maps, uploads and nested horizontal scrollers in charge
+ // of their own gestures. Horizontal swipes are intercepted only on plain panel space.
+ const excluded=[
+  "input","textarea","select","label","button:not(.gdr-studio-choice)","a",
+  "[contenteditable='true']","[role='button']","[role='slider']","[role='spinbutton']",
+  "#gdrStudioMapHost",".leaflet-container",".leaflet-control-container",
+  ".gdr-studio-photo-categories","#gdrStudioPhotoPreview",".gdr-studio-photo-grid",
+  ".gdr-studio-photo-strip",".gdr-studio-preview-strip",".gdr-property-detail-thumbs",
+  "[data-gdr-studio-photo-upload]","[data-gdr-studio-photo-camera]",
+  "[data-gdr-studio-no-swipe]","[data-native-horizontal-scroll]","video","iframe"
+ ].join(",");
  const targetElement=target=>target&&target.nodeType===1?target:(target&&target.parentElement?target.parentElement:null);
- function canBegin(target){
-  const element=targetElement(target);
-  if(!element||root.hidden||stage.classList.contains("is-transitioning"))return null;
-  const panel=element.closest("[data-gdr-studio-panel]");
-  if(!panel||panel.hidden||Number(panel.dataset.gdrStudioPanel)!==state.step)return null;
-  const choice=element.closest(".gdr-studio-choice");
-  if(element.closest(excluded))return null;
-  return {panel,choice};
- }
+ const panelFor=step=>$("[data-gdr-studio-panel='"+step+"']",stage);
  function clearSnapTimer(){
   if(swipeSnapTimer!==null){clearTimeout(swipeSnapTimer);swipeSnapTimer=null;}
  }
- function springBack(panel){
+ function clearPanelStyle(panel){
+  if(!panel)return;
+  ["transform","transition","opacity","--gdr-step-swipe-start-x","--gdr-step-swipe-end-x","--gdr-step-enter-start-x","--gdr-step-enter-start-opacity"].forEach(property=>panel.style.removeProperty(property));
+  panel.classList.remove("gdr-studio-swipe-preview");
+ }
+ function hidePreview(panel){
+  if(!panel)return;
+  clearPanelStyle(panel);
+  panel.hidden=true;
+  panel.setAttribute("inert","");
+  panel.setAttribute("aria-hidden","true");
+ }
+ function canBegin(target){
+  const element=targetElement(target);
+  if(!element||root.hidden||stage.classList.contains("is-transitioning")||swipeSnapTimer!==null)return null;
+  const panel=element.closest("[data-gdr-studio-panel]");
+  if(!panel||panel.hidden||Number(panel.dataset.gdrStudioPanel)!==state.step)return null;
+  if(element.closest(excluded))return null;
+  return {panel,choice:element.closest(".gdr-studio-choice")};
+ }
+ function springBack(panel,preview,direction,width){
   stage.classList.remove("is-swipe-dragging");
   if(!panel)return;
   panel.style.transition="transform 190ms cubic-bezier(.2,.75,.25,1), opacity 190ms ease-out";
-  panel.style.transform="translate3d(0,0,0)";panel.style.opacity="1";
+  panel.style.transform="translate3d(0,0,0)";
+  panel.style.opacity="1";
+  if(preview){
+   preview.hidden=false;
+   preview.style.transition="transform 190ms cubic-bezier(.2,.75,.25,1), opacity 190ms ease-out";
+   preview.style.transform="translate3d("+(direction==="next"?width:-width)+"px,0,0)";
+   preview.style.opacity=".72";
+  }
   clearSnapTimer();
   swipeSnapTimer=window.setTimeout(()=>{
-   panel.style.removeProperty("transform");panel.style.removeProperty("transition");panel.style.removeProperty("opacity");swipeSnapTimer=null;
+   clearPanelStyle(panel);
+   hidePreview(preview);
+   swipeSnapTimer=null;
   },220);
  }
  function begin(target,x,y,kind,pointerId){
   if(swipeGesture)return;
   const eligible=canBegin(target);if(!eligible)return;
   clearSnapTimer();
-  eligible.panel.style.removeProperty("transform");eligible.panel.style.removeProperty("transition");eligible.panel.style.removeProperty("opacity");
-  swipeGesture={startX:x,startY:y,lastX:x,lastY:y,deltaX:0,deltaY:0,axis:null,kind,pointerId,choice:eligible.choice,panel:eligible.panel,captured:false};
+  clearPanelStyle(eligible.panel);
+  swipeGesture={
+   startX:x,startY:y,lastX:x,lastY:y,deltaX:0,deltaY:0,axis:null,
+   kind,pointerId,choice:eligible.choice,panel:eligible.panel,
+   previewPanel:null,previewDirection:null,width:Math.max(1,stage.getBoundingClientRect().width||stage.clientWidth||window.innerWidth||1),
+   captured:false
+  };
  }
  function move(x,y,event){
   const gesture=swipeGesture;if(!gesture)return;
-  gesture.lastX=x;gesture.lastY=y;gesture.deltaX=x-gesture.startX;gesture.deltaY=y-gesture.startY;
+  gesture.lastX=x;gesture.lastY=y;
+  gesture.deltaX=x-gesture.startX;gesture.deltaY=y-gesture.startY;
   const dx=gesture.deltaX,dy=gesture.deltaY;
   if(!gesture.axis){
    if(Math.max(Math.abs(dx),Math.abs(dy))<12)return;
@@ -956,46 +1006,90 @@ function initStepSwipe(root){
   if(gesture.axis!=="horizontal")return;
   if(event&&event.cancelable&&typeof event.preventDefault==="function")event.preventDefault();
   if(!stage.classList.contains("is-swipe-dragging"))stage.classList.add("is-swipe-dragging");
-  const follow=Math.max(-92,Math.min(92,dx*.34));
-  gesture.panel.style.transition="none";gesture.panel.style.transform="translate3d("+follow+"px,0,0)";
-  gesture.panel.style.opacity=String(1-Math.min(.055,Math.abs(dx)/1600));
+
+  const width=Math.max(1,stage.getBoundingClientRect().width||gesture.width||window.innerWidth||1);
+  const direction=dx<0?"next":"previous";
+  const targetStep=state.step+(direction==="next"?1:-1);
+  const canNavigate=targetStep>=0&&targetStep<=4;
+  const travel=Math.max(-width,Math.min(width,dx));
+  const progress=Math.min(1,Math.abs(travel)/width);
+  const activeOffset=canNavigate?travel:travel*.22;
+
+  // Move the active panel with the finger, and reveal the adjacent panel just
+  // outside the viewport so both pages travel together instead of snapping in later.
+  gesture.panel.style.transition="none";
+  gesture.panel.style.transform="translate3d("+activeOffset+"px,0,0)";
+  gesture.panel.style.opacity=String(1-progress*.08);
+
+  if(canNavigate){
+   const candidate=panelFor(targetStep);
+   if(candidate){
+    if(gesture.previewPanel&&gesture.previewPanel!==candidate)hidePreview(gesture.previewPanel);
+    gesture.previewPanel=candidate;
+    gesture.previewDirection=direction;
+    candidate.hidden=false;
+    candidate.setAttribute("inert","");
+    candidate.setAttribute("aria-hidden","true");
+    candidate.classList.add("gdr-studio-swipe-preview");
+    candidate.style.transition="none";
+    const incomingOffset=(direction==="next"?width:-width)+travel;
+    candidate.style.transform="translate3d("+incomingOffset+"px,0,0)";
+    candidate.style.opacity=String(.78+progress*.22);
+   }
+  }else if(gesture.previewPanel){
+   hidePreview(gesture.previewPanel);
+   gesture.previewPanel=null;
+   gesture.previewDirection=null;
+  }
  }
  function armChoiceClickGuard(choice){
   if(!choice)return;
   swipeChoiceClickGuard=choice;
   if(swipeChoiceClickTimer!==null)clearTimeout(swipeChoiceClickTimer);
-  swipeChoiceClickTimer=window.setTimeout(()=>{swipeChoiceClickGuard=null;swipeChoiceClickTimer=null;},500);
+  swipeChoiceClickTimer=window.setTimeout(()=>{
+   swipeChoiceClickGuard=null;swipeChoiceClickTimer=null;
+  },500);
  }
  function finish(x,y,event){
   const gesture=swipeGesture;if(!gesture)return;
-  if(Number.isFinite(x)&&Number.isFinite(y)){gesture.lastX=x;gesture.lastY=y;gesture.deltaX=x-gesture.startX;gesture.deltaY=y-gesture.startY;}
+  if(Number.isFinite(x)&&Number.isFinite(y)){
+   gesture.lastX=x;gesture.lastY=y;
+   gesture.deltaX=x-gesture.startX;gesture.deltaY=y-gesture.startY;
+  }
   swipeGesture=null;
   const horizontal=gesture.axis==="horizontal"&&Math.abs(gesture.deltaX)>=STUDIO_SWIPE_THRESHOLD;
   if(horizontal&&event&&event.cancelable&&typeof event.preventDefault==="function")event.preventDefault();
   if(horizontal){
    armChoiceClickGuard(gesture.choice);
-   const offset=Math.max(-92,Math.min(92,gesture.deltaX*.34));
    stage.classList.remove("is-swipe-dragging");
-   gesture.panel.style.removeProperty("transform");gesture.panel.style.removeProperty("transition");gesture.panel.style.removeProperty("opacity");
-   const moved=goToStep(state.step+(gesture.deltaX<0?1:-1),"swipe",offset);
-   if(!moved)springBack(gesture.panel);
+   const moved=goToStep(state.step+(gesture.deltaX<0?1:-1),"swipe",gesture.deltaX);
+   if(!moved)springBack(gesture.panel,gesture.previewPanel,gesture.previewDirection,gesture.width);
    return;
   }
-  springBack(gesture.panel);
+  if(gesture.axis==="horizontal")springBack(gesture.panel,gesture.previewPanel,gesture.previewDirection,gesture.width);
+  else if(gesture.previewPanel)hidePreview(gesture.previewPanel);
  }
- function cancel(){const gesture=swipeGesture;if(!gesture)return;swipeGesture=null;springBack(gesture.panel);}
+ function cancel(){
+  const gesture=swipeGesture;if(!gesture)return;
+  swipeGesture=null;
+  if(gesture.axis==="horizontal")springBack(gesture.panel,gesture.previewPanel,gesture.previewDirection,gesture.width);
+  else if(gesture.previewPanel)hidePreview(gesture.previewPanel);
+ }
  stage.addEventListener("touchstart",event=>{
   if(!event.touches||event.touches.length!==1){cancel();return;}
-  const touch=event.touches[0];begin(event.target,touch.clientX,touch.clientY,"touch",touch.identifier);
+  const touch=event.touches[0];
+  begin(event.target,touch.clientX,touch.clientY,"touch",touch.identifier);
  },{passive:true});
  stage.addEventListener("touchmove",event=>{
   if(!swipeGesture||swipeGesture.kind!=="touch")return;
   if(!event.touches||event.touches.length!==1){cancel();return;}
-  const touch=event.touches[0];move(touch.clientX,touch.clientY,event);
+  const touch=event.touches[0];
+  move(touch.clientX,touch.clientY,event);
  },{passive:false});
  stage.addEventListener("touchend",event=>{
   if(!swipeGesture||swipeGesture.kind!=="touch")return;
-  const touch=event.changedTouches&&event.changedTouches[0];
+  const changed=Array.from(event.changedTouches||[]);
+  const touch=changed.find(item=>item.identifier===swipeGesture.pointerId)||changed[0];
   finish(touch?touch.clientX:swipeGesture.lastX,touch?touch.clientY:swipeGesture.lastY,event);
  },{passive:false});
  stage.addEventListener("touchcancel",()=>{if(swipeGesture&&swipeGesture.kind==="touch")cancel();},{passive:true});
@@ -1017,6 +1111,9 @@ function initStepSwipe(root){
  stage.addEventListener("pointercancel",event=>{
   if(swipeGesture&&swipeGesture.kind==="pointer"&&event.pointerId===swipeGesture.pointerId)cancel();
  });
+ stage.addEventListener("lostpointercapture",event=>{
+  if(swipeGesture&&swipeGesture.kind==="pointer"&&event.pointerId===swipeGesture.pointerId)cancel();
+ });
  stage.addEventListener("click",event=>{
   if(!swipeChoiceClickGuard)return;
   const clicked=targetElement(event.target)?.closest(".gdr-studio-choice");
@@ -1026,6 +1123,8 @@ function initStepSwipe(root){
    if(swipeChoiceClickTimer!==null){clearTimeout(swipeChoiceClickTimer);swipeChoiceClickTimer=null;}
   }
  },true);
+ window.addEventListener("blur",cancel);
+ document.addEventListener("visibilitychange",()=>{if(document.hidden)cancel();});
 }
 async function getOwner(){
  const c=client();if(!c)throw new Error("Account service is not ready. Refresh the page and sign in again.");

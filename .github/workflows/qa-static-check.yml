@@ -128,6 +128,8 @@ jobs:
           node --check assets/gdr-rental-suite.js
           node --check assets/gdr-rental-suite-v2.js
           node --test tests/gdr-property-studio.test.cjs
+          node --check tests/gdr-property-studio-swipe.test.cjs
+          node --test tests/gdr-property-studio-swipe.test.cjs
           node --check tests/gdr-owner-profile-nearby-mobile-scroll.test.cjs
           node --test tests/gdr-owner-profile-nearby-mobile-scroll.test.cjs
           node --check tests/gdr-owner-property-filters.test.cjs
