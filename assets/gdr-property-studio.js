@@ -403,13 +403,13 @@ function formatINR(v){
  const n=Number(v||0);return "₹"+n.toLocaleString("en-IN",{maximumFractionDigits:0});
 }
 function normalizeAddressSearch(value){
- return String(value||"").normalize("NFD").replace(/[\\u0300-\\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
+ return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();
 }
 function showSuggestions(items,query){
  const box=$("#gdrStudioLocationSuggestions");if(!box)return;
  box.innerHTML="";
  if(!items.length){box.hidden=true;return;}
- const queryTokens=normalizeAddressSearch(query).split(/\\s+/).filter(token=>token.length>=2);
+ const queryTokens=normalizeAddressSearch(query).split(/\s+/).filter(token=>token.length>=2);
  const seen=new Set();
  const ranked=items.map(item=>{
   const p=item.properties||{},coords=item.geometry&&item.geometry.coordinates||[];
