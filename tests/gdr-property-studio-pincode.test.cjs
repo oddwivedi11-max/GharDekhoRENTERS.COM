@@ -180,3 +180,22 @@ test("postal coordinate fallback prioritises the India Post-selected delivery of
   assert.ok(studio.includes("const preferredOfficeBonus=Math.max(0,200-index*20)"));
   assert.ok(map.includes("const preferredOfficeBonus=Math.max(0,200-index*20)"));
 });
+
+test("landmark and address suggestions stay approximate and open the existing map for exact entrance confirmation",()=>{
+  const start=studio.indexOf("function showSuggestions(items){");
+  const end=studio.indexOf("async function searchAddress(query){",start);
+  assert.ok(start>=0&&end>start);
+  const block=studio.slice(start,end);
+  assert.match(block,/setLocation\(label,lat,lng,state\.pincode,false\)/);
+  assert.match(block,/centerOwnerMapPicker\(lat,lng,label\)/);
+  assert.match(block,/openMap\(\)/);
+  assert.match(block,/Approximate search result/);
+  assert.doesNotMatch(block,/Exact coordinates saved/);
+});
+
+test("address search rejects stale responses after the owner changes the search text",()=>{
+  assert.match(studio,/addressSearchSequence\+\+/);
+  assert.match(studio,/const isCurrent=\(\)=>requestId===addressSearchSequence/);
+  assert.match(studio,/if\(!isCurrent\(\)\)return/);
+  assert.match(studio,/validIndiaPoint\(Number\(coords\[1\]\),Number\(coords\[0\]\)\)/);
+});
