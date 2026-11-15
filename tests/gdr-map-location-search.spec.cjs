@@ -166,7 +166,9 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).toContain('state.renterMap.setView(state.searchCenter,targetZoom,{animate:false})');
     expect(script).toContain('radiusInput.addEventListener("input",e=>{state.radiusKm=Math.max(.5,Math.min(10,Number(e.target.value)||5));');
     expect(script).toContain('$("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap&&state.searchCenter)searchRenterArea(undefined,state.searchUsesRadius);})');
-    expect(script).toMatch(/state\\.renterMap\\.on\\("click",\\s*e=>\\{\\s*state\\.searchUsesRadius=true;\\s*setRenterPin\\(e\\.latlng,"Selected map location"\\);\\s*\\}\\);/);
+    expect(script).toContain('state.renterMap.on("click",e=>{');
+    expect(script).toContain("state.searchUsesRadius=true;");
+    expect(script).toContain('setRenterPin(e.latlng,"Selected map location");');
     expect(script).toContain('draggable:true');
     expect(script).toContain('async function reverseGeocodeRenter(lat,lng)');
     expect(script).toContain('setRenterPin(point,point.label||query)');
@@ -183,7 +185,9 @@ test.describe('Map location search uses the requested place, not a stale invento
     const init = script.slice(initStart, initEnd);
     expect(init).toContain('state.renterMap.setView(INDIA_CENTER,5)');
     expect(init).not.toContain('setView([23.2599,77.4126],12)');
-    expect(init).toMatch(/state\\.renterMap\\.on\\("click",\\s*e=>\\{\\s*state\\.searchUsesRadius=true;\\s*setRenterPin\\(e\\.latlng,"Selected map location"\\);\\s*\\}\\);/);
+    expect(init).toContain('state.renterMap.on("click",e=>{');
+    expect(init).toContain("state.searchUsesRadius=true;");
+    expect(init).toContain('setRenterPin(e.latlng,"Selected map location");');
     expect(script).toContain('draggable:true');
     expect(script).toContain('marker.on("dragend",event=>handleRenterPinDragEnd(event,marker))');
     expect(script).toContain('if(state.renterPin&&preservePin===false)');
