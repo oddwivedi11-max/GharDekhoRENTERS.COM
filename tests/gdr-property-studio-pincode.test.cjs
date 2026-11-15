@@ -97,7 +97,7 @@ test("property map stays on one page, uses raster tiles and auto-shows nearby pl
 test("owner PIN entry ignores stale requests and centers the map at the verified locality",()=>{
   assert.match(map,/ownerLocationSearchId:0/);
   assert.match(map,/if\(kind==="owner"\)state\.ownerLocationSearchId\+\+/);
-  assert.match(map,/if\(searchId!==state\.ownerLocationSearchId\|\|!state\.ownerMap\)return/);
+  assert.match(map,/if\(kind==="owner"&&\(searchId!==state\.ownerLocationSearchId\|\|input\.value\.trim\(\)!==q\)\)return/);
   assert.match(map,/state\.ownerMap\.setView\(\[point\.lat,point\.lng\],13,\{animate:false\}\)/);
 });
 
