@@ -49,7 +49,7 @@ jobs:
               ("gdr-owner-renter-page.js", "20261114-renter-detail-route1"),
               ("gdr-owner-current-renters-dashboard.js", "20261114-current-renters-mount1"),
               ("gdr-map-experience.js", "20261116-owner-poi-single-source1"),
-              ("gdr-property-studio.js", "20261115-studio-address-search1"),
+              ("gdr-property-studio.js", "20261116-studio-overpass-fallback1"),
               ("gdr-property-studio.css", "20261115-studio-address-search1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
@@ -312,7 +312,7 @@ jobs:
           grep -oE 'gdr-property-studio.js[^" ]*' /tmp/gdr-live-root.html | head -3 || true
           grep -oE 'gdr-property-studio.js[^" ]*' /tmp/gdr-live-index.html | head -3 || true
           grep -oE 'gdr-property-studio.js[^" ]*' /tmp/gdr-live-login.html | head -3 || true
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261115-studio-address-search1" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261116-studio-overpass-fallback1" -o /tmp/gdr-property-studio.js
           grep -q 'bindPropertyStudioLauncher();' /tmp/gdr-property-studio.js
           grep -q 'function showLauncherFeedback(text,tone)' /tmp/gdr-property-studio.js
           grep -q 'dash.getBoundingClientRect()' /tmp/gdr-property-studio.js
@@ -447,12 +447,12 @@ jobs:
           grep -q 'data-gd-open-property-picker' /tmp/gdr-live-root.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-login.html || grep -q 'data-gd-open-property-picker' /tmp/gdr-live-index.html
           grep -q 'gdPickerAuthorized' /tmp/gdr-live-root.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-login.html || grep -q 'gdPickerAuthorized' /tmp/gdr-live-index.html
           grep -q 'List Your Property' /tmp/gdr-live-root.html || grep -q 'List Your Property' /tmp/gdr-live-login.html || grep -q 'List Your Property' /tmp/gdr-live-index.html
-          grep -q 'gdr-property-studio.js?v=20261115-studio-address-search1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261115-studio-address-search1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261115-studio-address-search1' /tmp/gdr-live-index.html
+          grep -q 'gdr-property-studio.js?v=20261116-studio-overpass-fallback1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261116-studio-overpass-fallback1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261116-studio-overpass-fallback1' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261115-studio-address-search1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261115-studio-address-search1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261115-studio-address-search1' /tmp/gdr-live-index.html
           grep -q 'gdr-rental-suite-v2.js?v=20261114-dashboard-mount-only2' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261114-dashboard-mount-only2' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261114-dashboard-mount-only2' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-root.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-login.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-root.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-login.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261115-studio-address-search1" -o /tmp/gdr-property-studio.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261116-studio-overpass-fallback1" -o /tmp/gdr-property-studio.js
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-owner-property-archive.js?v=20261109-soft-archive1" -o /tmp/gdr-owner-property-archive.js
           grep -q 'owner_archive_property' /tmp/gdr-owner-property-archive.js
           grep -q 'owner_publish_property_studio' /tmp/gdr-property-studio.js

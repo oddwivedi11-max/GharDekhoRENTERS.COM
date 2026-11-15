@@ -111,7 +111,7 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION="20261115-studio-address-search1"/);
+  assert.match(studio, /const VERSION="20261116-studio-overpass-fallback1"/);
   assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
   assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
@@ -135,6 +135,9 @@ test("Property Studio uses only free Photon, Leaflet and OpenStreetMap nearby di
   assert.match(studio, /gdr_osm_nearby_v1/);
   assert.match(studio, /86400000/);
   assert.match(studio, /nearbyController\.abort\(\)/);
+  assert.match(studio, /const endpointController=new AbortController\(\)/);
+  assert.match(studio, /setTimeout\(\(\)=>endpointController\.abort\(\),7000\)/);
+  assert.match(studio, /controller\.signal\.addEventListener\("abort",abortWithParent,\{once:true\}\)/);
   assert.match(studio, /cached\.places\.filter/);
   assert.match(studio, /distance_m:Math\.round\(distanceMeters/);
   assert.match(studioMarkup, /© OpenStreetMap contributors/);

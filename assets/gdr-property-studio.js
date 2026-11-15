@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-studio-address-search1";
+const VERSION="20261116-studio-overpass-fallback1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -632,18 +632,30 @@ out center tags;`;
   const endpoints=["https://overpass.private.coffee/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass-api.de/api/interpreter"];
   let data=null,lastError=null;
   for(const endpoint of endpoints){
+   const endpointController=new AbortController();
+   const abortWithParent=()=>endpointController.abort();
+   if(controller.signal.aborted)break;
+   controller.signal.addEventListener("abort",abortWithParent,{once:true});
+   const endpointTimeout=setTimeout(()=>endpointController.abort(),7000);
    try{
     const response=await fetch(endpoint,{
      method:"POST",
      headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},
      body:"data="+encodeURIComponent(query),
-     signal:controller.signal
+     signal:endpointController.signal
     });
     if(!response.ok)throw new Error("OpenStreetMap nearby service returned HTTP "+response.status);
     const payload=await response.json();
+    if(payload&&payload.remark)throw new Error("OpenStreetMap nearby service: "+String(payload.remark).slice(0,180));
     if(!payload||!Array.isArray(payload.elements))throw new Error("OpenStreetMap returned an invalid nearby-places response.");
     data=payload;break;
-   }catch(error){lastError=error;if(controller.signal.aborted)throw error;}
+   }catch(error){
+    lastError=error;
+    if(controller.signal.aborted)throw error;
+   }finally{
+    clearTimeout(endpointTimeout);
+    controller.signal.removeEventListener("abort",abortWithParent);
+   }
   }
   if(!data)throw lastError||new Error("Nearby places are unavailable from OpenStreetMap.");
   if(run!==nearbyRun)return;
@@ -667,7 +679,7 @@ out center tags;`;
  }catch(e){
   if(run!==nearbyRun)return;
   console.warn("OpenStreetMap nearby discovery unavailable",e);
-  if(status)status.textContent=controller.signal.aborted?"Nearby places took too long to load. Your confirmed location is saved; you can continue without this optional information.":"Nearby facilities are temporarily unavailable from OpenStreetMap. Your confirmed location is saved; you can continue without this optional information.";
+  if(status)status.textContent=controller.signal.aborted||error.name==="AbortError"?"Nearby places took too long to load. Your confirmed location is saved; you can continue without this optional information.":"Nearby facilities are temporarily unavailable from OpenStreetMap. Your confirmed location is saved; you can continue without this optional information.";
  }
  finally{
   clearTimeout(timeout);
