@@ -1020,7 +1020,7 @@
   }
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
-    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);addAutomaticNearbyPlaces(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
+    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
     state.ownerMap.setView([22.5937,78.9629],5);
     if(state.pendingOwnerMapCenter){
       const pending=state.pendingOwnerMapCenter;state.pendingOwnerMapCenter=null;
@@ -1029,10 +1029,34 @@
     }
     state.ownerMap.on("click",e=>setOwnerPin(e.latlng,"",true));
   }
+  function ensureOwnerMapConfirmButton(panel){
+    if(!panel)return;
+    let footer=panel.querySelector(".gdr-owner-map-footer");
+    if(!footer){
+      footer=document.createElement("div");
+      footer.className="gdr-owner-map-footer";
+      panel.appendChild(footer);
+    }
+    let button=$( "gdrConfirmOwnerMapLocation" );
+    if(!button){
+      button=document.createElement("button");
+      button.type="button";
+      button.id="gdrConfirmOwnerMapLocation";
+      button.textContent="Confirm exact property location";
+      footer.appendChild(button);
+    }else if(button.parentNode!==footer){
+      footer.appendChild(button);
+    }
+    if(button.dataset.gdrConfirmBound!=="1"){
+      button.addEventListener("click",confirmOwnerMapLocation);
+      button.dataset.gdrConfirmBound="1";
+    }
+    button.setAttribute("aria-label","Confirm the exact property entrance selected on the map");
+  }
   async function openOwnerMapPicker(){
     const panel=$("gdrOwnerMapPicker");if(!panel)return;
     try{
-      await ensureLeaflet();panel.hidden=false;initOwnerMap();
+      await ensureLeaflet();panel.hidden=false;initOwnerMap();ensureOwnerMapConfirmButton(panel);
       const toolbar=panel.querySelector(".gdr-owner-map-toolbar");
       if(toolbar&&!$("gdrOwnerPreciseLocationBtn")){
         const locate=node("button","gdr-map-toggle-btn","◎ Use my precise location");
@@ -1315,7 +1339,7 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
     $("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap&&state.searchCenter)searchRenterArea(undefined,state.searchUsesRadius);});
     $("gdrMapListToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;const on=!l.classList.contains("gdr-list-mode");l.classList.toggle("gdr-list-mode",on);if(panel)panel.hidden=!on;$("gdrMapListToggle").setAttribute("aria-pressed",String(on));$("gdrMapViewToggle").setAttribute("aria-pressed",String(!on));if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
     $("gdrMapViewToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;l.classList.remove("gdr-list-mode");if(panel)panel.hidden=true;$("gdrMapListToggle").setAttribute("aria-pressed","false");$("gdrMapViewToggle").setAttribute("aria-pressed","true");if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
-    $("gdrOpenOwnerMapPickerBtn")?.addEventListener("click",openOwnerMapPicker);$("gdrCloseOwnerMapPickerBtn")?.addEventListener("click",closeOwnerMapPicker);$("gdrConfirmOwnerMapLocation")?.addEventListener("click",confirmOwnerMapLocation);
+    $("gdrOpenOwnerMapPickerBtn")?.addEventListener("click",openOwnerMapPicker);$("gdrCloseOwnerMapPickerBtn")?.addEventListener("click",closeOwnerMapPicker);
     setupPlaceSearch("gdrMapPlaceSearch","gdrMapPlaceSuggestions",r=>{if(state.renterMap){state.searchUsesRadius=true;setRenterPin(r,r.label);state.renterMap.setView(state.searchCenter,14,{animate:false});searchRenterArea(undefined,true);}},"renter");
     $("gdrMapPlaceSearch")?.addEventListener("change",()=>{state.resolvedQuery="";});
     setupPlaceSearch("gdrOwnerMapSearch","gdrOwnerMapSuggestions",r=>{if(state.ownerMap){state.ownerMap.flyTo([r.lat,r.lng],16,{duration:.6});setOwnerPin({lat:r.lat,lng:r.lng},r.label,false);updateOwnerStatus("Approximate locality found. Zoom in and tap the exact building/entrance or drag the pin; search results are not exact property coordinates.");}},"owner");
