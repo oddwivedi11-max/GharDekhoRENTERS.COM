@@ -19,6 +19,7 @@
   </div>
   <main id="gdrStudioMain" class="gdr-studio-main">
     <div class="gdr-studio-heading"><span>ONE SIMPLE STEP AT A TIME</span><h1 id="gdrStudioStepTitle">Property type</h1><p>Tell us a little about your property. You can review everything before publishing.</p></div>
+    <div id="gdrStudioPanelStage" class="gdr-studio-panel-stage" data-gdr-swipe-stage aria-label="Swipe horizontally to change listing steps">
     <section class="gdr-studio-panel" data-gdr-studio-panel="0">
       <h2 class="gdr-studio-panel-title">What kind of property are you listing?</h2><p class="gdr-studio-panel-subtitle">Choose the option that best describes your property.</p>
       <div class="gdr-studio-type-grid">
@@ -93,6 +94,7 @@
     <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
       <h2 class="gdr-studio-panel-title">Review before publishing</h2><p class="gdr-studio-panel-subtitle">Check the details carefully. Your listing will be saved in My Properties and follow the existing verification process.</p><div id="gdrStudioPreview"></div>
     </section>
+    </div>
     <div class="gdr-studio-form-navigation" aria-label="Manual property listing navigation">
       <button type="button" id="gdrStudioBack" hidden>← Back</button>
       <span class="gdr-studio-form-step">STEP <b id="gdrStudioNavStep">1</b> <small>OF 5</small></span>

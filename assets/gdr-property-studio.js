@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261115-india-pin-all-offices1";
+const VERSION="20261115-studio-horizontal-swipe1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -17,7 +17,10 @@ const typeLabels={
 };
 const configurations=["1 RK","1 BHK","2 BHK","3 BHK","4 BHK","5+ BHK"];
 const allowedTypes=["image/jpeg","image/png","image/webp"];
+const STUDIO_SWIPE_THRESHOLD=72;
 let searchTimer=null,searchController=null,nearbyRun=0,nearbyController=null;
+let stepTransitionTimer=null,stepTransitionSequence=0;
+let swipeGesture=null,swipeSnapTimer=null,swipeChoiceClickGuard=null,swipeChoiceClickTimer=null;
 function client(){return window.__gdrSupabaseClient||null;}
 function studio(){return $("#gdrPropertyStudio");}
 function message(text,tone){
@@ -818,13 +821,67 @@ function renderPreview(){
    (photos.length>1?'<div class="gdr-studio-preview-strip">'+photos.map(p=>'<img src="'+escapeHtml(p)+'" alt="Property photo preview">').join("")+'</div>':"")+
    '<div class="gdr-studio-preview-nearby"><strong>Nearby places</strong>'+nearbyHtml+'</div>';
 }
-function updateStep(){
+function finishStepPanelTransition(sequence,activeStep){
+ if(sequence!==stepTransitionSequence)return;
+ stepTransitionTimer=null;
+ const root=studio();if(!root)return;
+ const stage=$("#gdrStudioPanelStage",root);
+ $$("[data-gdr-studio-panel]",root).forEach(panel=>{
+  const active=Number(panel.dataset.gdrStudioPanel)===activeStep;
+  panel.hidden=!active;
+  if(active){panel.removeAttribute("inert");panel.setAttribute("aria-hidden","false");}
+  else{panel.setAttribute("inert","");panel.setAttribute("aria-hidden","true");}
+  panel.classList.remove("gdr-studio-panel-exit-left","gdr-studio-panel-exit-right","gdr-studio-panel-enter-from-right","gdr-studio-panel-enter-from-left");
+  panel.style.removeProperty("transform");
+  panel.style.removeProperty("transition");
+  panel.style.removeProperty("opacity");
+  panel.style.removeProperty("--gdr-step-swipe-start-x");
+ });
+ if(stage){stage.classList.remove("is-transitioning","is-swipe-dragging");stage.removeAttribute("data-transition-direction");}
+}
+function updateStep(transition){
  const root=studio();if(!root)return;
  renderLiveVoiceForm();
- $$("[data-gdr-studio-panel]",root).forEach(p=>{p.hidden=Number(p.dataset.gdrStudioPanel)!==state.step;});
+ const stage=$("#gdrStudioPanelStage",root);
+ if(stepTransitionTimer!==null){clearTimeout(stepTransitionTimer);stepTransitionTimer=null;}
+ const sequence=++stepTransitionSequence;
+ if(stage){stage.classList.remove("is-transitioning","is-swipe-dragging");stage.removeAttribute("data-transition-direction");}
+ const panels=$$("[data-gdr-studio-panel]",root);
+ panels.forEach(panel=>{
+  panel.classList.remove("gdr-studio-panel-exit-left","gdr-studio-panel-exit-right","gdr-studio-panel-enter-from-right","gdr-studio-panel-enter-from-left");
+  panel.style.removeProperty("transform");panel.style.removeProperty("transition");panel.style.removeProperty("opacity");panel.style.removeProperty("--gdr-step-swipe-start-x");
+ });
+ const fromStep=transition&&Number.isInteger(Number(transition.fromStep))?Number(transition.fromStep):null;
+ const fromPanel=fromStep===null?null:panels.find(panel=>Number(panel.dataset.gdrStudioPanel)===fromStep);
+ const activePanel=panels.find(panel=>Number(panel.dataset.gdrStudioPanel)===state.step);
+ let animate=!!(stage&&transition&&fromPanel&&activePanel&&fromPanel!==activePanel);
+ try{if(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches)animate=false;}catch(e){}
+ if(animate){
+  panels.forEach(panel=>{
+   const index=Number(panel.dataset.gdrStudioPanel),shown=index===fromStep||index===state.step,active=index===state.step;
+   panel.hidden=!shown;
+   if(active){panel.removeAttribute("inert");panel.setAttribute("aria-hidden","false");}
+   else{panel.setAttribute("inert","");panel.setAttribute("aria-hidden","true");}
+  });
+  const direction=transition.direction==="previous"?"previous":"next";
+  const offset=Number(transition.swipeOffset)||0;
+  if(offset)fromPanel.style.setProperty("--gdr-step-swipe-start-x",Math.max(-100,Math.min(100,offset))+"px");
+  stage.dataset.transitionDirection=direction;stage.classList.add("is-transitioning");
+  fromPanel.classList.add(direction==="next"?"gdr-studio-panel-exit-left":"gdr-studio-panel-exit-right");
+  activePanel.classList.add(direction==="next"?"gdr-studio-panel-enter-from-right":"gdr-studio-panel-enter-from-left");
+  stepTransitionTimer=window.setTimeout(()=>finishStepPanelTransition(sequence,state.step),360);
+ }else{
+  panels.forEach(panel=>{
+   const active=Number(panel.dataset.gdrStudioPanel)===state.step;
+   panel.hidden=!active;
+   if(active){panel.removeAttribute("inert");panel.setAttribute("aria-hidden","false");}
+   else{panel.setAttribute("inert","");panel.setAttribute("aria-hidden","true");}
+  });
+ }
  $$("[data-gdr-studio-step-indicator]",root).forEach(el=>{
   const n=Number(el.dataset.gdrStudioStepIndicator);
   el.classList.toggle("is-current",n===state.step);el.classList.toggle("is-complete",n<state.step);
+  if(n===state.step)el.setAttribute("aria-current","step");else el.removeAttribute("aria-current");
  });
  const back=$("#gdrStudioBack"),formNext=$("#gdrStudioFormNext"),assistantNext=$("#gdrStudioNext"),publish=$("#gdrStudioPublish"),navStep=$("#gdrStudioNavStep");
  if(back)back.hidden=state.step===0;
@@ -837,11 +894,138 @@ function updateStep(){
  if(title)title.textContent=["Property type","Rent details","Property location","Property photos","Review your listing"][state.step];
  const progress=$("#gdrStudioProgressFill");if(progress)progress.style.width=((state.step+1)/5*100)+"%";
 }
-function goToStep(n){
- if(n>state.step&&!validateStep(state.step))return;
- state.step=Math.min(4,Math.max(0,n));updateStep();saveDraft();
+function goToStep(n,source,swipeOffset){
+ const requested=Number(n);
+ if(!Number.isFinite(requested))return false;
+ const target=Math.min(4,Math.max(0,Math.trunc(requested)));
+ if(target===state.step)return false;
+ if(target>state.step&&!validateStep(state.step))return false;
+ const fromStep=state.step,direction=target>fromStep?"next":"previous";
+ state.step=target;
+ updateStep({fromStep,direction,source:source||"button",swipeOffset:source==="swipe"?Number(swipeOffset)||0:0});
+ saveDraft();
  const main=$("#gdrStudioMain");if(main)main.scrollIntoView({behavior:"smooth",block:"start"});
  message("");
+ return true;
+}
+function initStepSwipe(root){
+ const stage=$("#gdrStudioPanelStage",root);
+ if(!stage||stage.dataset.gdrSwipeBound==="1")return;
+ stage.dataset.gdrSwipeBound="1";
+ const excluded="input,textarea,select,button:not(.gdr-studio-choice),a,[contenteditable='true'],[role='button'],#gdrStudioMapHost,.leaflet-container,.leaflet-control-container,.gdr-studio-photo-categories,#gdrStudioPhotoPreview,.gdr-studio-photo-grid,[data-gdr-studio-photo-upload],[data-gdr-studio-photo-camera],[data-gdr-studio-no-swipe],[data-native-horizontal-scroll]";
+ const targetElement=target=>target&&target.nodeType===1?target:(target&&target.parentElement?target.parentElement:null);
+ function canBegin(target){
+  const element=targetElement(target);
+  if(!element||root.hidden||stage.classList.contains("is-transitioning"))return null;
+  const panel=element.closest("[data-gdr-studio-panel]");
+  if(!panel||panel.hidden||Number(panel.dataset.gdrStudioPanel)!==state.step)return null;
+  const choice=element.closest(".gdr-studio-choice");
+  if(element.closest(excluded))return null;
+  return {panel,choice};
+ }
+ function clearSnapTimer(){
+  if(swipeSnapTimer!==null){clearTimeout(swipeSnapTimer);swipeSnapTimer=null;}
+ }
+ function springBack(panel){
+  stage.classList.remove("is-swipe-dragging");
+  if(!panel)return;
+  panel.style.transition="transform 190ms cubic-bezier(.2,.75,.25,1), opacity 190ms ease-out";
+  panel.style.transform="translate3d(0,0,0)";panel.style.opacity="1";
+  clearSnapTimer();
+  swipeSnapTimer=window.setTimeout(()=>{
+   panel.style.removeProperty("transform");panel.style.removeProperty("transition");panel.style.removeProperty("opacity");swipeSnapTimer=null;
+  },220);
+ }
+ function begin(target,x,y,kind,pointerId){
+  if(swipeGesture)return;
+  const eligible=canBegin(target);if(!eligible)return;
+  clearSnapTimer();
+  eligible.panel.style.removeProperty("transform");eligible.panel.style.removeProperty("transition");eligible.panel.style.removeProperty("opacity");
+  swipeGesture={startX:x,startY:y,lastX:x,lastY:y,deltaX:0,deltaY:0,axis:null,kind,pointerId,choice:eligible.choice,panel:eligible.panel,captured:false};
+ }
+ function move(x,y,event){
+  const gesture=swipeGesture;if(!gesture)return;
+  gesture.lastX=x;gesture.lastY=y;gesture.deltaX=x-gesture.startX;gesture.deltaY=y-gesture.startY;
+  const dx=gesture.deltaX,dy=gesture.deltaY;
+  if(!gesture.axis){
+   if(Math.max(Math.abs(dx),Math.abs(dy))<12)return;
+   if(Math.abs(dx)>Math.abs(dy)*1.15)gesture.axis="horizontal";
+   else if(Math.abs(dy)>Math.abs(dx)*1.15){gesture.axis="vertical";return;}
+   else return;
+  }
+  if(gesture.axis!=="horizontal")return;
+  if(event&&event.cancelable&&typeof event.preventDefault==="function")event.preventDefault();
+  if(!stage.classList.contains("is-swipe-dragging"))stage.classList.add("is-swipe-dragging");
+  const follow=Math.max(-92,Math.min(92,dx*.34));
+  gesture.panel.style.transition="none";gesture.panel.style.transform="translate3d("+follow+"px,0,0)";
+  gesture.panel.style.opacity=String(1-Math.min(.055,Math.abs(dx)/1600));
+ }
+ function armChoiceClickGuard(choice){
+  if(!choice)return;
+  swipeChoiceClickGuard=choice;
+  if(swipeChoiceClickTimer!==null)clearTimeout(swipeChoiceClickTimer);
+  swipeChoiceClickTimer=window.setTimeout(()=>{swipeChoiceClickGuard=null;swipeChoiceClickTimer=null;},500);
+ }
+ function finish(x,y,event){
+  const gesture=swipeGesture;if(!gesture)return;
+  if(Number.isFinite(x)&&Number.isFinite(y)){gesture.lastX=x;gesture.lastY=y;gesture.deltaX=x-gesture.startX;gesture.deltaY=y-gesture.startY;}
+  swipeGesture=null;
+  const horizontal=gesture.axis==="horizontal"&&Math.abs(gesture.deltaX)>=STUDIO_SWIPE_THRESHOLD;
+  if(horizontal&&event&&event.cancelable&&typeof event.preventDefault==="function")event.preventDefault();
+  if(horizontal){
+   armChoiceClickGuard(gesture.choice);
+   const offset=Math.max(-92,Math.min(92,gesture.deltaX*.34));
+   stage.classList.remove("is-swipe-dragging");
+   gesture.panel.style.removeProperty("transform");gesture.panel.style.removeProperty("transition");gesture.panel.style.removeProperty("opacity");
+   const moved=goToStep(state.step+(gesture.deltaX<0?1:-1),"swipe",offset);
+   if(!moved)springBack(gesture.panel);
+   return;
+  }
+  springBack(gesture.panel);
+ }
+ function cancel(){const gesture=swipeGesture;if(!gesture)return;swipeGesture=null;springBack(gesture.panel);}
+ stage.addEventListener("touchstart",event=>{
+  if(!event.touches||event.touches.length!==1){cancel();return;}
+  const touch=event.touches[0];begin(event.target,touch.clientX,touch.clientY,"touch",touch.identifier);
+ },{passive:true});
+ stage.addEventListener("touchmove",event=>{
+  if(!swipeGesture||swipeGesture.kind!=="touch")return;
+  if(!event.touches||event.touches.length!==1){cancel();return;}
+  const touch=event.touches[0];move(touch.clientX,touch.clientY,event);
+ },{passive:false});
+ stage.addEventListener("touchend",event=>{
+  if(!swipeGesture||swipeGesture.kind!=="touch")return;
+  const touch=event.changedTouches&&event.changedTouches[0];
+  finish(touch?touch.clientX:swipeGesture.lastX,touch?touch.clientY:swipeGesture.lastY,event);
+ },{passive:false});
+ stage.addEventListener("touchcancel",()=>{if(swipeGesture&&swipeGesture.kind==="touch")cancel();},{passive:true});
+ stage.addEventListener("pointerdown",event=>{
+  if((event.pointerType!=="mouse"&&event.pointerType!=="pen")||event.button!==0)return;
+  begin(event.target,event.clientX,event.clientY,"pointer",event.pointerId);
+ });
+ stage.addEventListener("pointermove",event=>{
+  if(!swipeGesture||swipeGesture.kind!=="pointer"||event.pointerId!==swipeGesture.pointerId)return;
+  move(event.clientX,event.clientY,event);
+  if(swipeGesture&&swipeGesture.axis==="horizontal"&&!swipeGesture.captured){
+   try{stage.setPointerCapture(event.pointerId);swipeGesture.captured=true;}catch(e){}
+  }
+ });
+ stage.addEventListener("pointerup",event=>{
+  if(!swipeGesture||swipeGesture.kind!=="pointer"||event.pointerId!==swipeGesture.pointerId)return;
+  finish(event.clientX,event.clientY,event);
+ });
+ stage.addEventListener("pointercancel",event=>{
+  if(swipeGesture&&swipeGesture.kind==="pointer"&&event.pointerId===swipeGesture.pointerId)cancel();
+ });
+ stage.addEventListener("click",event=>{
+  if(!swipeChoiceClickGuard)return;
+  const clicked=targetElement(event.target)?.closest(".gdr-studio-choice");
+  if(clicked&&clicked===swipeChoiceClickGuard){
+   event.preventDefault();event.stopPropagation();event.stopImmediatePropagation();
+   swipeChoiceClickGuard=null;
+   if(swipeChoiceClickTimer!==null){clearTimeout(swipeChoiceClickTimer);swipeChoiceClickTimer=null;}
+  }
+ },true);
 }
 async function getOwner(){
  const c=client();if(!c)throw new Error("Account service is not ready. Refresh the page and sign in again.");
@@ -1280,6 +1464,7 @@ function toggleVoiceMute(){
 function bindEvents(){
  const root=studio();if(!root||root.dataset.bound==="1")return;root.dataset.bound="1";
  renderLiveVoiceForm();
+ initStepSwipe(root);
  // Disable browser-saved suggestions for all listing inputs.
  $$("input,select,textarea",root).forEach(el=>{
   el.setAttribute("autocomplete","off");
