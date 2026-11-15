@@ -968,32 +968,37 @@
     input.addEventListener("input",()=>{
       if(state[timerKey])clearTimeout(state[timerKey]);if(state[controllerKey])state[controllerKey].abort();
       if(kind==="owner")state.ownerLocationSearchId++;
-      const q=input.value.trim();panel.replaceChildren();panel.classList.remove("gdr-open");if(q.length<3)return;
+      const q=input.value.trim(),searchId=kind==="owner"?state.ownerLocationSearchId:state.mapSearchId;
+      panel.replaceChildren();panel.classList.remove("gdr-open");if(q.length<3)return;
       if(/^\d{6}$/.test(q)&&kind==="renter"){
         state[timerKey]=setTimeout(()=>searchTypedMapLocation(),450);
         return;
       }
       if(/^\d{6}$/.test(q)&&kind==="owner"){
-        const searchId=state.ownerLocationSearchId;
         state[timerKey]=setTimeout(async()=>{
           try{
             const point=await resolveMapQuery(q);
-            if(searchId!==state.ownerLocationSearchId||!state.ownerMap)return;
+            if(searchId!==state.ownerLocationSearchId||!state.ownerMap||input.value.trim()!==q)return;
             state.ownerMap.setView([point.lat,point.lng],13,{animate:false});
             setOwnerPin({lat:point.lat,lng:point.lng},point.label,false);
             requestAnimationFrame(()=>state.ownerMap&&state.ownerMap.invalidateSize());
             updateOwnerStatus("PIN "+q+" verified · "+point.label+". Map centered at this locality. Drag the pin to the exact property entrance.");
           }catch(error){
-            if(searchId===state.ownerLocationSearchId)updateOwnerStatus(error.message||"This PIN could not be verified. Check the six digits and retry.");
+            if(searchId===state.ownerLocationSearchId&&input.value.trim()===q)updateOwnerStatus(error.message||"This PIN could not be verified. Check the six digits and retry.");
           }
         },350);
         return;
       }
       state[timerKey]=setTimeout(async()=>{
         const controller=new AbortController();state[controllerKey]=controller;
-        try{const response=await fetch(PHOTON+"?limit=6&lang=en&q="+encodeURIComponent(q+", India"),{headers:{Accept:"application/json"},signal:controller.signal});if(!response.ok)throw new Error("Location suggestions unavailable");
-          const payload=await response.json(),features=rankPhotonFeatures(Array.isArray(payload.features)?payload.features:[],q);
-          features.forEach(f=>{const c=f&&f.geometry&&f.geometry.coordinates;if(!Array.isArray(c)||!validPoint(c[1],c[0]))return;
+        try{
+          const response=await fetch(PHOTON+"?limit=8&lang=en&q="+encodeURIComponent(q+", India"),{headers:{Accept:"application/json"},signal:controller.signal});
+          if(kind==="owner"&&(searchId!==state.ownerLocationSearchId||input.value.trim()!==q))return;
+          if(!response.ok)throw new Error("Location suggestions unavailable");
+          const payload=await response.json();
+          if(kind==="owner"&&(searchId!==state.ownerLocationSearchId||input.value.trim()!==q))return;
+          const features=rankPhotonFeatures(Array.isArray(payload.features)?payload.features:[],q);
+          features.forEach(f=>{const c=f&&f.geometry&&f.geometry.coordinates;if(!Array.isArray(c)||!validIndiaPoint(c[1],c[0]))return;
             const label=photonLabel(f.properties)||q,b=node("button","gdr-map-suggestion",label);b.type="button";b.addEventListener("click",()=>{input.value=label;panel.classList.remove("gdr-open");onSelect({lat:Number(c[1]),lng:Number(c[0]),label,properties:f.properties||{}});});panel.append(b);
           });
           if(panel.childElementCount)panel.classList.add("gdr-open");
