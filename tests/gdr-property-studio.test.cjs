@@ -6,6 +6,7 @@ const root = path.join(__dirname, "..");
 const read = p => fs.readFileSync(path.join(root, p), "utf8");
 const html = read("index.html");
 const studio = read("assets/gdr-property-studio.js");
+const mapExperience = read("assets/gdr-map-experience.js");
 const studioMarkup = read("assets/gdr-property-studio.txt");
 const studioCss = read("assets/gdr-property-studio.css");
 const migration = read("supabase/migrations/20261106195955_owner_property_studio.sql");
@@ -127,6 +128,8 @@ test("renter preview shows actual nearby place names, categories and distances",
 test("Property Studio uses only free Photon, Leaflet and OpenStreetMap nearby discovery", () => {
   assert.match(studio, /photon\.komoot\.io/);
   assert.match(studio, /GDRMapExperience\.openOwnerMapPicker/);
+  assert.doesNotMatch(mapExperience, /addAutomaticNearbyPlaces\(state\.ownerMap\)/);
+  assert.match(mapExperience, /addAutomaticNearbyPlaces\(state\.renterMap\)/);
   assert.match(studio, /overpass-api\.de\/api\/interpreter/);
   assert.match(studio, /out center tags/);
   assert.match(studio, /gdr_osm_nearby_v1/);
