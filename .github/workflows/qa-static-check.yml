@@ -1,5 +1,4 @@
 name: GDR QA Static Checks
-# Includes Property Studio address-search and editable map regression coverage.
 
 on:
   push:
