@@ -63,6 +63,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
       touch("touchmove", panel0, 225, 204);
       touch("touchend", panel0, 225, 204);
       const shortStayed = state.step === 0;
+      await new Promise(resolve => window.setTimeout(resolve, 240));
 
       const verticalStart = touch("touchstart", panel0, 180, 180);
       const verticalMovePrevented = touch("touchmove", panel0, 184, 280);
