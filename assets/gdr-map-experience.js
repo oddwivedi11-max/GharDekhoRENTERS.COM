@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261116-map-search-click-fix1";
+  const MAP_PIN_VERSION="20261116-owner-poi-single-source1";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const validIndiaPoint=(lat,lng)=>validPoint(lat,lng)&&Number(lat)>=5&&Number(lat)<=38.8&&Number(lng)>=67&&Number(lng)<=98.2;
@@ -1030,7 +1030,7 @@
   }
   function initOwnerMap(){
     if(state.ownerMap)return;const canvas=$("gdrOwnerMapCanvas");if(!canvas)return;
-    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);addAutomaticNearbyPlaces(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
+    state.ownerMap=window.L.map(canvas,{zoomControl:false,scrollWheelZoom:true});addTiles(state.ownerMap);window.L.control.zoom({position:"bottomright"}).addTo(state.ownerMap);
     state.ownerMap.setView([22.5937,78.9629],5);
     if(state.pendingOwnerMapCenter){
       const pending=state.pendingOwnerMapCenter;state.pendingOwnerMapCenter=null;
