@@ -18,7 +18,7 @@ const typeLabels={
 const configurations=["1 RK","1 BHK","2 BHK","3 BHK","4 BHK","5+ BHK"];
 const allowedTypes=["image/jpeg","image/png","image/webp"];
 const STUDIO_SWIPE_THRESHOLD=72;
-let searchTimer=null,searchController=null,nearbyRun=0,nearbyController=null;
+let searchTimer=null,searchController=null,addressSearchSequence=0,nearbyRun=0,nearbyController=null;
 let stepTransitionTimer=null,stepTransitionSequence=0;
 let swipeGesture=null,swipeSnapTimer=null,swipeChoiceClickGuard=null,swipeChoiceClickTimer=null;
 function client(){return window.__gdrSupabaseClient||null;}
@@ -415,31 +415,37 @@ function showSuggestions(items){
   const small=document.createElement("small");small.textContent="Use this address and save its map coordinates";
   b.append(strong,small);
   b.addEventListener("click",()=>{
-   setLocation(label,Number(coords[1]),Number(coords[0]),p.postcode||"");
+   const lat=Number(coords[1]),lng=Number(coords[0]);
+   setLocation(label,lat,lng,p.postcode||"",false);
+   if(window.GDRMapExperience&&typeof window.GDRMapExperience.centerOwnerMapPicker==="function")window.GDRMapExperience.centerOwnerMapPicker(lat,lng,label);
    box.hidden=true;
-   const status=$("#gdrStudioLocationStatus");if(status)status.textContent="✓ Address selected. Exact coordinates saved.";
+   const status=$("#gdrStudioLocationStatus");if(status)status.textContent="Approximate address selected. Open the map, zoom in and tap or drag to the exact property entrance before confirming.";
+   openMap();
   });
   box.appendChild(b);
  });
  box.hidden=!box.childElementCount;
 }
 async function searchAddress(query){
+ const requestId=++addressSearchSequence;
  if(searchController)searchController.abort();
  searchController=new AbortController();
- const box=$("#gdrStudioLocationSuggestions"),status=$("#gdrStudioLocationStatus");
+ const controller=searchController,box=$("#gdrStudioLocationSuggestions"),status=$("#gdrStudioLocationStatus");
+ const isCurrent=()=>requestId===addressSearchSequence&&$("#gdrStudioLocation")?.value.trim()===String(query||"").trim();
  if(box){box.innerHTML="";box.hidden=false;}
  if(status)status.textContent="Searching Indian addresses…";
  try{
-  const url="https://photon.komoot.io/api/?limit=8&lang=en&q="+encodeURIComponent(query);
-  const res=await fetch(url,{headers:{Accept:"application/json"},signal:searchController.signal});
+  const url="https://photon.komoot.io/api/?limit=12&lang=en&q="+encodeURIComponent(query);
+  const res=await fetch(url,{headers:{Accept:"application/json"},signal:controller.signal});
+  if(!isCurrent())return;
   if(!res.ok)throw new Error("Location search is temporarily unavailable.");
-  const data=await res.json();
-  const features=(Array.isArray(data.features)?data.features:[]).filter(f=>f&&f.geometry&&Array.isArray(f.geometry.coordinates)&&Number.isFinite(Number(f.geometry.coordinates[0]))&&Number.isFinite(Number(f.geometry.coordinates[1])));
+  const data=await res.json();if(!isCurrent())return;
+  const features=(Array.isArray(data.features)?data.features:[]).filter(f=>f&&f.geometry&&Array.isArray(f.geometry.coordinates)&&Number.isFinite(Number(f.geometry.coordinates[0]))&&Number.isFinite(Number(f.geometry.coordinates[1]))&&validIndiaPoint(Number(f.geometry.coordinates[1]),Number(f.geometry.coordinates[0])));
   const india=features.filter(f=>String(f.properties&&f.properties.countrycode||"").toLowerCase()==="in");
-   showSuggestions(india);
-   if(status)status.textContent=india.length?"Choose the correct Indian locality from the suggestions.":"No matching Indian address found. Try adding the city or PIN code.";
+  showSuggestions(india);
+  if(status)status.textContent=india.length?"Choose the matching Indian locality, district and state. The map point is approximate until you confirm the exact entrance.":"No matching Indian address found. Try adding the city, district or six-digit PIN code.";
  }catch(e){
-  if(e.name==="AbortError")return;
+  if(e.name==="AbortError"||!isCurrent())return;
   if(status)status.textContent="Address suggestions are unavailable. You can still use GPS or the map pin.";
   if(box)box.hidden=true;
  }
@@ -791,7 +797,14 @@ function validateStep(step){
   if(!state.address){message("Please search for the property address or enter its locality and city.","error");return false;}
   if(state.pincode&&!/^\d{6}$/.test(state.pincode)){message("PIN code must contain 6 digits.","error");return false;}
   if(!validIndiaPoint(Number(state.lat),Number(state.lng))){message("Locate the property in India, then open Select on Map and place the exact property pin before submitting.","error");return false;}
+  if(state.pincode&&state.resolvedPincode!==state.pincode){message("Verify this six-digit PIN code before publishing. The selected address and PIN must match.","error");return false;}
   if(!state.locationConfirmed){message("The PIN or address only identifies an approximate area. Open Select on Map, tap or drag the marker to the exact house entrance, and confirm the location before submitting.","error");return false;}
+  if(state.pinCenter&&validIndiaPoint(Number(state.pinCenter.lat),Number(state.pinCenter.lng))){
+   const rad=n=>n*Math.PI/180,a=Number(state.pinCenter.lat),b=Number(state.pinCenter.lng),c=Number(state.lat),d=Number(state.lng);
+   const h=Math.sin(rad(c-a)/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(rad(d-b)/2)**2;
+   const distance=6371*2*Math.atan2(Math.sqrt(h),Math.sqrt(1-h));
+   if(distance>25&&!window.confirm("The selected property is approximately "+distance.toFixed(1)+" km from the verified PIN-code locality. Check the PIN and map marker. Continue with these coordinates anyway?"))return false;
+  }
  }
  return true;
 }
