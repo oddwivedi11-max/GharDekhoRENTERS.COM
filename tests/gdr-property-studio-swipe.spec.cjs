@@ -13,7 +13,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
   for (const width of [320, 360, 375, 390, 414, 430]) {
     await page.setViewportSize({ width, height: 844 });
     await page.setContent("<!doctype html><html><head><style>"+css+"</style></head><body><div id='gdrPropertyStudio'><main id='root'><div id='gdrStudioPanelStage' class='gdr-studio-panel-stage'></div></main></div></body></html>");
-    const result = await page.evaluate(({ swipeFunction }) => {
+    const result = await page.evaluate(async ({ swipeFunction }) => {
       const root = document.querySelector("#root");
       const stage = document.querySelector("#gdrStudioPanelStage");
       const state = { step: 0, transitions: [], invalidStep: -1 };
