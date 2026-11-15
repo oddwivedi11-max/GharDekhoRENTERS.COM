@@ -140,11 +140,11 @@ test('map assistant starts with a greeting and an empty search field', () => {
 });
 
 
-test('shared renter and owner maps use the stable OSM raster basemap and automatic nearby-place layer', () => {
+test('renter map keeps automatic nearby places without duplicating Property Studio owner discovery', () => {
   assert.match(map, /tile\.openstreetmap\.org\/\{z\}\/\{x\}\/\{y\}\.png/);
   assert.match(map, /function addAutomaticNearbyPlaces\(map\)/);
   assert.match(map, /addAutomaticNearbyPlaces\(state\.renterMap\)/);
-  assert.match(map, /addAutomaticNearbyPlaces\(state\.ownerMap\)/);
+  assert.doesNotMatch(map, /addAutomaticNearbyPlaces\(state\.ownerMap\)/);
   assert.match(map, /overpass-api\.de\/api\/interpreter/);
   assert.doesNotMatch(map, /function addMapExploreControls/);
   assert.doesNotMatch(map, /Mapillary opened in a new tab|360° street imagery|window\.open\(/);
