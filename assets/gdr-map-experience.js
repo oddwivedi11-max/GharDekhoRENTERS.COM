@@ -1074,13 +1074,33 @@
  return true;
 }
 function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true;}
-  function confirmOwnerMapLocation(){
+  let ownerConfirmSequence=0;
+  async function confirmOwnerMapLocation(){
     if(!state.ownerSelection){updateOwnerStatus("Tap the map or use GPS to place the property pin.");return;}
     if(!state.ownerPinManuallyConfirmed){updateOwnerStatus("This is only an approximate locality-search pin, not a verified property location. Zoom in and tap the exact building/entrance or drag the marker, or use high-accuracy GPS, before confirming.");return;}
-    const input=$("propertyLocation"),typed=String(input&&input.value||"").trim(),address=typed||state.ownerSelection.label;
-    if(!address){updateOwnerStatus("Enter the full property address before confirming the pin.");if(input)input.focus();return;}
-    if(typeof window.__gdrSetPropertyLocation!=="function"||!window.__gdrSetPropertyLocation(address,state.ownerSelection.lat,state.ownerSelection.lng)){updateOwnerStatus("Property form is still initializing. Try again.");return;}
-    updateOwnerStatus("Location confirmed. Coordinates will be saved with this property.");closeOwnerMapPicker();
+    const selected={lat:Number(state.ownerSelection.lat),lng:Number(state.ownerSelection.lng)},sequence=++ownerConfirmSequence;
+    if(!validIndiaPoint(selected.lat,selected.lng)){updateOwnerStatus("Select a property point within India before confirming.");return;}
+    const input=$("propertyLocation"),typed=String(input&&input.value||"").trim();
+    updateOwnerStatus("Checking the selected entrance and retrieving its address…");
+    let reverseAddress="",reversePin="";
+    const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+    try{
+      const response=await fetch("https://photon.komoot.io/reverse?lat="+encodeURIComponent(selected.lat)+"&lon="+encodeURIComponent(selected.lng)+"&lang=en",{headers:{Accept:"application/json"},signal:controller.signal});
+      if(response.ok){
+        const payload=await response.json(),feature=payload&&payload.features&&payload.features[0],props=feature&&feature.properties||{};
+        reverseAddress=photonLabel(props);reversePin=String(props.postcode||"").replace(/\D/g,"").slice(0,6);
+      }
+    }catch(error){if(error&&error.name!=="AbortError")console.info("Reverse geocoding unavailable; retaining the editable address.",error);}
+    finally{clearTimeout(timer);}
+    if(sequence!==ownerConfirmSequence)return;
+    if(!state.ownerSelection||Math.abs(Number(state.ownerSelection.lat)-selected.lat)>0.000001||Math.abs(Number(state.ownerSelection.lng)-selected.lng)>0.000001){updateOwnerStatus("The map pin changed while its address was being checked. Confirm the latest marker again.");return;}
+    const pinInput=$("gdrStudioPincode"),enteredPin=String(pinInput&&pinInput.value||"").replace(/\D/g,"").slice(0,6);
+    if(enteredPin&&reversePin&&enteredPin!==reversePin&&!window.confirm("The selected map point appears to have PIN "+reversePin+", but the form contains "+enteredPin+". Check the address and PIN. Continue with this manually selected point?")){updateOwnerStatus("PIN and map location differ. Correct either the PIN or the selected property point before confirming.");return;}
+    const address=reverseAddress||typed||state.ownerSelection.label;
+    if(!address){updateOwnerStatus("The selected point has no readable address yet. Enter the locality and confirm again.");if(input)input.focus();return;}
+    if(typeof window.__gdrSetPropertyLocation!=="function"||!window.__gdrSetPropertyLocation(address,selected.lat,selected.lng)){updateOwnerStatus("Property form is still initializing. Try again.");return;}
+    updateOwnerStatus("Exact property pin confirmed. "+(reverseAddress?"Reverse-geocoded address added; you can edit it in the address field.":"Coordinates saved; address lookup was unavailable, so your typed address was retained."));
+    closeOwnerMapPicker();
   }
   async function usePreciseOwnerLocation(){
     if(!state.ownerMap){updateOwnerStatus("Open the map first, then request your precise location.");return;}
