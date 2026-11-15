@@ -195,4 +195,22 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).toContain('searchRenterArea(undefined,true)');
   });
 
+  test('Search this area resolves typed text before querying the map viewport', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const source = await page.locator('script[src*="gdr-map-experience.js"]').getAttribute('src');
+    const script = await page.evaluate(async src => await (await fetch(src)).text(), source);
+    expect(script).toContain('const query=String($("gdrMapPlaceSearch")?.value||"").trim();if(query)searchTypedMapLocation();else searchRenterArea(undefined,false);');
+  });
+
+  test('a failed typed location search preserves the current map state', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const source = await page.locator('script[src*="gdr-map-experience.js"]').getAttribute('src');
+    const script = await page.evaluate(async src => await (await fetch(src)).text(), source);
+    const start = script.indexOf('async function searchTypedMapLocation(){');
+    const end = script.indexOf('async function searchRenterArea(', start);
+    const typedSearch = script.slice(start, end);
+    expect(typedSearch.indexOf('const point=await resolveMapQuery(query);')).toBeLessThan(typedSearch.indexOf('state.boundsRows=[];state.visible=[];'));
+    expect(typedSearch).toContain('A failed search must not throw the user back');
+  });
+
 });

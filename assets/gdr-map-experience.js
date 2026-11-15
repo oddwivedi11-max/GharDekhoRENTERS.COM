@@ -13,7 +13,7 @@
   };
   const INDIA_CENTER=[22.9734,78.6569];
   const PHOTON="https://photon.komoot.io/api/";
-  const MAP_PIN_VERSION="20261115-renter-map-precision1";
+  const MAP_PIN_VERSION="20261116-map-search-click-fix1";
   const asNumber=v=>v===null||v===undefined||String(v).trim()===""?null:(Number.isFinite(Number(v))?Number(v):null);
   const validPoint=(lat,lng)=>asNumber(lat)!==null&&asNumber(lng)!==null&&asNumber(lat)>=-90&&asNumber(lat)<=90&&asNumber(lng)>=-180&&asNumber(lng)<=180;
   const validIndiaPoint=(lat,lng)=>validPoint(lat,lng)&&Number(lat)>=5&&Number(lat)<=38.8&&Number(lng)>=67&&Number(lng)<=98.2;
@@ -797,19 +797,19 @@
     if(!query)return searchRenterArea();
     const locationSearchId=++state.locationSearchId,button=$("gdrMapSearchAreaBtn");
     if(button){button.disabled=true;button.textContent="Locating…";}
-    state.boundsRows=[];state.visible=[];state.browseInventory=null;state.browseCenter=null;
-    state.resolvedQuery="";
-    if(state.renterMap){
-      if(state.renterPin){try{state.renterMap.removeLayer(state.renterPin);}catch(_){}state.renterPin=null;}
-      if(state.radiusCircle){try{state.renterMap.removeLayer(state.radiusCircle);}catch(_){}state.radiusCircle=null;}
-      state.searchCenter=INDIA_CENTER.slice();
-      state.renterMap.setView(INDIA_CENTER,5,{animate:false});
-      renderMarkers([],INDIA_CENTER);
-    }
     setStatus("Finding "+query+" on the map…");
     try{
+      // Resolve and validate the requested location before changing the current
+      // map or clearing results. A failed search must not throw the user back
+      // to the India overview or erase a previously useful map state.
       const point=await resolveMapQuery(query);
       if(locationSearchId!==state.locationSearchId)return false;
+      state.boundsRows=[];state.visible=[];state.browseInventory=null;state.browseCenter=null;
+      state.resolvedQuery="";
+      if(state.renterMap){
+        if(state.renterPin){try{state.renterMap.removeLayer(state.renterPin);}catch(_){}state.renterPin=null;}
+        if(state.radiusCircle){try{state.renterMap.removeLayer(state.radiusCircle);}catch(_){}state.radiusCircle=null;}
+      }
       setRenterPin(point,point.label||query);
       const kind=String(point.properties&&(point.properties.type||point.properties.osm_value)||"").toLowerCase();
       const cityLike=["city","town","administrative"].includes(kind);
@@ -1310,7 +1310,7 @@ function closeOwnerMapPicker(){const p=$("gdrOwnerMapPicker");if(p)p.hidden=true
 
   function bind(){
     $("renterExploreMapBtn")?.addEventListener("click",openRenterMap);$("gdrMapBackBtn")?.addEventListener("click",closeRenterMap);
-    $("gdrMapSearchAreaBtn")?.addEventListener("click",()=>searchRenterArea(undefined,false));$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
+    $("gdrMapSearchAreaBtn")?.addEventListener("click",()=>{const query=String($("gdrMapPlaceSearch")?.value||"").trim();if(query)searchTypedMapLocation();else searchRenterArea(undefined,false);});$("gdrMapLocateBtn")?.addEventListener("click",locateRenter);
     const radiusInput=$("gdrMapRadius");if(radiusInput){radiusInput.min="0.5";radiusInput.max="10";radiusInput.step="0.5";radiusInput.addEventListener("input",e=>{state.radiusKm=Math.max(.5,Math.min(10,Number(e.target.value)||5));const label=$("gdrMapRadiusValue");if(label)label.textContent=state.radiusKm<1?Math.round(state.radiusKm*1000)+" m":state.radiusKm+" km";});}
     $("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap&&state.searchCenter)searchRenterArea(undefined,state.searchUsesRadius);});
     $("gdrMapListToggle")?.addEventListener("click",()=>{const l=$("gdrMapLayout"),panel=$("gdrMapListPanel");if(!l)return;const on=!l.classList.contains("gdr-list-mode");l.classList.toggle("gdr-list-mode",on);if(panel)panel.hidden=!on;$("gdrMapListToggle").setAttribute("aria-pressed",String(on));$("gdrMapViewToggle").setAttribute("aria-pressed",String(!on));if(state.renterMap)requestAnimationFrame(()=>state.renterMap.invalidateSize());});
