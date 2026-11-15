@@ -627,16 +627,25 @@ async function loadNearbyPlaces(){
 );
 out center tags;`;
  const controller=new AbortController();nearbyController=controller;
- const timeout=setTimeout(()=>controller.abort(),25000);
+ const timeout=setTimeout(()=>controller.abort(),22000);
  try{
-  const response=await fetch("https://overpass-api.de/api/interpreter",{
-   method:"POST",
-   headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},
-   body:"data="+encodeURIComponent(query),
-   signal:controller.signal
-  });
-  if(!response.ok)throw new Error("OpenStreetMap nearby service returned HTTP "+response.status);
-  const data=await response.json();
+  const endpoints=["https://overpass.private.coffee/api/interpreter","https://maps.mail.ru/osm/tools/overpass/api/interpreter","https://overpass-api.de/api/interpreter"];
+  let data=null,lastError=null;
+  for(const endpoint of endpoints){
+   try{
+    const response=await fetch(endpoint,{
+     method:"POST",
+     headers:{"Content-Type":"application/x-www-form-urlencoded;charset=UTF-8","Accept":"application/json"},
+     body:"data="+encodeURIComponent(query),
+     signal:controller.signal
+    });
+    if(!response.ok)throw new Error("OpenStreetMap nearby service returned HTTP "+response.status);
+    const payload=await response.json();
+    if(!payload||!Array.isArray(payload.elements))throw new Error("OpenStreetMap returned an invalid nearby-places response.");
+    data=payload;break;
+   }catch(error){lastError=error;if(controller.signal.aborted)throw error;}
+  }
+  if(!data)throw lastError||new Error("Nearby places are unavailable from OpenStreetMap.");
   if(run!==nearbyRun)return;
   const unique=new Map();
   (Array.isArray(data.elements)?data.elements:[]).forEach(element=>{
@@ -658,7 +667,7 @@ out center tags;`;
  }catch(e){
   if(run!==nearbyRun)return;
   console.warn("OpenStreetMap nearby discovery unavailable",e);
-  if(status)status.textContent="Nearby facilities are temporarily unavailable from OpenStreetMap. Your confirmed location is saved; you can continue without this optional information.";
+  if(status)status.textContent=controller.signal.aborted?"Nearby places took too long to load. Your confirmed location is saved; you can continue without this optional information.":"Nearby facilities are temporarily unavailable from OpenStreetMap. Your confirmed location is saved; you can continue without this optional information.";
  }
  finally{
   clearTimeout(timeout);
