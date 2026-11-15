@@ -161,11 +161,12 @@ test.describe('Map location search uses the requested place, not a stale invento
     const script = await page.evaluate(async src => await (await fetch(src)).text(), source);
     expect(script).not.toContain('const first=state.inventory[0];if(first)state.renterMap.setView');
     expect(script).toContain('Tap anywhere on the map to place your starting location');
-    expect(script).toContain('$("gdrMapPlaceSearch")?.addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();searchTypedMapLocation();}})');
-    expect(script).toContain('state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false})');
+    expect(script).toContain('else if(kind==="renter")searchTypedMapLocation();');
+    expect(script).not.toContain('$("#gdrMapPlaceSearch")?.addEventListener("keydown"');
+    expect(script).toContain('state.renterMap.setView(state.searchCenter,targetZoom,{animate:false})');
     expect(script).toContain('radiusInput.addEventListener("input",e=>{state.radiusKm=Math.max(.5,Math.min(10,Number(e.target.value)||5));');
     expect(script).toContain('$("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap&&state.searchCenter)searchRenterArea(undefined,state.searchUsesRadius);})');
-    expect(script).toContain('state.renterMap.on("click",e=>{state.searchUsesRadius=true;setRenterPin(e.latlng,"Selected map location");})');
+    expect(script).toMatch(/state\\.renterMap\\.on\\("click",\\s*e=>\\{\\s*state\\.searchUsesRadius=true;\\s*setRenterPin\\(e\\.latlng,"Selected map location"\\);\\s*\\}\\);/);
     expect(script).toContain('draggable:true');
     expect(script).toContain('async function reverseGeocodeRenter(lat,lng)');
     expect(script).toContain('setRenterPin(point,point.label||query)');
@@ -182,7 +183,7 @@ test.describe('Map location search uses the requested place, not a stale invento
     const init = script.slice(initStart, initEnd);
     expect(init).toContain('state.renterMap.setView(INDIA_CENTER,5)');
     expect(init).not.toContain('setView([23.2599,77.4126],12)');
-    expect(init).toContain('state.renterMap.on("click",e=>{state.searchUsesRadius=true;setRenterPin(e.latlng,"Selected map location");})');
+    expect(init).toMatch(/state\\.renterMap\\.on\\("click",\\s*e=>\\{\\s*state\\.searchUsesRadius=true;\\s*setRenterPin\\(e\\.latlng,"Selected map location"\\);\\s*\\}\\);/);
     expect(script).toContain('draggable:true');
     expect(script).toContain('marker.on("dragend",event=>handleRenterPinDragEnd(event,marker))');
     expect(script).toContain('if(state.renterPin&&preservePin===false)');

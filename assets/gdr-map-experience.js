@@ -625,7 +625,9 @@
   function normalizedText(value){return String(value||"").normalize("NFD").replace(/[\u0300-\u036f]/g,"").toLowerCase().replace(/[^a-z0-9]+/g," ").trim();}
   function isIndiaPhotonFeature(feature){
     const props=feature&&feature.properties||{},coords=feature&&feature.geometry&&feature.geometry.coordinates||[];
-    if(!Array.isArray(coords)||coords.length<2||!validIndiaPoint(coords[1],coords[0]))return false;
+    if(!Array.isArray(coords)||coords.length<2)return false;
+    const lat=Number(coords[1]),lng=Number(coords[0]);
+    if(!Number.isFinite(lat)||!Number.isFinite(lng)||lat<5||lat>38.8||lng<67||lng>98.2)return false;
     const country=normalizedText(props.country),countryCode=String(props.countrycode||"").toLowerCase();
     if(countryCode&&countryCode!=="in")return false;
     if(country&&!country.includes("india"))return false;

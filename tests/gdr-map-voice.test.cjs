@@ -217,7 +217,7 @@ test('viewport browsing shows Bhopal homes after zooming in without applying the
 
 test('viewport browsing retains the full inventory and preserves the selected location pin', () => {
   assert.ok(map.includes("state.browseInventory=items.slice()"));
-  assert.ok(map.includes("if(state.renterPin&&preservePin!==true)"));
+  assert.ok(map.includes("if(state.renterPin&&preservePin===false)"));
   assert.ok(map.includes("state.browseInventory=null"));
 });
 
