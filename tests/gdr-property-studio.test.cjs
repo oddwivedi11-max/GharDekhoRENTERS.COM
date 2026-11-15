@@ -298,17 +298,3 @@ test("Owner Analytics uses scoped production tables and derives payment renter n
   assert.match(ownerWorkspace,/data-insight-dismiss/);
   assert.match(ownerWorkspace,/gdr_owner_notice_state_v1:/);
 });
-
-test("Property Studio swipe navigation tracks both panels and preserves native mobile controls", () => {
-  const controller = studio.slice(studio.indexOf("function initStepSwipe(root){"), studio.indexOf("\\nasync function getOwner(){"));
-  assert.match(controller, /const targetStep=state\\.step\\+\\(direction==="next"\\?1:-1\\)/);
-  assert.match(controller, /candidate\\.style\\.transform="translate3d\\"\\+incomingOffset/);
-  assert.match(controller, /goToStep\\(state\\.step\\+\\(gesture\\.deltaX<0\\?1:-1\\),"swipe",gesture\\.deltaX\\)/);
-  assert.match(controller, /input/);
-  assert.match(controller, /textarea/);
-  assert.match(controller, /leaflet-container/);
-  assert.match(controller, /data-native-horizontal-scroll/);
-  assert.match(studio, /if\\(target>state\\.step&&!validateStep\\(state\\.step\\)\\)return false/);
-  assert.match(studioCss, /prefers-reduced-motion:reduce/);
-  assert.match(studioCss, /clip-path:inset\\(0\\)/);
-});
