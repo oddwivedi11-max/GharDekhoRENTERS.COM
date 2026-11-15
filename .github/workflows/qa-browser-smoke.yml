@@ -28,6 +28,7 @@ on:
       - "fix/gdr-renter-search-accuracy-20261107c"
       - "fix/owner-profile-nearby-mobile-scroll"
       - "fix/master-ui-map-swipe-20261112"
+      - "fix/smart-property-location-precision"
     paths:
       - "index.html"
       - "admin/**"
