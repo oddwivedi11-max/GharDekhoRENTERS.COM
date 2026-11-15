@@ -110,3 +110,15 @@ test("legacy rental bundle cannot recreate the Nearby card after the v2 card exi
  assert.doesNotMatch(suite,/new MutationObserver\(boot\)\.observe\(document\.body/);
  assert.doesNotMatch(suite,/attributes:true,attributeFilter:\["class","style"\]/);
 });
+
+test("Property Studio owner map exposes an exact-pin confirmation action and skips optional POI loading",()=>{
+ const start=map.indexOf("function initOwnerMap()");
+ const end=map.indexOf("function makeLayer(",start);
+ const ownerPicker=map.slice(start,end);
+ assert.doesNotMatch(ownerPicker,/addAutomaticNearbyPlaces\(state\.ownerMap\)/);
+ assert.match(map,/function ensureOwnerMapConfirmButton\(panel\)/);
+ assert.match(map,/button\.id="gdrConfirmOwnerMapLocation"/);
+ assert.match(map,/button\.addEventListener\("click",confirmOwnerMapLocation\)/);
+ assert.match(map,/ensureOwnerMapConfirmButton\(panel\)/);
+ assert.match(style,/#gdrConfirmOwnerMapLocation\{/);
+});
