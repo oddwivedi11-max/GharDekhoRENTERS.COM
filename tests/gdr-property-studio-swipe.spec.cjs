@@ -36,7 +36,7 @@ test.describe("Property Studio horizontal swipe navigation",()=>{
  test("left advances, right returns, validation is respected and entered data is retained",async({page})=>{
   await page.setViewportSize({width:390,height:844});
   await openStudio(page);
-  const propertyTitle='[data-gdr-studio-panel="0"] .gdr-studio-panel-title';
+  const propertyTitle='[data-gdr-studio-panel="0"] > h2.gdr-studio-panel-title';
   await dispatchTouchSwipe(page,propertyTitle,-110);
   await expect(page.locator('[data-gdr-studio-panel="0"]')).toBeVisible();
   await expect(page.locator("#gdrStudioMessage")).toContainText("Please choose your property type");
@@ -47,7 +47,7 @@ test.describe("Property Studio horizontal swipe navigation",()=>{
   await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
   await waitForStepAnimation(page);
   await expect(page.locator("#gdrStudioNavStep")).toHaveText("2");
-  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="1"] .gdr-studio-panel-title',112);
+  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="1"] > h2.gdr-studio-panel-title',112);
   await expect(page.locator('[data-gdr-studio-panel="0"]')).toBeVisible();
   await waitForStepAnimation(page);
   await expect(page.locator('[data-gdr-property-type="room"]')).toHaveAttribute("aria-pressed","true");
@@ -58,7 +58,7 @@ test.describe("Property Studio horizontal swipe navigation",()=>{
   await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
   await expect(page.locator('[data-gdr-studio-panel="2"]')).toBeHidden();
   await page.locator("#gdrStudioRent").fill("8000");
-  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="1"] .gdr-studio-panel-title',-120);
+  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="1"] > h2.gdr-studio-panel-title',-120);
   await expect(page.locator('[data-gdr-studio-panel="2"]')).toBeVisible();
   await waitForStepAnimation(page);
   await expect(page.locator("#gdrStudioNavStep")).toHaveText("3");
@@ -67,7 +67,7 @@ test.describe("Property Studio horizontal swipe navigation",()=>{
   await page.setViewportSize({width:375,height:812});
   await openStudio(page);
   await page.locator('[data-gdr-property-type="room"]').click();
-  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="0"] .gdr-studio-panel-title',7,125);
+  await dispatchTouchSwipe(page,'[data-gdr-studio-panel="0"] > h2.gdr-studio-panel-title',7,125);
   await expect(page.locator('[data-gdr-studio-panel="0"]')).toBeVisible();
   await expect(page.locator("#gdrStudioNavStep")).toHaveText("1");
   for(const width of [320,360,375,390,414,430]){
@@ -82,7 +82,7 @@ test.describe("Property Studio horizontal swipe navigation",()=>{
   await page.setViewportSize({width:1280,height:900});
   await openStudio(page);
   await page.locator('[data-gdr-property-type="room"]').click();
-  const title=page.locator('[data-gdr-studio-panel="0"] .gdr-studio-panel-title');
+  const title=page.locator('[data-gdr-studio-panel="0"] > h2.gdr-studio-panel-title');
   const box=await title.boundingBox(),x=box.x+12,y=box.y+box.height/2;
   await page.mouse.move(x,y);await page.mouse.down();await page.mouse.move(x-115,y,{steps:5});await page.mouse.up();
   await expect(page.locator('[data-gdr-studio-panel="1"]')).toBeVisible();
