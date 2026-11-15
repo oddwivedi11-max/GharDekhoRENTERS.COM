@@ -45,6 +45,7 @@ on:
       - "fix/owner-profile-nearby-mobile-scroll"
       - "fix/property-studio-scroll-cache-test-alignment"
       - "fix/master-ui-map-swipe-20261112"
+      - "fix/property-studio-remote-address-search"
   workflow_dispatch:
 
 permissions:
