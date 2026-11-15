@@ -57,7 +57,7 @@ jobs:
               if count != 1:
                   raise SystemExit("Could not safely version existing asset: " + asset)
           # Publish one authoritative Property Studio stylesheet link.
-          new_studio_css = '/assets/gdr-property-studio.css?v=20261115-studio-swipe-touch2'
+          new_studio_css = '/assets/gdr-property-studio.css?v=20261115-studio-address-search1'
           source, removed_studio_links = re.subn(
               r'(?m)^\s*<link rel="stylesheet" href="/assets/gdr-property-studio\.css(?:\?v=[^"]*)?">\s*\n?',
               '',
