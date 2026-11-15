@@ -46,6 +46,7 @@ on:
       - "fix/property-studio-scroll-cache-test-alignment"
       - "fix/master-ui-map-swipe-20261112"
       - "fix/property-studio-remote-address-search"
+      - "fix/property-studio-remote-address-search-main-sync"
   workflow_dispatch:
 
 permissions:

@@ -110,7 +110,7 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION="20261115-studio-swipe-native2"/);
+  assert.match(studio, /const VERSION="20261115-studio-address-search1"/);
   assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
   assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
@@ -121,7 +121,7 @@ test("renter preview shows actual nearby place names, categories and distances",
   assert.match(studio, /state\.nearbyPlaces\.slice\(0,8\)/);
   assert.match(studio, /escapeHtml\(place\.name/);
   assert.match(studio, /distanceLabel\(place\.distance_m\)/);
-  assert.ok(studio.includes("showSuggestions(india);"));
+  assert.ok(studio.includes("showSuggestions(india,query);"));
 });
 
 test("Property Studio uses only free Photon, Leaflet and OpenStreetMap nearby discovery", () => {
@@ -228,8 +228,8 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.ok(html.includes("gdr-property-studio.css") || patcher.includes("css_ref_v6"));
  assert.match(patcher,/if css_ref_v6 not in source:/);
  assert.match(patcher,/Normalized Property Studio controller include to exactly one script tag/);
- assert.match(patcher,/gdr-property-studio\.js\?v=20261115-studio-swipe-native2/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261115-studio-swipe-touch2/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261115-studio-address-search1/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261115-studio-address-search1/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
@@ -297,4 +297,18 @@ test("Owner Analytics uses scoped production tables and derives payment renter n
   assert.match(ownerWorkspace,/data-insight-read/);
   assert.match(ownerWorkspace,/data-insight-dismiss/);
   assert.match(ownerWorkspace,/gdr_owner_notice_state_v1:/);
+});
+
+test("Remote Property Studio address search ranks locality matches and keeps the address editable above the map",()=>{
+  assert.match(studio,/function normalizeAddressSearch\(value\)/);
+  assert.match(studio,/function showSuggestions\(items,query\)/);
+  assert.match(studio,/tokenHits\*8/);
+  assert.match(studio,/centerOwnerMapPicker\(lat,lng,label\)/);
+  assert.match(studio,/You can edit the address above at any time/);
+  for (const source of [studioMarkup,read("assets/gdr-property-studio.html")]) {
+    assert.match(source,/e\.g\. Devi Road, Prayagraj or a landmark/);
+    assert.match(source,/aria-autocomplete="list"/);
+    assert.match(source,/aria-controls="gdrStudioLocationSuggestions"/);
+    assert.match(source,/You can change this address even after the map opens/);
+  }
 });
