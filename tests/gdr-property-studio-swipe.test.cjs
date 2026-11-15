@@ -59,7 +59,7 @@ test("Swipe cancellation restores panels and motion respects reduced-motion pref
   assert.match(studio, /stage\.addEventListener\("touchcancel"/);
   assert.match(studio, /stage\.addEventListener\("pointercancel"/);
   assert.match(studio, /lostpointercapture/);
-  assert.match(studio, /prefers-reduced-motion:\\s*reduce/);
+  assert.ok(studio.includes("(prefers-reduced-motion: reduce)"));
   assert.match(css, /@media\(prefers-reduced-motion:reduce\)/);
 });
 
