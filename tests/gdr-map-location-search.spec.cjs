@@ -165,7 +165,7 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).toContain('state.renterMap.setView(state.searchCenter,cityLike?11:14,{animate:false})');
     expect(script).toContain('radiusInput.addEventListener("input",e=>{state.radiusKm=Math.max(.5,Math.min(10,Number(e.target.value)||5));');
     expect(script).toContain('$("gdrMapRadius")?.addEventListener("change",()=>{if(state.renterMap&&state.searchCenter)searchRenterArea(undefined,state.searchUsesRadius);})');
-    expect(script).toContain('state.renterMap.on("click",e=>{if(state.visible.length)return;setRenterPin(e.latlng,"Selected map location");})');
+    expect(script).toContain('state.renterMap.on("click",e=>{state.searchUsesRadius=true;setRenterPin(e.latlng,"Selected map location");})');
     expect(script).toContain('draggable:true');
     expect(script).toContain('async function reverseGeocodeRenter(lat,lng)');
     expect(script).toContain('setRenterPin(point,point.label||query)');
@@ -173,4 +173,21 @@ test.describe('Map location search uses the requested place, not a stale invento
     expect(script).toContain('gdrDistanceKm<=state.radiusKm');
     expect(script).toContain('sort((a,b)=>a.gdrDistanceKm-b.gdrDistanceKm)');
   });
+  test('renter map begins over India, keeps its pin and allows dragging', async ({ page }) => {
+    await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
+    const source = await page.locator('script[src*="gdr-map-experience.js"]').getAttribute('src');
+    const script = await page.evaluate(async src => await (await fetch(src)).text(), source);
+    const initStart = script.indexOf('function initRenterMap(){');
+    const initEnd = script.indexOf('function ensureMapVoiceAssistant(){', initStart);
+    const init = script.slice(initStart, initEnd);
+    expect(init).toContain('state.renterMap.setView(INDIA_CENTER,5)');
+    expect(init).not.toContain('setView([23.2599,77.4126],12)');
+    expect(init).toContain('state.renterMap.on("click",e=>{state.searchUsesRadius=true;setRenterPin(e.latlng,"Selected map location");})');
+    expect(script).toContain('draggable:true');
+    expect(script).toContain('marker.on("dragend",event=>handleRenterPinDragEnd(event,marker))');
+    expect(script).toContain('if(state.renterPin&&preservePin===false)');
+    expect(script).toContain('const validIndiaPoint=(lat,lng)=>');
+    expect(script).toContain('searchRenterArea(undefined,true)');
+  });
+
 });
