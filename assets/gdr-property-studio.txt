@@ -65,6 +65,7 @@
         <label class="gdr-studio-field"><span>PIN code <small>Optional</small></span><input id="gdrStudioPincode" type="text" autocomplete="off" inputmode="numeric" maxlength="6" placeholder="6-digit PIN code"></label>
       </div>
       <div class="gdr-studio-location-actions"><button type="button" id="gdrStudioUseGps">◎ Use Current Location</button><button type="button" id="gdrStudioOpenMap">⌖ Select on Map</button></div>
+      <div class="gdr-studio-location-guidance" role="note"><span class="gdr-studio-location-guidance-icon" aria-hidden="true">◎</span><p>For the most accurate property location, use the “Current Location” feature while you are at the property.</p></div>
       <p id="gdrStudioLocationStatus" class="gdr-studio-location-status" aria-live="polite">Choose a search result, use GPS or place the pin on the map.</p>
       <div id="gdrStudioMapHost"></div>
       <div class="gdr-studio-nearby"><strong>Nearby public places</strong><p id="gdrStudioNearbyStatus">Nearby places are discovered automatically after location confirmation.</p><div id="gdrStudioNearbyList"></div><small>Source: © OpenStreetMap contributors. Results depend on available map data.</small></div>

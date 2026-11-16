@@ -111,11 +111,13 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION="20261116-studio-overpass-fallback1"/);
+  assert.match(studio, /const VERSION="20261116-studio-location-guidance1"/);
   assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
   assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioFurnishing/);
+  assert.match(studioMarkup, /For the most accurate property location, use the “Current Location” feature while you are at the property\./);
+  assert.match(studioCss, /\.gdr-studio-location-guidance/);
 });
 
 test("renter preview shows actual nearby place names, categories and distances", () => {
@@ -234,8 +236,8 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.ok(html.includes("gdr-property-studio.css") || patcher.includes("css_ref_v6"));
  assert.match(patcher,/if css_ref_v6 not in source:/);
  assert.match(patcher,/Normalized Property Studio controller include to exactly one script tag/);
- assert.match(patcher,/gdr-property-studio\.js\?v=20261115-studio-address-search1/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261115-studio-address-search1/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261116-studio-location-guidance1/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261116-studio-location-guidance1/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
