@@ -48,7 +48,7 @@ test("Vertical scrolling, native controls, maps, uploads and horizontal gallerie
   assert.match(controller, /if\(event&&event\.cancelable&&typeof event\.preventDefault==="function"\)event\.preventDefault\(\)/);
   assert.match(controller, /if\(gesture\.axis!=="horizontal"\)return/);
   assert.doesNotMatch(controller, /"label"/);
-  assert.doesNotMatch(controller, /"\\.gdr-studio-photo-categories"/);
+  assert.doesNotMatch(controller, /gdr-studio-photo-categories/);
   assert.match(controller, /if\(Math\.abs\(dx\)>Math\.abs\(dy\)\*1\.15\)/);
   assert.match(controller, /else if\(Math\.abs\(dy\)>Math\.abs\(dx\)\*1\.15\)/);
   assert.match(controller, /if\(!event\.touches\|\|event\.touches\.length!==1\)/);
