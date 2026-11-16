@@ -51,7 +51,7 @@ test.describe("GDR owner Start Listing launcher", () => {
     await trigger.click();
 
     await expect(page.locator("#gdrPropertyStudio")).toBeVisible();
-    await expect(page.locator("#gdrStudioStepTitle")).toHaveText("Property type");
+    await expect(page.locator("#gdrStudioStepTitle")).toHaveText("Property identity");
     await expect(page.locator("body")).toHaveClass(/gdr-property-studio-open/);
   });
 

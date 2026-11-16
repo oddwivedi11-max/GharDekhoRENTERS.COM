@@ -91,6 +91,7 @@ test.describe('GDR map-first experience structure', () => {
   });
 
   test('owner map pin confirms coordinates through the existing property form setter', async ({ page }) => {
+    await page.route(/^https:\/\/photon\.komoot\.io\/reverse/, route => route.fulfill({status:200,contentType:"application/json",body:JSON.stringify({features:[]})}));
     await page.goto('/index.html', { waitUntil: 'domcontentloaded', timeout: 45000 });
     await page.evaluate(() => {
       const center = { lat: 23.2599, lng: 77.4126 };
@@ -121,6 +122,7 @@ test.describe('GDR map-first experience structure', () => {
       window.__gdrOwnerMapHandlers.click({ latlng: { lat: 23.2599, lng: 77.4126 } });
       document.getElementById('gdrConfirmOwnerMapLocation').click();
     });
+    await page.waitForFunction(() => document.getElementById('propertyLocation')?.dataset.gdSelectedLat === '23.2599', null, { timeout: 5000 });
     const saved = await page.locator('#propertyLocation').evaluate(element => ({
       value: element.value,
       latitude: element.dataset.gdSelectedLat,

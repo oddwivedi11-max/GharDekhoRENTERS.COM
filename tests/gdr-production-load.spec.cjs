@@ -73,7 +73,7 @@ for (const target of productionTargets) {
     // The branch is tested before it is deployed; require the corrected
     // fragment on production only after the deployment workflow runs on main.
     if (process.env.GITHUB_REF_NAME === 'main') {
-      expect(studioVersion).toBe('20261116-property-identity-v1');
+      expect(studioVersion).toBe('20261116-property-identity-v2');
       expect(markup, 'Property category selection must load').toContain('data-gdr-property-category="home"');
       expect(markup, 'Custom property name input must load').toContain('id="gdrStudioPropertyName"');
       expect(markup, 'Live listing preview must load').toContain('id="gdrStudioIdentityPreview"');

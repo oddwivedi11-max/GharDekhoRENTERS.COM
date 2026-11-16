@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261116-property-identity-v1";
+const VERSION="20261116-property-identity-v2";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -570,23 +570,34 @@ async function openMap(){
  }
 }
 function wrapMapCallback(){
- const original=window.__gdrSetPropertyLocation;
- if(typeof original!=="function"||original.__gdrStudioWrapped)return;
- const wrapped=function(address,lat,lng){
-  const inStudio=!!(studio()&&!studio().hidden);
-  if(inStudio&&!validIndiaPoint(Number(lat),Number(lng))){message("Choose a property location within India.","error");return false;}
-  const outsidePinArea=!!(inStudio&&state.pinCenter&&distanceMeters(state.pinCenter.lat,state.pinCenter.lng,Number(lat),Number(lng))>35000);
-  const ok=original(address,lat,lng);
-  if(ok&&inStudio){
-   setLocation(address,Number(lat),Number(lng),state.pincode,true);
-   message(outsidePinArea?"Map pin confirmed, but it is more than 35 km from the PIN-code area. Double-check the address and PIN before publishing.":"Exact property pin confirmed. Nearby place discovery is refreshing.","info");
-   setTimeout(restoreMapPanel,120);
-  }
-  return ok;
- };
- wrapped.__gdrStudioWrapped=true;
- window.__gdrSetPropertyLocation=wrapped;
-}
+  const current=window.__gdrSetPropertyLocation;
+  if(current&&current.__gdrStudioWrapped)return;
+  const original=typeof current==="function"?current:function(address,lat,lng){
+   const target=$("#propertyLocation"),latitude=Number(lat),longitude=Number(lng),label=String(address||"").trim();
+   if(!target||!label||!validIndiaPoint(latitude,longitude))return false;
+   target.value=label;
+   target.dispatchEvent(new Event("input",{bubbles:true}));
+   target.dispatchEvent(new Event("change",{bubbles:true}));
+   target.dataset.gdSelectedLat=String(latitude);
+   target.dataset.gdSelectedLng=String(longitude);
+   target.dataset.gdSelectedDisplayName=label;
+   return true;
+  };
+  const wrapped=function(address,lat,lng){
+   const inStudio=!!(studio()&&!studio().hidden);
+   if(!validIndiaPoint(Number(lat),Number(lng))){if(inStudio)message("Choose a property location within India.","error");return false;}
+   const outsidePinArea=!!(inStudio&&state.pinCenter&&distanceMeters(state.pinCenter.lat,state.pinCenter.lng,Number(lat),Number(lng))>35000);
+   const ok=original(address,lat,lng);
+   if(ok&&inStudio){
+    setLocation(address,Number(lat),Number(lng),state.pincode,true);
+    message(outsidePinArea?"Map pin confirmed, but it is more than 35 km from the PIN-code area. Double-check the address and PIN before publishing.":"Exact property pin confirmed. Nearby place discovery is refreshing.","info");
+    setTimeout(restoreMapPanel,120);
+   }
+   return ok;
+  };
+  wrapped.__gdrStudioWrapped=true;
+  window.__gdrSetPropertyLocation=wrapped;
+ }
 const osmCategory=tags=>{
  if(tags.railway==="station")return "Railway station";
  if(tags.amenity==="bus_station")return "Bus station";
