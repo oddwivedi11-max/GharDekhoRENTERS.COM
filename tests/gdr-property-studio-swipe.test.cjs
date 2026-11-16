@@ -42,12 +42,13 @@ test("Vertical scrolling, native controls, maps, uploads and horizontal gallerie
   for (const selector of [
     '"input"', '"textarea"', '"select"', '"button:not(.gdr-studio-choice)"',
     '"#gdrStudioMapHost"', '".leaflet-container"', '".leaflet-control-container"',
-    '".gdr-studio-photo-categories"', '"[data-gdr-studio-photo-upload]"',
+ '"[data-gdr-studio-photo-upload]"',
     '"[data-gdr-studio-photo-camera]"', '"[data-native-horizontal-scroll]"'
   ]) assert.ok(controller.includes(selector), selector);
   assert.match(controller, /if\(event&&event\.cancelable&&typeof event\.preventDefault==="function"\)event\.preventDefault\(\)/);
   assert.match(controller, /if\(gesture\.axis!=="horizontal"\)return/);
   assert.doesNotMatch(controller, /"label"/);
+  assert.doesNotMatch(controller, /"\\.gdr-studio-photo-categories"/);
   assert.match(controller, /if\(Math\.abs\(dx\)>Math\.abs\(dy\)\*1\.15\)/);
   assert.match(controller, /else if\(Math\.abs\(dy\)>Math\.abs\(dx\)\*1\.15\)/);
   assert.match(controller, /if\(!event\.touches\|\|event\.touches\.length!==1\)/);
