@@ -11,7 +11,7 @@ const css = read("assets/gdr-property-studio.css");
 test("Property Studio has five swipeable steps and a single guarded gesture controller", () => {
   const steps = Array.from(markup.matchAll(/data-gdr-studio-panel="([0-4])"/g)).map(match => Number(match[1]));
   assert.deepEqual(steps, [0, 1, 2, 3, 4]);
-  assert.match(studio, /const STUDIO_SWIPE_THRESHOLD=72/);
+  assert.match(studio, /const STUDIO_SWIPE_THRESHOLD=56/);
   assert.match(studio, /function initStepSwipe\(root\)/);
   assert.match(studio, /stage\.dataset\.gdrSwipeBound==="1"/);
   assert.match(studio, /initStepSwipe\(root\);/);
@@ -40,13 +40,14 @@ test("Vertical scrolling, native controls, maps, uploads and horizontal gallerie
   const controllerEnd = studio.indexOf("\nasync function getOwner(){", controllerStart);
   const controller = studio.slice(controllerStart, controllerEnd);
   for (const selector of [
-    '"input"', '"textarea"', '"select"', '"label"', '"button:not(.gdr-studio-choice)"',
+    '"input"', '"textarea"', '"select"', '"button:not(.gdr-studio-choice)"',
     '"#gdrStudioMapHost"', '".leaflet-container"', '".leaflet-control-container"',
     '".gdr-studio-photo-categories"', '"[data-gdr-studio-photo-upload]"',
     '"[data-gdr-studio-photo-camera]"', '"[data-native-horizontal-scroll]"'
   ]) assert.ok(controller.includes(selector), selector);
   assert.match(controller, /if\(event&&event\.cancelable&&typeof event\.preventDefault==="function"\)event\.preventDefault\(\)/);
   assert.match(controller, /if\(gesture\.axis!=="horizontal"\)return/);
+  assert.doesNotMatch(controller, /"label"/);
   assert.match(controller, /if\(Math\.abs\(dx\)>Math\.abs\(dy\)\*1\.15\)/);
   assert.match(controller, /else if\(Math\.abs\(dy\)>Math\.abs\(dx\)\*1\.15\)/);
   assert.match(controller, /if\(!event\.touches\|\|event\.touches\.length!==1\)/);
