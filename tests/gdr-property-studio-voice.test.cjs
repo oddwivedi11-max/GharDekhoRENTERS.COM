@@ -7,6 +7,7 @@ const js=fs.readFileSync(path.join(root,"assets/gdr-property-studio.js"),"utf8")
 const markup=fs.readFileSync(path.join(root,"assets/gdr-property-studio.txt"),"utf8");
 const css=fs.readFileSync(path.join(root,"assets/gdr-property-studio.css"),"utf8");
 const index=fs.readFileSync(path.join(root,"index.html"),"utf8");
+const patcher=fs.readFileSync(path.join(root,"scripts/patch-property-studio.py"),"utf8");
 
 test("owner voice recognition is one-shot and never automatically restarts",()=>{
  assert.ok(js.includes("rec.continuous=false"));
@@ -102,8 +103,8 @@ test("owner listing hero makes manual listing primary and keeps voice only in th
  assert.ok(!hero.includes('id="gdrListPropertySpeak"'));
  assert.ok(markup.includes("Manual entry is the primary option"));
  assert.ok(markup.indexOf('class="gdr-studio-voice"')>markup.indexOf('data-gdr-studio-panel="4"'));
- assert.match(index,/gdr-property-studio\.js\?v=20261116-studio-overpass-fallback1/);
- assert.match(index,/gdr-property-studio\.css\?v=20261115-studio-address-search1/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261116-studio-location-guidance1/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261116-studio-location-guidance1/);
 });
 test("owner profile edit remains connected to its existing secure update flow",()=>{
  assert.ok(index.includes('id="ownerEditProfileBtn">✏️ Edit Profile</button>'));
