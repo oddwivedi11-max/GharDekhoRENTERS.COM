@@ -25,7 +25,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
         panel.style.minHeight = "500px";
         panel.innerHTML = "<div>Step "+(i+1)+"</div>";
         if (i === 0) panel.innerHTML += "<button class='gdr-studio-choice' id='choice'>Apartment</button>";
-        if (i === 1) panel.innerHTML += "<input id='rent' inputmode='numeric'>";
+        if (i === 1) panel.innerHTML += "<label id='rentField'><span id='rentLabelText'>Monthly rent</span><input id='rent' inputmode='numeric'></label>";
         if (i === 2) panel.innerHTML += "<div class='leaflet-container' id='map'></div>";
         stage.appendChild(panel);
       }
@@ -47,7 +47,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
         "let swipeGesture=null,swipeSnapTimer=null,swipeChoiceClickGuard=null,swipeChoiceClickTimer=null;\n"+
         swipeFunction+"\nreturn initStepSwipe;"
       );
-      const init = create(window,document,$,$$,()=>root,state,goToStep,72);
+      const init = create(window,document,$,$,()=>root,state,goToStep,56);
       init(root);
 
       function touch(type, target, x, y, id = 1) {
@@ -82,10 +82,30 @@ test("Property Studio finger gestures work in both directions on common mobile w
       touch("touchend", input, 180, 181);
       const inputProtected = state.step === inputBefore;
 
-      const rightStart = touch("touchstart", stage.querySelector('[data-gdr-studio-panel="1"]'), 180, 180);
-      touch("touchmove", stage.querySelector('[data-gdr-studio-panel="1"]'), 290, 182);
-      touch("touchend", stage.querySelector('[data-gdr-studio-panel="1"]'), 290, 182);
+      const labelText = stage.querySelector("#rentLabelText");
+      touch("touchstart", labelText, 180, 180);
+      touch("touchmove", labelText, 290, 182);
+      touch("touchend", labelText, 290, 182);
       const rightReturned = state.step === 0;
+
+      let walkedForward=true;
+      for(let step=0;step<4;step++){
+        const panel=stage.querySelector('[data-gdr-studio-panel="'+step+'"]');
+        const surface=step===1?labelText:panel.firstElementChild;
+        touch("touchstart",surface,300,180);
+        touch("touchmove",surface,220,182);
+        touch("touchend",surface,220,182);
+        if(state.step!==step+1)walkedForward=false;
+      }
+      let walkedBackward=true;
+      for(let step=4;step>0;step--){
+        const panel=stage.querySelector('[data-gdr-studio-panel="'+step+'"]');
+        const surface=step===1?labelText:panel.firstElementChild;
+        touch("touchstart",surface,180,180);
+        touch("touchmove",surface,260,182);
+        touch("touchend",surface,260,182);
+        if(state.step!==step-1)walkedBackward=false;
+      }
 
       state.invalidStep = 0;
       touch("touchstart", panel0, 300, 180);
@@ -96,7 +116,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
 
       return {
         width: window.innerWidth,
-        shortStayed,verticalStayed,leftAdvanced,inputProtected,rightReturned,validationBlocked,
+        shortStayed,verticalStayed,leftAdvanced,inputProtected,rightReturned,walkedForward,walkedBackward,validationBlocked,
         transitions: state.transitions,
         scrollWidth: document.documentElement.scrollWidth
       };
@@ -107,6 +127,8 @@ test("Property Studio finger gestures work in both directions on common mobile w
     expect(result.leftAdvanced, "left swipe must advance at "+width+"px").toBe(true);
     expect(result.inputProtected, "input must retain native touch at "+width+"px").toBe(true);
     expect(result.rightReturned, "right swipe must return at "+width+"px").toBe(true);
+    expect(result.walkedForward, "left swipe must reach every remaining step at "+width+"px").toBe(true);
+    expect(result.walkedBackward, "right swipe must return through every step at "+width+"px").toBe(true);
     expect(result.validationBlocked, "validation must block an invalid forward swipe at "+width+"px").toBe(true);
     expect(result.scrollWidth).toBeLessThanOrEqual(width+1);
   }
