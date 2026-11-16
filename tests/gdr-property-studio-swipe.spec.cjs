@@ -27,6 +27,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
         if (i === 0) panel.innerHTML += "<button class='gdr-studio-choice' id='choice'>Apartment</button>";
         if (i === 1) panel.innerHTML += "<label id='rentField'><span id='rentLabelText'>Monthly rent</span><input id='rent' inputmode='numeric'></label>";
         if (i === 2) panel.innerHTML += "<div class='leaflet-container' id='map'></div>";
+        if (i === 3) panel.innerHTML += "<div class='gdr-studio-photo-categories'><span id='photoCategoryText'>Exterior photos</span><button id='photoUpload'>Upload</button></div>";
         stage.appendChild(panel);
       }
       const $ = (selector, scope = document) => scope.querySelector(selector);
@@ -83,6 +84,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
       const inputProtected = state.step === inputBefore;
 
       const labelText = stage.querySelector("#rentLabelText");
+      const photoCategoryText = stage.querySelector("#photoCategoryText");
       touch("touchstart", labelText, 180, 180);
       touch("touchmove", labelText, 290, 182);
       touch("touchend", labelText, 290, 182);
@@ -91,7 +93,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
       let walkedForward=true;
       for(let step=0;step<4;step++){
         const panel=stage.querySelector('[data-gdr-studio-panel="'+step+'"]');
-        const surface=step===1?labelText:panel.firstElementChild;
+        const surface=step===1?labelText:(step===3?photoCategoryText:panel.firstElementChild);
         touch("touchstart",surface,300,180);
         touch("touchmove",surface,220,182);
         touch("touchend",surface,220,182);
@@ -100,7 +102,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
       let walkedBackward=true;
       for(let step=4;step>0;step--){
         const panel=stage.querySelector('[data-gdr-studio-panel="'+step+'"]');
-        const surface=step===1?labelText:panel.firstElementChild;
+        const surface=step===1?labelText:(step===3?photoCategoryText:panel.firstElementChild);
         touch("touchstart",surface,180,180);
         touch("touchmove",surface,260,182);
         touch("touchend",surface,260,182);
@@ -113,6 +115,7 @@ test("Property Studio finger gestures work in both directions on common mobile w
       touch("touchend", panel0, 190, 182);
       const validationBlocked = state.step === 0;
       state.invalidStep = -1;
+      await new Promise(resolve => window.setTimeout(resolve, 240));
 
       return {
         width: window.innerWidth,
