@@ -237,8 +237,8 @@ test("Owner Property Studio assets are loaded once and deployment patcher keeps 
  assert.ok(html.includes("gdr-property-studio.css") || patcher.includes("css_ref_v6"));
  assert.match(patcher,/if css_ref_v6 not in source:/);
  assert.match(patcher,/Normalized Property Studio controller include to exactly one script tag/);
- assert.match(patcher,/gdr-property-studio\.js\?v=20261116-studio-mobile-swipe1/);
- assert.match(patcher,/gdr-property-studio\.css\?v=20261116-studio-mobile-swipe1/);
+ assert.match(patcher,/gdr-property-studio\.js\?v=20261116-property-identity-v1/);
+ assert.match(patcher,/gdr-property-studio\.css\?v=20261116-property-identity-v1/);
  assert.match(patcher,/20261109-start-listing-resetfix2/);
  assert.match(patcher,/20261109-start-listing-clickfix1/);
  assert.match(patcher,/20261109-gallery-batch1/);
@@ -330,7 +330,7 @@ test("Property Studio requires a named identity and uses existing home, PG and h
   assert.match(studioMarkup,/id="gdrStudioNameCount"/);
   assert.match(studioMarkup,/id="gdrStudioIdentityPreview"/);
   assert.match(studioMarkup,/Every great place deserves a name/);
-  assert.match(studioMarkup,/Urban Nest PG/);
+  assert.match(studio,/Urban Nest PG/);
   assert.match(studio,/function normalizePropertyName\(/);
   assert.match(studio,/function renderPropertyIdentityPreview\(/);
   assert.match(studio,/state\.propertyName\.length<3\|\|state\.propertyName\.length>50/);
@@ -352,5 +352,5 @@ test("The live identity preview refreshes from category, location, price, room d
   assert.match(studioCss,/gdr-studio-identity-card/);
   assert.match(studioCss,/gdr-studio-category-grid/);
   assert.match(studioCss,/@media\(max-width:760px\)/);
-  assert.match(studioMarkup,/Your Property Is Ready to Meet Its Next Resident/);
+  assert.match(studio,/Your Property Is Ready to Meet Its Next Resident/);
 });

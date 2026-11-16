@@ -144,17 +144,17 @@ function resetNewListing(preserveDraft){
  setStatus("Manual entry · No previous listing details loaded");
 }
 function updateTypeCards(){
- $("[data-gdr-property-type]").forEach(b=>{
+ $$("[data-gdr-property-type]").forEach(b=>{
   const active=b.dataset.gdrPropertyType===state.propertyType;
   b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",active?"true":"false");
  });
- $("[data-gdr-property-category]").forEach(b=>{
+ $$("[data-gdr-property-category]").forEach(b=>{
   const active=b.dataset.gdrPropertyCategory===state.propertyCategory;
   b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",active?"true":"false");
  });
 }
 function updateConfigurationCards(){
- $("[data-gdr-configuration]").forEach(b=>{
+ $$("[data-gdr-configuration]").forEach(b=>{
   const active=b.dataset.gdrConfiguration===state.configuration;
   b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",active?"true":"false");
  });
@@ -1696,7 +1696,7 @@ function bindEvents(){
   if(el.id&&!el.name)el.name="gdr_manual_"+el.id;
  });
  root.addEventListener("click",e=>{
-  const photoCategory=e.target.closest("[data-gdr-photo-category]");if(photoCategory){state.photoCategory=photoCategory.dataset.gdrPhotoCategory;$("[data-gdr-photo-category]",root).forEach(btn=>{const active=btn===photoCategory;btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});return;}
+  const photoCategory=e.target.closest("[data-gdr-photo-category]");if(photoCategory){state.photoCategory=photoCategory.dataset.gdrPhotoCategory;$$("[data-gdr-photo-category]",root).forEach(btn=>{const active=btn===photoCategory;btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});return;}
   const category=e.target.closest("[data-gdr-property-category]");if(category){selectPropertyCategory(category.dataset.gdrPropertyCategory);return;}
   const type=e.target.closest("[data-gdr-property-type]");if(type){selectedType(type.dataset.gdrPropertyType);return;}
   const config=e.target.closest("[data-gdr-configuration]");if(config){setConfiguration(config.dataset.gdrConfiguration);return;}
