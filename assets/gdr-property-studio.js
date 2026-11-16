@@ -983,7 +983,7 @@ function initStepSwipe(root){
   "input","textarea","select","button:not(.gdr-studio-choice)","a",
   "[contenteditable='true']","[role='button']","[role='slider']","[role='spinbutton']",
   "#gdrStudioMapHost",".leaflet-container",".leaflet-control-container",
-  ".gdr-studio-photo-categories","#gdrStudioPhotoPreview",".gdr-studio-photo-grid",
+  "#gdrStudioPhotoPreview",".gdr-studio-photo-grid",
   ".gdr-studio-photo-strip",".gdr-studio-preview-strip",".gdr-property-detail-thumbs",
   "[data-gdr-studio-photo-upload]","[data-gdr-studio-photo-camera]",
   "[data-gdr-studio-no-swipe]","[data-native-horizontal-scroll]","video","iframe"
