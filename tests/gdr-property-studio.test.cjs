@@ -10,6 +10,7 @@ const mapExperience = read("assets/gdr-map-experience.js");
 const studioMarkup = read("assets/gdr-property-studio.txt");
 const studioCss = read("assets/gdr-property-studio.css");
 const migration = read("supabase/migrations/20261106195955_owner_property_studio.sql");
+const identityMigration = read("supabase/migrations/20261116144249_require_property_identity_name.sql");
 const patcher = read("scripts/patch-property-studio.py");
 
 test("List Your Property is the first major owner dashboard action before statistics", () => {
@@ -111,7 +112,7 @@ test("Property Studio drafts never persist address, PIN or precise coordinates",
  
 test("Studio layout is loaded from a separately deployed text fragment asset", () => {
   assert.match(studio, /gdr-property-studio\.txt\?v=\"\+VERSION/);
-  assert.match(studio, /const VERSION="20261116-studio-mobile-swipe1"/);
+  assert.match(studio, /const VERSION="20261116-property-identity-v1"/);
   assert.ok(read("assets/gdr-property-studio.txt").includes('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>'));
   assert.doesNotMatch(read("assets/gdr-property-studio.txt"), /^\s*data-gdr-studio-panel="4" hidden>/m);
   assert.match(read("assets/gdr-property-studio.txt"), /gdrStudioPhotoFiles/);
@@ -319,4 +320,37 @@ test("Remote Property Studio address search ranks locality matches and keeps the
     assert.match(source,/aria-controls="gdrStudioLocationSuggestions"/);
     assert.match(source,/You can change this address even after the map opens/);
   }
+});
+
+
+test("Property Studio requires a named identity and uses existing home, PG and hostel listing types",()=>{
+  for(const category of ["home","pg","hostel"])assert.ok(studioMarkup.includes('data-gdr-property-category="'+category+'"'),category);
+  for(const type of ["apartment","room","independent_house","villa","other","pg","hostel"])assert.ok(studioMarkup.includes('data-gdr-property-type="'+type+'"'),type);
+  assert.match(studioMarkup,/id="gdrStudioPropertyName"[^>]*minlength="3" maxlength="50" required/);
+  assert.match(studioMarkup,/id="gdrStudioNameCount"/);
+  assert.match(studioMarkup,/id="gdrStudioIdentityPreview"/);
+  assert.match(studioMarkup,/Every great place deserves a name/);
+  assert.match(studioMarkup,/Urban Nest PG/);
+  assert.match(studio,/function normalizePropertyName\(/);
+  assert.match(studio,/function renderPropertyIdentityPreview\(/);
+  assert.match(studio,/state\.propertyName\.length<3\|\|state\.propertyName\.length>50/);
+  assert.match(studio,/p_name:normalizePropertyName\(state\.propertyName\)/);
+  assert.match(studio,/p_title:normalizePropertyName\(state\.propertyName\)/);
+  assert.match(studio,/propertyType==="pg"\?"pg":propertyType==="hostel"\?"hostel":"home"/);
+  assert.match(studio,/fields:fields/);
+  assert.match(identityMigration,/v_property_name/);
+  assert.match(identityMigration,/char_length\(v_property_name\) < 3/);
+  assert.match(identityMigration,/grant execute[\s\S]*to authenticated/i);
+  assert.match(identityMigration,/from public, anon/i);
+  assert.doesNotMatch(identityMigration,/alter table|drop policy|create policy|delete from public\.properties/i);
+});
+
+test("The live identity preview refreshes from category, location, price, room details and photos",()=>{
+  assert.match(studio,/renderPropertyIdentityPreview\(\)/);
+  assert.match(studio,/photoEntries\(\)/);
+  assert.match(studio,/gdrStudioPropertyName/);
+  assert.match(studioCss,/gdr-studio-identity-card/);
+  assert.match(studioCss,/gdr-studio-category-grid/);
+  assert.match(studioCss,/@media\(max-width:760px\)/);
+  assert.match(studioMarkup,/Your Property Is Ready to Meet Its Next Resident/);
 });

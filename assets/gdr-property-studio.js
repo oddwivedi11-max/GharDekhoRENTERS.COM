@@ -1,10 +1,10 @@
 (function(){
 "use strict";
-const VERSION="20261116-studio-mobile-swipe1";
+const VERSION="20261116-property-identity-v1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
-  user:null,owner:null,step:0,opening:false,publishing:false,published:false,propertyType:"",configuration:"",draftPhotosNeedReselect:false,draftUpdatedAt:null,
+  user:null,owner:null,step:0,opening:false,publishing:false,published:false,propertyType:"",propertyCategory:"",propertyName:"",configuration:"",draftPhotosNeedReselect:false,draftUpdatedAt:null,
   rent:"",deposit:"",furnishing:"",description:"",address:"",pincode:"",lat:null,lng:null,
   locationConfirmed:false,resolvedPincode:"",pinCenter:null,
   roomType:"",gender:"",totalBeds:"",availableBeds:"",foodIncluded:"",
@@ -38,12 +38,12 @@ function clearLegacyDraft(){
 }
 function saveDraft(){
  if(!state.user)return;
- const fields={propertyType:state.propertyType,configuration:state.configuration,rent:state.rent,deposit:state.deposit,
+ const fields={propertyType:state.propertyType,propertyCategory:state.propertyCategory,propertyName:state.propertyName,configuration:state.configuration,rent:state.rent,deposit:state.deposit,
   furnishing:state.furnishing,description:state.description,roomType:state.roomType,gender:state.gender,totalBeds:state.totalBeds,
   availableBeds:state.availableBeds,foodIncluded:state.foodIncluded};
  const meaningful=Object.values(fields).some(value=>value!==null&&value!==undefined&&String(value).trim()!=="");
  if(!meaningful){clearLegacyDraft();return;}
- const payload={version:3,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,
+ const payload={version:3,ownerId:state.user.id,submissionId:state.submissionId,savedAt:new Date().toISOString(),step:state.step,fields:fields,
   pendingPhotoCount:state.files.length+state.uploadedPhotos.length,
   uploadedPhotos:state.uploadedPhotos.map(photo=>({url:photo.url,path:photo.path,category:photo.category||"interior"})),
   photoCategories:state.files.map(file=>file.gdrCategory||"interior").concat(state.uploadedPhotos.map(photo=>photo.category||"interior"))};
@@ -64,6 +64,8 @@ function restoreDraft(){
  if(!Number.isFinite(savedAt)||savedAt>Date.now()+300000||Date.now()-savedAt>14*86400000){clearLegacyDraft();dismissDraftRecovery();return false;}
  const fields=payload.fields,validTypes=["apartment","room","independent_house","villa","pg","hostel","other"];
  state.propertyType=validTypes.includes(fields.propertyType)?fields.propertyType:"";
+ state.propertyCategory=["home","pg","hostel"].includes(fields.propertyCategory)?fields.propertyCategory:(state.propertyType==="pg"?"pg":state.propertyType==="hostel"?"hostel":state.propertyType?"home":"");
+ state.propertyName=String(fields.propertyName??"").slice(0,50);
  state.configuration=configurations.includes(fields.configuration)?fields.configuration:(fields.configuration==="Other"?"Other":"");
  state.rent=String(fields.rent??"").slice(0,12);state.deposit=String(fields.deposit??"").slice(0,12);
  state.furnishing=["Furnished","Semi-Furnished","Unfurnished"].includes(fields.furnishing)?fields.furnishing:"";
@@ -94,7 +96,7 @@ function restoreDraft(){
 function dismissDraftRecovery(){const banner=$("#gdrStudioDraftRecovery");if(banner)banner.hidden=true;}
 function syncFormFromState(){
  const values={
-  gdrStudioLocation:state.address,gdrStudioPincode:state.pincode,gdrStudioRent:state.rent,
+  gdrStudioPropertyName:state.propertyName,gdrStudioLocation:state.address,gdrStudioPincode:state.pincode,gdrStudioRent:state.rent,
   gdrStudioDeposit:state.deposit,gdrStudioFurnishing:state.furnishing,gdrStudioDescription:state.description,
   gdrStudioRoomType:state.roomType,gdrStudioGender:state.gender,
   gdrStudioTotalBeds:state.totalBeds,gdrStudioAvailableBeds:state.availableBeds
@@ -113,7 +115,7 @@ function resetNewListing(preserveDraft){
  if(pinResolveTimer){clearTimeout(pinResolveTimer);pinResolveTimer=null;}
  pinResolveSequence++;state.resolvedPincode="";state.pinCenter=null;state.locationConfirmed=false;
  state.step=0;state.publishing=false;state.published=false;
- state.propertyType="";state.configuration="";state.rent="";state.deposit="";
+ state.propertyType="";state.propertyCategory="";state.propertyName="";state.configuration="";state.rent="";state.deposit="";
  state.furnishing="";state.description="";state.address="";state.pincode="";
  state.lat=null;state.lng=null;state.roomType="";state.gender="";
  state.totalBeds="";state.availableBeds="";state.foodIncluded="";
@@ -142,22 +144,56 @@ function resetNewListing(preserveDraft){
  setStatus("Manual entry · No previous listing details loaded");
 }
 function updateTypeCards(){
- $$("[data-gdr-property-type]").forEach(b=>{
+ $("[data-gdr-property-type]").forEach(b=>{
   const active=b.dataset.gdrPropertyType===state.propertyType;
+  b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",active?"true":"false");
+ });
+ $("[data-gdr-property-category]").forEach(b=>{
+  const active=b.dataset.gdrPropertyCategory===state.propertyCategory;
   b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",active?"true":"false");
  });
 }
 function updateConfigurationCards(){
- $$("[data-gdr-configuration]").forEach(b=>{
+ $("[data-gdr-configuration]").forEach(b=>{
   const active=b.dataset.gdrConfiguration===state.configuration;
   b.classList.toggle("is-selected",active);b.setAttribute("aria-pressed",active?"true":"false");
  });
 }
+function normalizePropertyName(value){
+ return String(value??"").replace(/[\u0000-\u001f\u007f<>]/g," ").replace(/\s+/g," ").trim();
+}
+function propertyCategoryLabel(){
+ return state.propertyCategory==="pg"?"PG Accommodation":state.propertyCategory==="hostel"?"Hostel":"Independent Home";
+}
+function propertyNameGuidance(){
+ if(state.propertyCategory==="pg")return {title:"Give your PG a memorable name",examples:["Urban Nest PG","Scholar's Stay","Comfort Living PG"]};
+ if(state.propertyCategory==="hostel")return {title:"Name your hostel",examples:["Campus Living Hostel","The Student Hub","Sunrise Boys Hostel"]};
+ return {title:"Name your home",examples:["The Green Villa","Shree Homes","Sunrise Residency"]};
+}
+function updateIdentityControls(){
+ const wrap=$("#gdrStudioIdentityWrap"),title=$("#gdrStudioIdentityTitle"),examples=$("#gdrStudioNameExamples");
+ const input=$("#gdrStudioPropertyName"),counter=$("#gdrStudioNameCount");
+ if(wrap)wrap.hidden=!state.propertyType;
+ const guidance=propertyNameGuidance();
+ if(title)title.textContent=guidance.title;
+ if(examples)examples.textContent="Ideas: "+guidance.examples.join(" · ");
+ if(input){input.value=state.propertyName||input.value||"";}
+ if(counter)counter.textContent=normalizePropertyName(input?input.value:state.propertyName).length+" / 50";
+}
+function selectPropertyCategory(category){
+ if(category==="home"){
+  state.propertyCategory="home";state.propertyType="";state.configuration="";
+  updateTypeCards();updateConfigurationCards();updateConditionalFields();updateIdentityControls();renderPropertyIdentityPreview();saveDraft();renderLiveVoiceForm();
+  return;
+ }
+ if(category==="pg"||category==="hostel")selectedType(category);
+}
 function updateConditionalFields(){
- const home=["apartment","independent_house","villa"].includes(state.propertyType);
+ const home=["apartment","room","independent_house","villa","other"].includes(state.propertyType);
  const other=state.propertyType==="other";
  const pg=["pg","hostel"].includes(state.propertyType);
- const config=$("#gdrStudioConfigurationWrap");if(config)config.hidden=!(home||other);
+ const subtypes=$("#gdrStudioHomeSubtypes");if(subtypes)subtypes.hidden=state.propertyCategory!=="home";
+ const config=$("#gdrStudioConfigurationWrap");if(config)config.hidden=!(home&&["apartment","independent_house","villa","other"].includes(state.propertyType));
  const pgWrap=$("#gdrStudioPgDetails");if(pgWrap)pgWrap.hidden=!pg;
  const confLabel=$("#gdrStudioConfigurationLabel");if(confLabel)confLabel.textContent=other?"Property configuration":"BHK configuration";
  if(other){
@@ -167,6 +203,8 @@ function updateConditionalFields(){
   const wrap=$("#gdrStudioConfigurationOptions");if(wrap)wrap.hidden=false;
   const hint=$("#gdrStudioOtherHint");if(hint)hint.hidden=true;
  }
+ updateIdentityControls();
+ renderPropertyIdentityPreview();
 }
 function updateLocationStatus(){
  const el=$("#gdrStudioLocationStatus");if(!el)return;
@@ -190,7 +228,7 @@ function setLocation(address,lat,lng,pincode,confirmed){
   if(valid){ownerLocation.dataset.gdSelectedLat=String(state.lat);ownerLocation.dataset.gdSelectedLng=String(state.lng);ownerLocation.dataset.gdSelectedDisplayName=state.address;}
   else ["gdSelectedLat","gdSelectedLng","gdSelectedDisplayName"].forEach(key=>delete ownerLocation.dataset[key]);
  }
- updateLocationStatus();saveDraft();renderLiveVoiceForm();
+ updateLocationStatus();saveDraft();renderLiveVoiceForm();renderPropertyIdentityPreview();
  if(valid)loadNearbyPlaces();
 }
 function clearStudioCoordinateSelection(){
@@ -698,7 +736,7 @@ function renderPhotos(){
  const wrap=$("#gdrStudioPhotoPreview");if(!wrap)return;
  wrap.replaceChildren();
  const entries=photoEntries();
- if(!entries.length){wrap.hidden=true;return;}
+ if(!entries.length){wrap.hidden=true;renderPropertyIdentityPreview();return;}
  wrap.hidden=false;
  ["exterior","interior","other"].forEach(category=>{
   const items=entries.filter(entry=>entry.category===category),group=document.createElement("section");
@@ -738,6 +776,7 @@ function renderPhotos(){
   if(!items.length){const empty=document.createElement("p");empty.className="gdr-studio-photo-empty";empty.textContent=category==="exterior"?"No exterior photos added yet.":category==="interior"?"No interior photos added yet.":"No additional photos added.";group.appendChild(empty);}
   wrap.appendChild(group);
  });
+ renderPropertyIdentityPreview();
 }
 function movePhotoWithinCategory(category,index,direction){
  const entries=photoEntries(),siblings=entries.filter(entry=>entry.category===category),position=siblings.findIndex(entry=>entry.index===index),target=siblings[position+direction],current=siblings[position];
@@ -804,14 +843,42 @@ function uploadPhotos(){
  })();
 }
 function titleForListing(){
+ const customName=normalizePropertyName($("#gdrStudioPropertyName")?.value||state.propertyName);
+ if(customName.length>=3&&customName.length<=50)return customName;
  const type=typeLabels[state.propertyType]||"Rental property";
  const config=state.configuration&&state.configuration!=="Other"?state.configuration+" ":"";
  const place=state.address.split(",").map(v=>v.trim()).filter(Boolean)[0]||"your area";
  return (config+type+" in "+place).slice(0,120);
 }
+function renderPropertyIdentityPreview(){
+ const box=$("#gdrStudioIdentityPreview");if(!box)return;
+ const input=$("#gdrStudioPropertyName");
+ const name=normalizePropertyName(input?input.value:state.propertyName);
+ const photos=photoEntries().map(entry=>entry.kind==="file"?entry.value.previewUrl:entry.value.url);
+ const cover=photos[state.coverIndex]||photos[0]||"/assets/gdr-property-placeholder.svg";
+ const rent=$("#gdrStudioRent")?.value||state.rent;
+ const address=$("#gdrStudioLocation")?.value||state.address;
+ const locality=String(address||"").split(",").map(part=>part.trim()).filter(Boolean).slice(0,3).join(", ");
+ const category=propertyCategoryLabel();
+ let configuration="";
+ if(state.propertyCategory==="pg"||state.propertyCategory==="hostel"){
+  configuration=state.roomType||"Room details";
+  if(state.availableBeds||state.totalBeds)configuration+=" · "+(state.availableBeds||"0")+" of "+(state.totalBeds||"—")+" beds available";
+ }else configuration=state.propertyType==="room"?"Private room":state.propertyType==="other"?"Property details":(state.configuration||typeLabels[state.propertyType]||"Add configuration");
+ const furnishing=state.furnishing||"Furnishing not selected";
+ const price=rent&&Number(rent)>0?formatINR(rent)+" / month":"Add monthly rent";
+ box.innerHTML='<article class="gdr-studio-identity-card"><div class="gdr-studio-identity-image"><img src="'+escapeHtml(cover)+'" alt="Property cover preview"></div><div class="gdr-studio-identity-card-body"><span class="gdr-studio-preview-kicker">YOUR GHARDEKHO LISTING</span><span class="gdr-studio-identity-badge">'+escapeHtml(category)+'</span><h3>'+escapeHtml(name||"Your property name will appear here")+'</h3><p class="gdr-studio-identity-location">'+escapeHtml(locality||"Your property locality will appear here")+'</p><strong class="gdr-studio-preview-rent">'+escapeHtml(price)+'</strong><div class="gdr-studio-identity-meta"><span>'+escapeHtml(configuration)+'</span><span>'+escapeHtml(furnishing)+'</span></div></div></article>';
+}
 function validateStep(step){
  if(step===0){
-  if(!state.propertyType){message("Please choose your property type.","error");return false;}
+  if(!state.propertyType){message("Please choose a property category and type before continuing.","error");return false;}
+  const nameInput=$("#gdrStudioPropertyName");
+  state.propertyName=normalizePropertyName(nameInput?nameInput.value:state.propertyName);
+  if(state.propertyName.length<3||state.propertyName.length>50){
+   if(nameInput){nameInput.setAttribute("aria-invalid","true");nameInput.focus();}
+   message("Enter a property name between 3 and 50 characters.","error");return false;
+  }
+  if(nameInput){nameInput.value=state.propertyName;nameInput.removeAttribute("aria-invalid");}
   if(["apartment","independent_house","villa"].includes(state.propertyType)&&!state.configuration){message("Please select the BHK configuration.","error");return false;}
   if(state.propertyType==="pg"||state.propertyType==="hostel"){
    const room=$("#gdrStudioRoomType"),gender=$("#gdrStudioGender"),total=$("#gdrStudioTotalBeds"),available=$("#gdrStudioAvailableBeds");
@@ -858,6 +925,7 @@ function renderPreview(){
  const config=state.propertyType==="other"?"Other":state.configuration;
  const details=[
   ["Property",typeLabels[state.propertyType]||"—"],
+  ["Listing category",propertyCategoryLabel()],
   ["Configuration",config||"—"],
   ["Monthly rent",formatINR(rent)],
   ["Security deposit",deposit?formatINR(deposit):"Not specified"],
@@ -869,6 +937,7 @@ function renderPreview(){
    ?'<div class="gdr-studio-preview-nearby-list">'+state.nearbyPlaces.slice(0,8).map(place=>'<div><span><b>'+escapeHtml(place.name||"Nearby place")+'</b><small>'+escapeHtml(place.category||"Public place")+'</small></span><strong>'+escapeHtml(distanceLabel(place.distance_m))+'</strong></div>').join("")+'</div>'
    :'<p>Nearby facilities are sourced from OpenStreetMap when available.</p>';
   box.innerHTML=
+   '<div class="gdr-studio-final-heading"><span>FINAL LISTING REVIEW</span><h3>Your Property Is Ready to Meet Its Next Resident.</h3><p>Review your property name, location, pricing and photographs before publishing. Accurate information helps renters make confident decisions.</p></div>'+
    '<div class="gdr-studio-preview-card"><img src="'+escapeHtml(cover)+'" alt="Property cover photo"><div class="gdr-studio-preview-copy"><span class="gdr-studio-preview-kicker">RENTER VIEW PREVIEW</span><h3>'+escapeHtml(title)+'</h3><strong class="gdr-studio-preview-rent">'+escapeHtml(formatINR(rent))+' <small>/ month</small></strong><div class="gdr-studio-preview-meta">'+details.map(d=>'<div><small>'+escapeHtml(d[0])+'</small><b>'+escapeHtml(d[1])+'</b></div>').join("")+'</div><p>'+escapeHtml(state.description||"No additional description.")+'</p></div></div>'+
    (photos.length>1?'<div class="gdr-studio-preview-strip">'+photos.map(p=>'<img src="'+escapeHtml(p)+'" alt="Property photo preview">').join("")+'</div>':"")+
    '<div class="gdr-studio-preview-nearby"><strong>Nearby places</strong>'+nearbyHtml+'</div>';
@@ -954,8 +1023,9 @@ function updateStep(transition){
  if(publish)publish.hidden=state.step!==4;
  if(navStep)navStep.textContent=String(state.step+1);
  if(state.step===4)renderPreview();
+ if(state.step===0)renderPropertyIdentityPreview();
  const title=$("#gdrStudioStepTitle");
- if(title)title.textContent=["Property type","Rent details","Property location","Property photos","Review your listing"][state.step];
+ if(title)title.textContent=["Property identity","Pricing details","Property location","Property photographs","Final preview & publish"][state.step];
  const progress=$("#gdrStudioProgressFill");if(progress)progress.style.width=((state.step+1)/5*100)+"%";
 }
 function goToStep(n,source,swipeOffset){
@@ -1279,14 +1349,16 @@ function close(){
  window.scrollTo({top:0,behavior:"instant"});saveDraft();
 }
 function selectedType(type){
- state.propertyType=type;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"propertyType"))state.voice.pending.propertyType=type;
+ state.propertyType=type;
+ state.propertyCategory=type==="pg"?"pg":type==="hostel"?"hostel":"home";
+ if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"propertyType"))state.voice.pending.propertyType=type;
  if(type==="other")state.configuration="Other";
  else if(type==="room")state.configuration="";
  else if(type==="pg"||type==="hostel")state.configuration="";
  else if(state.configuration==="Other")state.configuration="";
- updateTypeCards();updateConfigurationCards();updateConditionalFields();saveDraft();renderLiveVoiceForm();
+ updateTypeCards();updateConfigurationCards();updateConditionalFields();updateIdentityControls();saveDraft();renderLiveVoiceForm();renderPropertyIdentityPreview();
 }
-function setConfiguration(value){state.configuration=value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"configuration"))state.voice.pending.configuration=value;updateConfigurationCards();saveDraft();renderLiveVoiceForm();}
+function setConfiguration(value){state.configuration=value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"configuration"))state.voice.pending.configuration=value;updateConfigurationCards();saveDraft();renderLiveVoiceForm();renderPropertyIdentityPreview();}
 function setCover(i){state.coverIndex=i;renderPhotos();saveDraft();}
 // Please review and correct every field before continuing; publishing remains a manual owner action.
 function detectVoiceLanguage(text){
@@ -1624,7 +1696,8 @@ function bindEvents(){
   if(el.id&&!el.name)el.name="gdr_manual_"+el.id;
  });
  root.addEventListener("click",e=>{
-  const photoCategory=e.target.closest("[data-gdr-photo-category]");if(photoCategory){state.photoCategory=photoCategory.dataset.gdrPhotoCategory;$$("[data-gdr-photo-category]",root).forEach(btn=>{const active=btn===photoCategory;btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});return;}
+  const photoCategory=e.target.closest("[data-gdr-photo-category]");if(photoCategory){state.photoCategory=photoCategory.dataset.gdrPhotoCategory;$("[data-gdr-photo-category]",root).forEach(btn=>{const active=btn===photoCategory;btn.classList.toggle("is-selected",active);btn.setAttribute("aria-pressed",active?"true":"false");});return;}
+  const category=e.target.closest("[data-gdr-property-category]");if(category){selectPropertyCategory(category.dataset.gdrPropertyCategory);return;}
   const type=e.target.closest("[data-gdr-property-type]");if(type){selectedType(type.dataset.gdrPropertyType);return;}
   const config=e.target.closest("[data-gdr-configuration]");if(config){setConfiguration(config.dataset.gdrConfiguration);return;}
   const edit=e.target.closest("[data-gdr-voice-edit]");if(edit){editVoiceField(edit.dataset.gdrVoiceEdit);return;}
@@ -1640,9 +1713,15 @@ function bindEvents(){
   clearLegacyDraft();await removeUploadedFiles();resetNewListing();dismissDraftRecovery();
   message("A fresh blank listing is ready. Your published properties are unchanged.","success");
  });
+ $("#gdrStudioPropertyName")?.addEventListener("input",e=>{
+  state.propertyName=String(e.target.value||"").slice(0,50);
+  const counter=$("#gdrStudioNameCount");if(counter)counter.textContent=normalizePropertyName(state.propertyName).length+" / 50";
+  e.target.removeAttribute("aria-invalid");saveDraft();renderPropertyIdentityPreview();
+ });
  $("#gdrStudioLocation")?.addEventListener("input",e=>{
   state.address=e.target.value;state.pincode="";clearStudioCoordinateSelection();if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,"address"))state.voice.pending.address=state.address;const pin=$("#gdrStudioPincode");if(pin)pin.value="";state.nearbyPlaces=[];renderNearby();saveDraft();renderLiveVoiceForm();
   if(searchTimer)clearTimeout(searchTimer);
+  renderPropertyIdentityPreview();
   const q=e.target.value.trim();if(q.length<3){$("#gdrStudioLocationSuggestions").hidden=true;updateLocationStatus();return;}
   searchTimer=setTimeout(()=>searchAddress(q),350);
  });
@@ -1659,8 +1738,8 @@ function bindEvents(){
 
  ["gdrStudioRent","gdrStudioDeposit","gdrStudioFurnishing","gdrStudioDescription","gdrStudioRoomType","gdrStudioGender","gdrStudioTotalBeds","gdrStudioAvailableBeds","gdrStudioFoodIncluded"].forEach(id=>{
   const el=document.getElementById(id);if(!el)return;
-  el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();});
-  el.addEventListener("change",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();});
+  el.addEventListener("input",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();renderPropertyIdentityPreview();});
+  el.addEventListener("change",()=>{const key={gdrStudioRent:"rent",gdrStudioDeposit:"deposit",gdrStudioFurnishing:"furnishing",gdrStudioDescription:"description",gdrStudioRoomType:"roomType",gdrStudioGender:"gender",gdrStudioTotalBeds:"totalBeds",gdrStudioAvailableBeds:"availableBeds",gdrStudioFoodIncluded:"foodIncluded"}[id];state[key]=el.value;if(state.voice.pending&&Object.prototype.hasOwnProperty.call(state.voice.pending,key))state.voice.pending[key]=el.value;saveDraft();renderLiveVoiceForm();renderPropertyIdentityPreview();});
  });
  $("#gdrStudioUseGps")?.addEventListener("click",useGps);
  $("#gdrStudioOpenMap")?.addEventListener("click",openMap);
@@ -1737,8 +1816,8 @@ async function publish(){
    p_food_included:listingType==="home"?null:(state.foodIncluded==="yes"?true:state.foodIncluded==="no"?false:null),
    p_total_beds:listingType==="home"?null:Number(state.totalBeds),
    p_available_beds:listingType==="home"?null:Number(state.availableBeds),
-   p_name:title,
-   p_title:title,
+   p_name:normalizePropertyName(state.propertyName),
+   p_title:normalizePropertyName(state.propertyName),
    p_location:state.address,
    p_area:state.address.split(",")[0].trim(),
    p_address:state.address,
@@ -1773,8 +1852,10 @@ function showSuccess(property){
  let view=$("#gdrStudioSuccessView");
  if(!view){view=document.createElement("section");view.id="gdrStudioSuccessView";view.className="gdr-studio-success";root.appendChild(view);}
  view.hidden=false;
+ const verification=String(property&&property.verification_status||"pending").toLowerCase();
+ const verificationText=verification==="verified"?"Your listing is verified and ready for renters.":verification==="rejected"?"Your listing needs changes before it can be verified. Please review the status in My Properties.":"Your listing has been submitted and is awaiting verification. You can track its status in My Properties.";
  view.innerHTML=
-  '<div class="gdr-studio-success-mark">✓</div><span>GHARDEKHO PROPERTY STUDIO</span><h1>Your property is submitted.</h1><p>Your listing is saved in My Properties with <strong>Pending verification</strong> status. It is available in your existing Owner Dashboard.</p><div class="gdr-studio-success-id">Property reference <b>'+escapeHtml(property.id||"Saved")+'</b></div><button type="button" id="gdrStudioViewInventory">View My Properties</button><button type="button" class="gdr-studio-success-secondary" id="gdrStudioSuccessClose">Back to Dashboard</button>';
+  '<div class="gdr-studio-success-mark">✓</div><span>GHARDEKHO PROPERTY STUDIO</span><h1>Your property has been submitted successfully.</h1><p>'+escapeHtml(verificationText)+'</p><div class="gdr-studio-success-id">Verification status <b>'+escapeHtml(verification.replace(/_/g," "))+'</b><br>Property reference <b>'+escapeHtml(property.id||"Saved")+'</b></div><button type="button" id="gdrStudioViewInventory">View My Properties</button><button type="button" class="gdr-studio-success-secondary" id="gdrStudioSuccessClose">Back to Dashboard</button>';
  $("#gdrStudioViewInventory")?.addEventListener("click",()=>returnToOwnerDashboard(true));
  $("#gdrStudioSuccessClose")?.addEventListener("click",()=>returnToOwnerDashboard(false));
 }

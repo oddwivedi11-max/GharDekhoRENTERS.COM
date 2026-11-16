@@ -73,7 +73,11 @@ for (const target of productionTargets) {
     // The branch is tested before it is deployed; require the corrected
     // fragment on production only after the deployment workflow runs on main.
     if (process.env.GITHUB_REF_NAME === 'main') {
-      expect(studioVersion).toBe('20261115-studio-swipe-native2');
+      expect(studioVersion).toBe('20261116-property-identity-v1');
+      expect(markup, 'Property category selection must load').toContain('data-gdr-property-category="home"');
+      expect(markup, 'Custom property name input must load').toContain('id="gdrStudioPropertyName"');
+      expect(markup, 'Live listing preview must load').toContain('id="gdrStudioIdentityPreview"');
+      expect(studioScript, 'The script must render the live property identity preview').toContain('function renderPropertyIdentityPreview()');
       expect(markup, 'Final review step must be a valid section').toContain('<section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>');
       expect(markup, 'Raw panel attributes must not leak as standalone text').not.toMatch(/^\s*data-gdr-studio-panel="4" hidden>/m);
     }

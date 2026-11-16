@@ -9,8 +9,8 @@
   </div>
   <div class="gdr-studio-progress-wrap">
     <div class="gdr-studio-stepper" aria-label="Listing progress">
-      <div class="gdr-studio-step is-current" data-gdr-studio-step-indicator="0"><b>1</b><span>Property</span></div>
-      <div class="gdr-studio-step" data-gdr-studio-step-indicator="1"><b>2</b><span>Rent</span></div>
+      <div class="gdr-studio-step is-current" data-gdr-studio-step-indicator="0"><b>1</b><span>Identity</span></div>
+      <div class="gdr-studio-step" data-gdr-studio-step-indicator="1"><b>2</b><span>Pricing</span></div>
       <div class="gdr-studio-step" data-gdr-studio-step-indicator="2"><b>3</b><span>Location</span></div>
       <div class="gdr-studio-step" data-gdr-studio-step-indicator="3"><b>4</b><span>Photos</span></div>
       <div class="gdr-studio-step" data-gdr-studio-step-indicator="4"><b>5</b><span>Preview</span></div>
@@ -21,15 +21,22 @@
     <div class="gdr-studio-heading"><span>ONE SIMPLE STEP AT A TIME</span><h1 id="gdrStudioStepTitle">Property type</h1><p>Tell us a little about your property. You can review everything before publishing.</p></div>
     <div id="gdrStudioPanelStage" class="gdr-studio-panel-stage" data-gdr-swipe-stage aria-label="Swipe horizontally to change listing steps">
     <section class="gdr-studio-panel" data-gdr-studio-panel="0">
-      <h2 class="gdr-studio-panel-title">What kind of property are you listing?</h2><p class="gdr-studio-panel-subtitle">Choose the option that best describes your property.</p>
-      <div class="gdr-studio-type-grid">
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="apartment" aria-pressed="false"><span class="gdr-studio-choice-icon">🏢</span><strong>Apartment / Flat</strong><small>Residential flat</small></button>
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="room" aria-pressed="false"><span class="gdr-studio-choice-icon">🚪</span><strong>Room</strong><small>Single or private room</small></button>
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="independent_house" aria-pressed="false"><span class="gdr-studio-choice-icon">🏠</span><strong>Independent House</strong><small>Separate home</small></button>
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="villa" aria-pressed="false"><span class="gdr-studio-choice-icon">🏡</span><strong>Villa</strong><small>Independent villa</small></button>
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="pg" aria-pressed="false"><span class="gdr-studio-choice-icon">🛏️</span><strong>PG</strong><small>Paying guest</small></button>
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="hostel" aria-pressed="false"><span class="gdr-studio-choice-icon">🏫</span><strong>Hostel</strong><small>Shared accommodation</small></button>
-        <button type="button" class="gdr-studio-choice" data-gdr-property-type="other" aria-pressed="false"><span class="gdr-studio-choice-icon">⌂</span><strong>Other</strong><small>Another property type</small></button>
+      <h2 class="gdr-studio-panel-title">What kind of property are you listing?</h2>
+      <p class="gdr-studio-panel-subtitle">Choose the experience that best represents your property.</p>
+      <div class="gdr-studio-category-grid" aria-label="Choose a property category">
+        <button type="button" class="gdr-studio-choice gdr-studio-category-choice" data-gdr-property-category="home" aria-pressed="false"><span class="gdr-studio-category-icon">⌂</span><strong>Your Home</strong><small>Independent houses, apartments, flats and family residences.</small><span class="gdr-studio-category-cta">List Your Home <b>→</b></span></button>
+        <button type="button" class="gdr-studio-choice gdr-studio-category-choice" data-gdr-property-category="pg" data-gdr-property-type="pg" aria-pressed="false"><span class="gdr-studio-category-icon">▦</span><strong>PG Accommodation</strong><small>Managed PG accommodation with individual rooms and shared facilities.</small><span class="gdr-studio-category-cta">List Your PG <b>→</b></span></button>
+        <button type="button" class="gdr-studio-choice gdr-studio-category-choice" data-gdr-property-category="hostel" data-gdr-property-type="hostel" aria-pressed="false"><span class="gdr-studio-category-icon">▤</span><strong>Hostel</strong><small>Student and professional hostels with room and bed availability.</small><span class="gdr-studio-category-cta">List Your Hostel <b>→</b></span></button>
+      </div>
+      <div id="gdrStudioHomeSubtypes" class="gdr-studio-home-subtypes" hidden>
+        <h3 class="gdr-studio-panel-title">Choose your home type</h3>
+        <div class="gdr-studio-type-grid">
+          <button type="button" class="gdr-studio-choice" data-gdr-property-type="apartment" aria-pressed="false"><span class="gdr-studio-choice-icon">🏢</span><strong>Apartment / Flat</strong><small>Residential flat</small></button>
+          <button type="button" class="gdr-studio-choice" data-gdr-property-type="room" aria-pressed="false"><span class="gdr-studio-choice-icon">🚪</span><strong>Room</strong><small>Single or private room</small></button>
+          <button type="button" class="gdr-studio-choice" data-gdr-property-type="independent_house" aria-pressed="false"><span class="gdr-studio-choice-icon">🏠</span><strong>Independent House</strong><small>Separate home</small></button>
+          <button type="button" class="gdr-studio-choice" data-gdr-property-type="villa" aria-pressed="false"><span class="gdr-studio-choice-icon">🏡</span><strong>Villa</strong><small>Independent villa</small></button>
+          <button type="button" class="gdr-studio-choice" data-gdr-property-type="other" aria-pressed="false"><span class="gdr-studio-choice-icon">⌂</span><strong>Other</strong><small>Another residential property</small></button>
+        </div>
       </div>
       <div id="gdrStudioConfigurationWrap" hidden>
         <h3 id="gdrStudioConfigurationLabel" class="gdr-studio-panel-title" style="margin-top:22px">BHK configuration</h3>
@@ -48,7 +55,11 @@
           <label class="gdr-studio-field"><span>Meals</span><select id="gdrStudioFoodIncluded" autocomplete="off"><option value="">Not specified</option><option value="yes">Meals included</option><option value="no">No meals</option></select></label>
         </div>
       </div>
-
+      <section id="gdrStudioIdentityWrap" class="gdr-studio-identity-wrap" hidden>
+        <div class="gdr-studio-identity-intro"><span class="gdr-studio-identity-kicker">PROPERTY IDENTITY</span><h3 id="gdrStudioIdentityTitle">Name your home</h3><p>Every great place deserves a name. Create an identity that helps renters remember your property.</p></div>
+        <label class="gdr-studio-field gdr-studio-name-field" for="gdrStudioPropertyName"><span>Property name <b aria-hidden="true">*</b></span><input id="gdrStudioPropertyName" type="text" autocomplete="off" minlength="3" maxlength="50" required placeholder="e.g. The Urban Nest" aria-describedby="gdrStudioNameExamples gdrStudioNameCount gdrStudioNameError"><span class="gdr-studio-name-counter"><small id="gdrStudioNameExamples">Ideas: The Green Villa · Shree Homes · Sunrise Residency</small><b id="gdrStudioNameCount" aria-live="polite">0 / 50</b></span><small id="gdrStudioNameError" class="gdr-studio-name-error" aria-live="polite">Choose a memorable name between 3 and 50 characters.</small></label>
+        <div class="gdr-studio-identity-preview-wrap"><div><span class="gdr-studio-identity-kicker">LIVE PREVIEW</span><h4>Your listing, taking shape</h4></div><div id="gdrStudioIdentityPreview" aria-live="polite"></div></div>
+      </section>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="1" hidden>
       <h2 class="gdr-studio-panel-title">How much rent would you like?</h2><p class="gdr-studio-panel-subtitle">Enter the monthly rent. Security deposit is optional.</p>
@@ -93,7 +104,7 @@
       <label class="gdr-studio-field" style="margin-top:20px"><span>Short description <small>Optional</small></span><textarea id="gdrStudioDescription" autocomplete="off" maxlength="2000" placeholder="Share anything helpful about your property."></textarea></label>
     </section>
     <section class="gdr-studio-panel" data-gdr-studio-panel="4" hidden>
-      <h2 class="gdr-studio-panel-title">Review before publishing</h2><p class="gdr-studio-panel-subtitle">Check the details carefully. Your listing will be saved in My Properties and follow the existing verification process.</p><div id="gdrStudioPreview"></div>
+      <h2 class="gdr-studio-panel-title">Final listing review</h2><p class="gdr-studio-panel-subtitle">Check your property information before you publish.</p><div id="gdrStudioPreview"></div>
     </section>
     </div>
     <div class="gdr-studio-form-navigation" aria-label="Manual property listing navigation">
