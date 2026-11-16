@@ -78,6 +78,9 @@ body.gdr-property-studio-open{overflow:hidden!important}
 .gdr-studio-pg-details{margin-top:18px;padding:18px;border:1px solid #e2e8dd;border-radius:16px;background:#fafbf7}
 .gdr-studio-location-actions{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0}
 .gdr-studio-location-actions button{min-height:46px;padding:0 15px;border:1px solid #cbdacb;border-radius:12px;background:#f8fbf5;color:#245038;font-weight:850}
+.gdr-studio-location-guidance{display:flex;align-items:flex-start;gap:10px;margin:8px 0 12px;padding:12px 14px;border:1px solid #dce5d8;border-radius:13px;background:#f7faf4;color:#365c45;font-size:12px;line-height:1.55}
+.gdr-studio-location-guidance-icon{display:grid;place-items:center;flex:0 0 24px;width:24px;height:24px;border-radius:50%;background:#e6efe3;color:#245038;font-size:15px;font-weight:800}
+.gdr-studio-location-guidance p{margin:1px 0 0}
 .gdr-studio-location-status{margin:8px 0;color:#68806d;font-size:12px}
 #gdrStudioLocationSuggestions{position:relative;z-index:12;display:grid;gap:5px;margin-top:5px;padding:7px;border:1px solid #dce6d8;border-radius:13px;background:#fff;box-shadow:0 12px 24px rgba(30,64,41,.1)}
 #gdrStudioLocationSuggestions[hidden]{display:none!important}
