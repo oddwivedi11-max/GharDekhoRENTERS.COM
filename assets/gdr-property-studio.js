@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261116-studio-location-guidance1";
+const VERSION="20261116-studio-mobile-swipe1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -17,7 +17,7 @@ const typeLabels={
 };
 const configurations=["1 RK","1 BHK","2 BHK","3 BHK","4 BHK","5+ BHK"];
 const allowedTypes=["image/jpeg","image/png","image/webp"];
-const STUDIO_SWIPE_THRESHOLD=72;
+const STUDIO_SWIPE_THRESHOLD=56;
 let searchTimer=null,searchController=null,addressSearchSequence=0,nearbyRun=0,nearbyController=null;
 let stepTransitionTimer=null,stepTransitionSequence=0;
 let swipeGesture=null,swipeSnapTimer=null,swipeChoiceClickGuard=null,swipeChoiceClickTimer=null;
@@ -980,10 +980,10 @@ function initStepSwipe(root){
  // Keep native controls, maps, uploads and nested horizontal scrollers in charge
  // of their own gestures. Horizontal swipes are intercepted only on plain panel space.
  const excluded=[
-  "input","textarea","select","label","button:not(.gdr-studio-choice)","a",
+  "input","textarea","select","button:not(.gdr-studio-choice)","a",
   "[contenteditable='true']","[role='button']","[role='slider']","[role='spinbutton']",
   "#gdrStudioMapHost",".leaflet-container",".leaflet-control-container",
-  ".gdr-studio-photo-categories","#gdrStudioPhotoPreview",".gdr-studio-photo-grid",
+  "#gdrStudioPhotoPreview",".gdr-studio-photo-grid",
   ".gdr-studio-photo-strip",".gdr-studio-preview-strip",".gdr-property-detail-thumbs",
   "[data-gdr-studio-photo-upload]","[data-gdr-studio-photo-camera]",
   "[data-gdr-studio-no-swipe]","[data-native-horizontal-scroll]","video","iframe"
