@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261116-property-identity-v2";
+const VERSION="20261116-property-identity-v3";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -585,7 +585,8 @@ function wrapMapCallback(){
   };
   const wrapped=function(address,lat,lng){
    const inStudio=!!(studio()&&!studio().hidden);
-   if(!validIndiaPoint(Number(lat),Number(lng))){if(inStudio)message("Choose a property location within India.","error");return false;}
+   if(inStudio&&!validIndiaPoint(Number(lat),Number(lng))){message("Choose a property location within India.","error");return false;}
+   if(!inStudio&&!validIndiaPoint(Number(lat),Number(lng)))return false;
    const outsidePinArea=!!(inStudio&&state.pinCenter&&distanceMeters(state.pinCenter.lat,state.pinCenter.lng,Number(lat),Number(lng))>35000);
    const ok=original(address,lat,lng);
    if(ok&&inStudio){
