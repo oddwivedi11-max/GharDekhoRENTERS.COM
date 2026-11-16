@@ -41,7 +41,9 @@ test("approximate PIN and address coordinates cannot publish before exact entran
   assert.match(studio,/function validIndiaPoint\(/);
   assert.match(studio,/state\.locationConfirmed=confirmed===true&&valid/);
   assert.match(studio,/setLocation\(address,Number\(lat\),Number\(lng\),state\.pincode,true\)/);
-  assert.match(studio,/if\(inStudio&&!validIndiaPoint\(Number\(lat\),Number\(lng\)\)\)/);
+  assert.match(studio,/if\(!validIndiaPoint\(Number\(lat\),Number\(lng\)\)\)\{if\(inStudio\)message\(/);
+  assert.match(studio,/target\.dataset\.gdSelectedLat=String\(latitude\)/);
+  assert.match(studio,/target\.dataset\.gdSelectedLng=String\(longitude\)/);
   assert.match(studio,/if\(!state\.locationConfirmed\)/);
   assert.match(studio,/approximate area/);
 });
