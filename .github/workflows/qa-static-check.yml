@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - "main"
+      - "fix/market-readiness-20261121"
       - "fix/owner-dashboard-top-stat-cards"
       - "perf/gdr-consolidate-safe-select-policies-20261111"
       - "fix/gdr-verified-data-security-performance-20261111"
@@ -149,6 +150,8 @@ jobs:
           node --check assets/gdr-owner-command-center.js
           node --check assets/gdr-owner-command-center-hotfix.js
           node --check assets/gdr-owner-payments.js
+          node --check tests/gdr-market-readiness-fixes.test.cjs
+          node --test tests/gdr-market-readiness-fixes.test.cjs
           node --check tests/gdr-owner-workspace-functional.test.cjs
           node --test tests/gdr-owner-workspace-functional.test.cjs
           node --check tests/gdr-owner-ui-navigation-regression.test.cjs
