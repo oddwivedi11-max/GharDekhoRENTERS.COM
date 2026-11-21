@@ -108,7 +108,7 @@ test("renter bill preview calculates daily fee consistently and blocks unconfigu
   const renter = read("assets/gdr-rental-suite-v2.js");
   assert.match(renter, /function calculateDailyLateFee\(today,dueDay,graceDays,dailyRate\)/);
   assert.match(renter, /overdueDays=Math\.max\(0,/);
-  assert.match(renter, /Number\(dailyRate\|\|0\)\*overdueDays/);
+  assert.match(renter, /Math\.max\(0,Number\(dailyRate\|\|0\)\)\*overdueDays/);
   assert.match(renter, /calculateDailyLateFee\(now,s\.due_day\|\|5,s\.late_fee_grace_days\|\|0,s\.late_fee_amount\|\|0\)/);
   assert.match(renter, /paymentConfigured=validUpi\|\|!!s\.upi_qr_path/);
   assert.match(renter, /paymentConfigured\?'<button class="gdr-rental-primary" id="gdrPayNow">/);
