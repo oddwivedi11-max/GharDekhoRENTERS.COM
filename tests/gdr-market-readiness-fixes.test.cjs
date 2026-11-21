@@ -124,3 +124,23 @@ test("owner payment workspace flags missing active-renter setup and labels per-d
   assert.match(owner, /Late fee \(₹ per day\)/);
   assert.match(renterSuite, /Late fee \(₹ per day\)/);
 });
+
+
+test("daily late-fee helper returns exact first/second/third-overdue-day amounts", () => {
+  const renter = read("assets/gdr-rental-suite-v2.js");
+  const start = renter.indexOf("function calculateDailyLateFee(");
+  const end = renter.indexOf("\nfunction upiLink(", start);
+  assert.ok(start >= 0 && end > start, "Daily late-fee helper must remain a standalone function");
+
+  const calculate = new Function(
+    renter.slice(start, end) + "; return calculateDailyLateFee;"
+  )();
+
+  const at = (day) => new Date(2026, 10, day);
+  assert.equal(calculate(at(5), 5, 20, 10).amount, 0, "Due date has no late fee");
+  assert.equal(calculate(at(25), 5, 20, 10).amount, 0, "Final grace day has no late fee");
+  assert.equal(calculate(at(26), 5, 20, 10).amount, 10, "First overdue day adds ₹10");
+  assert.equal(calculate(at(27), 5, 20, 10).amount, 20, "Second overdue day adds ₹20");
+  assert.equal(calculate(at(28), 5, 20, 10).amount, 30, "Third overdue day adds ₹30");
+  assert.equal(calculate(at(28), 5, 20, 0).amount, 0, "A zero daily rate remains zero");
+});
