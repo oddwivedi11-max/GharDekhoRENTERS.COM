@@ -46,3 +46,12 @@ The existing \`late_fee_amount\` database field was previously charged as a one-
 - No production deployment or Cloudflare cache purge was triggered.
 - Existing missing PIN/coordinate records and the orphan Auth profile remain unresolved pending verified owner/admin input.
 - Browser/Playwright tests have not been run in this environment. The added tests are committed for CI/QA execution; static source parsing is not a substitute for database or browser execution.
+
+
+## Final source-level verification — 21 November 2026
+
+- 34/34 source checks passed for the latest remediation source: frontend parsing, all five verified-only RPC predicates, publish identity/PIN/coordinate validation, occupancy lifecycle trigger/backfill, both payment RPC overloads, owner role migration, payment UI guards, cache version updates, and test workflow wiring.
+- 10/10 regression cases executed successfully in an isolated in-memory harness against the exact branch file contents, including fee boundary outcomes of ₹0 on the due date, ₹0 on the final grace day, ₹10 on the first overdue day, ₹20 on the second, and ₹30 on the third. This is **not** a Node.js test-runner execution.
+- The GitHub connector returned no workflow-run records and no commit status checks for the latest commit. A passing GitHub Actions run has therefore not been confirmed.
+- The Supabase organization currently uses the Free plan and has no existing development branches. Supabase preview database branching is a Pro-plan feature; the quoted branch compute rate is USD $0.01344/hour. No branch was created and no paid upgrade or compute was initiated.
+- Live production schema metadata was queried read-only. The existing identity argument lists and result types for all five public discovery functions, both rent-payment overloads, and the Property Studio publish RPC match the signatures targeted by the drafts. This validates signature compatibility only; it does not compile or execute the new function bodies.
