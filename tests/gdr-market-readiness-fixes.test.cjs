@@ -54,7 +54,7 @@ test("Property Studio retains name validation and requires a verified India PIN 
   assert.match(publish, /p_longitude < 67[\s\S]*?p_longitude > 98\.2/i);
   assert.match(publish, /'other','room'/i);
   assert.match(publish, /v_property_name,\s*v_property_name,\s*p_location/i);
-  assert.match(publish, /grant execute on function public\.owner_publish_property_studio\([\s\S]*?to authenticated/i);
+  assert.match(sql, /grant execute on function public\.owner_publish_property_studio\([\s\S]*?to authenticated/i);
 });
 
 test("occupancy lifecycle sync fixes stale verified status without fabricating property coordinates", () => {
