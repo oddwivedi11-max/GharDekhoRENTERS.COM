@@ -1,6 +1,6 @@
 (function(){
 "use strict";
-const VERSION="20261116-property-identity-v3";
+const VERSION="20261121-pin-required1";
 const $=(s,r=document)=>r.querySelector(s);
 const $$=(s,r=document)=>Array.from(r.querySelectorAll(s));
 const state={
@@ -913,9 +913,14 @@ function validateStep(step){
   state.address=$("#gdrStudioLocation")?.value.trim()||state.address;
   state.pincode=$("#gdrStudioPincode")?.value.trim()||state.pincode;
   if(!state.address){message("Please search for the property address or enter its locality and city.","error");return false;}
-  if(state.pincode&&!/^\d{6}$/.test(state.pincode)){message("PIN code must contain 6 digits.","error");return false;}
+  const pinInput=$("#gdrStudioPincode");
+  if(!/^\d{6}$/.test(state.pincode)){
+   if(pinInput){pinInput.setAttribute("aria-invalid","true");pinInput.focus();}
+   message("Enter the property's six-digit PIN code before continuing.","error");return false;
+  }
+  if(pinInput)pinInput.removeAttribute("aria-invalid");
+  if(state.resolvedPincode!==state.pincode){message("Verify this six-digit PIN code with India Post before publishing. The PIN and selected locality must match.","error");return false;}
   if(!validIndiaPoint(Number(state.lat),Number(state.lng))){message("Locate the property in India, then open Select on Map and place the exact property pin before submitting.","error");return false;}
-  if(state.pincode&&state.resolvedPincode!==state.pincode){message("Verify this six-digit PIN code before publishing. The selected address and PIN must match.","error");return false;}
   if(!state.locationConfirmed){message("The PIN or address only identifies an approximate area. Open Select on Map, tap or drag the marker to the exact house entrance, and confirm the location before submitting.","error");return false;}
   if(state.pinCenter&&validIndiaPoint(Number(state.pinCenter.lat),Number(state.pinCenter.lng))){
    const rad=n=>n*Math.PI/180,a=Number(state.pinCenter.lat),b=Number(state.pinCenter.lng),c=Number(state.lat),d=Number(state.lng);
@@ -1819,7 +1824,7 @@ async function publish(){
    p_property_type:propertyType,
    p_configuration:config||null,
    p_security_deposit:state.deposit===""?null:Number(state.deposit),
-   p_pincode:state.pincode||null,
+   p_pincode:state.pincode,
    p_photo_urls:photoUrls,
    p_nearby_places:state.nearbyPlaces,
    p_listing_type:listingType,
