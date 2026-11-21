@@ -79,9 +79,19 @@ begin
     raise exception 'Property name must contain between 3 and 50 characters';
   end if;
 
-  if p_pincode is null or p_pincode !~ '^[0-9]{6}'apartment','independent_house','villa','pg','hostel','other','room') then
+  if p_pincode is null or p_pincode !~ '^[0-9]{6}$' then
+    raise exception 'A verified six-digit PIN code is required';
+  end if;
+  if p_latitude is null or p_longitude is null
+     or p_latitude < 5 or p_latitude > 38.8
+     or p_longitude < 67 or p_longitude > 98.2 then
+    raise exception 'Confirm the exact property location on the India map before publishing';
+  end if;
+
+  if p_property_type is null or p_property_type not in ('apartment','independent_house','villa','pg','hostel','other','room') then
     raise exception 'Select a valid property type';
   end if;
+
   if p_listing_type is null or p_listing_type not in ('home','pg','hostel') then
     raise exception 'Invalid listing type';
   end if;
