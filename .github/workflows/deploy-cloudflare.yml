@@ -42,14 +42,14 @@ jobs:
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
               ("gdr-admin-command-center.js", "20261113-owner-report-launcher-remove1"),
-              ("gdr-rental-suite-v2.js", "20261114-dashboard-mount-only2"),
-              ("gdr-owner-payments.js", "20261112-payment-return1"),
+              ("gdr-rental-suite-v2.js", "20261121-daily-late-fee1"),
+              ("gdr-owner-payments.js", "20261121-daily-late-fee1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
               ("gdr-owner-command-center-hotfix.js", "20261114-owner-observer-batch1"),
               ("gdr-owner-renter-page.js", "20261114-renter-detail-route1"),
               ("gdr-owner-current-renters-dashboard.js", "20261114-current-renters-mount1"),
               ("gdr-map-experience.js", "20261116-owner-poi-single-source1"),
-              ("gdr-property-studio.js", "20261116-property-identity-v3"),
+              ("gdr-property-studio.js", "20261121-pin-required1"),
               ("gdr-property-studio.css", "20261116-property-identity-v1"),
               ("gdr-owner-property-archive.js", "20261109-soft-archive1"),
           ]
@@ -135,6 +135,8 @@ jobs:
           node --check assets/gdr-owner-current-renters-dashboard.js
           node --check assets/gdr-owner-renter-page.js
           node --check assets/gdr-owner-payments.js
+          node --check tests/gdr-market-readiness-fixes.test.cjs
+          node --test tests/gdr-market-readiness-fixes.test.cjs
           node --test tests/gdr-smart-rent-payment.test.cjs
           node --check tests/gdr-owner-ui-navigation-regression.test.cjs
           node --test tests/gdr-owner-ui-navigation-regression.test.cjs
