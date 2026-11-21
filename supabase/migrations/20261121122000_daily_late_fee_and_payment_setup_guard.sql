@@ -23,6 +23,7 @@ declare
   v_due integer := 5;
   v_late numeric(12,2) := 0;
   v_grace integer := 0;
+  v_today date := (now() at time zone 'Asia/Kolkata')::date;
   v_upi_id text;
   v_qr_path text;
   v_due_date date;
@@ -39,7 +40,7 @@ begin
   if v_utr is not null and v_utr !~ '^[A-Z0-9-]{6,30}$' then
     raise exception 'Enter a valid UTR/reference number';
   end if;
-  if p_payment_date is null or p_payment_date > current_date then
+  if p_payment_date is null or p_payment_date > v_today then
     raise exception 'Payment date cannot be in the future';
   end if;
   if v_method not in ('upi_gpay','upi_phonepe','upi_paytm','upi_other') then
@@ -92,7 +93,7 @@ begin
   where p.id = v_po.property_id;
 
   v_due_date := v_period + (v_due - 1);
-  v_overdue_days := greatest(0, current_date - (v_due_date + v_grace));
+  v_overdue_days := greatest(0, v_today - (v_due_date + v_grace));
   v_late := greatest(0, v_late) * v_overdue_days;
 
   select
@@ -158,6 +159,7 @@ declare
   v_due integer := 5;
   v_late numeric(12,2) := 0;
   v_grace integer := 0;
+  v_today date := (now() at time zone 'Asia/Kolkata')::date;
   v_upi_id text;
   v_qr_path text;
   v_due_date date;
@@ -218,7 +220,7 @@ begin
   from public.properties p where p.id = v_po.property_id;
 
   v_due_date := v_period + (v_due - 1);
-  v_overdue_days := greatest(0, current_date - (v_due_date + v_grace));
+  v_overdue_days := greatest(0, v_today - (v_due_date + v_grace));
   v_late := greatest(0, v_late) * v_overdue_days;
 
   select
