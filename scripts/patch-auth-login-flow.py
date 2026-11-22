@@ -242,10 +242,9 @@ else:
 owner_guard_start = login_block.find('            if (!getAccountRoles(currentProfile).includes("owner")) {')
 owner_guard_end = login_block.find("            const ownerRoleReady = await withAuthTimeout(", owner_guard_start)
 owner_guard_already_applied = (
-    owner_guard_start < 0
-    and owner_guard_end < 0
+    owner_guard_end < 0
     and 'let ownerRoleEnabledFromConsent = false;' in login_block
-    and 'ownerRoleEnabledFromConsent || await withAuthTimeout(' in login_block
+    and 'const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(' in login_block
     and 'Enable Owner access for this same account too?' in login_block
 )
 if (owner_guard_start < 0 or owner_guard_end < 0) and not owner_guard_already_applied:
