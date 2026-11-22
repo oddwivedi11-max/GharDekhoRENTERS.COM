@@ -7,6 +7,7 @@ on:
     branches:
       - "main"
       - "fix/market-readiness-20261121"
+      - "fix/auth-login-signup-flow-20261122"
       - "fix/owner-dashboard-top-stat-cards"
       - "perf/gdr-consolidate-safe-select-policies-20261111"
       - "fix/gdr-verified-data-security-performance-20261111"
@@ -75,6 +76,7 @@ jobs:
         run: |
           python3 scripts/patch-owner-dashboard-refresh.py
           python3 scripts/patch-property-studio.py
+          python3 scripts/patch-auth-login-flow.py
 
       - name: Check committed diff formatting
         run: git show --check --oneline HEAD || echo "::warning::Whitespace warnings detected in the latest commit; continuing with JavaScript syntax checks."
@@ -128,7 +130,7 @@ jobs:
           node --test tests/gdr-map-voice.test.cjs
           node --check assets/gdr-renter-experience.js
           node --test tests/gdr-renter-experience.test.cjs
-          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py
+          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py scripts/patch-auth-login-flow.py
           node --check assets/gdr-property-studio.js
           node --check assets/gdr-rental-suite.js
           node --check assets/gdr-rental-suite-v2.js
@@ -146,6 +148,8 @@ jobs:
           node --test tests/gdr-renter-moveout-notice.test.cjs
           node --test tests/gdr-role-portal-switch.spec.cjs
           node --test tests/gdr-role-enablement.test.cjs
+          node --check tests/gdr-auth-flow-regression.test.cjs
+          node --test tests/gdr-auth-flow-regression.test.cjs
           node --check assets/gdr-owner-renter-editor.js
           node --check assets/gdr-owner-renter-page.js
           node --check assets/gdr-owner-current-renters-dashboard.js
@@ -171,3 +175,40 @@ jobs:
           node --check tests/gdr-nearby-preservation.spec.cjs
           node --check tests/gdr-role-switch-navigation.test.cjs
           node --test tests/gdr-role-switch-navigation.test.cjs
+
+  auth-browser-regression:
+    needs: javascript-syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout auth QA branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply frontend patches to the browser fixture
+        run: |
+          python3 scripts/patch-owner-dashboard-refresh.py
+          python3 scripts/patch-property-studio.py
+          python3 scripts/patch-auth-login-flow.py
+
+      - name: Install Playwright test runner
+        run: npm install --no-save @playwright/test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Owner and Renter authentication browser tests
+        run: npx playwright test tests/gdr-auth-login-signup.spec.cjs --workers=1
+
+      - name: Upload authentication browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdr-auth-browser-failure-diagnostics
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
