@@ -18,7 +18,7 @@ test.describe("GharDekho Owner/Renter authentication", () => {
       await expect(page.locator("#userEmail")).toBeVisible();
       await expect(page.locator("#userPassword")).toBeVisible();
       await expect(page.locator("#gdLoginPhoneField")).toBeHidden();
-      expect(await page.locator("#userPhone").isRequired()).toBe(false);
+      expect(await page.locator("#userPhone").evaluate(input => input.required)).toBe(false);
     }
   });
 
@@ -28,7 +28,7 @@ test.describe("GharDekho Owner/Renter authentication", () => {
     await expect(page.locator("#userName")).toBeVisible();
     await expect(page.locator("#signupTermsField")).toBeVisible();
     await expect(page.locator("#gdLoginPhoneField")).toBeVisible();
-    expect(await page.locator("#userPhone").isRequired()).toBe(true);
+    expect(await page.locator("#userPhone").evaluate(input => input.required)).toBe(true);
 
     await page.locator("#roleOwner").check();
     await expect(page.locator("#premiumAuthTitle")).toHaveText("Create your Owner account");
@@ -58,6 +58,6 @@ test.describe("GharDekho Owner/Renter authentication", () => {
     await expect(page.locator("#userName")).toBeHidden();
     await expect(page.locator("#signupTermsField")).toBeHidden();
     await expect(page.locator("#gdLoginPhoneField")).toBeHidden();
-    expect(await page.locator("#userPhone").isRequired()).toBe(false);
+    expect(await page.locator("#userPhone").evaluate(input => input.required)).toBe(false);
   });
 });
