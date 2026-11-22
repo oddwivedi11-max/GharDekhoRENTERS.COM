@@ -208,6 +208,36 @@ if new_owner not in login_block:
 else:
     print("Already applied: retry profile loading for Owner login")
 
+owner_role_guard_old = '''            if (!getAccountRoles(currentProfile).includes("owner")) {
+                const availableRoles = getAccountRoles(currentProfile);
+                if (availableRoles.includes("renter")) {
+                    // A valid renter signed in from the Owner tab: keep the
+                    // authenticated session and route to the role they actually have.
+                    activeRole = "renter";
+                    pendingLoginRole = "renter";
+                    sessionStorage.setItem("gd_active_role", "renter");
+                    sessionStorage.setItem("gd_pending_login_role", "renter");
+                    sessionStorage.setItem("gd_login_destination", "renter");
+                    authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";
+                    await withAuthTimeout(updateAuthUI(), "Renter dashboard preparation", 12000);
+                    setRoleSpecificUI("renter");
+                    const landing = document.getElementById("loggedOutLanding");
+                    const loginSection = document.getElementById("loginSection");
+                    const homeSection = document.getElementById("homeSection");
+                    const propertiesSection = document.getElementById("propertiesSection");
+                    const dashboard = document.getElementById("dashboardSection");
+                    if (landing) landing.style.display = "none";
+                    if (loginSection) loginSection.style.display = "none";
+                    if (homeSection) homeSection.style.display = "none";
+                    if (propertiesSection) propertiesSection.style.display = "none";
+                    if (dashboard) dashboard.style.display = "block";
+                    document.body.classList.remove("gd-auth-page", "gd-renter-explore-mode");
+                    await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
+                        console.warn("Renter dashboard loading timed out:", error);
+                    });
+                    scrollToSection("dashboardSection");
+                    return;
+                }
 old_message = 'authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";'
 new_message = 'authMessage.textContent = "This email already has a Renter account. You do not need a second account: use List a Property in your Renter dashboard and choose Enable Owner access.";'
 if old_message in login_block:
