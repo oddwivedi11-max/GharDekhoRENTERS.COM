@@ -39,8 +39,8 @@ test("password login authenticates with email and password and retries profile l
   assert.match(source, /signInWithPassword\(\{ email, password \}\)/);
   assert.equal((source.match(/loadOwnProfileWithRetry\(\)/g) || []).length, 2);
   assert.match(source, /This email already has a Renter account/);
-  assert.match(source, /window\\.confirm\\(/);
-  assert.match(source, /saveActiveAccountRole\\("owner"\\)/);
+  assert.match(source, /window\.confirm\(/);
+  assert.match(source, /saveActiveAccountRole\("owner"\)/);
   assert.doesNotMatch(source, /gharDekhoPhoneError\(/);
 });
 
