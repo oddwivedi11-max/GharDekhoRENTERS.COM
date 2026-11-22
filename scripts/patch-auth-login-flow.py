@@ -130,6 +130,34 @@ replace_function(
     "preserve signup mode when selecting account role"
 )
 
+replace_function(
+    "function forceSelectedRole(role)",
+    "function bind()",
+    '''function forceSelectedRole(role){
+    const selected = role === "owner" ? "owner" : "renter";
+    try {
+        pendingLoginRole = selected;
+        activeRole = selected;
+        sessionStorage.setItem("gd_pending_login_role", selected);
+        sessionStorage.setItem("gd_active_role", selected);
+        localStorage.setItem("gd_preferred_role", selected);
+    } catch (error) {}
+
+    const owner = document.getElementById("roleOwner");
+    const renter = document.getElementById("roleRenter");
+    if (owner) owner.checked = selected === "owner";
+    if (renter) renter.checked = selected === "renter";
+
+    // Preserve whether the user is signing in or creating an account.
+    if (typeof applyLoginRolePresentation === "function") {
+        applyLoginRolePresentation(selected);
+    } else if (typeof setAuthLoginMode === "function") {
+        setAuthLoginMode(window.__gdAuthMode !== "signup");
+    }
+}''',
+    "preserve auth mode in the final legacy role selector"
+)
+
 # The signup fallback must return the complete role array; dual-role accounts
 # must not be reduced to whichever primary role happens to be stored.
 replace_once(
