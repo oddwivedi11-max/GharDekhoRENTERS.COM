@@ -293,6 +293,9 @@ owner_guard_new = '''            let ownerRoleEnabledFromConsent = false;
 
             const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(
 '''
+login_block = login_block[:owner_guard_start] + owner_guard_new + login_block[owner_guard_end:]
+print("Applied: explicit confirmation before enabling Owner access on an existing Renter account")
+
 
 old_message = 'authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";'
 new_message = 'authMessage.textContent = "This email already has a Renter account. You do not need a second account: use List a Property in your Renter dashboard and choose Enable Owner access.";'
