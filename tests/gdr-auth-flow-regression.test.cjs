@@ -38,7 +38,9 @@ test("password login authenticates with email and password and retries profile l
   const source = functionSource("async function loginUser()", "// Keep auth actions available");
   assert.match(source, /signInWithPassword\(\{ email, password \}\)/);
   assert.equal((source.match(/loadOwnProfileWithRetry\(\)/g) || []).length, 2);
-  assert.match(source, /Your email already has a Renter account/);
+  assert.match(source, /This email already has a Renter account/);
+  assert.match(source, /window\\.confirm\\(/);
+  assert.match(source, /saveActiveAccountRole\\("owner"\\)/);
   assert.doesNotMatch(source, /gharDekhoPhoneError\(/);
 });
 
