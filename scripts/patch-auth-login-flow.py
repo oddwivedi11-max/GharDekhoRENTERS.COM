@@ -241,7 +241,14 @@ else:
 
 owner_guard_start = login_block.find('            if (!getAccountRoles(currentProfile).includes("owner")) {')
 owner_guard_end = login_block.find("            const ownerRoleReady = await withAuthTimeout(", owner_guard_start)
-if owner_guard_start < 0 or owner_guard_end < 0:
+owner_guard_already_applied = (
+    owner_guard_start < 0
+    and owner_guard_end < 0
+    and 'let ownerRoleEnabledFromConsent = false;' in login_block
+    and 'ownerRoleEnabledFromConsent || await withAuthTimeout(' in login_block
+    and 'Enable Owner access for this same account too?' in login_block
+)
+if (owner_guard_start < 0 or owner_guard_end < 0) and not owner_guard_already_applied:
     raise SystemExit("Stopped safely: Owner account-role guard was not found")
 
 owner_guard_new = '''            let ownerRoleEnabledFromConsent = false;
@@ -323,13 +330,16 @@ owner_guard_new = '''            let ownerRoleEnabledFromConsent = false;
             }
 
 '''
-login_block = login_block[:owner_guard_start] + owner_guard_new + login_block[owner_guard_end:]
-login_block = login_block.replace(
-    "            const ownerRoleReady = await withAuthTimeout(",
-    "            const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(",
-    1
-)
-print("Applied: explicit confirmation before enabling Owner access on an existing Renter account")
+if not owner_guard_already_applied:
+    login_block = login_block[:owner_guard_start] + owner_guard_new + login_block[owner_guard_end:]
+    login_block = login_block.replace(
+        "            const ownerRoleReady = await withAuthTimeout(",
+        "            const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(",
+        1
+    )
+    print("Applied: explicit confirmation before enabling Owner access on an existing Renter account")
+else:
+    print("Already applied: explicit confirmation before enabling Owner access on an existing Renter account")
 
 
 old_message = 'authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";'
