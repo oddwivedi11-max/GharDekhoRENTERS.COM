@@ -30,6 +30,7 @@ jobs:
           python3 scripts/patch-owner-dashboard-refresh.py
           python3 scripts/patch-property-studio.py
           python3 scripts/patch-renter-dashboard-ui.py
+          python3 scripts/patch-auth-login-flow.py
 
       - name: Version the GDR voice and map assets in the production HTML
         run: |
@@ -107,7 +108,7 @@ jobs:
 
       - name: Validate owner Nearby map modules
         run: |
-          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py
+          PYTHONPYCACHEPREFIX=/tmp/gdr-pycache python3 -m py_compile scripts/patch-owner-dashboard-refresh.py scripts/patch-property-studio.py scripts/patch-auth-login-flow.py
           node --check assets/gdr-property-studio.js
           node --test tests/gdr-property-studio-voice.test.cjs
           node --check assets/gdr-rental-suite.js
@@ -137,6 +138,8 @@ jobs:
           node --check assets/gdr-owner-payments.js
           node --check tests/gdr-market-readiness-fixes.test.cjs
           node --test tests/gdr-market-readiness-fixes.test.cjs
+          node --check tests/gdr-auth-flow-regression.test.cjs
+          node --test tests/gdr-auth-flow-regression.test.cjs
           node --test tests/gdr-smart-rent-payment.test.cjs
           node --check tests/gdr-owner-ui-navigation-regression.test.cjs
           node --test tests/gdr-owner-ui-navigation-regression.test.cjs
