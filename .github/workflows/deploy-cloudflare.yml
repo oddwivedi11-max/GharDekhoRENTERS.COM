@@ -408,7 +408,7 @@ jobs:
           grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-root.html || grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-login.html || grep -q '<strong>Explore Nearby</strong>' /tmp/gdr-live-index.html
           grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-root.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-login.html || grep -q 'gdrRenterPaymentsAction' /tmp/gdr-live-index.html
           grep -q 'gdrxSupport' /tmp/gdr-live-root.html || grep -q 'gdrxSupport' /tmp/gdr-live-login.html || grep -q 'gdrxSupport' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite-v2.js?v=20261121-daily-late-fee1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261121-daily-late-fee1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261121-daily-late-fee1' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-command-center-hotfix.js?v=20261114-owner-observer-batch1' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-root.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-login.html || grep -q 'gdr-owner-renter-page.js' /tmp/gdr-live-index.html
           grep -q 'gdr-owner-payments.js?v=20261121-daily-late-fee1' /tmp/gdr-live-root.html || grep -q 'gdr-owner-payments.js?v=20261121-daily-late-fee1' /tmp/gdr-live-login.html || grep -q 'gdr-owner-payments.js?v=20261121-daily-late-fee1' /tmp/gdr-live-index.html
@@ -463,7 +463,7 @@ jobs:
           grep -q 'List Your Property' /tmp/gdr-live-root.html || grep -q 'List Your Property' /tmp/gdr-live-login.html || grep -q 'List Your Property' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.js?v=20261121-pin-required1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.js?v=20261121-pin-required1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.js?v=20261121-pin-required1' /tmp/gdr-live-index.html
           grep -q 'gdr-property-studio.css?v=20261116-property-identity-v1' /tmp/gdr-live-root.html || grep -q 'gdr-property-studio.css?v=20261116-property-identity-v1' /tmp/gdr-live-login.html || grep -q 'gdr-property-studio.css?v=20261116-property-identity-v1' /tmp/gdr-live-index.html
-          grep -q 'gdr-rental-suite-v2.js?v=20261121-daily-late-fee1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261121-daily-late-fee1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261121-daily-late-fee1' /tmp/gdr-live-index.html
+          grep -q 'gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1' /tmp/gdr-live-root.html || grep -q 'gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1' /tmp/gdr-live-login.html || grep -q 'gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1' /tmp/gdr-live-index.html
           grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-root.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-login.html || grep -q 'href="/assets/gdr-rental-suite.css"' /tmp/gdr-live-index.html
           if grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-root.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-login.html || grep -q 'id="dashboardRoleSwitch"' /tmp/gdr-live-index.html; then echo 'Dashboard role switch UI still present'; exit 1; fi
           curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-property-studio.js?v=20261121-pin-required1" -o /tmp/gdr-property-studio.js
@@ -513,7 +513,7 @@ jobs:
           grep -q 'autocomplete="off"' /tmp/gdr-property-studio.html
           grep -q 'value="hi-IN-hinglish"' /tmp/gdr-property-studio.html
           grep -q 'gdr-studio-mic-button' /tmp/gdr-property-studio.html
-          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261121-daily-late-fee1" -o /tmp/gdr-rental-suite.js
+          curl --retry 5 --retry-delay 3 --retry-connrefused -fsS "$BASE_URL/assets/gdr-rental-suite-v2.js?v=20261122-remove-renter-report-card1" -o /tmp/gdr-rental-suite.js
           grep -q "Explore Nearby Properties" /tmp/gdr-rental-suite.js
           grep -q "gdr-nearby-btn-copy" /tmp/gdr-rental-suite.js
            grep -q "function isDashboardMountNode" /tmp/gdr-rental-suite.js
