@@ -83,3 +83,22 @@ test("Admin authentication route and account allow-list remain unchanged", () =>
   assert.match(html, /if \(window\.__gdAdminLoginRequested\)/);
   assert.match(html, /Only the authorized admin account can enter the Admin Control Center/);
 });
+
+
+test("failed role persistence never grants dashboard access through an in-memory role mutation", () => {
+  const source = functionSource("async function loginUser()", "// Keep auth actions available");
+  assert.match(source, /Renter role persistence failed; refusing client-only role access/);
+  assert.match(source, /Owner role persistence failed; refusing client-only role access/);
+  assert.match(source, /await supabaseClient\.auth\.signOut\(\)/);
+  assert.doesNotMatch(source, /currentProfile\.roles\s*=\s*\[\.\.\.new Set/);
+  assert.doesNotMatch(source, /currentProfile\.role\s*=\s*"(?:tenant|owner)"/);
+});
+
+test("Google Owner portal selection explicitly offers same-account Owner activation", () => {
+  const source = functionSource("async function updateAuthUI()", "async function signupUser()");
+  assert.match(source, /This Google account already has a Renter profile/);
+  assert.match(source, /window\.confirm\(/);
+  assert.match(source, /saveActiveAccountRole\("owner"\)/);
+  assert.match(source, /getAccountRoles\(currentProfile\)\.includes\("owner"\)/);
+  assert.match(source, /Owner access could not be enabled/);
+});

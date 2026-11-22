@@ -594,5 +594,128 @@ if phone_count != 1:
 else:
     print("Applied: remove forced phone field from password login")
 
+
+# Authentication hardening: never manufacture a role in browser memory when
+# Supabase refused to persist it. The dashboard role check must reflect the
+# persisted profile, not a client-only mutation.
+replace_once(
+'''                if (!renterRoleReady) {
+                    /* Authentication itself succeeded. Do not lock the user
+                       out of the dashboard because a secondary role-profile
+                       persistence update failed. Keep the selected role in
+                       the current session and continue. */
+                    console.warn("Renter role persistence failed; continuing with authenticated session.");
+                    const existing = getAccountRoles(currentProfile);
+                    currentProfile.roles = [...new Set([...existing, "renter"])];
+                    currentProfile.role = "tenant";
+                }''',
+'''                if (!renterRoleReady) {
+                    console.error("Renter role persistence failed; refusing client-only role access.");
+                    authMessage.textContent = "Your password was accepted, but Renter access could not be verified or saved. Please try again. No role changes were made.";
+                    await supabaseClient.auth.signOut().catch(error => console.warn("Sign-out after Renter role failure:", error));
+                    currentUser = null;
+                    currentProfile = null;
+                    window.__gdRoleAccessDenied = true;
+                    window.__gdLoginAttemptActive = false;
+                    activeRole = "renter";
+                    pendingLoginRole = "renter";
+                    sessionStorage.setItem("gd_pending_login_role", "renter");
+                    sessionStorage.setItem("gd_active_role", "renter");
+                    await updateAuthUI();
+                    authMessage.textContent = "Your password was accepted, but Renter access could not be verified or saved. Please try again. No role changes were made.";
+                    return;
+                }''',
+    "fail closed when Renter role persistence fails"
+)
+
+replace_once(
+'''            if (!ownerRoleReady) {
+                /* Authentication itself succeeded. A failure here is in the
+                   optional role/profile persistence step, not the password
+                   login. Continue using the role explicitly selected by the
+                   user for this session. */
+                console.warn("Owner role persistence failed; continuing with authenticated session.");
+                const existing = getAccountRoles(currentProfile);
+                currentProfile.roles = [...new Set([...existing, "owner"])];
+                currentProfile.role = "owner";
+            }''',
+'''            if (!ownerRoleReady) {
+                console.error("Owner role persistence failed; refusing client-only role access.");
+                authMessage.textContent = "Your password was accepted, but Owner access could not be verified or saved. Your existing account and roles are unchanged. Please try again.";
+                await supabaseClient.auth.signOut().catch(error => console.warn("Sign-out after Owner role failure:", error));
+                currentUser = null;
+                currentProfile = null;
+                window.__gdRoleAccessDenied = true;
+                window.__gdLoginAttemptActive = false;
+                activeRole = "owner";
+                pendingLoginRole = "owner";
+                sessionStorage.setItem("gd_pending_login_role", "owner");
+                sessionStorage.setItem("gd_active_role", "owner");
+                await updateAuthUI();
+                authMessage.textContent = "Your password was accepted, but Owner access could not be verified or saved. Your existing account and roles are unchanged. Please try again.";
+                return;
+            }''',
+    "fail closed when Owner role persistence fails"
+)
+
+# Google OAuth sign-in must behave like password login when an existing Renter
+# selects Owner: ask for consent, add the second role to the same Auth identity,
+# and never silently redirect to the Renter dashboard.
+replace_once(
+'''        if (!roles.includes("owner")) {
+            // A stale Owner preference can survive a role switch in browser
+            // storage. Restore the default Renter experience silently instead
+            // of leaving an Owner-only error banner on every public page.
+            activeRole = "renter";
+            pendingLoginRole = "renter";
+            sessionStorage.setItem("gd_active_role", "renter");
+            sessionStorage.setItem("gd_pending_login_role", "renter");
+            localStorage.setItem("gd_preferred_role", "renter");
+            const backendMessage = document.getElementById("backendMessage");
+            if (backendMessage) {
+                backendMessage.textContent = "";
+                backendMessage.className = "backend-message";
+            }
+            setRoleSpecificUI("renter");
+            await renderActiveDashboard();
+            return;
+        }
+        activeRole = "owner";''',
+'''        if (!roles.includes("owner")) {
+            const hasRenterAccess = roles.includes("renter");
+            const consent = hasRenterAccess && window.confirm(
+                "This Google account already has a Renter profile. Enable Owner access for this same account too? Your Renter access will remain available."
+            );
+            const ownerEnabled = consent
+                ? await saveActiveAccountRole("owner").catch(error => {
+                    console.warn("Google Owner role activation failed:", error);
+                    return false;
+                })
+                : false;
+
+            if (!ownerEnabled || !getAccountRoles(currentProfile).includes("owner")) {
+                activeRole = "renter";
+                pendingLoginRole = "renter";
+                sessionStorage.setItem("gd_active_role", "renter");
+                sessionStorage.setItem("gd_pending_login_role", "renter");
+                localStorage.setItem("gd_preferred_role", "renter");
+                const backendMessage = document.getElementById("backendMessage");
+                if (backendMessage) {
+                    backendMessage.textContent = hasRenterAccess
+                        ? (consent
+                            ? "Owner access could not be enabled. Your Renter account is unchanged. Please try again from List a Property → Enable Owner access."
+                            : "This Google account has Renter access. To use the Owner portal too, choose Owner again and approve enabling Owner access for this same account.")
+                        : "This Google account does not have Owner access. Please create or activate an Owner profile first.";
+                    backendMessage.className = "backend-message error";
+                }
+                setRoleSpecificUI("renter");
+                await renderActiveDashboard();
+                return;
+            }
+        }
+        activeRole = "owner";''',
+    "make Google Owner portal activation explicit and consistent"
+)
+
 path.write_text(source, encoding="utf-8")
 print("Updated index.html auth flow safely.")
