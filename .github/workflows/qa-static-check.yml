@@ -175,3 +175,40 @@ jobs:
           node --check tests/gdr-nearby-preservation.spec.cjs
           node --check tests/gdr-role-switch-navigation.test.cjs
           node --test tests/gdr-role-switch-navigation.test.cjs
+
+  auth-browser-regression:
+    needs: javascript-syntax
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout auth QA branch
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Apply frontend patches to the browser fixture
+        run: |
+          python3 scripts/patch-owner-dashboard-refresh.py
+          python3 scripts/patch-property-studio.py
+          python3 scripts/patch-auth-login-flow.py
+
+      - name: Install Playwright test runner
+        run: npm install --no-save @playwright/test
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Owner and Renter authentication browser tests
+        run: npx playwright test tests/gdr-auth-login-signup.spec.cjs --workers=1
+
+      - name: Upload authentication browser diagnostics
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gdr-auth-browser-failure-diagnostics
+          path: test-results/
+          if-no-files-found: ignore
+          retention-days: 7
