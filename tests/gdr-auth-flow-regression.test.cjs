@@ -52,8 +52,10 @@ test("the auth profile recovery helper returns role memberships", () => {
 
 test("an existing Renter email is guided to enable Owner access without a duplicate signup", () => {
   const loginSource = functionSource("async function loginUser()", "// Keep auth actions available");
-  assert.match(loginSource, /List a Property → Enable Owner access/);
+  assert.match(loginSource, /List a Property.*Enable Owner access/);
   assert.match(loginSource, /You do not need a second account/);
+  assert.match(loginSource, /window\.confirm\(/);
+  assert.match(loginSource, /ownerRoleEnabledFromConsent/);
 
   const signupSource = functionSource("async function signupUser()", "/* =========================================================\n   GDR AUTH ROUTE");
   assert.match(signupSource, /This email already has an account/);
