@@ -54,10 +54,17 @@ test.describe("GharDekho premium property identity", () => {
     await expect(page.locator("#gdrStudioNameExamples")).toContainText("The Green Villa");
 
     await page.locator("#gdrStudioPropertyName").fill("The Urban Nest");
-    await page.locator("#gdrStudioLocation").fill("MP Nagar, Bhopal");
-    await page.locator("#gdrStudioRent").fill("7500");
     await page.locator('[data-gdr-configuration="2 BHK"]').click();
+
+    // Pricing and location are separate wizard panels; advance through the
+    // real flow before interacting with their controls.
+    await page.locator("#gdrStudioNext").click();
+    await expect(page.locator("#gdrStudioStepTitle")).toHaveText("Pricing details");
+    await page.locator("#gdrStudioRent").fill("7500");
     await page.locator("#gdrStudioFurnishing").selectOption("Furnished");
+    await page.locator("#gdrStudioNext").click();
+    await expect(page.locator("#gdrStudioStepTitle")).toHaveText("Property location");
+    await page.locator("#gdrStudioLocation").fill("MP Nagar, Bhopal");
 
     const preview = page.locator("#gdrStudioIdentityPreview");
     await expect(preview).toContainText("The Urban Nest");
@@ -76,10 +83,18 @@ test.describe("GharDekho premium property identity", () => {
     await expect(page.locator("#gdrStudioNameExamples")).toContainText("Urban Nest PG");
     await page.locator("#gdrStudioPropertyName").fill("Scholar's Stay");
     await page.locator("#gdrStudioRoomType").selectOption("Double");
+    await page.locator("#gdrStudioGender").selectOption("Any");
     await page.locator("#gdrStudioTotalBeds").fill("10");
     await page.locator("#gdrStudioAvailableBeds").fill("4");
-    await page.locator("#gdrStudioLocation").fill("MP Nagar, Bhopal");
+
+    // The Studio requires the room and bed fields on Identity, rent on
+    // Pricing, and the locality on Location. Use the same wizard path as owners.
+    await page.locator("#gdrStudioNext").click();
+    await expect(page.locator("#gdrStudioStepTitle")).toHaveText("Pricing details");
     await page.locator("#gdrStudioRent").fill("7500");
+    await page.locator("#gdrStudioNext").click();
+    await expect(page.locator("#gdrStudioStepTitle")).toHaveText("Property location");
+    await page.locator("#gdrStudioLocation").fill("MP Nagar, Bhopal");
     const preview = page.locator("#gdrStudioIdentityPreview");
     await expect(preview).toContainText("Scholar's Stay");
     await expect(preview).toContainText("PG Accommodation");
