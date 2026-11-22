@@ -208,36 +208,92 @@ if new_owner not in login_block:
 else:
     print("Already applied: retry profile loading for Owner login")
 
-owner_role_guard_old = '''            if (!getAccountRoles(currentProfile).includes("owner")) {
+owner_guard_start = login_block.find('            if (!getAccountRoles(currentProfile).includes("owner")) {')
+owner_guard_end = login_block.find("            const ownerRoleReady = await withAuthTimeout(", owner_guard_start)
+if owner_guard_start < 0 or owner_guard_end < 0:
+    raise SystemExit("Stopped safely: Owner account-role guard was not found")
+
+owner_guard_new = '''            let ownerRoleEnabledFromConsent = false;
+            if (!getAccountRoles(currentProfile).includes("owner")) {
                 const availableRoles = getAccountRoles(currentProfile);
                 if (availableRoles.includes("renter")) {
-                    // A valid renter signed in from the Owner tab: keep the
-                    // authenticated session and route to the role they actually have.
-                    activeRole = "renter";
-                    pendingLoginRole = "renter";
-                    sessionStorage.setItem("gd_active_role", "renter");
-                    sessionStorage.setItem("gd_pending_login_role", "renter");
-                    sessionStorage.setItem("gd_login_destination", "renter");
-                    authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";
-                    await withAuthTimeout(updateAuthUI(), "Renter dashboard preparation", 12000);
-                    setRoleSpecificUI("renter");
-                    const landing = document.getElementById("loggedOutLanding");
-                    const loginSection = document.getElementById("loginSection");
-                    const homeSection = document.getElementById("homeSection");
-                    const propertiesSection = document.getElementById("propertiesSection");
-                    const dashboard = document.getElementById("dashboardSection");
-                    if (landing) landing.style.display = "none";
-                    if (loginSection) loginSection.style.display = "none";
-                    if (homeSection) homeSection.style.display = "none";
-                    if (propertiesSection) propertiesSection.style.display = "none";
-                    if (dashboard) dashboard.style.display = "block";
-                    document.body.classList.remove("gd-auth-page", "gd-renter-explore-mode");
-                    await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
-                        console.warn("Renter dashboard loading timed out:", error);
-                    });
-                    scrollToSection("dashboardSection");
+                    // Selecting Owner on the login form is an explicit request.
+                    // Ask once before enabling the second role on the same Auth user.
+                    const consentToEnableOwner = window.confirm(
+                        "This email already has a Renter account. Enable Owner access for this same account too? Your Renter access will remain available."
+                    );
+                    if (consentToEnableOwner) {
+                        ownerRoleEnabledFromConsent = await withAuthTimeout(
+                            saveActiveAccountRole("owner"),
+                            "Owner access activation",
+                            10000
+                        ).catch(error => {
+                            console.warn("Owner access activation failed:", error);
+                            return false;
+                        });
+                    }
+
+                    if (!ownerRoleEnabledFromConsent) {
+                        activeRole = "renter";
+                        pendingLoginRole = "renter";
+                        sessionStorage.setItem("gd_active_role", "renter");
+                        sessionStorage.setItem("gd_pending_login_role", "renter");
+                        sessionStorage.setItem("gd_login_destination", "renter");
+                        authMessage.textContent = consentToEnableOwner
+                            ? "Owner access could not be enabled yet. Your Renter account is unchanged. Use List a Property → Enable Owner access from your Renter dashboard to try again."
+                            : "This email already has a Renter account. You do not need a second account; use List a Property → Enable Owner access from your Renter dashboard.";
+                        await withAuthTimeout(updateAuthUI(), "Renter dashboard preparation", 12000);
+                        setRoleSpecificUI("renter");
+                        const landing = document.getElementById("loggedOutLanding");
+                        const loginSection = document.getElementById("loginSection");
+                        const homeSection = document.getElementById("homeSection");
+                        const propertiesSection = document.getElementById("propertiesSection");
+                        const dashboard = document.getElementById("dashboardSection");
+                        if (landing) landing.style.display = "none";
+                        if (loginSection) loginSection.style.display = "none";
+                        if (homeSection) homeSection.style.display = "none";
+                        if (propertiesSection) propertiesSection.style.display = "none";
+                        if (dashboard) dashboard.style.display = "block";
+                        document.body.classList.remove("gd-auth-page", "gd-renter-explore-mode");
+                        await withAuthTimeout(renderActiveDashboard(), "Renter dashboard loading", 12000).catch(error => {
+                            console.warn("Renter dashboard loading timed out:", error);
+                        });
+                        scrollToSection("dashboardSection");
+                        return;
+                    }
+                } else {
+                    // Never grant Owner access to an account with no existing
+                    // Renter/Owner membership just because Owner was selected.
+                    window.__gdRoleAccessDenied = true;
+                    activeRole = "owner";
+                    pendingLoginRole = "owner";
+                    sessionStorage.setItem("gd_pending_login_role", "owner");
+                    sessionStorage.setItem("gd_active_role", "owner");
+                    sessionStorage.removeItem("gd_login_destination");
+                    authMessage.textContent = "This account does not have Owner access. Please create an Owner account or use the correct login option.";
+                    try {
+                        await supabaseClient.auth.signOut();
+                    } catch (signOutError) {
+                        console.warn("Owner access sign-out failed:", signOutError);
+                    }
+                    currentUser = null;
+                    currentProfile = null;
+                    setRoleSpecificUI("owner");
+                    const ownerLoginSection = document.getElementById("loginSection");
+                    const ownerDashboard = document.getElementById("dashboardSection");
+                    const ownerLanding = document.getElementById("loggedOutLanding");
+                    if (ownerLanding) ownerLanding.style.display = "none";
+                    if (ownerDashboard) ownerDashboard.style.display = "none";
+                    if (ownerLoginSection) ownerLoginSection.style.display = "grid";
+                    document.body.classList.add("gd-auth-page");
+                    applyLoginRolePresentation("owner");
                     return;
                 }
+            }
+
+            const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(
+'''
+
 old_message = 'authMessage.textContent = "This account has Renter access, so we opened your Renter dashboard. Create an Owner account to list properties.";'
 new_message = 'authMessage.textContent = "This email already has a Renter account. You do not need a second account: use List a Property in your Renter dashboard and choose Enable Owner access.";'
 if old_message in login_block:
@@ -374,7 +430,7 @@ complete_oauth = '''async function completePendingOAuthSignup() {
         sessionStorage.removeItem("gd_pending_oauth_phone");
     };
 
-    if (!currentUser || !currentProfile || !isValidGharDekhoPhone(phone)) {
+    if (!currentUser || !currentProfile || gharDekhoPhoneError(phone)) {
         clearPending();
         showMessage("backendMessage", "Google sign-in succeeded, but the signup phone details could not be verified. Please edit your profile and try again.", "error");
         return false;
