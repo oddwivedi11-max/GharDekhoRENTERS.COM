@@ -42,7 +42,7 @@ jobs:
               ("gdr-renter-experience.js", "20261111-infinite-scroll1"),
               ("gdr-renter-experience.css", "20261107-compare-picker2"),
               ("gdr-admin-command-center.js", "20261113-owner-report-launcher-remove1"),
-              ("gdr-rental-suite-v2.js", "20261121-daily-late-fee1"),
+              ("gdr-rental-suite-v2.js", "20261122-remove-renter-report-card1"),
               ("gdr-owner-payments.js", "20261121-daily-late-fee1"),
               ("gdr-owner-payments.css", "20261112-payment-return1"),
               ("gdr-owner-command-center-hotfix.js", "20261114-owner-observer-batch1"),
