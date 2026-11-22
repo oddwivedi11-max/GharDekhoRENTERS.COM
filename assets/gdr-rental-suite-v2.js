@@ -248,8 +248,16 @@ function addOwnerNearbyAction(){
 }
 
 function removeDuplicateReportButtons(){
- // Remove only explicitly marked legacy owner actions. Avoid scanning the
- // full dashboard or reading innerText, which forces expensive layout work.
+ // Remove the redundant renter dashboard report card while preserving the
+ // separate Support entry. Keep the existing owner-only cleanup unchanged.
+ var renter=$("#renterDashboard");
+ if(renter){
+  Array.from(renter.querySelectorAll("#gdrxSupport,[data-renter-report-problem]")).forEach(function(node){
+   if(!node.isConnected)return;
+   var label=String(node.textContent||"").replace(/\s+/g," ").trim();
+   if(/\breport\s+a\s+problem\b/i.test(label))node.remove();
+  });
+ }
  var scope=$("#ownerDashboard");
  if(!scope)return;
  var selector="#gdrxSupport,#gdrOwnerReportProblem,[data-owner-report-problem]";
