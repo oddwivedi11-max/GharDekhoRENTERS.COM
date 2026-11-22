@@ -20,7 +20,19 @@ async function openStudio(page) {
       })
     };
   });
-  await page.locator("#gdrListPropertyStart").click();
+  // This suite validates the identity/preview form, not the dashboard launcher's
+  // click hit-area. Open the same public Studio API directly to avoid coupling
+  // four data-preview tests to the dashboard's responsive visibility animation.
+  const opened = await page.evaluate(async () => {
+    const result = await window.GDRPropertyStudio.open(false);
+    return {
+      result,
+      error: document.querySelector("#gdrStudioMessage")?.textContent
+        || document.querySelector("#gdrListPropertyFeedback")?.textContent
+        || ""
+    };
+  });
+  expect(opened.result, "Property Studio did not open: " + opened.error).toBe(true);
   await expect(page.locator("#gdrPropertyStudio")).toBeVisible();
 }
 
