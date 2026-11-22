@@ -23,14 +23,15 @@ test.describe("GharDekho Owner/Renter authentication", () => {
   });
 
   test("selecting Owner on Sign Up keeps the Create Account form open", async ({ page }) => {
-    await openAuth(page, "owner");
+    await openAuth(page, "renter");
     await page.locator("#authSignUpTab").click();
+    await expect(page.locator("#premiumAuthTitle")).toHaveText("Create your Renter account");
+    await page.locator(".gd-v4-role-switch label").filter({ has: page.locator("#roleOwner") }).click();
     await expect(page.locator("#userName")).toBeVisible();
     await expect(page.locator("#signupTermsField")).toBeVisible();
     await expect(page.locator("#gdLoginPhoneField")).toBeVisible();
     expect(await page.locator("#userPhone").evaluate(input => input.required)).toBe(true);
 
-    await page.locator("#roleOwner").check();
     await expect(page.locator("#premiumAuthTitle")).toHaveText("Create your Owner account");
     await expect(page.locator("#signupBtn")).toBeVisible();
     await expect(page.locator("#loginSubmitBtn")).toBeHidden();
@@ -39,11 +40,9 @@ test.describe("GharDekho Owner/Renter authentication", () => {
   });
 
   test("selecting Renter on Sign Up also keeps Create Account active", async ({ page }) => {
-    await openAuth(page, "renter");
+    await openAuth(page, "owner");
     await page.locator("#authSignUpTab").click();
-    // Renter is the default selection in this form. Clicking its full role
-    // card must leave the active Sign Up mode intact even when the radio is
-    // already checked.
+    await expect(page.locator("#premiumAuthTitle")).toHaveText("Create your Owner account");
     await page.locator(".gd-v4-role-switch label").filter({ has: page.locator("#roleRenter") }).click();
     await expect(page.locator("#premiumAuthTitle")).toHaveText("Create your Renter account");
     await expect(page.locator("#signupBtn")).toBeVisible();
