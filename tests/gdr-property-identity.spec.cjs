@@ -4,10 +4,17 @@ async function openStudio(page) {
   await page.goto("/", { waitUntil: "domcontentloaded", timeout: 45000 });
   await page.waitForFunction(() => window.GDRPropertyStudio && typeof window.GDRPropertyStudio.open === "function");
   await page.evaluate(() => {
-    const shell = document.getElementById("dashboardSection");
-    if (shell) { shell.hidden = false; shell.style.display = "block"; }
     const dashboard = document.getElementById("ownerDashboard");
-    if (dashboard) { dashboard.hidden = false; dashboard.classList.add("active"); dashboard.style.display = "block"; }
+    if (dashboard) {
+      // The page may start with the portal shell hidden. Expose the entire
+      // dashboard ancestor chain in this isolated browser fixture.
+      for (let node = dashboard; node && node !== document.body; node = node.parentElement) {
+        node.hidden = false;
+        node.style.setProperty("display", "block", "important");
+        node.style.setProperty("visibility", "visible", "important");
+      }
+      dashboard.classList.add("active");
+    }
     window.__gdrSupabaseClient = {
       auth: { getUser: async () => ({ data: { user: { id: "gdr-property-identity-test-user" } }, error: null }) },
       from: table => ({
