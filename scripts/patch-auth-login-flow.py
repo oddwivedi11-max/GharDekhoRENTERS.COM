@@ -72,14 +72,17 @@ replace_function(
         signUpTab.style.background = isLoginMode ? "transparent" : "#0b3430";
         signUpTab.style.color = isLoginMode ? "#0b3430" : "#fff";
     }
+    const selectedRole = document.querySelector('input[name="accountRole"]:checked')?.value === "owner" ? "owner" : "renter";
     if (title) title.textContent = isLoginMode
         ? (pendingLoginRole === "owner" ? "Welcome back, Owner" : "Welcome back, Renter")
-        : "Create your GharDekho account";
+        : (selectedRole === "owner" ? "Create your Owner account" : "Create your Renter account");
     if (intro) intro.textContent = isLoginMode
         ? (pendingLoginRole === "owner"
             ? "Sign in to manage properties, listings and renter visits."
             : "Sign in to discover homes, save properties and manage visits.")
-        : "Create one account for the portal you want to use. You can add Owner access later without creating a second account.";
+        : (selectedRole === "owner"
+            ? "Create your Owner profile, then list your property after signing in."
+            : "Create your Renter profile to discover homes, save favourites and request visits.");
 
     if (typeof window.__gdSyncAuthPhoneMode === "function") {
         window.__gdSyncAuthPhoneMode();
