@@ -291,9 +291,13 @@ owner_guard_new = '''            let ownerRoleEnabledFromConsent = false;
                 }
             }
 
-            const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(
 '''
 login_block = login_block[:owner_guard_start] + owner_guard_new + login_block[owner_guard_end:]
+login_block = login_block.replace(
+    "            const ownerRoleReady = await withAuthTimeout(",
+    "            const ownerRoleReady = ownerRoleEnabledFromConsent || await withAuthTimeout(",
+    1
+)
 print("Applied: explicit confirmation before enabling Owner access on an existing Renter account")
 
 
