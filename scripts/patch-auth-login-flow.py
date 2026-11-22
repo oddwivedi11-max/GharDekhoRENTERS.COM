@@ -298,7 +298,7 @@ old_message = 'authMessage.textContent = "This account has Renter access, so we 
 new_message = 'authMessage.textContent = "This email already has a Renter account. You do not need a second account: use List a Property in your Renter dashboard and choose Enable Owner access.";'
 if old_message in login_block:
     login_block = login_block.replace(old_message, new_message, 1)
-elif new_message in login_block:
+elif "This email already has a Renter account." in login_block:
     pass
 else:
     raise SystemExit("Stopped safely: renter-to-owner guidance text not found")
